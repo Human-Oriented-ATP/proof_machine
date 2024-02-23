@@ -404,7 +404,12 @@ class TIM(Gtk.Window):
 
 if __name__ == "__main__":
 
-    inferences = parse_file("color-game.pl")
-    goal = parse_term("r(3,4)")
+    problem = 2
+    if problem == 1:
+        inferences = parse_file("color-game.pl")
+        goal = parse_term("r(3,4)")
+    elif problem == 2:
+        inferences = parse_file("problem2.pl")
+        goal = parse_term("r(4,7,6)")
     win = TIM(inferences, goal)
     Gtk.main()

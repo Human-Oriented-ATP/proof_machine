@@ -165,6 +165,11 @@ def unify(to_merge):
 
 # we need to systematically assign numbers to terms for TIM
 def enumerate_terms(terms, start):
+    # print("Enumerate terms:")
+    # print("terms = [")
+    # for term in terms:
+    #     print(f"    parse_term(\"{term}\"),")
+    # print(']')
     family = set()
     for term in terms:
         assert not term.free_vars
@@ -187,7 +192,7 @@ def enumerate_terms(terms, start):
     arg_to_parents = defaultdict(list)
     for t in family:
         if t.is_numeric: continue
-        for arg in t.args: arg_to_parents[arg] = t
+        for arg in t.args: arg_to_parents[arg].append(t)
         set_num_missing(t, sum(1 for arg in t.args if arg not in res))
 
     cur = start
