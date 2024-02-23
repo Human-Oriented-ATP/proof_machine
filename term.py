@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from weakref import WeakValueDictionary
 from collections import defaultdict
 from helpers import UnionFind
@@ -16,7 +15,7 @@ class Term:
         return self.subst({ v : TermVar(v.name) for v in self.free_vars })
     def __repr__(self):
         assert isinstance(self, TermApp) or isinstance(self, TermVar)
-        return f"Term({str(self)})"
+        return "Term({})".format(self)
     @property
     def is_numeric(self):
         return isinstance(self, TermApp) and not self.args and isinstance(self.f, int)
@@ -201,10 +200,10 @@ def enumerate_terms(terms, start):
 
     return res
 
-@dataclass
 class Inference:
-    goals: list[Term]
-    requirements: list[Term]
+    def __init__(self, goals, requirements):
+        self.goals = goals
+        self.requirements = requirements
 
     @property
     def free_vars(self):

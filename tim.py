@@ -232,7 +232,7 @@ class TIM(Gtk.Window):
         self.connect("key-press-event", self.on_key_press)
         self.connect("key-release-event", self.on_key_release)
 
-        self.set_title(f"Tim's Incredible (proof) Machine")
+        self.set_title("Tim's Incredible (proof) Machine")
         self.resize(*win_size)
         self.win_size = win_size
         self.set_position(Gtk.WindowPosition.CENTER)

@@ -1,21 +1,20 @@
-from dataclasses import dataclass
 from term import *
 import math
 import cairo
 import random
 
-@dataclass
 class Style:
-    fill : tuple = None # color
-    stroke : tuple = None # color
-    stroke_width : float = 0.1
-    dash : tuple = None
+    def __init__(self, fill = None, stroke = None, stroke_width = 0.1, dash = None):
+        self.fill = fill
+        self.stroke = stroke
+        self.stroke_width = stroke_width
+        self.dash = dash
 
     @staticmethod
     def set_color(cr, color):
         if len(color) == 3: cr.set_source_rgb(*color)
         elif len(color) == 4: cr.set_source_rgba(*color)
-        else: raise Exception(f"Don't know how to set color: {color}")
+        else: raise Exception("Don't know how to set color: {}".format(color))
     def paint(self, cr):
         if self.fill is not None:
             Style.set_color(cr, self.fill)
@@ -32,12 +31,12 @@ class Style:
             if self.dash is not None:
                 cr.set_dash([])
 
-@dataclass
 class BoundingBox:
-    top : float
-    bottom : float
-    left : float
-    right : float
+    def __init__(self, top, bottom, left, right):
+        self.top = top
+        self.bottom = bottom
+        self.left = left
+        self.right = right
 
     def contains(self, x,y):
         return self.left < x < self.right and self.top > y > self.bottom
