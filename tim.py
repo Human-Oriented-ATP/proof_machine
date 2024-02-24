@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import math
 import gi
 gi.require_version("Gtk", "3.0")
@@ -202,14 +204,12 @@ class TIM(Gtk.Window):
 
         # calculate start_num -- first free number that can be created
         start_num = 1
-        preds = [goal]
-        for inference in inferences:
-            preds.extend(inference.goals)
-            preds.extend(inference.requirements)
-        for pred in preds:
-            for term in pred.subterms():
-                if term.is_numeric:
-                    start_num = max(term.f+1, start_num)
+        preds = []
+        for inference in inferences + [goal]:
+            for pred in inference.goals + inference.requirements:
+                for term in pred.subterms():
+                    if term.is_numeric:
+                        start_num = max(term.f+1, start_num)
 
         self.connections = ConnectionManager(start_num)
 
@@ -243,7 +243,7 @@ class TIM(Gtk.Window):
         self.shift = (0,0)
 
         self.sidebar = Sidebar(inferences)
-        self.goal = GInference(Inference(goals = [], requirements = [goal]))
+        self.goal = GInference(goal)
         self.objects = [self.goal]
         self.connections.add_predicate(self.goal.requirements[0], False)
         self.connections.update_numbers()
@@ -335,6 +335,13 @@ class TIM(Gtk.Window):
                 self.obj_grasp = None
         if e.button == 2:
             self.mb_grasp = None
+        elif e.button == 3:
+            if self.connections.has_preview:
+                x,y = self.connections.preview_pred1.child_coor(self.pixel_to_coor((e.x, e.y)))
+                if not self.connections.preview_pred1.bounding_box.contains(x,y):
+                    if self.connections.confirm_preview():
+                        self.connections.update_numbers()
+                    self.darea.queue_draw()
 
     def on_motion(self,w,e):
         if e.state & Gdk.ModifierType.BUTTON2_MASK:
@@ -404,12 +411,25 @@ class TIM(Gtk.Window):
 
 if __name__ == "__main__":
 
-    problem = 2
-    if problem == 1:
-        inferences = parse_file("color-game.pl")
-        goal = parse_term("r(3,4)")
-    elif problem == 2:
-        inferences = parse_file("problem2.pl")
-        goal = parse_term("r(4,7,6)")
+    import argparse
+
+    parser = argparse.ArgumentParser(prog='tim.py',
+                                     description="Tim's Incretible (proof) Machine",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("problem_file", type=str, help="prolog-like file with the rules")
+    args = parser.parse_args()
+
+    all_inferences = parse_file(args.problem_file)
+    goal = None
+    inferences = []
+    for inference in all_inferences:
+        if not inference.goals:
+            assert len(inference.requirements) == 1
+            assert goal is None
+            goal = inference
+        else:
+            inferences.append(inference)
+    assert goal is not None
+
     win = TIM(inferences, goal)
     Gtk.main()

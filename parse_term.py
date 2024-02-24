@@ -56,6 +56,9 @@ def p_inference_from(p):
 def p_inference_axiom(p):
     "inference : term '.'"
     p[0] = Inference(goals = [p[1]], requirements = [])
+def p_inference_goal(p):
+    "inference : FOLLOWSFROM termlist '.'"
+    p[0] = Inference(goals = [], requirements = list(p[2]))
 
 def p_termlist_base(p):
     "termlist : term"

@@ -12,3 +12,4 @@ r(A,B) :- w(A,B).
 r(A,B) :- w(B,A).
 r(A,B) :- r(A,C), r(A,D), b(B,C,D).
 r(A,A).
+:- r(3,4).
