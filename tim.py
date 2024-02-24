@@ -82,11 +82,11 @@ class ConnectionManager:
 
     def init_preview(self, pred1):
         self.cancel_preview()
-        removed = pred1 in self.pred_to_left
+        self.preview_had_connection = pred1 in self.pred_to_left
         self.remove_connection(pred1)
         self.preview_pred1 = pred1
         self.preview_left1 = self.pred_to_left[pred1]
-        if removed: self.update_numbers()
+        if self.preview_had_connection: self.update_numbers()
     def update_preview_free(self, coor):
         assert self.preview_pred1 is not None
         dest = GGroup([
@@ -324,13 +324,38 @@ class TIM(Gtk.Window):
     def on_button_release(self, w, e):
         if e.button == 1:
             if self.obj_grasp is not None:
-                if e.x < self.sidebar.bounding_box.width * self.win_size[1]:
-                    obj, _, _ = self.obj_grasp
+                obj, _, _ = self.obj_grasp
+                if e.x < self.sidebar.bounding_box.width * self.win_size[1]: # deleted
                     if obj != self.goal:
                         self.objects.remove(obj)
                         for _,pred in obj.iter_pred():
                             self.connections.remove_predicate(pred)
                             self.connections.update_numbers()
+                        self.darea.queue_draw()
+                else: # check for auto-join
+                    updated = False
+                    for obj2 in self.objects:
+                        if obj2 == obj: continue
+                        if not isinstance(obj, GInference): continue
+                        for left1, pred1 in obj.iter_pred():
+                            for left2, pred2 in obj2.iter_pred():
+                                if left1 == left2: continue
+                                if pred1.predicate.f != pred2.predicate.f: continue
+                                if len(pred1.predicate.args) != len(pred2.predicate.args): continue
+                                if left1: side = 1
+                                else: side = -1
+                                center1 = pred1.parent_coor((0,0))
+                                center2 = pred2.parent_coor((0,0))
+                                x_dist = side * (center1[0] - center2[0])
+                                y_dist = abs(center2[1] - center1[1])
+                                print(x_dist, y_dist)
+                                if 0 < x_dist < 3 and y_dist < 1:
+                                    updated = True
+                                    self.connections.init_preview(pred1)
+                                    self.connections.update_preview_dest(pred2)
+                                    self.connections.confirm_preview()
+                    if updated:
+                        self.connections.update_numbers()
                         self.darea.queue_draw()
                 self.obj_grasp = None
         if e.button == 2:
@@ -338,7 +363,8 @@ class TIM(Gtk.Window):
         elif e.button == 3:
             if self.connections.has_preview:
                 x,y = self.connections.preview_pred1.child_coor(self.pixel_to_coor((e.x, e.y)))
-                if not self.connections.preview_pred1.bounding_box.contains(x,y):
+                only_click = self.connections.preview_pred1.bounding_box.contains(x,y)
+                if self.connections.preview_had_connection or not only_click:
                     if self.connections.confirm_preview():
                         self.connections.update_numbers()
                     self.darea.queue_draw()
