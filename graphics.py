@@ -66,6 +66,9 @@ class BoundingBox:
             left = self.left-offset,
             right = self.right+offset
         )
+    def draw(self, cr):
+        cr.rectangle(self.left, self.bottom, self.width, self.height)
+
     @property
     def width(self):
         return self.right - self.left
@@ -103,6 +106,16 @@ class BoundingBox:
             left = -width/2,
             right = width/2
         )
+    @staticmethod
+    def from_corners(corner1, corner2):
+        x1,y1 = corner1
+        x2,y2 = corner2
+        return BoundingBox(
+            top = max(y1,y2),
+            bottom = min(y1,y2),
+            left = min(x1,x2),
+            right = max(x1,x2),
+        )
 
 class GObject:
     def __init__(self):
@@ -125,6 +138,13 @@ class GObject:
         x2,y2 = bounding_box.center
         self.center = (x2-x1*self.scale_coef, y2-y1*self.scale_coef)
 
+    def parent_with_type(self, t):
+        res = self.parent
+        while not isinstance(res, t):
+            if res is None:
+                raise Exception("Parent of type {} not found".format(t))
+            res = res.parent
+        return res
     def get_parent_shift_scale(self, parent):
         x = 0
         y = 0
