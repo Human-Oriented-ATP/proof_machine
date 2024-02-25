@@ -38,9 +38,8 @@ class Sidebar(GGroupVAl):
         return self.subobjects[-1]
 
 class ConnectionManager:
-    def __init__(self, start_num, goal, debug = False):
+    def __init__(self, start_num, debug = False):
         self.solved = False
-        self.goal = goal
         self.start_num = start_num
         self.pred_to_left = dict() # GPredicate -> bool
         self.pred_to_endconn = dict() # GPredicate -> bool
@@ -204,18 +203,33 @@ class ConnectionManager:
                 else:
                     conn.style = self.broken_style
 
-        if self.goal is not None:
-            self.solved = self._check_solved(self.goal)
-
-    def _check_solved(self, root):
-        for req in root.requirements:
-            if req not in self.pred_to_conn: return False
-            conns, node = self.pred_to_conn[req]
-            for conn in conns:
-                if conn.obj1.label != conn.obj2.label: return False
-            if not self._check_solved(node.parent_with_type(GInference)):
-                return False
-        return True
+        self.solved = False
+        used = set()
+        for pred in self.pred_to_conn.keys():
+            inf = pred.parent_with_type(GInference)
+            if inf in used: continue
+            used.add(inf)
+            cur_tree_correct = True
+            stack = [(inf,None)]
+            while stack:
+                inf1,entry = stack.pop()
+                used.add(inf1)
+                for _,pred1 in inf1.iter_pred():
+                    if pred1 == entry: continue
+                    if pred1 not in self.pred_to_conn:
+                        cur_tree_correct = False
+                    else:
+                        conns,pred2 = self.pred_to_conn[pred1]
+                        inf2 = pred2.parent_with_type(GInference)
+                        if inf2 in used:
+                            for conn in conns:
+                                conn.style = self.broken_style
+                        else:
+                            used.add(inf2)
+                            stack.append([inf2, pred2])
+                        if any(conn.style == self.broken_style for conn in conns):
+                            cur_tree_correct = False
+            if cur_tree_correct: self.solved = True
 
 class TIM(Gtk.Window):
 
@@ -236,7 +250,7 @@ class TIM(Gtk.Window):
             self.goal = GInference(goal)
         else:
             self.goal = None
-        self.connections = ConnectionManager(start_num, self.goal)
+        self.connections = ConnectionManager(start_num)
 
         self.obj_grasp = None
         self.mb_grasp = None
