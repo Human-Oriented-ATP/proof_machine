@@ -570,21 +570,6 @@ class TIM(Gtk.Window):
             self.sidebar.draw(cr, layer)
         cr.restore()
 
-        # draw preview
-        if self.sidebar_preview is not None:
-            cr.save()
-            preview_scale = 30
-            offset = 10
-            x = self.sidebar_width - preview_scale*(self.sidebar_preview.raw_bounding_box.left)+offset
-            y = -self.win_height * self.sidebar_preview.parent_coor((0,0))[1]
-            y = max(y, preview_scale*(self.sidebar_preview.raw_bounding_box.top)+offset)
-            y = min(y, self.win_height + preview_scale*(self.sidebar_preview.raw_bounding_box.bottom)-offset)
-            cr.translate(x,y)
-            cr.scale(preview_scale, -preview_scale)
-            for layer in range(3):
-                self.sidebar_preview.draw_raw(cr, layer)
-            cr.restore()
-
         # draw "Solved"
         if self.connections.solved:
             cr.save()
@@ -599,6 +584,21 @@ class TIM(Gtk.Window):
             bar.draw(cr)
             cr.fill()
             text.draw(cr, 0)
+            cr.restore()
+
+        # draw preview
+        if self.sidebar_preview is not None:
+            cr.save()
+            preview_scale = 30
+            offset = 10
+            x = self.sidebar_width - preview_scale*(self.sidebar_preview.raw_bounding_box.left)+offset
+            y = -self.win_height * self.sidebar_preview.parent_coor((0,0))[1]
+            y = max(y, preview_scale*(self.sidebar_preview.raw_bounding_box.top)+offset)
+            y = min(y, self.win_height + preview_scale*(self.sidebar_preview.raw_bounding_box.bottom)-offset)
+            cr.translate(x,y)
+            cr.scale(preview_scale, -preview_scale)
+            for layer in range(3):
+                self.sidebar_preview.draw_raw(cr, layer)
             cr.restore()
 
 if __name__ == "__main__":
