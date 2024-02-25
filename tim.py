@@ -204,7 +204,8 @@ class ConnectionManager:
                 else:
                     conn.style = self.broken_style
 
-        self.solved = self._check_solved(self.goal)
+        if self.goal is not None:
+            self.solved = self._check_solved(self.goal)
 
     def _check_solved(self, root):
         for req in root.requirements:
@@ -225,12 +226,16 @@ class TIM(Gtk.Window):
         start_num = 1
         preds = []
         for inference in inferences + [goal]:
+            if inference is None: continue
             for pred in inference.goals + inference.requirements:
                 for term in pred.subterms():
                     if term.is_numeric:
                         start_num = max(term.f+1, start_num)
 
-        self.goal = GInference(goal)
+        if goal is not None:
+            self.goal = GInference(goal)
+        else:
+            self.goal = None
         self.connections = ConnectionManager(start_num, self.goal)
 
         self.obj_grasp = None
@@ -269,8 +274,9 @@ class TIM(Gtk.Window):
 
         self.sidebar = Sidebar(inferences)
         self.sidebar_preview = None
-        self.objects = [self.goal]
-        self.connections.add_predicate(self.goal.requirements[0], False)
+        self.objects = []
+        if self.goal is not None:
+            self.add_object(self.goal)
         self.connections.update_numbers()
 
     def update_win_size(self):
@@ -632,22 +638,27 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(prog='tim.py',
-                                     description="Tim's Incretible (proof) Machine",
+                                     description="Tim's Incredible (proof) Machine",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("problem_file", type=str, help="prolog-like file with the rules")
     args = parser.parse_args()
 
     all_inferences = parse_file(args.problem_file)
+    horn_problem = True
     goal = None
     inferences = []
     for inference in all_inferences:
         if not inference.goals:
-            assert len(inference.requirements) == 1
-            assert goal is None
+            if len(inference.requirements) != 1 or goal is not None:
+                horn_problem = False
+                break
             goal = inference
         else:
             inferences.append(inference)
-    assert goal is not None
+    if goal is None: horn_problem = False
 
+    if not horn_problem:
+        inferences = all_inferences
+        goal = None
     win = TIM(inferences, goal)
     Gtk.main()
