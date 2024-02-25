@@ -38,7 +38,9 @@ class Sidebar(GGroupVAl):
         return self.subobjects[-1]
 
 class ConnectionManager:
-    def __init__(self, start_num, debug = False):
+    def __init__(self, start_num, goal, debug = False):
+        self.solved = False
+        self.goal = goal
         self.start_num = start_num
         self.pred_to_left = dict() # GPredicate -> bool
         self.pred_to_endconn = dict() # GPredicate -> bool
@@ -202,6 +204,18 @@ class ConnectionManager:
                 else:
                     conn.style = self.broken_style
 
+        self.solved = self._check_solved(self.goal)
+
+    def _check_solved(self, root):
+        for req in root.requirements:
+            if req not in self.pred_to_conn: return False
+            conns, node = self.pred_to_conn[req]
+            for conn in conns:
+                if conn.obj1.label != conn.obj2.label: return False
+            if not self._check_solved(node.parent_with_type(GInference)):
+                return False
+        return True
+
 class TIM(Gtk.Window):
 
     def __init__(self, inferences, goal, win_size = (800, 600)):
@@ -216,7 +230,8 @@ class TIM(Gtk.Window):
                     if term.is_numeric:
                         start_num = max(term.f+1, start_num)
 
-        self.connections = ConnectionManager(start_num)
+        self.goal = GInference(goal)
+        self.connections = ConnectionManager(start_num, self.goal)
 
         self.obj_grasp = None
         self.mb_grasp = None
@@ -253,13 +268,23 @@ class TIM(Gtk.Window):
         self.shift = (0,0)
 
         self.sidebar = Sidebar(inferences)
-        self.goal = GInference(goal)
+        self.sidebar_preview = None
         self.objects = [self.goal]
         self.connections.add_predicate(self.goal.requirements[0], False)
         self.connections.update_numbers()
 
     def update_win_size(self):
         self.win_size = (self.darea.get_allocated_width(), self.darea.get_allocated_height())
+
+    @property
+    def win_width(self):
+        return self.win_size[0]
+    @property
+    def win_height(self):
+        return self.win_size[1]
+    @property
+    def sidebar_width(self):
+        return self.sidebar.bounding_box.width * self.win_height
 
     def pixel_to_coor(self, pixel):
         px,py = pixel
@@ -302,6 +327,11 @@ class TIM(Gtk.Window):
         self.objects.append(obj)
         for left, pred in obj.iter_pred():
             self.connections.add_predicate(pred, not left)
+
+    def set_sidebar_preview(self, obj):
+        if obj == self.sidebar_preview: return
+        self.sidebar_preview = obj
+        self.darea.queue_draw()
 
     def grasp_objects(self, objs, x,y, copy):
         if copy:
@@ -359,9 +389,8 @@ class TIM(Gtk.Window):
             self.darea.queue_draw()
             return
         if e.button == 1:
-            if e.x < self.sidebar.bounding_box.width * self.win_size[1]:
-                icon = self.sidebar.select(e.y / self.win_size[1])
-                obj = GInference(icon.inference.fresh_var_copy())
+            if self.sidebar_preview is not None:
+                obj = GInference(self.sidebar_preview.inference.fresh_var_copy())
                 self.add_object(obj)
                 self.connections.update_numbers()
                 self.obj_grasp = [(obj, 0,0)]
@@ -401,7 +430,7 @@ class TIM(Gtk.Window):
         if e.button == 1:
             if self.obj_grasp is not None:
                 objs = set(obj for obj,_,_ in self.obj_grasp)
-                if e.x < self.sidebar.bounding_box.width * self.win_size[1]: # deleted
+                if e.x < self.sidebar_width: # deleted
                     self.objects = [
                         obj
                         for obj in self.objects
@@ -454,20 +483,24 @@ class TIM(Gtk.Window):
                     self.darea.queue_draw()
 
     def on_motion(self,w,e):
+        check_sidebar = True
         if self.select_grasp is not None:
             corner1, corner2 = self.select_grasp
             x,y = self.pixel_to_coor((e.x, e.y))
             self.select_grasp = corner1, (x,y)
+            check_sidebar = False
             self.darea.queue_draw()
         if e.state & Gdk.ModifierType.BUTTON2_MASK:
             if self.mb_grasp is None: return
             self.set_shift((e.x, e.y), self.mb_grasp)
+            check_sidebar = False
             self.darea.queue_draw()
         elif e.state & Gdk.ModifierType.BUTTON1_MASK:
             if self.obj_grasp is None: return
             for obj, gx, gy in self.obj_grasp:
                 x,y = self.pixel_to_coor((e.x, e.y))
                 obj.center = (x-gx, y-gy)
+            check_sidebar = False
             self.darea.queue_draw()
         if self.connections.has_preview:
             coor = self.pixel_to_coor((e.x, e.y))
@@ -476,7 +509,13 @@ class TIM(Gtk.Window):
                     if self.connections.update_preview_dest(pred2): break
             else:
                 self.connections.update_preview_free(coor)
+            check_sidebar = False
             self.darea.queue_draw()
+
+        if check_sidebar and e.x < self.sidebar_width:
+            self.set_sidebar_preview(self.sidebar.select(e.y / self.win_height))
+        else:
+            self.set_sidebar_preview(None)
 
     def on_key_press(self,w,e):
         keyval = e.keyval
@@ -525,11 +564,42 @@ class TIM(Gtk.Window):
         cr.restore()
 
         cr.save()
-        cr.scale(self.win_size[1],-self.win_size[1])
+        cr.scale(self.win_height,-self.win_height)
 
         for layer in range(3):
             self.sidebar.draw(cr, layer)
         cr.restore()
+
+        # draw preview
+        if self.sidebar_preview is not None:
+            cr.save()
+            preview_scale = 30
+            offset = 10
+            x = self.sidebar_width - preview_scale*(self.sidebar_preview.raw_bounding_box.left)+offset
+            y = -self.win_height * self.sidebar_preview.parent_coor((0,0))[1]
+            y = max(y, preview_scale*(self.sidebar_preview.raw_bounding_box.top)+offset)
+            y = min(y, self.win_height + preview_scale*(self.sidebar_preview.raw_bounding_box.bottom)-offset)
+            cr.translate(x,y)
+            cr.scale(preview_scale, -preview_scale)
+            for layer in range(3):
+                self.sidebar_preview.draw_raw(cr, layer)
+            cr.restore()
+
+        # draw "Solved"
+        if self.connections.solved:
+            cr.save()
+            cr.scale(1,-1)
+            bar = BoundingBox(
+                top = 0, bottom = -70,
+                left = self.sidebar_width, right = self.win_width,
+            )
+            text = GText("Problem solved!", 0)
+            text.fit_to(bar.add_offset(-10))
+            cr.set_source_rgb(0.4,1,0.4)
+            bar.draw(cr)
+            cr.fill()
+            text.draw(cr, 0)
+            cr.restore()
 
 if __name__ == "__main__":
 

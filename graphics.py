@@ -153,8 +153,8 @@ class GObject:
         while obj != parent:
             if obj is None: raise Exception("Parent not found")
             scale *= obj.scale_coef
-            x *= scale
-            y *= scale
+            x *= obj.scale_coef
+            y *= obj.scale_coef
             x += obj.center[0]
             y += obj.center[1]
             obj = obj.parent
@@ -166,7 +166,7 @@ class GObject:
     def child_coor(self, coor, parent = None):
         x,y = coor
         (shx, shy), scale = self.get_parent_shift_scale(parent)
-        return (x-shx, y-shy)
+        return ((x-shx)/scale, (y-shy)/scale)
     def bb_from_parent(self, parent = None):
         shift, scale = self.get_parent_shift_scale(parent)
         return self.raw_bounding_box.scale(scale).translate(*shift)

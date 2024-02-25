@@ -210,6 +210,9 @@ class Inference:
         self.goals = goals
         self.requirements = requirements
 
+    def __str__(self):
+        return ', '.join(map(str, self.goals)) + ' :- ' + ', '.join(map(str, self.requirements))
+
     @property
     def free_vars(self):
         res = set()
