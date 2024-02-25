@@ -38,6 +38,11 @@ class BoundingBox:
         self.left = left
         self.right = right
 
+    def __str__(self):
+        return "BoundingBox(top = {}, bottom = {}, left = {}, right = {})".format(
+            self.top, self.bottom, self.left, self.right
+        )
+
     def contains(self, x,y):
         return self.left < x < self.right and self.top > y > self.bottom
     def translate(self, x,y):

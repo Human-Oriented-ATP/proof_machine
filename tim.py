@@ -497,8 +497,8 @@ class TIM(Gtk.Window):
             self.mb_grasp = None
         elif e.button == 3:
             if self.connections.has_preview:
-                x,y = self.connections.preview_pred1.child_coor(self.pixel_to_coor((e.x, e.y)))
-                only_click = self.connections.preview_pred1.bounding_box.contains(x,y)
+                x,y = self.pixel_to_coor((e.x, e.y))
+                only_click = self.connections.preview_pred1.bb_from_parent().contains(x,y)
                 if self.connections.preview_had_connection or not only_click:
                     if self.connections.confirm_preview():
                         self.connections.update_numbers()
