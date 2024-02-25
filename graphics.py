@@ -78,6 +78,14 @@ class BoundingBox:
     @property
     def center(self):
         return (self.left+self.right)/2, (self.top+self.bottom)/2
+    @property
+    def corners(self):
+        return (
+            (self.left, self.top),
+            (self.right, self.top),
+            (self.left, self.bottom),
+            (self.right, self.bottom),
+        )
     @staticmethod
     def union(bbs):
         bbs = [bb for bb in bbs if not bb.is_empty]

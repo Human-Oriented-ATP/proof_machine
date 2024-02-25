@@ -371,9 +371,9 @@ class TIM(Gtk.Window):
             cx,cy = obj.center
             self.obj_grasp.append((obj, x-cx, y-cy))
 
-    def start_selection(self, x,y):
+    def start_selection(self, x,y, keep = False):
         self.select_grasp = (x,y), (x,y)
-        self.selection = set()
+        if not keep: self.selection = set()
         self.darea.queue_draw()
     def select_bounding_box(self):
         return BoundingBox.union(
@@ -388,7 +388,9 @@ class TIM(Gtk.Window):
                 self.connections.update_numbers()
             self.darea.queue_draw()
             return
-        if e.button == 1:
+        if e.button in (1,3) and (e.state & Gdk.ModifierType.SHIFT_MASK):
+            self.start_selection(*self.pixel_to_coor((e.x, e.y)), keep = True)
+        elif e.button == 1:
             if self.sidebar_preview is not None:
                 obj = GInference(self.sidebar_preview.inference.fresh_var_copy())
                 self.add_object(obj)
@@ -397,13 +399,13 @@ class TIM(Gtk.Window):
             else:
                 x,y = self.pixel_to_coor((e.x, e.y))
                 copy = bool(e.state & Gdk.ModifierType.CONTROL_MASK)
-                if self.select_bounding_box().contains(x,y):
-                    self.grasp_objects(self.selection, x,y, copy)
+                for obj in reversed(self.objects):
+                    if obj not in self.selection and obj.bounding_box.contains(x,y):
+                        self.grasp_objects([obj], x,y, copy)
+                        break
                 else:
-                    for obj in reversed(self.objects):
-                        if obj.bounding_box.contains(x,y):
-                            self.grasp_objects([obj], x,y, copy)
-                            break
+                    if self.select_bounding_box().contains(x,y):
+                        self.grasp_objects(self.selection, x,y, copy)
                     else:
                         self.start_selection(x,y)
         elif e.button == 2:
@@ -422,10 +424,24 @@ class TIM(Gtk.Window):
     def on_button_release(self, w, e):
         if self.select_grasp is not None:
             select_box = BoundingBox.from_corners(*self.select_grasp)
+            selection = set()
             for obj in self.objects:
                 if select_box.contains(*obj.center):
-                    self.selection.add(obj)
+                    selection.add(obj)
             self.select_grasp = None
+            if e.state & Gdk.ModifierType.SHIFT_MASK:
+                if not selection:
+                    x,y = self.pixel_to_coor((e.x, e.y))
+                    for obj in reversed(self.objects):
+                        if obj.bounding_box.contains(x,y):
+                            selection.add(obj)
+                            break
+                if all(obj in self.selection for obj in selection):
+                    self.selection.difference_update(selection)
+                else:
+                    self.selection.update(selection)
+            else:
+                self.selection = selection
             self.darea.queue_draw()
         if e.button == 1:
             if self.obj_grasp is not None:
@@ -535,27 +551,37 @@ class TIM(Gtk.Window):
     def on_key_release(self,w,e):
         keyval_name = Gdk.keyval_name(e.keyval)
 
-
-    def fill_background(self, cr):
-        cr.rectangle(0,0,*self.win_size)
-        cr.set_source_rgb(1,1,1)
-        cr.fill()
-
     def on_draw(self, wid, cr):
         self.update_win_size()
-        self.fill_background(cr)
+
+        bg_color = (1,1,1)
+        cr.rectangle(0,0,*self.win_size)
+        cr.set_source_rgb(*bg_color)
+        cr.fill()
 
         cr.save()
         cr.translate(*self.coor_to_pixel((0,0)))
         cr.scale(self.scale, -self.scale)
 
+        # draw selection
+
+        if self.selection:
+            bb = self.select_bounding_box()
+            self.select_bounding_box().draw(cr)
+            self.select_style.paint(cr)
+            for obj in self.objects:
+                if obj in self.selection: continue
+                corners = obj.bounding_box.corners
+                if any(bb.contains(*corner) for corner in corners):
+                    obj.bounding_box.add_offset(0.5).draw(cr)
+                    cr.set_source_rgb(*bg_color)
+                    cr.fill()
         if self.select_grasp is not None:
             (x1,y1),(x2,y2) = self.select_grasp
             cr.rectangle(x1,y2,x2-x1,y1-y2)
             self.select_style.paint(cr)
-        elif self.selection:
-            self.select_bounding_box().draw(cr)
-            self.select_style.paint(cr)
+
+        # draw objects
         for layer in range(3):
             for obj in self.objects:
                 obj.draw(cr, layer)
