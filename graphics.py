@@ -451,7 +451,7 @@ class GInference(GGroupHAl):
                     circle1 = arg_to_circle.get((arg, not left2))
                     if circle1 is not None:
                         if circle2 != arg_to_circle.get((arg, True)):
-                            self.add(Connection(circle1, left, circle2, not left))
+                            self.add(Connection(circle1, not left2, circle2, left2))
                     else:
                         circle1 = arg_to_circle.get((arg, left2))
                         if circle1 is not None:
