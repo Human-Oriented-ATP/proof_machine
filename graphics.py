@@ -463,6 +463,18 @@ class GInference(GGroupHAl):
                             self.add(Connection(circle1, left2, circle2, left2))
                         arg_to_circle[arg, left2] = circle2
 
+    def contains(self, x,y):
+        bb1 = self.requirements.bb_from_parent()
+        bb2 = self.goals.bb_from_parent()
+        if bb1.contains(x,y): return True
+        if bb2.contains(x,y): return True
+        if bb1.right <= x <= bb2.left:
+            coef = (x - bb1.right) / (bb2.left - bb1.right)
+            top = (1-coef) * bb1.top + coef * bb2.top
+            bottom = (1-coef) * bb1.bottom + coef * bb2.bottom
+            return top >= y >= bottom
+        return False
+
     def iter_pred(self):
         for goal in self.goals:
             yield False, goal
