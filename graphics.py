@@ -396,7 +396,7 @@ class GPredicate(GGroup):
         'g' : Style(fill = (0, 1, 0, 0.3), stroke = (0, 0.8, 0)),
         'b' : Style(fill = (0, 0, 1, 0.2), stroke = (0, 0, 1)),
         'w' : Style(fill = (1, 1, 1, 0.2), stroke = (0, 0, 0)),
-        'num' : Style(fill = (1, 1, 1, 0.2), stroke = (0, 0, 0)),
+        'y' : Style(fill = (1, 1, 0, 0.2), stroke = (0.5, 0.5, 0)),
     }
     def __init__(self, predicate):
         assert isinstance(predicate, TermApp)
