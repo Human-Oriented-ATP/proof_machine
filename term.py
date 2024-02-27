@@ -164,7 +164,7 @@ def unify(to_merge):
     return res
 
 # we need to systematically assign numbers to terms for TIM
-def enumerate_terms(terms, start):
+def enumerate_terms(terms, start, prev = None):
     # print("Enumerate terms:")
     # print("terms = [")
     # for term in terms:
@@ -174,11 +174,13 @@ def enumerate_terms(terms, start):
     for term in terms:
         assert not term.free_vars
         term.collect_subterms(family)
-    res = {
-        t : t.f
-        for t in family
-        if t.is_numeric
-    }
+
+    res = dict()
+    for t in family:
+        if t.is_numeric: res[t] = t.f
+        elif prev is not None and t in prev:
+            res[t] = prev[t]
+    used = set(res.values())
 
     # always take the smallest active element
     heap = []
@@ -191,15 +193,16 @@ def enumerate_terms(terms, start):
 
     arg_to_parents = defaultdict(list)
     for t in family:
-        if t.is_numeric: continue
+        if t in res: continue
         for arg in t.args: arg_to_parents[arg].append(t)
         set_num_missing(t, sum(1 for arg in t.args if arg not in res))
 
     cur = start
     while heap:
         _, t = heapq.heappop(heap)
+        while cur in used: cur += 1
         res[t] = cur
-        cur += 1
+        used.add(cur)
         for parent in arg_to_parents[t]:
             set_num_missing(parent, term_to_num_missing[parent]-1)
 

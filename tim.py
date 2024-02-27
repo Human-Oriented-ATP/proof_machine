@@ -39,6 +39,7 @@ class Sidebar(GGroupVAl):
 
 class ConnectionManager:
     def __init__(self, start_num, debug = False):
+        self.enumeration = dict()
         self.solved = False
         self.start_num = start_num
         self.pred_to_left = dict() # GPredicate -> bool
@@ -186,10 +187,10 @@ class ConnectionManager:
             else:
                 subst[v] = zero
         subst = Substitution(subst)
-        enumeration = enumerate_terms([subst(term) for term in terms], self.start_num)
+        self.enumeration = enumerate_terms([subst(term) for term in terms], self.start_num, self.enumeration)
         for pred in self.pred_to_left.keys():
             for circle in pred.circles:
-                num = enumeration[subst(circle.term)]
+                num = self.enumeration[subst(circle.term)]
                 if num == 0: num = None
                 circle.set_label(num)
 
