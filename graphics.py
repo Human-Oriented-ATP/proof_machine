@@ -308,9 +308,13 @@ class Connection(GObject):
         x1,y1 = self.obj1.parent_coor((0,0), self.parent)
         x2,y2 = self.obj2.parent_coor((0,0), self.parent)
         cr.move_to(x1,y1)
-        coef = 2
         if self.side1 == self.side2:
             coef = 1+0.2*abs(y1-y2)
+        else:
+            if self.side1 * (x1 - x2) >= 0:
+                coef = self.side1 * (x1 - x2) * 0.7
+            else:
+                coef = 2
         cr.curve_to(x1-coef*self.side1,y1,x2-coef*self.side2,y2,x2,y2)
         self.style.paint(cr)
 
@@ -341,6 +345,8 @@ class GGroup(GObject):
         super().__init__()
     def __iter__(self):
         return iter(self.subobjects)
+    def __len__(self):
+        return len(self.subobjects)
     def update_bb(self):
         self.raw_bounding_box = BoundingBox.union(obj.bounding_box for obj in self.subobjects)
     def draw_raw(self, cr, layer):
@@ -434,7 +440,7 @@ class GInference(GGroupHAl):
             GPredicate(requirement)
             for requirement in inference.requirements
         ], distance = 0.5)
-        super().__init__([self.requirements, self.goals], distance = 2)
+        super().__init__([self.requirements, self.goals], distance = max(len(self.goals), len(self.requirements)))
         arg_to_circle = dict()
         for left, container in [(False, self.goals), (True, self.requirements)]:
             for gpred in container:
@@ -462,6 +468,18 @@ class GInference(GGroupHAl):
                         if circle1 is not None:
                             self.add(Connection(circle1, left2, circle2, left2))
                         arg_to_circle[arg, left2] = circle2
+
+    def contains(self, x,y):
+        bb1 = self.requirements.bb_from_parent()
+        bb2 = self.goals.bb_from_parent()
+        if bb1.contains(x,y): return True
+        if bb2.contains(x,y): return True
+        if bb1.right <= x <= bb2.left:
+            coef = (x - bb1.right) / (bb2.left - bb1.right)
+            top = (1-coef) * bb1.top + coef * bb2.top
+            bottom = (1-coef) * bb1.bottom + coef * bb2.bottom
+            return top >= y >= bottom
+        return False
 
     def iter_pred(self):
         for goal in self.goals:

@@ -420,7 +420,7 @@ class TIM(Gtk.Window):
                 x,y = self.pixel_to_coor((e.x, e.y))
                 copy = bool(e.state & Gdk.ModifierType.CONTROL_MASK)
                 for obj in reversed(self.objects):
-                    if obj not in self.selection and obj.bounding_box.contains(x,y):
+                    if obj not in self.selection and obj.contains(x,y):
                         self.grasp_objects([obj], x,y, copy)
                         break
                 else:
