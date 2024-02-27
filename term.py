@@ -38,6 +38,12 @@ class TermApp(Term):
     def __str__(self):
         if len(self.args) == 0: return str(self.f)
         else: return self.f + '(' + ','.join(map(str, self.args)) + ')'
+    def to_tptp(self):
+        if len(self.args) == 0:
+            if isinstance(self.f, str): return self.f
+            else: return "num"+str(self.f)
+        else:
+            return self.f + '(' + ','.join(map(lambda x: x.to_tptp(), self.args)) + ')'
 
     @property
     def free_vars(self):
@@ -67,6 +73,8 @@ class TermVar(Term):
         self.free_vars = frozenset((self,))
 
     def __str__(self):
+        return self.name
+    def to_tptp(self):
         return self.name
 
     def collect_subterms(self, s):
@@ -215,6 +223,14 @@ class Inference:
 
     def __str__(self):
         return ', '.join(map(str, self.goals)) + ' :- ' + ', '.join(map(str, self.requirements))
+    def to_tptp(self, name):
+        literals = [
+            '~'+req.to_tptp() for req in self.requirements
+        ] + [
+            goal.to_tptp() for goal in self.goals
+        ]
+        assert len(literals) > 0
+        return "cnf({},axiom, {} ).".format(name, ' | '.join(literals))
 
     @property
     def free_vars(self):
