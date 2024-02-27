@@ -474,6 +474,8 @@ class GInference(GGroupHAl):
         bb2 = self.goals.bb_from_parent()
         if bb1.contains(x,y): return True
         if bb2.contains(x,y): return True
+        if bb1.is_empty: return False
+        if bb2.is_empty: return False
         if bb1.right <= x <= bb2.left:
             coef = (x - bb1.right) / (bb2.left - bb1.right)
             top = (1-coef) * bb1.top + coef * bb2.top
