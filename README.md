@@ -10,13 +10,20 @@
 4. Navigate to that folder in the UCRT console and run `python3 tim.py problem1.pl`
 
 
-## Mac setup
+## Mac setup instructions
 1. Install gtk3 with
-	brew install gtk+3
+```
+brew install gtk+3
+```
 2. Install PyGObject with
-	brew install pygobject3 gtk+3
-	If it worked, running `python3 -c "import gi"` should produce no errors.
+```
+brew install pygobject3 gtk+3
+```
+If it worked, running `python3 -c "import gi"` should produce no errors.
 3. Install ply with
-	brew install python-ply
-	If it worked, running `python3 -c "import ply"` should produce no errors.
-4. Run `python3 tim.py problem1.pl` in the main folder of this repo.
+```
+brew install python-ply
+```
+If it worked, running `python3 -c "import ply"` should produce no errors.
+4. To launch program, run this python file in the main folder of this repo.
+```python3 tim.py problem1.pl```
