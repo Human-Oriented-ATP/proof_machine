@@ -9,6 +9,8 @@ tokens = (
 
 literals = [',', '(', ')', '.']
 
+t_ignore_COMMENT = r'\%.*'
+
 def t_NUMBER(t):
     r'-?\d+'
     t.value = TermApp(int(t.value), ())
@@ -100,7 +102,7 @@ def parse_file(fname):
 
 if __name__ == "__main__":
     from term import unify, enumerate_terms
-    inferences = parse_file("color-game.pl")
+    inferences = parse_file("problem1.pl")
     for inference in inferences:
         print("Goals:", inference.goals)
         print("Requirements:", inference.requirements)
