@@ -8,3 +8,22 @@
 3. Install the Python package ply by executing `pacman -S mingw-w64-ucrt-x86_64-python3-ply`. You can check that this has worked by running `python3` in the UCRT console and then running `import ply` in the Python console.  
 3. Clone this repository to the `home/your_username` folder of the msys2 instructions. If you kept the defaults during installation this is likely to be `C:\msys64\home\your_username`.
 4. Navigate to that folder in the UCRT console and run `python3 tim.py problem1.pl`
+
+
+## Mac setup instructions
+1. Install gtk3 with
+```
+brew install gtk+3
+```
+2. Install PyGObject with
+```
+brew install pygobject3 gtk+3
+```
+If it worked, running `python3 -c "import gi"` should produce no errors.
+3. Install ply with
+```
+brew install python-ply
+```
+If it worked, running `python3 -c "import ply"` should produce no errors.
+4. To launch program, run this python file in the main folder of this repo.
+```python3 tim.py problem1.pl```
