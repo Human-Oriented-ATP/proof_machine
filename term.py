@@ -44,6 +44,8 @@ class TermApp(Term):
             else: return "num"+str(self.f)
         else:
             return self.f + '(' + ','.join(map(lambda x: x.to_tptp(), self.args)) + ')'
+    def to_json_dict(self):
+        return { 'type': 'app', 'f': self.f, 'args': [arg.to_json_dict() for arg in self.args] }
 
     @property
     def free_vars(self):
@@ -55,14 +57,6 @@ class TermApp(Term):
         if self in s: return
         s.add(self)
         for arg in self.args: arg.collect_subterms(s)
-
-    @staticmethod
-    def next_numeric():
-        res = 0
-        for t in TermApp._cache.values():
-            if t.is_numeric:
-                res = max(res, t.f+1)
-        return res
 
 class TermVar(Term):
     _cache = WeakValueDictionary()
@@ -76,6 +70,8 @@ class TermVar(Term):
         return self.name
     def to_tptp(self):
         return self.name
+    def to_json_dict(self):
+        return { 'type': 'var', 'name': self.name }
 
     def collect_subterms(self, s):
         s.add(self)
@@ -225,12 +221,17 @@ class Inference:
         return ', '.join(map(str, self.goals)) + ' :- ' + ', '.join(map(str, self.requirements))
     def to_tptp(self, name):
         literals = [
-            '~'+req.to_tptp() for req in self.requirements
+            '~'+'pred_'+req.to_tptp() for req in self.requirements
         ] + [
-            goal.to_tptp() for goal in self.goals
+            'pred_'+goal.to_tptp() for goal in self.goals
         ]
         assert len(literals) > 0
         return "cnf({},axiom, {} ).".format(name, ' | '.join(literals))
+    def to_json_dict(self):
+        return {
+            'hypotheses': [hyp.to_json_dict() for hyp in self.requirements],
+            'targets': [target.to_json_dict() for target in self.goals],
+        }
 
     @property
     def free_vars(self):
@@ -247,3 +248,16 @@ class Inference:
             goals = [subst(x) for x in self.goals],
             requirements = [subst(x) for x in self.requirements],
         )
+
+def separate_goal(all_inferences):
+    goal = None
+    inferences = []
+    for inference in all_inferences:
+        if not inference.goals:
+            if len(inference.requirements) != 1 or goal is not None:
+                return None, all_inferences
+            goal = inference
+        else:
+            inferences.append(inference)
+
+    return goal, inferences

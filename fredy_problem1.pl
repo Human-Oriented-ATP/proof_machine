@@ -4,7 +4,7 @@ r(2).
 r(3).  
 w(P, i(P), p(P)) :- b(P).
 b(B) :- w(A, B, C).
-y(P, r(P), p(P)).
+y(P, r(P), p2(P)).
 r(A, B, C) :- y(A, B, C). 
 y(A, B, C) :- w(A, B, C). 
 r(C) :- y(A, B, C), r(A). 
