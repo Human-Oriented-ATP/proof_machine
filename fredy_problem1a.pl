@@ -1,0 +1,18 @@
+b(1). 
+r(1, 2, 3).
+r(2).
+r(3).  
+y(P, r(P), p(P)).
+r(A, B, C) :- y(A, B, C). 
+b(B) :- y(A, B, C), b(A). 
+r(C) :- y(A, B, C), r(A). 
+r(A) :- r(A, B, C), r(C). 
+g(C) :- y(A, B, C). 
+y(A) :- r(A, B, C), b(B), b(C), r(B), r(C). 
+b(I) :- r(P, I, Q), r(P, J, R), g(Q), g(R), b(J).
+b(A) :- b(B), b(C), r(A, B, C).
+r(A, B, E) :- r(A, D, F), r(E, C, D), r(F, C, B).
+b(P) :- g(P).
+g(A) :- r(A, B, C), g(B), g(C).
+r(rp(B, C), B, C). 
+:- y(1).
