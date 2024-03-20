@@ -658,22 +658,7 @@ if __name__ == "__main__":
     parser.add_argument("problem_file", type=str, help="prolog-like file with the rules")
     args = parser.parse_args()
 
-    all_inferences = parse_file(args.problem_file)
-    horn_problem = True
-    goal = None
-    inferences = []
-    for inference in all_inferences:
-        if not inference.goals:
-            if len(inference.requirements) != 1 or goal is not None:
-                horn_problem = False
-                break
-            goal = inference
-        else:
-            inferences.append(inference)
-    if goal is None: horn_problem = False
+    goal, inferences = separate_goal(parse_file(args.problem_file))
 
-    if not horn_problem:
-        inferences = all_inferences
-        goal = None
     win = TIM(inferences, goal)
     Gtk.main()
