@@ -45,7 +45,7 @@ class TermApp(Term):
         else:
             return self.f + '(' + ','.join(map(lambda x: x.to_tptp(), self.args)) + ')'
     def to_json_dict(self):
-        return { 'type': 'app', 'f': self.f, 'args': [arg.to_json_dict() for arg in self.args] }
+        return { 'label': self.f, 'args': [arg.to_json_dict() for arg in self.args] }
 
     @property
     def free_vars(self):
@@ -71,7 +71,7 @@ class TermVar(Term):
     def to_tptp(self):
         return self.name
     def to_json_dict(self):
-        return { 'type': 'var', 'name': self.name }
+        return { 'var' : self.name }
 
     def collect_subterms(self, s):
         s.add(self)
