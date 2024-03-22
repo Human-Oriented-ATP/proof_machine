@@ -27,3 +27,11 @@ brew install python-ply
 If it worked, running `python3 -c "import ply"` should produce no errors.
 4. To launch program, run this python file in the main folder of this repo.
 ```python3 tim.py problem1.pl```
+
+
+## Setup instructions for the web version
+
+1. You need to have the package manager `npm` and `Node.js` installed.
+2. Open a console in the directory `web-proof-machine`.
+3. Run `npm install` which should install the required packages.
+4. Run `npm start` to run the development version of the game. 
