@@ -22,7 +22,7 @@ function calculateInputHolePosition(gadget: HTMLElement, nodeIndex: number, hole
 
 function calculateHolePositionFromGadgetHTMLElement(gadget: HTMLElement, hole: HolePosition) {
     const [nodeIndex, holeIndex] = hole
-    if (nodeIndex == "output") {
+    if (nodeIndex === "output") {
         return calculateOutputHolePosition(gadget, holeIndex)
     } else {
         return calculateInputHolePosition(gadget, nodeIndex, holeIndex)
@@ -50,8 +50,8 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
         const end = calculateHolePosition(props.id, internalConnection.to)
         const [fromNode] = internalConnection.from
         const [toNode] = internalConnection.to
-        const from_input = fromNode != "output"
-        const to_output = toNode == "output"
+        const from_input = fromNode !== "output"
+        const to_output = toNode === "output"
         return { start, end, from_input, to_output }
     }
 
@@ -101,7 +101,7 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
         <span style={{color: "grey"}}>{props.id}</span>
         <div className="gadget" id={props.id}>
             <div className="gadgetInputContainer" 
-                style={props.inputNodes.length == 0 ? { margin : "0px" } : {}}>
+                style={props.inputNodes.length === 0 ? { margin : "0px" } : {}}>
                 {makeInputNodes()}
             </div>
             {makeOutputNodeContainer()}

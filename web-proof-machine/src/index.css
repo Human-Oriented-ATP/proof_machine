@@ -61,3 +61,10 @@ body {
     z-index: 5;
     pointer-events: none; 
 }
+
+.aside {
+    border-right: 1px solid #eee;
+    padding: 15px 10px;
+    font-size: 12px;
+    background: #c0bbbb;
+}

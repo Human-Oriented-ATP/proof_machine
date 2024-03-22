@@ -1,6 +1,7 @@
 import ReactFlow, { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
 import { AbstractGadgetProps, GadgetDisplayProps } from '../game/Primitives';
+import { axiom } from '../util/AxiomsForTesting';
 
 export interface GadgetPaletteProps {
     axioms: AbstractGadgetProps[]
@@ -9,37 +10,33 @@ export interface GadgetPaletteProps {
 
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
     gadget: AbstractGadgetProps
-    createNewGadget: any
+    axiomIdx : number
 }
 
-export function InsertGadgetButton({ gadget, createNewGadget, children }: InsertGadgetButtonProps): 
+function onGadgetDragStart(event: React.DragEvent<HTMLDivElement>, axiomIdx: number) {
+    event.dataTransfer.setData('application/reactflow', String(axiomIdx));
+    event.dataTransfer.effectAllowed = 'move';
+};
+
+export function InsertGadgetButton({ gadget, axiomIdx }: InsertGadgetButtonProps): 
     JSX.Element {
-    return <div className="insertGadgetButton" onMouseDown={(e) => createNewGadget(e, gadget)}>
-        {children}
+    const gadgetProps : GadgetDisplayProps = {
+        ...gadget,
+        isAxiom: true,
+        id: "axiom" + axiomIdx
+    }
+    return <div className="insertGadgetButton" onDragStart={(e) => onGadgetDragStart(e, axiomIdx)} draggable>
+        <Gadget {...gadgetProps}></Gadget>
     </div>
 }
 
 export function GadgetPalette({ ...props }: GadgetPaletteProps) {
-    let id = 0;
-
-    function makeAxiomGadget(axiom: AbstractGadgetProps): JSX.Element {
-        const gadgetProps: GadgetDisplayProps = {
-            ...axiom,
-            isAxiom: true,
-            id: "axiom" + id
-        }
-        id++
-        return <Gadget {...gadgetProps}></Gadget>
-    }
 
     return (
-        <Panel position='top-center'>
+        <aside className='aside'>
             <div className="gadgetPalette">
-                {props.axioms.map(axiom =>
-                    <InsertGadgetButton gadget={axiom} createNewGadget={props.createNewGadget}>
-                        {makeAxiomGadget(axiom)}
-                    </InsertGadgetButton>)}
+                {props.axioms.map((axiom, idx) => <InsertGadgetButton gadget={axiom} axiomIdx={idx} />)}
             </div>
-        </Panel>
+        </aside>
     )
 }
