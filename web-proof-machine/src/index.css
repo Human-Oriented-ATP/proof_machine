@@ -1,13 +1,63 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: rgb(252, 252, 252);
+    font-size: 1.4em;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.hole {
+    background-color: white;
+    width: 30px;
+    height: 30px;
+    border: solid 3px black;
+    border-radius: 20px;
+    text-align: center;
+    margin: 3px;
+    z-index: 10;
+    position: relative;
+    user-select: none;
+}
+
+.node {
+    margin: 10px;
+    border: solid 3px black;
+    padding: 3px;
+    border-radius: 10px;
+}
+
+.nodeHandleWrapper {
+    display: flex; 
+    align-items: center; 
+}
+
+.gadgetInputContainer {
+    margin-right: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.gadgetOutputContainer {
+    margin-left: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gadget {
+    display: flex;
+}
+
+.connectionSvg {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none; 
 }

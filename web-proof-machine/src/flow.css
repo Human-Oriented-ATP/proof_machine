@@ -1,0 +1,36 @@
+.react-flow__handle {
+    top: auto;
+    width: 18px;
+    height: 18px;
+    transform: none; 
+    border: solid 2px white; 
+    background-color: black;
+}
+
+.react-flow__handle-left {
+    left: -8px;
+}
+
+.react-flow__handle-right {
+    right: -8px;
+}
+
+.react-flow__panel.center {
+    top: auto;
+    transform: auto;
+    margin: 0px; 
+}
+
+.gadgetPalette {
+    background-color: rgba(225, 225, 225, 0.9);
+    width: 100vw;
+    margin: 0px;
+    display: flex; 
+    position: relative; 
+    left: 0px; 
+    top: 0px; 
+}
+
+.insertGadgetButton {
+    display: flex; 
+}
