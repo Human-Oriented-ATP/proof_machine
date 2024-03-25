@@ -24,27 +24,18 @@ export class TermIndex {
         this.index = new Map()
     }
 
+    private InvalidReferenceError(ref: TermReference): Error {
+        return new Error("Invalid term reference: " + ref)
+    }
+
     private getTermFromIndexData(indexData: IndexData): Term {
         if ("variable" in indexData) {
             return { variable: indexData.variable }
         } else {
             const label = indexData.label
-            const args = indexData.args.map(this.getTerm)
+            const args = indexData.args.map(arg => this.getTerm(arg))
             return { label, args }
         }
-    }
-
-    getTerm(ref: TermReference): Term {
-        const indexData = this.index.get(ref)
-        if (indexData) {
-            return this.getTermFromIndexData(indexData)
-        } else {
-            throw Error("Invalid reference:" + ref)
-        }
-    }
-
-    hasInIndex(t: Term): boolean {
-        return hashTerm(t) in this.index
     }
 
     private static makeNewEntryAt(termIndex: TermIndex, t: Term, ref: TermReference): void {
@@ -67,8 +58,40 @@ export class TermIndex {
         }
     }
 
+    protected getHead(ref: TermReference): IndexData {
+        const indexData = this.index.get(ref)
+        if (indexData) {
+            return indexData
+        } else {
+            throw this.InvalidReferenceError(ref)
+        }
+    }
+
+    getTerm(ref: TermReference): Term {
+        const indexData = this.index.get(ref)
+        if (indexData) {
+            return this.getTermFromIndexData(indexData)
+        } else {
+            throw this.InvalidReferenceError(ref)
+        }
+    }
+
+    hasInIndex(t: Term): boolean {
+        return this.index.has(hashTerm(t))
+    }
+
     addTerm(t: Term): TermReference {
         return TermIndex.addTermToIndex(this, t)
+    }
+
+    termHasVariable(ref: TermReference, v: VariableName): boolean {
+        const head = this.getHead(ref)
+        if ("variable" in head) {
+            return v === head.variable
+        } else {
+            const appearsInArg = head.args.map(arg => this.termHasVariable(arg, v))
+            return appearsInArg.includes(true)
+        }
     }
 
     dump(): any {
