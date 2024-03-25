@@ -38,22 +38,22 @@ export class TermIndex {
         }
     }
 
-    private static makeNewEntryAt(termIndex: TermIndex, t: Term, ref: TermReference): void {
+    private makeNewEntryAt(t: Term, ref: TermReference): void {
         if ("variable" in t) {
-            termIndex.index.set(ref, { variable: t.variable })
+            this.index.set(ref, { variable: t.variable })
         } else {
             const label = t.label
-            const args = t.args.map((term) => TermIndex.addTermToIndex(termIndex, term))
-            termIndex.index.set(ref, { label, args })
+            const args = t.args.map(this.addTerm.bind(this))
+            this.index.set(ref, { label, args })
         }
     }
 
-    private static addTermToIndex(termIndex: TermIndex, t: Term): TermReference {
+    addTerm(t: Term): TermReference {
         let hash = hashTerm(t)
-        if (hash in termIndex.index.keys) {
+        if (hash in this.index.keys) {
             return hash
         } else {
-            TermIndex.makeNewEntryAt(termIndex, t, hash)
+            this.makeNewEntryAt(t, hash)
             return hash
         }
     }
@@ -78,10 +78,6 @@ export class TermIndex {
 
     hasInIndex(t: Term): boolean {
         return this.index.has(hashTerm(t))
-    }
-
-    addTerm(t: Term): TermReference {
-        return TermIndex.addTermToIndex(this, t)
     }
 
     getTermReference(t: Term): TermReference | undefined {
