@@ -1,7 +1,7 @@
 import { hash } from '../util/Hash';
 
-type VariableName = string
-type FunctionName = string
+export type VariableName = string
+export type FunctionName = string
 
 export type Term =
     | { variable: VariableName }
@@ -11,20 +11,20 @@ function hashTerm(t: Term): number {
     return hash(JSON.stringify(t))
 }
 
-type TermReference = number
+export type TermReference = number
 
 type IndexData =
     | { variable: VariableName }
     | { label: string, args: TermReference[] }
 
 export class TermIndex {
-    index: Map<TermReference, IndexData>;
+    private index: Map<TermReference, IndexData>
 
     constructor() {
         this.index = new Map()
     }
 
-    getTermFromIndexData(indexData: IndexData): Term {
+    private getTermFromIndexData(indexData: IndexData): Term {
         if ("variable" in indexData) {
             return { variable: indexData.variable }
         } else {
@@ -47,7 +47,7 @@ export class TermIndex {
         return hashTerm(t) in this.index
     }
 
-    static makeNewEntryAt(termIndex: TermIndex, t: Term, ref: TermReference): void {
+    private static makeNewEntryAt(termIndex: TermIndex, t: Term, ref: TermReference): void {
         if ("variable" in t) {
             termIndex.index.set(ref, { variable: t.variable })
         } else {
@@ -57,8 +57,7 @@ export class TermIndex {
         }
     }
 
-    static addTermToIndex(termIndex: TermIndex, t: Term): TermReference {
-        console.log(t)
+    private static addTermToIndex(termIndex: TermIndex, t: Term): TermReference {
         let hash = hashTerm(t)
         if (hash in termIndex.index.keys) {
             return hash
