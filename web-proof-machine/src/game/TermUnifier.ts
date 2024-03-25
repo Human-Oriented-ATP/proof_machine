@@ -4,9 +4,9 @@ import { TermIndex, TermReference, VariableName } from "./TermIndex";
 export type Equation = [TermReference, TermReference]
 
 export class TermUnifier extends TermIndex {
-    equations: Equation[]
-    variables: DisjointSetWithAssignment<VariableName, TermReference>
-    equationIsSatisfied: Map<Equation, boolean>
+    private equations: Equation[]
+    private variables: DisjointSetWithAssignment<VariableName, TermReference>
+    private equationIsSatisfied: Map<Equation, boolean>
 
     constructor() {
         super();
@@ -25,8 +25,12 @@ export class TermUnifier extends TermIndex {
         this.runUnification()
     }
 
-    getAssignedValue(v: VariableName) {
+    getAssignedValue(v: VariableName): TermReference | undefined {
         return this.variables.getAssignedValue(v)
+    }
+
+    isSatisfied(e: Equation): boolean | undefined {
+        return this.equationIsSatisfied.get(e)
     }
 
     private unifyVariable(v: VariableName, ref: TermReference): boolean {

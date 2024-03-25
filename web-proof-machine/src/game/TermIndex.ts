@@ -84,6 +84,14 @@ export class TermIndex {
         return TermIndex.addTermToIndex(this, t)
     }
 
+    getTermReference(t: Term): TermReference | undefined {
+        if (this.hasInIndex(t)) {
+            return hashTerm(t)
+        } else {
+            return undefined
+        }
+    }
+
     termHasVariable(ref: TermReference, v: VariableName): boolean {
         const head = this.getHead(ref)
         if ("variable" in head) {
