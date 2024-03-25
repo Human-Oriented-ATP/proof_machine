@@ -1,7 +1,5 @@
 import { ReactFlowProvider } from "reactflow"
 import { Game } from "./components/Game"
-import { Term } from "./game/TermIndex";
-import { Equation, TermUnifier } from "./game/TermUnifier";
 
 export default function App() {
     return (
