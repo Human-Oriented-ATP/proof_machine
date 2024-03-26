@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import ReactFlow, {
     Controls,
     useNodesState,
@@ -9,7 +9,8 @@ import ReactFlow, {
     useReactFlow,
     Node as ReactFlowNode,
     EdgeTypes,
-    Edge
+    Edge,
+    ReactFlowProvider
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { AbstractGadgetProps, GadgetDisplayProps, AbstractNodeProps } from '../game/Primitives';
@@ -35,6 +36,7 @@ const initialState: GameState = {
 }
 
 export function Game() {
+    const reactFlowWrapper = useRef(null);
     const [state, setState] = useState(initialState);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -139,19 +141,24 @@ export function Game() {
     }, []);
 
     return (
-        <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            edgeTypes={edgeTypes}
-            nodeTypes={nodeTypes}
-        >
-            <GadgetPalette axioms={panelAxioms} />
-            <Controls />
-        </ReactFlow>
+        <div className='dndflow'>
+            <ReactFlowProvider>
+                <div className='reactflow-wrapper' ref={reactFlowWrapper}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onDragOver={onDragOver}
+                        onDrop={onDrop}
+                        edgeTypes={edgeTypes}
+                        nodeTypes={nodeTypes}
+                    >
+                        <Controls />
+                    </ReactFlow>
+                </div><GadgetPalette axioms={panelAxioms} />
+            </ReactFlowProvider>
+        </div>
     )
 }
