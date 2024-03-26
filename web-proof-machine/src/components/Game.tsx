@@ -13,7 +13,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { AbstractGadgetProps, GadgetDisplayProps, AbstractNodeProps } from '../game/Primitives';
-import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
+import { GadgetPalette } from './GadgetPalette';
 import { MultiEdge } from './MultiEdge';
 import { gadgetIdFromNodeId, nodeIdFromHandleId, nodePositionFromNodeId } from '../util/IdGenerator';
 
@@ -116,7 +116,7 @@ export function Game() {
         setNodes((nds) => nds.concat(newNode));
     }
 
-    const panelProps: GadgetPaletteProps = { axioms: [axiom, axiom2], createNewGadget }
+    const panelAxioms = [axiom, axiom2]
 
     const onConnect = useCallback(addConnection, [setEdges]);
 
@@ -133,7 +133,7 @@ export function Game() {
         if (typeof axiomIdx === 'undefined' || !axiomIdx) {
         return;
         }
-        const axiom : AbstractGadgetProps = panelProps.axioms[Number(axiomIdx)];
+        const axiom : AbstractGadgetProps = panelAxioms[Number(axiomIdx)];
 
         createNewGadget(e, axiom);
     }, []);
@@ -150,7 +150,7 @@ export function Game() {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
         >
-            <GadgetPalette {...panelProps} />
+            <GadgetPalette axioms={panelAxioms} />
             <Controls />
         </ReactFlow>
     )
