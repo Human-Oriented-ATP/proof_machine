@@ -1,4 +1,4 @@
-export type HoleValue = "" | number
+export type HoleValue = "" | number | "x"
 
 export interface HoleProps {
     value: HoleValue
