@@ -48,7 +48,7 @@ export function Game() {
 
     function getGadgetFromId(gadgetId: string): GadgetDisplayProps {
         for (let i = 0; i < state.activeGadgets.length; i++) {
-            if (state.activeGadgets[i].id = gadgetId) {
+            if (state.activeGadgets[i].id === gadgetId) {
                 return state.activeGadgets[i]
             }
         }
@@ -59,7 +59,7 @@ export function Game() {
         const gadgetId = gadgetIdFromNodeId(nodeId)
         const gadget = getGadgetFromId(gadgetId)
         const position = nodePositionFromNodeId(nodeId)
-        if (position == "output") {
+        if (position === "output") {
             if (gadget.outputNode) {
                 return [gadget.outputNode, gadget]
             } else {
@@ -76,19 +76,19 @@ export function Game() {
         const targetNodeId = nodeIdFromHandleId(targetHandleId)
         const [sourceNode] = getNodeAndGadgetFromNodeId(sourceNodeId)
         const [targetNode] = getNodeAndGadgetFromNodeId(targetNodeId)
-        return sourceNode.color == targetNode.color
-            && sourceNode.holes.length == targetNode.holes.length
+        return sourceNode.color === targetNode.color
+            && sourceNode.holes.length === targetNode.holes.length
     }
 
-    function addEdgeIfValid(edges : Edge<any>[], params : ReactFlowConnection) : Edge[] {
+    function addEdgeIfValid(edges: Edge<any>[], params: ReactFlowConnection): Edge[] {
         if (isValidConnection(params.sourceHandle!, params.targetHandle!)) {
             // Call unification
-            return addEdge({ ...params, type: 'multiEdge'}, edges)
+            return addEdge({ ...params, type: 'multiEdge' }, edges)
         } else {
             return edges
         }
     }
-  
+
     function addConnection(params: ReactFlowConnection): void {
         setEdges((edges) => addEdgeIfValid(edges, params))
     }

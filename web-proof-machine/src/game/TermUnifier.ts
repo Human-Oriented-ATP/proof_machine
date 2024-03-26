@@ -25,10 +25,11 @@ export class TermUnifier extends TermIndex {
         this.runUnification()
     }
 
-    removeTerm(t : TermReference) {
+    removeTerm(t: TermReference) {
         this.equations.filter(eq => {
             const [lhs, rhs] = eq;
-            t !== lhs && t !== rhs})
+            return t !== lhs && t !== rhs
+        })
     }
 
     getAssignedValue(v: VariableName): TermReference | undefined {
