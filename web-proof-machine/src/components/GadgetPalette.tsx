@@ -13,24 +13,16 @@ interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
     axiomIdx : number
 }
 
-export function InsertGadgetButton({ gadget, createNewGadget, axiomIdx }: InsertGadgetButtonProps): JSX.Element {
-    const onDragStart = (e:React.DragEvent<HTMLDivElement>, idx:number) => {
-        e.dataTransfer.setData('application/reactflow', String(idx));
-        e.dataTransfer.effectAllowed = 'move';
-    }
+export function InsertGadgetButton({ gadget, createNewGadget, axiomIdx }: InsertGadgetButtonProps): 
+    JSX.Element {
     const gadgetProps: GadgetDisplayProps = {
         ...gadget,
         isAxiom: true,
         id: "axiom" + axiomIdx
-    }
-    return ( 
-    <div 
-        className="insertGadgetButton" 
-        // onMouseDown={(e) => createNewGadget(e, gadget)}
-        onDragStart={(e) => onDragStart(e, axiomIdx)} 
-        draggable>
+        }
+    return <div className="insertGadgetButton" onMouseDown={(e) => createNewGadget(e, gadget)}>
         {<Gadget {...gadgetProps} />}
-    </div> )
+    </div>
 }
 
 export function GadgetPalette({ ...props }: GadgetPaletteProps) {
