@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import ReactFlow, {
     Controls,
     useNodesState,
@@ -9,7 +9,8 @@ import ReactFlow, {
     useReactFlow,
     Node as ReactFlowNode,
     EdgeTypes,
-    Edge
+    Edge,
+    ReactFlowProvider
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { AbstractGadgetProps, GadgetDisplayProps, AbstractNodeProps } from '../game/Primitives';
@@ -35,6 +36,7 @@ const initialState: GameState = {
 }
 
 export function Game() {
+    const reactFlowWrapper = useRef(null);
     const [state, setState] = useState(initialState);
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -48,7 +50,7 @@ export function Game() {
 
     function getGadgetFromId(gadgetId: string): GadgetDisplayProps {
         for (let i = 0; i < state.activeGadgets.length; i++) {
-            if (state.activeGadgets[i].id = gadgetId) {
+            if (state.activeGadgets[i].id === gadgetId) {
                 return state.activeGadgets[i]
             }
         }
@@ -59,7 +61,7 @@ export function Game() {
         const gadgetId = gadgetIdFromNodeId(nodeId)
         const gadget = getGadgetFromId(gadgetId)
         const position = nodePositionFromNodeId(nodeId)
-        if (position == "output") {
+        if (position === "output") {
             if (gadget.outputNode) {
                 return [gadget.outputNode, gadget]
             } else {
@@ -76,8 +78,8 @@ export function Game() {
         const targetNodeId = nodeIdFromHandleId(targetHandleId)
         const [sourceNode] = getNodeAndGadgetFromNodeId(sourceNodeId)
         const [targetNode] = getNodeAndGadgetFromNodeId(targetNodeId)
-        return sourceNode.color == targetNode.color
-            && sourceNode.holes.length == targetNode.holes.length
+        return sourceNode.color === targetNode.color
+            && sourceNode.holes.length === targetNode.holes.length
     }
 
     function addEdgeIfValid(edges : Edge<any>[], params : ReactFlowConnection) : Edge[] {
@@ -108,7 +110,7 @@ export function Game() {
             id: newId.toString(),
             type: 'gadgetFlowNode',
             position: screenToFlowPosition({
-                x: e.clientX, y: 250
+                x: e.clientX, y: e.clientY
             }),
             data: newGadget,
             dragging: true
@@ -116,22 +118,49 @@ export function Game() {
         setNodes((nds) => nds.concat(newNode));
     }
 
-    const onConnect = useCallback(addConnection, [setEdges]);
-
     const panelProps: GadgetPaletteProps = { axioms: [axiom, axiom2], createNewGadget }
 
+    const onConnect = useCallback(addConnection, [setEdges]);
+
+    const onDragOver = useCallback((e:React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+      }, []);
+    
+    const onDrop = useCallback((e:React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+
+        const axiomIdx = e.dataTransfer.getData('application/reactflow');
+
+        if (typeof axiomIdx === 'undefined' || !axiomIdx) {
+            console.log("Could not parse event data.")
+            return;
+        }
+        const axiom : AbstractGadgetProps = panelProps.axioms[Number(axiomIdx)];
+
+        createNewGadget(e as unknown as MouseEvent, axiom)
+
+    }, []);
+
     return (
-        <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            edgeTypes={edgeTypes}
-            nodeTypes={nodeTypes}
-        >
-            <GadgetPalette {...panelProps} />
-            <Controls />
-        </ReactFlow>
+        <div className='dndflow'>
+            <ReactFlowProvider>
+                <div className='reactflow-wrapper' ref={reactFlowWrapper}>
+                    <ReactFlow
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onDragOver={onDragOver}
+                        onDrop={onDrop}
+                        edgeTypes={edgeTypes}
+                        nodeTypes={nodeTypes}>
+                        <Controls />
+                    </ReactFlow>
+                </div>
+                <GadgetPalette {...panelProps} />
+            </ReactFlowProvider>
+        </div>
     )
 }
