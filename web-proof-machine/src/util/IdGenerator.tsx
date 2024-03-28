@@ -5,7 +5,7 @@ export function gadgetIdFromFlowNodeId(flowNodeId: string): string {
 }
 
 export function nodeIdFromGadgetIdAndPosition(gadgetId: string, nodePosition: NodePosition) {
-    if (nodePosition === "output") {
+    if (nodePosition == "output") {
         return gadgetId + "_node_out"
     } else {
         return gadgetId + "_node_in_" + nodePosition
@@ -17,7 +17,7 @@ export function handleIdFromNodeId(nodeId: string): string {
 }
 
 export function nodeIdFromHandleId(handleId: string): string {
-    if (handleId.slice(-7) === "_handle") {
+    if (handleId.slice(-7) == "_handle") {
         return handleId.slice(0, -7);
     } else {
         throw Error("Not a handle id: " + handleId)
@@ -25,12 +25,12 @@ export function nodeIdFromHandleId(handleId: string): string {
 }
 
 export function nodePositionFromNodeId(nodeId: string): NodePosition {
-    if (nodeId.slice(-9) === "_node_out") {
+    if (nodeId.slice(-9) == "_node_out") {
         return "output"
     } else {
         try {
             let result = nodeId.split("_node_in_")
-            if (result.length === 2 && result[1] !== "") {
+            if (result.length == 2 && result[1] != "") {
                 return Number(result[1])
             } else {
                 throw Error("Not a node id: " + nodeId)
@@ -43,7 +43,7 @@ export function nodePositionFromNodeId(nodeId: string): NodePosition {
 
 export function gadgetIdFromNodeId(nodeId: string): GadgetId {
     let result = nodeId.split("_node_")
-    if (result.length === 2) {
+    if (result.length == 2) {
         return result[0]
     } else {
         throw Error("Not a node id: " + nodeId)

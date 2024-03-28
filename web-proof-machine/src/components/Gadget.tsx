@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../util/Point'
-import { GadgetDisplayProps, NodeDisplayProps, HolePosition, GadgetId, InternalConnection }
+import { GadgetDisplayProps, NodeDisplayProps, HolePosition, GadgetId, InternalConnection } 
     from '../game/Primitives'
 import { nodeIdFromGadgetIdAndPosition } from '../util/IdGenerator'
 
@@ -97,16 +97,16 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
     }
 
     return (
-        <div style={{ textAlign: "center" }}>
-            <span style={{ color: "grey" }}>{props.id}</span>
-            <div className="gadget" id={props.id}>
-                <div className="gadgetInputContainer"
-                    style={props.inputNodes.length === 0 ? { margin: "0px" } : {}}>
-                    {makeInputNodes()}
-                </div>
-                {makeOutputNodeContainer()}
-                <ConnectionSvg {...connectionState}></ConnectionSvg>
+        <div style={{textAlign: "center"}}>
+        <span style={{color: "grey"}}>{props.id}</span>
+        <div className="gadget" id={props.id}>
+            <div className="gadgetInputContainer" 
+                style={props.inputNodes.length === 0 ? { margin : "0px" } : {}}>
+                {makeInputNodes()}
             </div>
+            {makeOutputNodeContainer()}
+            <ConnectionSvg {...connectionState}></ConnectionSvg>
+        </div>
         </div>
     )
 }
