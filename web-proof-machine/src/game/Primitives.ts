@@ -111,6 +111,22 @@ export type Term =
     | { label: FunctionName, args: Term[] }
 
 
-type Axiom = { hypotheses : Term[], conclusions : Term[] }
+/** An axiom has a list of terms as hypotheses and another list of terms as the conclusions.
+ *  Usually we want just a single conclusion (or none at all).
+ * However, leaving it as a list makes it easier to parse problem files. */    
+export type Axiom = { hypotheses : Term[], conclusions : Term[] }
 
-type ProblemState = { goal : Term, axioms : Axiom[] }
+/** A problem state consists of a goal and a list of axioms that can be used to prove it. */
+export type ProblemState = { goal : Term, axioms : Axiom[] }
+
+
+// function TermToNodeProps(term : Term) : AbstractNodeProps | undefined {
+//     if ('variable' in term) {
+//         return undefined;
+//     } else {
+//         return {
+//             color : term.label as Color,
+//             holes : term.args.map()
+//         }
+//     }
+// }
