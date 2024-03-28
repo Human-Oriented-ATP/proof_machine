@@ -93,3 +93,24 @@ export interface GadgetDisplayProps extends AbstractGadgetProps {
     id: GadgetId
     isAxiom: boolean
 }
+
+/*
+
+Terms are built inductively from variables and function applications.
+
+*/
+
+/** Variable names are represented as strings. */
+export type VariableName = string
+/** Function names are represented as strings. */
+export type FunctionName = string
+
+/** Terms are built inductively from variables and function applications. */
+export type Term =
+    | { variable: VariableName }
+    | { label: FunctionName, args: Term[] }
+
+
+type Axiom = { hypotheses : Term[], conclusions : Term[] }
+
+type ProblemState = { goal : Term, axioms : Axiom[] }

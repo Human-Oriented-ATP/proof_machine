@@ -1,14 +1,23 @@
 import { hash } from '../util/Hash';
+import { VariableName, FunctionName, Term } from './Primitives';
 
-export type VariableName = string
-export type FunctionName = string
-
-export type Term =
-    | { variable: VariableName }
-    | { label: FunctionName, args: Term[] }
-
-function hashTerm(t: Term): number {
+export function hashTerm(t: Term): number {
     return hash(JSON.stringify(t))
+}
+
+export function substitute(term : Term, v: VariableName, replacement: Term): Term {
+    if ("variable" in term) {
+        if (v === term.variable) {
+            return replacement
+        } else {
+            return term
+        }
+    } else {
+        return {
+            label : term.label,
+            args : term.args.map((arg) => substitute(arg, v, replacement))
+        }
+    }
 }
 
 export type TermReference = number
@@ -22,6 +31,10 @@ export class TermIndex {
 
     constructor() {
         this.index = new Map()
+    }
+
+    forEachInIndex(callbackfn: (value: IndexData, key: TermReference, map: Map<TermReference, IndexData>) => void, thisArg?: any): void {
+        this.index.forEach(callbackfn, thisArg);
     }
 
     private InvalidReferenceError(ref: TermReference): Error {

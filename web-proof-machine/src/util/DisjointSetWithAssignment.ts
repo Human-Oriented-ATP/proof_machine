@@ -23,4 +23,8 @@ export class DisjointSetWithAssignment<T, S> extends DisjointSet<T> {
         return this.assignments.has(representative)
     }
 
+    forEachAssignment(callbackfn: (value: S, key: T, map: Map<T, S>) => void, thisArg?: any): void {
+        this.assignments.forEach(callbackfn, thisArg);
+    }
+
 }

@@ -1,5 +1,6 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
-import { TermIndex, TermReference, VariableName } from "./TermIndex";
+import { Term, FunctionName, VariableName } from "./Primitives";
+import { TermIndex, TermReference, substitute, hashTerm } from "./TermIndex";
 
 export type Equation = [TermReference, TermReference]
 
@@ -32,6 +33,31 @@ export class TermUnifier extends TermIndex {
     isSatisfied(e: Equation): boolean | undefined {
         return this.equationIsSatisfied.get(e)
     }
+
+    instantiateTerm(term: Term): Term {
+        let t: Term = term
+        // TODO: Make sure the assignments are maximally substituted
+        this.variables.forEachAssignment((ref, v) => t = substitute(t, v, this.getTerm(ref)))
+        return t;
+    }
+
+    getTermEnumerationIndex(term : Term, offset: number): number | undefined {
+        const t = this.instantiateTerm(term)
+        let iterator: number = 0;
+        let enumerationIdx: number | undefined = undefined;
+        this.forEachInIndex((idxData, ref) => {
+            if(hashTerm(t) === ref) {
+                enumerationIdx = iterator;
+            }
+            iterator++;
+        });
+
+        if(enumerationIdx === undefined) {
+            return undefined;
+        } else {
+            return enumerationIdx + offset;
+        }
+    } 
 
     private unifyVariable(v: VariableName, ref: TermReference): boolean {
         if (this.variables.isAssigned(v)) {
