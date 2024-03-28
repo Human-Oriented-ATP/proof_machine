@@ -48,7 +48,7 @@ export function Game() {
 
     function getGadgetFromId(gadgetId: string): GadgetDisplayProps {
         for (let i = 0; i < state.activeGadgets.length; i++) {
-            if (state.activeGadgets[i].id === gadgetId) {
+            if (state.activeGadgets[i].id = gadgetId) {
                 return state.activeGadgets[i]
             }
         }
@@ -59,7 +59,7 @@ export function Game() {
         const gadgetId = gadgetIdFromNodeId(nodeId)
         const gadget = getGadgetFromId(gadgetId)
         const position = nodePositionFromNodeId(nodeId)
-        if (position === "output") {
+        if (position == "output") {
             if (gadget.outputNode) {
                 return [gadget.outputNode, gadget]
             } else {
@@ -76,8 +76,8 @@ export function Game() {
         const targetNodeId = nodeIdFromHandleId(targetHandleId)
         const [sourceNode] = getNodeAndGadgetFromNodeId(sourceNodeId)
         const [targetNode] = getNodeAndGadgetFromNodeId(targetNodeId)
-        return sourceNode.color === targetNode.color
-            && sourceNode.holes.length === targetNode.holes.length
+        return sourceNode.color == targetNode.color
+            && sourceNode.holes.length == targetNode.holes.length
     }
 
     function addEdgeIfValid(edges : Edge<any>[], params : ReactFlowConnection) : Edge[] {
@@ -93,7 +93,7 @@ export function Game() {
         setEdges((edges) => addEdgeIfValid(edges, params))
     }
 
-    function createNewGadget(e: React.DragEvent<HTMLDivElement>, axiom: AbstractGadgetProps) {
+    function createNewGadget(e: MouseEvent, axiom: AbstractGadgetProps) {
         const newId = makeNewId()
         const gadgetId = "gadget" + newId
         const newGadget = {
@@ -108,7 +108,7 @@ export function Game() {
             id: newId.toString(),
             type: 'gadgetFlowNode',
             position: screenToFlowPosition({
-                x: e.clientX, y: e.clientY
+                x: e.clientX, y: 250
             }),
             data: newGadget,
             dragging: true
@@ -116,27 +116,9 @@ export function Game() {
         setNodes((nds) => nds.concat(newNode));
     }
 
-    const panelProps: GadgetPaletteProps = { axioms: [axiom, axiom2], createNewGadget }
-
     const onConnect = useCallback(addConnection, [setEdges]);
 
-    const onDragOver = useCallback((e:React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      }, []);
-
-    const onDrop = useCallback((e:React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-
-        const axiomIdx = e.dataTransfer.getData('application/reactflow');
-
-        if (typeof axiomIdx === 'undefined' || !axiomIdx) {
-        return;
-        }
-        const axiom : AbstractGadgetProps = panelProps.axioms[Number(axiomIdx)];
-
-        createNewGadget(e, axiom);
-    }, []);
+    const panelProps: GadgetPaletteProps = { axioms: [axiom, axiom2], createNewGadget }
 
     return (
         <ReactFlow
@@ -145,8 +127,6 @@ export function Game() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
         >
