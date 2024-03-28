@@ -2,6 +2,12 @@ import ReactFlow, { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
 import { AbstractGadgetProps, GadgetDisplayProps } from '../game/Primitives';
 import { axiom } from '../util/AxiomsForTesting';
+
+export interface GadgetPaletteProps {
+    axioms: AbstractGadgetProps[]
+    createNewGadget: any
+}
+
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
     gadget: AbstractGadgetProps
     axiomIdx : number
@@ -24,7 +30,7 @@ export function InsertGadgetButton({ gadget, axiomIdx }: InsertGadgetButtonProps
     </div>
 }
 
-export function GadgetPalette(props:{ axioms : AbstractGadgetProps[]}) {
+export function GadgetPalette({ ...props }: GadgetPaletteProps) {
 
     return (
         <aside className='aside'>
