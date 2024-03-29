@@ -1,4 +1,4 @@
-import { Term, Axiom, ProblemState } from './Primitives';
+import { Term, Axiom, ProblemState, HoleProps } from './Primitives';
 import { TermUnifier } from './TermUnifier';
 
 function isNumericalConstant(t : Term): number | undefined  {
@@ -37,12 +37,22 @@ function getNumericalConstantsInProblemState(ps: ProblemState): number[] {
 }
 
 // TODO: Get the `TermUnifier` out of the list of arguments
-function getIndexFor(termUnifier: TermUnifier, ps: ProblemState, term: Term): number {
+export function getIndexFor(termUnifier: TermUnifier, ps: ProblemState, term: Term): HoleProps {
     const constIndices = getNumericalConstantsInProblemState(ps);
     const n = isNumericalConstant(term);
     if (n === undefined) {
-        return termUnifier.getTermEnumerationIndex(term, 1 + Math.max(...constIndices))!;
+        if ("variable" in term) {
+            return { value: "", isFunctionValue: false };
+        } else {
+            return {
+                value: termUnifier.getTermEnumerationIndex(term, 1 + Math.max(...constIndices)),
+                isFunctionValue: true
+            };
+        }
     } else {
-        return n;
+        return {
+            value: n,
+            isFunctionValue: false
+        };
     }
 }

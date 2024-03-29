@@ -41,7 +41,7 @@ export class TermUnifier extends TermIndex {
         return t;
     }
 
-    getTermEnumerationIndex(term : Term, offset: number): number | undefined {
+    getTermEnumerationIndex(term : Term, offset: number): number {
         const t = this.instantiateTerm(term)
         let iterator: number = 0;
         let enumerationIdx: number | undefined = undefined;
@@ -53,7 +53,8 @@ export class TermUnifier extends TermIndex {
         });
 
         if(enumerationIdx === undefined) {
-            return undefined;
+            // TODO: Maybe insert it in the index and try again in this case
+            throw new Error(`The term ${t} is not in the term index.`);
         } else {
             return enumerationIdx + offset;
         }

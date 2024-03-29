@@ -94,6 +94,15 @@ export interface GadgetDisplayProps extends AbstractGadgetProps {
     isAxiom: boolean
 }
 
+/** The data associated with the entire game:
+ * - the list of axioms to display in the palette
+ * - the goal to prove
+ */
+export interface AbstractGameProps {
+    axioms: AbstractGadgetProps[]
+    goal: AbstractNodeProps
+}
+
 /*
 
 Terms are built inductively from variables and function applications.
@@ -114,19 +123,7 @@ export type Term =
 /** An axiom has a list of terms as hypotheses and another list of terms as the conclusions.
  *  Usually we want just a single conclusion (or none at all).
  * However, leaving it as a list makes it easier to parse problem files. */    
-export type Axiom = { hypotheses : Term[], conclusions : Term[] }
+export type Axiom = { hypotheses: Term[], conclusions: Term[] }
 
 /** A problem state consists of a goal and a list of axioms that can be used to prove it. */
-export type ProblemState = { goal : Term, axioms : Axiom[] }
-
-
-// function TermToNodeProps(term : Term) : AbstractNodeProps | undefined {
-//     if ('variable' in term) {
-//         return undefined;
-//     } else {
-//         return {
-//             color : term.label as Color,
-//             holes : term.args.map()
-//         }
-//     }
-// }
+export type ProblemState = { goal: Term, axioms: Axiom[] }
