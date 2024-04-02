@@ -1,39 +1,39 @@
 import { useState } from "react";
 import { TermUnifier } from "./TermUnifier";
 import { Term, TermReference } from "./TermIndex";
-import { HoleValue } from "./Primitives";
+import { HoleProps } from "./Primitives";
 
 export function useTermUnifier(): any {
     const [termUnifier, _] = useState(new TermUnifier())
 
-    function getArgValue(t: Term): HoleValue {
+    function getHoleProps(t: Term): HoleProps {
         if ("variable" in t) { // only the easy case so far: term is a constant
             const termRef = termUnifier.getAssignedValue(t.variable)!
             const term = termUnifier.getTerm(termRef)
             if ("label" in term && term.args.length === 0) {
-                return Number(term.label)
+                return { value: Number(term.label), isFunctionValue: false }
             } else {
-                return "x"
+                return { value: "x", isFunctionValue: false }
             }
         } else {
             if (t.args.length === 0) {
-                return Number(t.label)
+                return { value: Number(t.label), isFunctionValue: false }
             } else { // difficult case
-                return "x"
+                return { value: "x", isFunctionValue: false }
             }
         }
     }
 
-    function getTermValues(ref: TermReference): HoleValue[] {
+    function getAllHoleProps(ref: TermReference): HoleProps[] {
         const term = termUnifier.getTerm(ref)
         if ("args" in term) {
-            return term.args.map(arg => getArgValue(arg))
+            return term.args.map(arg => getHoleProps(arg))
         } else {
             throw Error("Invalid term reference for node: " + ref)
         }
     }
 
-    return [getTermValues,
+    return [getAllHoleProps,
         termUnifier.isSatisfied.bind(termUnifier),
         termUnifier.addTerm.bind(termUnifier),
         termUnifier.removeTerm.bind(termUnifier),

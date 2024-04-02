@@ -4,7 +4,6 @@ import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './Conn
 import { Point, getCenterRelativeToParent } from '../util/Point'
 import { GadgetDisplayProps, NodeDisplayProps, HolePosition, GadgetId, InternalConnection }
     from '../game/Primitives'
-import { nodeIdFromGadgetIdAndPosition } from '../util/IdGenerator'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1]
@@ -42,7 +41,7 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
 
-    const withoutHandles = props.isAxiom
+    const withoutHandles = props.isInPalette
 
     function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
         ConnectionDrawingData {
@@ -67,11 +66,10 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
 
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []
-        for (let i = 0; i < props.inputNodes.length; i++) {
-            const nodeProps = props.inputNodes[i]
+        for (let i = 0; i < props.inputs.length; i++) {
+            const nodeProps = props.inputs[i]
             const nodeDisplayProps: NodeDisplayProps = {
                 ...nodeProps,
-                id: nodeIdFromGadgetIdAndPosition(props.id, i),
                 isInput: true,
                 withoutHandles
             }
@@ -81,10 +79,9 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
     }
 
     function makeOutputNodeContainer(): JSX.Element {
-        if (props.outputNode) {
+        if (props.output) {
             const nodeDisplayProps = {
-                ...props.outputNode,
-                id: nodeIdFromGadgetIdAndPosition(props.id, "output"),
+                ...props.output,
                 isInput: false,
                 withoutHandles
             }
@@ -101,7 +98,7 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
             <span style={{ color: "grey" }}>{props.id}</span>
             <div className="gadget" id={props.id}>
                 <div className="gadgetInputContainer"
-                    style={props.inputNodes.length === 0 ? { margin: "0px" } : {}}>
+                    style={props.inputs.length === 0 ? { margin: "0px" } : {}}>
                     {makeInputNodes()}
                 </div>
                 {makeOutputNodeContainer()}

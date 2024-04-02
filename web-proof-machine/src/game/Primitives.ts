@@ -1,21 +1,21 @@
-export type HoleValue = "" | number | "x"
+import { TermReference } from "./TermIndex"
+
+export type HoleValue = "" | "x" | number
 
 export interface HoleProps {
     value: HoleValue
     isFunctionValue: boolean
 }
 
-export type Color = "red" | "green" | "blue" | "white" | "yellow"
-
-export type NodeId = string
+export type Color = string //"r" | "g" | "b" | "y" | "w"
 
 export interface AbstractNodeProps {
-    holes: HoleProps[]
+    values: HoleProps[]
     color: Color
+    handleId?: string
 }
 
 export interface NodeDisplayProps extends AbstractNodeProps {
-    id: NodeId
     isInput: boolean
     withoutHandles: boolean
 }
@@ -31,12 +31,16 @@ export interface InternalConnection {
 }
 
 export interface AbstractGadgetProps {
-    inputNodes: AbstractNodeProps[]
-    outputNode?: AbstractNodeProps
+    id: GadgetId
+    inputs: AbstractNodeProps[]
+    output: AbstractNodeProps
     connections: InternalConnection[]
 }
 
 export interface GadgetDisplayProps extends AbstractGadgetProps {
-    id: GadgetId
-    isAxiom: boolean
+    isInPalette: boolean
+}
+
+export interface FlowNodeProps {
+    termReferenceFromHandleId: (ref: TermReference) => string
 }

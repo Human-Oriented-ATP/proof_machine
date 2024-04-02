@@ -11,6 +11,26 @@ function hashTerm(t: Term): number {
     return hash(JSON.stringify(t))
 }
 
+export function getVariableSet(t: Term): VariableName[] {
+    if ("variable" in t) {
+        return [t.variable]
+    } else {
+        const childVariables = t.args.map(getVariableSet)
+        return childVariables.flat()
+    }
+}
+
+export type Assignment = (v: VariableName) => Term
+
+export function substitute(t: Term, a: Assignment): Term {
+    if ("variable" in t) {
+        return a(t.variable)
+    } else {
+        const argsSubstituted = t.args.map(term => substitute(term, a))
+        return { label: t.label, args: argsSubstituted }
+    }
+}
+
 export type TermReference = number
 
 type IndexData =
@@ -98,7 +118,26 @@ export class TermIndex {
         }
     }
 
+    variablesOfTerm(ref: TermReference): VariableName[] {
+        throw Error("Function variableSet not implemented")
+    }
+
     dump(): any {
         return this.index
     }
+
+    // substitute(ref: TermReference, assignment: Map<VariableName, TermReference>): TermReference {
+    //     const head = this.getHead(ref)
+    //     if ("variable" in head) {
+    //         return assignment.get(head.variable)!
+    //     } else {
+    //         const argsSubstituted = head.args.map(childTerm =>
+    //             this.substitute.bind(this)(childTerm, assignment))
+    //         const substitutedTerm: IndexData = {
+    //             label: head.label,
+    //             args: argsSubstituted
+    //         }
+    //         return
+    //     }
+    // }
 }
