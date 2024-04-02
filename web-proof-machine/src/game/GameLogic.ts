@@ -53,8 +53,7 @@ function makeAxiomNode(t: Term): AbstractNodeProps {
     }
 }
 
-export function makeAxiomGadget(a: Axiom): GadgetProps {
-    const id: GadgetId = "gadget_axiom"
+export function makeAxiomGadget(a: Axiom, id: GadgetId): GadgetProps {
     const inputs = a.hypotheses.map(makeAxiomNode)
     const output = makeAxiomNode(a.conclusion)
     const connections: InternalConnection[] = []
