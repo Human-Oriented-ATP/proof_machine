@@ -1,4 +1,4 @@
-import { TermReference } from "./TermIndex"
+import { Term } from "./Term"
 
 export type HoleValue = "" | "x" | number
 
@@ -12,12 +12,11 @@ export type Color = string //"r" | "g" | "b" | "y" | "w"
 export interface AbstractNodeProps {
     values: HoleProps[]
     color: Color
-    handleId?: string
+    term?: Term
 }
 
 export interface NodeDisplayProps extends AbstractNodeProps {
     isInput: boolean
-    withoutHandles: boolean
 }
 
 export type GadgetId = string
@@ -30,17 +29,9 @@ export interface InternalConnection {
     to: HolePosition
 }
 
-export interface AbstractGadgetProps {
+export interface GadgetProps {
     id: GadgetId
     inputs: AbstractNodeProps[]
     output: AbstractNodeProps
     connections: InternalConnection[]
-}
-
-export interface GadgetDisplayProps extends AbstractGadgetProps {
-    isInPalette: boolean
-}
-
-export interface FlowNodeProps {
-    termReferenceFromHandleId: (ref: TermReference) => string
 }

@@ -1,6 +1,5 @@
-import { AbstractGadgetProps, AbstractNodeProps, Color, GadgetId, HoleProps, InternalConnection } from "./Primitives";
-import { Assignment, FunctionName, Term, TermReference, VariableName, getVariableSet, substitute } from "./TermIndex";
-import { TermUnifier } from "./TermUnifier";
+import { AbstractNodeProps, Color, GadgetId, GadgetProps, HoleProps, HoleValue, InternalConnection } from "./Primitives";
+import { Term, Assignment, hashTerm } from "./Term";
 
 export interface Axiom {
     hypotheses: Term[]
@@ -31,120 +30,89 @@ export function makeAxiomsFromJSONObject(json: any): Axiom[] {
     return axioms
 }
 
-export interface GadgetContainerProps {
-    gadget: AbstractGadgetProps
-    inputs: TermReference[]
-    output: TermReference
+function makeAxiomHole(t: Term): HoleProps {
+    if ("variable" in t) {
+        return { value: "", isFunctionValue: false }
+    } else {
+        if (t.args.length === 0) { // constant
+            const value = Number(t.label)
+            return { value, isFunctionValue: false }
+        } else {
+            return { value: "", isFunctionValue: true }
+        }
+    }
 }
 
-export class GameLogic {
-    private axioms: Axiom[]
-    private termUnififer: TermUnifier
-    private gadgetIdCounter: number
-    private variableNameCounter: number
-
-    constructor(json: any) {
-        this.axioms = makeAxiomsFromJSONObject(json)
-        this.termUnififer = new TermUnifier()
-        this.gadgetIdCounter = 0
-        this.variableNameCounter = 0
+function makeAxiomNode(t: Term): AbstractNodeProps {
+    if ("label" in t && "args" in t) {
+        const values: HoleProps[] = t.args.map(makeAxiomHole)
+        const color: Color = t.label
+        return { values, color }
+    } else {
+        throw Error("The given term cannot be rendered as a node")
     }
+}
 
-    private makeGadgetId(): string {
-        this.gadgetIdCounter++
-        return "gadget_" + this.gadgetIdCounter
+export function makeAxiomGadget(a: Axiom): GadgetProps {
+    const id: GadgetId = "gadget_axiom"
+    const inputs = a.hypotheses.map(makeAxiomNode)
+    const output = makeAxiomNode(a.conclusion)
+    const connections: InternalConnection[] = []
+    return { id, inputs, output, connections }
+}
+
+function getTermNumber(term: Term): HoleValue {
+    if ("label" in term && term.args.length === 0) {
+        return Number(term.label)
+    } else {
+        return "x"
     }
+}
 
-    private makeVariableId(): string {
-        this.variableNameCounter++
-        return "v" + this.variableNameCounter
-    }
-
-    getAxioms(): Axiom[] {
-        return this.axioms
-    }
-
-    makeAxiomHole(t: Term): HoleProps {
-        if ("variable" in t) {
+function makeHole(assignment: Assignment, term: Term): HoleProps {
+    if ("variable" in term) {
+        const value = assignment.getAssignedValue(term.variable)!
+        if (!value) {
             return { value: "", isFunctionValue: false }
         } else {
-            if (t.args.length === 0) { // constant
-                const value = Number(t.label)
-                return { value, isFunctionValue: false }
-            } else {
-                return { value: "", isFunctionValue: true }
-            }
+            return { value: getTermNumber(value), isFunctionValue: false }
         }
-    }
-
-    makeAxiomNode(t: Term): AbstractNodeProps {
-        if ("label" in t && "args" in t) {
-            const values: HoleProps[] = t.args.map(this.makeAxiomHole.bind(this))
-            const color: Color = t.label
-            return { values, color }
+    } else {
+        if (term.args.length === 0) { // constant
+            const value = Number(term.label)
+            return { value, isFunctionValue: false }
         } else {
-            throw Error("The given term cannot be rendered as a node")
+            return { value: "x", isFunctionValue: true }
         }
     }
+}
 
-    makeAxiomGadget(a: Axiom): AbstractGadgetProps {
-        const id: GadgetId = this.makeGadgetId()
-        const inputs = a.hypotheses.map(this.makeAxiomNode.bind(this))
-        const output = this.makeAxiomNode(a.conclusion)
-        const connections: InternalConnection[] = []
-        return { id, inputs, output, connections }
+function makeNode(assignment: Assignment, term: Term): AbstractNodeProps {
+    if ("label" in term && "args" in term) {
+        const values: HoleProps[] = term.args.map(t => makeHole(assignment, t))
+        const color: Color = term.label
+        return { values, color, term }
+    } else {
+        throw Error("The given term cannot be rendered as a node")
     }
+}
 
-    private makeTermWithFreshVariables(t: Term): Term {
-        const assignment: Assignment = (v) => { return { variable: v + this.makeVariableId() } }
-        return substitute(t, assignment)
-    }
+export function makeGadgetFromTerms(inputTerms: Term[], outputTerm: Term, id: GadgetId, assignment: Assignment) {
+    const inputs = inputTerms.map(hyp => makeNode(assignment, hyp))
+    const output = makeNode(assignment, outputTerm)
+    const connections: InternalConnection[] = []
+    return { id, inputs, output, connections }
+}
 
-    getTermNumber(ref: TermReference): number {
-        return 0
-    }
+export function handleIdFromTerm(t: Term): string {
+    return "handle_" + hashTerm(t)
+}
 
-    makeHole(ref: TermReference): HoleProps {
-        const term = this.termUnififer.getTerm(ref)
-        if ("variable" in term) {
-            const value = this.termUnififer.getAssignedValue(term.variable)!
-            if (!value) {
-                return { value: "", isFunctionValue: false }
-            } else {
-                return { value: this.getTermNumber(value), isFunctionValue: false }
-            }
-        } else {
-            if (term.args.length === 0) { // constant
-                const value = Number(term.label)
-                return { value, isFunctionValue: false }
-            } else {
-                return { value: "", isFunctionValue: true }
-            }
+export function getTermOfHandle(handleId: string, gadgetTerms: Term[]) {
+    for (let i = 0; i < gadgetTerms.length; i++) {
+        if (handleIdFromTerm(gadgetTerms[i]) === handleId) {
+            return gadgetTerms[i]
         }
     }
-
-    makeNode(ref: TermReference): AbstractNodeProps {
-        const term = this.termUnififer.getTerm(ref)
-        if ("label" in term && "args" in term) {
-            const values: HoleProps[] = term.args.map(this.makeAxiomHole.bind(this))
-            const color: Color = term.label
-            return { values, color }
-        } else {
-            throw Error("The given term cannot be rendered as a node")
-        }
-    }
-
-    makeGadget(a: Axiom): GadgetContainerProps {
-        const id: GadgetId = this.makeGadgetId()
-        const hypotheses = a.hypotheses.map(this.makeTermWithFreshVariables.bind(this))
-        const conclusion = this.makeTermWithFreshVariables(a.conclusion)
-        const inputTerms = hypotheses.map(this.termUnififer.addTerm.bind(this.termUnififer))
-        const outputTerm = this.termUnififer.addTerm(conclusion)
-
-        const inputs = inputTerms.map(this.makeNode.bind(this))
-        const output = this.makeNode(outputTerm)
-        const connections: InternalConnection[] = []
-        const gadget: AbstractGadgetProps = { id, inputs, output, connections }
-        return { gadget, inputs: inputTerms, output: outputTerm }
-    }
+    throw Error("Term not found for handle " + handleId)
 }

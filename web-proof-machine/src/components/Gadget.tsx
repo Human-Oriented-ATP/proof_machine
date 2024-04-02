@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../util/Point'
-import { GadgetDisplayProps, NodeDisplayProps, HolePosition, GadgetId, InternalConnection }
+import { GadgetProps, NodeDisplayProps, HolePosition, GadgetId, InternalConnection }
     from '../game/Primitives'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
@@ -37,11 +37,9 @@ export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): P
     }
 }
 
-export function Gadget({ ...props }: GadgetDisplayProps) {
+export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
-
-    const withoutHandles = props.isInPalette
 
     function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
         ConnectionDrawingData {
@@ -70,8 +68,7 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
             const nodeProps = props.inputs[i]
             const nodeDisplayProps: NodeDisplayProps = {
                 ...nodeProps,
-                isInput: true,
-                withoutHandles
+                isInput: true
             }
             buffer.push(<Node {...nodeDisplayProps}></Node>)
         }
@@ -82,8 +79,7 @@ export function Gadget({ ...props }: GadgetDisplayProps) {
         if (props.output) {
             const nodeDisplayProps = {
                 ...props.output,
-                isInput: false,
-                withoutHandles
+                isInput: false
             }
             return (<div className="gadgetOutputContainer">
                 <Node {...nodeDisplayProps}></Node>

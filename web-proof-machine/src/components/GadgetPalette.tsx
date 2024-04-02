@@ -1,11 +1,11 @@
 import { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
-import { AbstractGadgetProps, GadgetDisplayProps } from '../game/Primitives';
 import { Axiom } from '../game/GameLogic';
+import { GadgetProps } from '../game/Primitives';
 
 export interface GadgetPaletteProps {
     axioms: Axiom[]
-    makeAxiomGadget: (a: Axiom) => AbstractGadgetProps
+    makeAxiomGadget: (a: Axiom) => GadgetProps
     makeGadget: (a: Axiom, e: React.MouseEvent) => void
 }
 
@@ -25,8 +25,8 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
         <Panel position='top-center'>
             <div className="gadgetPalette">
                 {props.axioms.map(axiom => {
-                    let displayProps: GadgetDisplayProps =
-                        { ...props.makeAxiomGadget(axiom), isInPalette: true }
+                    let displayProps: GadgetProps =
+                        { ...props.makeAxiomGadget(axiom) }
                     return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>
                         <Gadget {...displayProps}></Gadget>
                     </InsertGadgetButton>
