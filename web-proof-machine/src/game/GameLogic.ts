@@ -124,33 +124,19 @@ export function makeAxiomGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     return { id, inputs, output, connections }
 }
 
-function getTermNumber(term: Term): HoleValue {
-    if ("label" in term && term.args.length === 0) {
-        return Number(term.label)
-    } else {
-        return "x"
-    }
-}
+export type HoleValueAssignment = (t: Term) => HoleValue
 
-function makeHole(assignment: TermAssignment, term: Term): HoleProps {
-    if ("variable" in term) {
-        const value = assignment.getAssignedValue(term.variable)!
-        if (!value) {
-            return { value: "", isFunctionValue: false }
-        } else {
-            return { value: getTermNumber(value), isFunctionValue: false }
-        }
-    } else {
-        if (term.args.length === 0) { // constant
-            const value = Number(term.label)
-            return { value, isFunctionValue: false }
-        } else {
-            return { value: "x", isFunctionValue: true }
+function makeHole(assignment: HoleValueAssignment, term: Term): HoleProps {
+    const value = assignment(term)
+    if ("args" in term) {
+        if (term.args.length !== 0) {
+            return { value, isFunctionValue: true }
         }
     }
+    return { value, isFunctionValue: false }
 }
 
-function makeNode(assignment: TermAssignment, term: Term): AbstractNodeProps {
+function makeNode(assignment: HoleValueAssignment, term: Term): AbstractNodeProps {
     if ("label" in term && "args" in term) {
         const values: HoleProps[] = term.args.map(t => makeHole(assignment, t))
         const color: Color = term.label
@@ -160,7 +146,8 @@ function makeNode(assignment: TermAssignment, term: Term): AbstractNodeProps {
     }
 }
 
-export function makeGadgetFromTerms(inputTerms: Term[], outputTerm: Term, id: GadgetId, assignment: TermAssignment) {
+export function makeGadgetFromTerms(inputTerms: Term[], outputTerm: Term, id: GadgetId,
+    assignment: HoleValueAssignment) {
     const inputs = inputTerms.map(hyp => makeNode(assignment, hyp))
     const output = makeNode(assignment, outputTerm)
     const connections = makeConnections(inputTerms, outputTerm)

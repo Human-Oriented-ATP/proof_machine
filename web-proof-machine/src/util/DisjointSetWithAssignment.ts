@@ -23,4 +23,8 @@ export class DisjointSetWithAssignment<T, S> extends DisjointSet<T> {
         return this.assignments.has(representative)
     }
 
+    getAssignedValues(): S[] {
+        return new Array(...this.assignments.values())
+    }
+
 }
