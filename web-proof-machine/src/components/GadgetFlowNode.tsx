@@ -1,14 +1,14 @@
 import { NodeProps as FlowNodeProps } from "reactflow";
 import { Gadget } from "../components/Gadget";
 import { GadgetId } from "../game/Primitives";
-import { Assignment, Term } from "../game/Term";
+import { TermAssignment, Term } from "../game/Term";
 import { makeGadgetFromTerms } from "../game/GameLogic";
 
 export interface GadgetFlowNodeProps {
     inputs: Term[]
     output: Term
     id: GadgetId
-    assignment: Assignment
+    assignment: TermAssignment
 }
 
 export function getFlowNodeTerms(props: GadgetFlowNodeProps): Term[] {

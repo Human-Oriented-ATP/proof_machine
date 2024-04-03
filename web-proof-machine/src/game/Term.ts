@@ -21,9 +21,9 @@ export function termHasVariable(term: Term, v: VariableName): boolean {
     }
 }
 
-export type Assignment = DisjointSetWithAssignment<VariableName, Term>
+export type TermAssignment = DisjointSetWithAssignment<VariableName, Term>
 
-function substitute(t: Term, a: Assignment): Term {
+function substitute(t: Term, a: TermAssignment): Term {
     if ("variable" in t) {
         return a.getAssignedValue(t.variable)!
     } else {
@@ -32,23 +32,24 @@ function substitute(t: Term, a: Assignment): Term {
     }
 }
 
-function getVariableSet(t: Term): Set<VariableName> {
-    function getVariableList(t: Term): VariableName[] {
-        if ("variable" in t) {
-            return [t.variable]
-        } else {
-            let list: VariableName[] = []
-            t.args.forEach(arg =>
-                list = list.concat(getVariableList(arg))
-            )
-            return list
-        }
+export function getVariableList(t: Term): VariableName[] {
+    if ("variable" in t) {
+        return [t.variable]
+    } else {
+        let list: VariableName[] = []
+        t.args.forEach(arg =>
+            list = list.concat(getVariableList(arg))
+        )
+        return list
     }
+}
+
+function getVariableSet(t: Term): Set<VariableName> {
     return new Set(getVariableList(t))
 }
 
 export function makeTermWithFreshVariables(t: Term, prefix: string): Term {
-    const assignment: Assignment = new DisjointSetWithAssignment()
+    const assignment: TermAssignment = new DisjointSetWithAssignment()
     getVariableSet(t).forEach(variable =>
         assignment.assign(variable, { variable: prefix + "_" + variable })
     )

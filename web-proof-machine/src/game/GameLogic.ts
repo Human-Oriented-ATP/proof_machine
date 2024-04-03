@@ -1,5 +1,8 @@
-import { AbstractNodeProps, Color, GadgetId, GadgetProps, HoleProps, HoleValue, InternalConnection } from "./Primitives";
-import { Term, Assignment, hashTerm } from "./Term";
+import {
+    AbstractNodeProps, Color, GadgetId, GadgetProps, HolePosition, HoleProps, HoleValue,
+    InternalConnection
+} from "./Primitives";
+import { Term, TermAssignment, hashTerm, getVariableList, VariableName } from "./Term";
 
 export interface Axiom {
     hypotheses: Term[]
@@ -53,10 +56,71 @@ function makeAxiomNode(t: Term): AbstractNodeProps {
     }
 }
 
-export function makeAxiomGadget(a: Axiom, id: GadgetId): GadgetProps {
-    const inputs = a.hypotheses.map(makeAxiomNode)
-    const output = makeAxiomNode(a.conclusion)
-    const connections: InternalConnection[] = []
+function getPositionsInTerm(v: VariableName, t: Term): number[] {
+    if ("args" in t) {
+        let positions: number[] = []
+        for (let i = 0; i < t.args.length; i++) {
+            const arg = t.args[i]
+            if ("variable" in arg) {
+                if (arg.variable === v) {
+                    positions.push(i)
+                }
+            }
+        }
+        return positions
+    } else {
+        return []
+    }
+}
+
+function getAllUniquePairs<T>(arr: T[]): [T, T][] {
+    const pairs: [T, T][] = [];
+    for (let i = 0; i < arr.length; i++) {
+        for (let j = i + 1; j < arr.length; j++) {
+            pairs.push([arr[i], arr[j]]);
+        }
+    }
+    return pairs;
+}
+
+function toConnections(positions: [HolePosition, HolePosition][]): InternalConnection[] {
+    const connections = positions.map(pos => {
+        const [from, to] = pos
+        return { from, to }
+    })
+    return connections
+}
+
+function makeConnectionsForVariable(inputs: Term[], output: Term, v: VariableName): InternalConnection[] {
+    const positionsInInputsStructured: HolePosition[][] = inputs.map((term, indexOfTerm) =>
+        getPositionsInTerm(v, term).map(variablePosition =>
+            [indexOfTerm, variablePosition]))
+    const positionsInOutput: HolePosition[] = getPositionsInTerm(v, output).map(variablePosition =>
+        ["output", variablePosition])
+    const positionsInInputs = positionsInInputsStructured.flat()
+    if (positionsInOutput.length === 0) {
+        return toConnections(getAllUniquePairs(positionsInInputs))
+    } else if (positionsInInputs.length === 0) {
+        return toConnections(getAllUniquePairs(positionsInOutput))
+    } else {
+        return (positionsInInputs.map(from =>
+            positionsInOutput.map(to => { return { from, to } }))).flat()
+    }
+}
+
+function makeConnections(input: Term[], output: Term): InternalConnection[] {
+    const variableList = (input.concat(output)).map(getVariableList)
+    const variableListDeduplicated = Array.from(new Set(variableList)).flat()
+    const connections = variableListDeduplicated.map(v =>
+        makeConnectionsForVariable(input, output, v))
+    return connections.flat()
+}
+
+
+export function makeAxiomGadget(axiom: Axiom, id: GadgetId): GadgetProps {
+    const inputs = axiom.hypotheses.map(makeAxiomNode)
+    const output = makeAxiomNode(axiom.conclusion)
+    const connections = makeConnections(axiom.hypotheses, axiom.conclusion)
     return { id, inputs, output, connections }
 }
 
@@ -68,7 +132,7 @@ function getTermNumber(term: Term): HoleValue {
     }
 }
 
-function makeHole(assignment: Assignment, term: Term): HoleProps {
+function makeHole(assignment: TermAssignment, term: Term): HoleProps {
     if ("variable" in term) {
         const value = assignment.getAssignedValue(term.variable)!
         if (!value) {
@@ -86,7 +150,7 @@ function makeHole(assignment: Assignment, term: Term): HoleProps {
     }
 }
 
-function makeNode(assignment: Assignment, term: Term): AbstractNodeProps {
+function makeNode(assignment: TermAssignment, term: Term): AbstractNodeProps {
     if ("label" in term && "args" in term) {
         const values: HoleProps[] = term.args.map(t => makeHole(assignment, t))
         const color: Color = term.label
@@ -96,10 +160,10 @@ function makeNode(assignment: Assignment, term: Term): AbstractNodeProps {
     }
 }
 
-export function makeGadgetFromTerms(inputTerms: Term[], outputTerm: Term, id: GadgetId, assignment: Assignment) {
+export function makeGadgetFromTerms(inputTerms: Term[], outputTerm: Term, id: GadgetId, assignment: TermAssignment) {
     const inputs = inputTerms.map(hyp => makeNode(assignment, hyp))
     const output = makeNode(assignment, outputTerm)
-    const connections: InternalConnection[] = []
+    const connections = makeConnections(inputTerms, outputTerm)
     return { id, inputs, output, connections }
 }
 
