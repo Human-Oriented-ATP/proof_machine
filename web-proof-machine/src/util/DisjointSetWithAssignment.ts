@@ -1,11 +1,81 @@
-import { DisjointSet } from "./DisjointSet";
-
-export class DisjointSetWithAssignment<T, S> extends DisjointSet<T> {
-    private assignments: Map<T, S>;
+export class DisjointSetWithAssignment<T, S> {
+    private parent: Map<T, T>
+    private rank: Map<T, number>
+    private assignments: Map<T, S>
 
     constructor() {
-        super()
+        this.parent = new Map()
+        this.rank = new Map()
         this.assignments = new Map()
+    }
+
+    private makeSet(x: T): void {
+        this.parent.set(x, x)
+        this.rank.set(x, 0)
+    }
+
+    private performPathCompression(x: T) {
+        if (this.parent.get(x) !== x) {
+            this.parent.set(x, this.findRepresentative(this.parent.get(x)!));
+        }
+    }
+
+    findRepresentative(x: T): T {
+        if (!this.parent.has(x)) {
+            this.makeSet(x)
+        }
+        this.performPathCompression(x)
+        return this.parent.get(x)!;
+    }
+
+    assignedValuesConflict(s1: S | undefined, s2: S | undefined) {
+        return s1 !== undefined && s2 !== undefined && s1 !== s2
+    }
+
+    valueToBeAssigned(s1: S | undefined, s2: S | undefined) {
+        if (s1 === undefined) {
+            return s2
+        } else {
+            return s1
+        }
+    }
+
+    setIfNotUndefined(key: T, value: S | undefined) {
+        if (value !== undefined) {
+            this.assignments.set(key, value)
+        }
+    }
+
+    unite(x: T, y: T): boolean { // need to be careful with assignment
+        let rootX = this.findRepresentative(x);
+        let rootY = this.findRepresentative(y);
+
+        if (rootX !== rootY) {
+            let valueX = this.assignments.get(rootX)
+            let valueY = this.assignments.get(rootY)
+
+            if (this.assignedValuesConflict(valueX, valueY)) {
+                return false
+            }
+
+            const value = this.valueToBeAssigned(valueX, valueY)
+
+            let rankX = this.rank.get(rootX)!;
+            let rankY = this.rank.get(rootY)!;
+
+            if (rankX < rankY) {
+                this.parent.set(rootX, rootY);
+                this.setIfNotUndefined(rootY, value)
+            } else if (rankX > rankY) {
+                this.parent.set(rootY, rootX);
+                this.setIfNotUndefined(rootX, value)
+            } else {
+                this.parent.set(rootY, rootX);
+                this.setIfNotUndefined(rootX, value)
+                this.rank.set(rootX, rankX + 1);
+            }
+        }
+        return true
     }
 
     assign(t: T, value: S) {

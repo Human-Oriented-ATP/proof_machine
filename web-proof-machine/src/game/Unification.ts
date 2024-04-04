@@ -24,8 +24,8 @@ function unifyEquation(currentAssignment: TermAssignment, equation: Equation): b
     const [lhs, rhs] = equation
     if ("variable" in lhs) {
         if ("variable" in rhs) {
-            currentAssignment.unite(lhs.variable, rhs.variable)
-            return true
+            const canUnite = currentAssignment.unite(lhs.variable, rhs.variable)
+            return canUnite
         } else {
             return unifyVariable(currentAssignment, lhs.variable, rhs)
         }

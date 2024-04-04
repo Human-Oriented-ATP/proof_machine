@@ -1,5 +1,24 @@
 import { DisjointSetWithAssignment } from "../../util/DisjointSetWithAssignment"
 
+test("Adding a new element", () => {
+    const x = new DisjointSetWithAssignment<number, number>()
+    const y = x.findRepresentative(3)
+    expect(y).toBe(3);
+})
+
+test("Union test", () => {
+    const x = new DisjointSetWithAssignment<number, number>()
+    x.unite(1, 2)
+    expect(x.findRepresentative(1)).toBe(x.findRepresentative(2));
+})
+
+test("Union transitive test", () => {
+    const x = new DisjointSetWithAssignment<number, number>()
+    x.unite(1, 2)
+    x.unite(2, 3)
+    expect(x.findRepresentative(1)).toBe(x.findRepresentative(3));
+})
+
 test("Assigning an element", () => {
     const set = new DisjointSetWithAssignment<number, string>()
     set.assign(3, "3")
