@@ -1,50 +1,31 @@
-/*
+import { Term } from "./Term"
 
-This file defines the basic types needed for the gadget game.
-
-Each axiom is treated as a *gadget*,
-where each gadget can have multiple *nodes* with internal connections between them,
-and each node has multiple *holes* which may carry values (usually numbers).
-
-*/
-
-
-/** The possible values of a hole.
- * 
- * The empty string is used for variables that have not been instantiated.
- * Numbers represent terms involved in the problem state. */   
-export type HoleValue = "" | number
+export type HoleValue = "" | "x" | "?" | number
 
 /** In addition to storing a `HoleValue`, 
  * `HoleProps` keeps track of whether the hole represents
  *  a non-variable term with uninstantiated variables that 
- *  needs to be rendered separately. */ 
+ *  needs to be rendered separately. */
 export interface HoleProps {
     value: HoleValue
     isFunctionValue: boolean
 }
 
-/** The possible colors of a node */
-export type Color = "red" | "green" | "blue" | "white" | "yellow"
-
-/** A string-based identifier for a node. */
-export type NodeId = string
+export type Color = string //"r" | "g" | "b" | "y" | "w"
 
 /** The data required to describe a node:
  *  - a list of holes
  *  - a color                            */
 export interface AbstractNodeProps {
-    holes: HoleProps[]
+    values: HoleProps[]
     color: Color
+    term?: Term
 }
 
 /** The data associated with a node with 
  *  concrete details like its identifier. */
 export interface NodeDisplayProps extends AbstractNodeProps {
-    id: NodeId
     isInput: boolean
-    // TODO: Find out what this does
-    withoutHandles: boolean
 }
 
 /*
@@ -77,53 +58,9 @@ export interface InternalConnection {
     to: HolePosition
 }
 
-/** The data required to describe a gadget:
- * - a list of input nodes
- * - an optional output node (present in axioms but not in the goal)
- * - the connections between the holes in the gadget
- */
-export interface AbstractGadgetProps {
-    inputNodes: AbstractNodeProps[]
-    outputNode?: AbstractNodeProps
+export interface GadgetProps {
+    id: GadgetId
+    inputs: AbstractNodeProps[]
+    output: AbstractNodeProps
     connections: InternalConnection[]
 }
-
-/** The data associated with a gadget, together with concrete details like the identifier. */
-export interface GadgetDisplayProps extends AbstractGadgetProps {
-    id: GadgetId
-    isAxiom: boolean
-}
-
-/** The data associated with the entire game:
- * - the list of axioms to display in the palette
- * - the goal to prove
- */
-export interface AbstractGameProps {
-    axioms: AbstractGadgetProps[]
-    goal: AbstractNodeProps
-}
-
-/*
-
-Terms are built inductively from variables and function applications.
-
-*/
-
-/** Variable names are represented as strings. */
-export type VariableName = string
-/** Function names are represented as strings. */
-export type FunctionName = string
-
-/** Terms are built inductively from variables and function applications. */
-export type Term =
-    | { variable: VariableName }
-    | { label: FunctionName, args: Term[] }
-
-
-/** An axiom has a list of terms as hypotheses and another list of terms as the conclusions.
- *  Usually we want just a single conclusion (or none at all).
- * However, leaving it as a list makes it easier to parse problem files. */    
-export type Axiom = { hypotheses: Term[], conclusions: Term[] }
-
-/** A problem state consists of a goal and a list of axioms that can be used to prove it. */
-export type ProblemState = { goal: Term, axioms: Axiom[] }

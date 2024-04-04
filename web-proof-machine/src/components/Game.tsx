@@ -1,137 +1,118 @@
-import { useCallback, useState } from 'react';
-import ReactFlow, {
-    Controls,
-    useNodesState,
-    useEdgesState,
-    addEdge,
-    NodeTypes,
-    Connection as ReactFlowConnection,
-    useReactFlow,
-    Node as ReactFlowNode,
-    EdgeTypes,
-    Edge
-} from 'reactflow';
-import { GadgetFlowNode } from './GadgetFlowNode';
-import { AbstractGadgetProps, GadgetDisplayProps, AbstractNodeProps } from '../game/Primitives';
-import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { MultiEdge } from './MultiEdge';
-import { gadgetIdFromNodeId, nodeIdFromHandleId, nodePositionFromNodeId } from '../util/IdGenerator';
+import { ReactFlowProvider } from "reactflow";
+import { Diagram } from "./Diagram";
+import { Axiom, HoleValueAssignment, makeAxiomsFromJSONObject } from "../game/GameLogic";
+import problemData from "../game/examples/problem1.json"
+import { Term, TermAssignment, hashTerm, makeTermWithFreshVariables } from "../game/Term";
+import { useMemo, useRef, useState } from "react";
+import { Equation, unifyEquations } from "../game/Unification";
+import { HoleValue } from "../game/Primitives";
+import { useIdGenerator } from "../util/IdGeneratorHook";
+import { GadgetFlowNodeProps } from "./GadgetFlowNode";
 
-import 'reactflow/dist/style.css';
-import '../flow.css'
-import { axiom, axiom2 } from '../util/AxiomsForTesting';
+type EnumerationMap = Map<Term, number>
 
-const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
-const edgeTypes: EdgeTypes = { 'multiEdge': MultiEdge }
-
-interface GameState {
-    activeGadgets: GadgetDisplayProps[]
-    nextId: number
+function getNextFreeHoleValue(offset: number, enumerationMap: EnumerationMap): number {
+    const values = Array.from(enumerationMap.values())
+    for (let i = offset; true; i++) {
+        if (!values.includes(i)) {
+            return i
+        }
+    }
 }
 
-const initialState: GameState = {
-    activeGadgets: [],
-    nextId: 0
+function updateEnumeration(offset: number, immutablePreviousEnumeration: EnumerationMap,
+    termAssignment: TermAssignment): EnumerationMap {
+    let previousEnumeration = new Map(immutablePreviousEnumeration)
+    const allAssignedTerms = termAssignment.getAssignedValues()
+    for (const term of allAssignedTerms) {
+        const hash = hashTerm(term)
+        if (!(hash in previousEnumeration.keys())) {
+            const value = getNextFreeHoleValue(offset, previousEnumeration)
+            previousEnumeration.set(term, value)
+        }
+    }
+    return previousEnumeration
+}
+
+function toHoleValue(t: Term, enumerationMap: EnumerationMap): HoleValue {
+    if ("variable" in t) {
+        throw Error("Cannot get hole value for a variable" + t)
+    } else {
+        if (t.args.length === 0) {
+            const value = Number(t.label)
+            return value
+        } else {
+            const lookup = enumerationMap.get(t)
+            if (lookup) {
+                return lookup
+            } else {
+                return "?"
+            }
+        }
+    }
+}
+
+function getHoleValueAssignment(enumerationMap: EnumerationMap, termAssignment: TermAssignment):
+    HoleValueAssignment {
+    return (t => {
+        if ("variable" in t) {
+            const term = termAssignment.getAssignedValue(t.variable)
+            if (term) {
+                return toHoleValue(term, enumerationMap)
+            } else {
+                return ""
+            }
+        } else {
+            return toHoleValue(t, enumerationMap)
+        }
+    })
 }
 
 export function Game() {
-    const [state, setState] = useState(initialState);
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const { screenToFlowPosition } = useReactFlow();
+    const axioms = makeAxiomsFromJSONObject(problemData)
+    const enumerationOffset = 10 // later: get this from axioms
+    const generateGadgetId = useIdGenerator("gadget_")
 
-    function makeNewId(): number {
-        const id = state.nextId
-        setState({ ...state, nextId: state.nextId + 1 })
-        return id
+    const [equations, setEquations] = useState<Equation[]>([])
+    const enumeration = useRef<EnumerationMap>(new Map())
+
+    const [holeValueAssignment, eqSatisfied] = useMemo(() => {
+        const [assignment, eqSatisfied] = unifyEquations(equations)
+        enumeration.current = updateEnumeration(enumerationOffset, enumeration.current, assignment)
+        const holeValueAssignment = getHoleValueAssignment(enumeration.current, assignment)
+        return [holeValueAssignment, eqSatisfied]
+    }, [equations])
+
+    function addEquation(newEquation: Equation) {
+        setEquations(equations => [...equations, newEquation])
     }
 
-    function getGadgetFromId(gadgetId: string): GadgetDisplayProps {
-        for (let i = 0; i < state.activeGadgets.length; i++) {
-            if (state.activeGadgets[i].id = gadgetId) {
-                return state.activeGadgets[i]
-            }
+    function deleteEquation(equationToBeDeleted: Equation) {
+        setEquations(equations => equations.filter(equation =>
+            JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
+    }
+
+    function makeNewGadget(axiom: Axiom): GadgetFlowNodeProps {
+        const id = generateGadgetId()
+        const inputTerms = axiom.hypotheses.map(hyp => makeTermWithFreshVariables(hyp, id))
+        const outputTerm = makeTermWithFreshVariables(axiom.conclusion, id)
+        const gadget: GadgetFlowNodeProps = {
+            inputs: inputTerms,
+            output: outputTerm,
+            id,
+            assignment: holeValueAssignment
         }
-        throw Error("No gadget with id: " + gadgetId)
+        return gadget
     }
 
-    function getNodeAndGadgetFromNodeId(nodeId: string): [AbstractNodeProps, GadgetDisplayProps] {
-        const gadgetId = gadgetIdFromNodeId(nodeId)
-        const gadget = getGadgetFromId(gadgetId)
-        const position = nodePositionFromNodeId(nodeId)
-        if (position == "output") {
-            if (gadget.outputNode) {
-                return [gadget.outputNode, gadget]
-            } else {
-                throw Error("Not a node id: " + nodeId)
-            }
-        } else {
-            const node = gadget.inputNodes[position]
-            return [node, gadget]
-        }
-    }
-
-    function isValidConnection(sourceHandleId: string, targetHandleId: string) {
-        const sourceNodeId = nodeIdFromHandleId(sourceHandleId)
-        const targetNodeId = nodeIdFromHandleId(targetHandleId)
-        const [sourceNode] = getNodeAndGadgetFromNodeId(sourceNodeId)
-        const [targetNode] = getNodeAndGadgetFromNodeId(targetNodeId)
-        return sourceNode.color == targetNode.color
-            && sourceNode.holes.length == targetNode.holes.length
-    }
-
-    function addEdgeIfValid(edges : Edge<any>[], params : ReactFlowConnection) : Edge[] {
-        if (isValidConnection(params.sourceHandle!, params.targetHandle!)) {
-            // Call unification
-            return addEdge({ ...params, type: 'multiEdge'}, edges)
-        } else {
-            return edges
-        }
-    }
-  
-    function addConnection(params: ReactFlowConnection): void {
-        setEdges((edges) => addEdgeIfValid(edges, params))
-    }
-
-    function createNewGadget(e: MouseEvent, axiom: AbstractGadgetProps) {
-        const newId = makeNewId()
-        const gadgetId = "gadget" + newId
-        const newGadget = {
-            ...axiom,
-            id: gadgetId,
-            isAxiom: false
-        }
-        state.activeGadgets.push(newGadget)
-        // Call unification
-        const newNode: ReactFlowNode =
-        {
-            id: newId.toString(),
-            type: 'gadgetFlowNode',
-            position: screenToFlowPosition({
-                x: e.clientX, y: 250
-            }),
-            data: newGadget,
-            dragging: true
-        }
-        setNodes((nds) => nds.concat(newNode));
-    }
-
-    const onConnect = useCallback(addConnection, [setEdges]);
-
-    const panelProps: GadgetPaletteProps = { axioms: [axiom, axiom2], createNewGadget }
-
-    return (
-        <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            edgeTypes={edgeTypes}
-            nodeTypes={nodeTypes}
-        >
-            <GadgetPalette {...panelProps} />
-            <Controls />
-        </ReactFlow>
-    )
+    return <ReactFlowProvider>
+        <Diagram
+            axioms={axioms}
+            makeNewGadget={makeNewGadget}
+            addEquation={addEquation}
+            deleteEquation={deleteEquation}
+            isSatisfied={eqSatisfied}
+            holeValueAssignment={holeValueAssignment}
+        ></Diagram>
+    </ReactFlowProvider>
 }

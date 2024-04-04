@@ -1,6 +1,6 @@
 import { Point, pointToString, addOffsetX } from "../util/Point";
 
-const CONTROL_POINT_OFFSET = 50;
+const CONTROL_POINT_OFFSET = 70;
 
 export interface ConnectionDrawingData {
     start: Point;
