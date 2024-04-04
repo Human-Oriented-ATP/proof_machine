@@ -35,14 +35,12 @@ body {
 }
 
 .gadgetInputContainer {
-    margin-right: 15px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
 }
 
 .gadgetOutputContainer {
-    margin-left: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;

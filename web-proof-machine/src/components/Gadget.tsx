@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../util/Point'
@@ -49,7 +49,7 @@ export function Gadget({ ...props }: GadgetProps) {
         const [toNode] = internalConnection.to
         const from_input = fromNode !== "output"
         const to_output = toNode === "output"
-        return { start, end, from_input, to_output }
+        return { start, end, fromInput: from_input, toOutput: to_output }
     }
 
     function calculateConnections(): ConnectionSvgProps {
@@ -58,7 +58,7 @@ export function Gadget({ ...props }: GadgetProps) {
         return { connections }
     }
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         setConnectionState(calculateConnections())
     }, [])
 
@@ -89,12 +89,16 @@ export function Gadget({ ...props }: GadgetProps) {
         }
     }
 
+    const numberOfInputHolesPerNode = props.inputs.map(node => node.values.length)
+    const numberOfInputHoles = numberOfInputHolesPerNode.reduce((a, b) => a + b, 0)
+    const margin = 5 * numberOfInputHoles
+
     return (
         <div style={{ textAlign: "center" }}>
             {/* <span style={{ color: "grey" }}>{props.id}</span> */}
             <div className="gadget" id={props.id}>
                 <div className="gadgetInputContainer"
-                    style={props.inputs.length === 0 ? { margin: "0px" } : {}}>
+                    style={props.inputs.length === 0 ? {} : { marginRight: margin + "px" }}>
                     {makeInputNodes()}
                 </div>
                 {makeOutputNodeContainer()}

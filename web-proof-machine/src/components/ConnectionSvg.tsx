@@ -1,25 +1,27 @@
 import { Point, pointToString, addOffsetX } from "../util/Point";
 
-const CONTROL_POINT_OFFSET = 70;
+const CONTROL_POINT_OFFSET = 40;
+const CONTROL_POINT_VARIABLE_OFFSET = 0;
 
 export interface ConnectionDrawingData {
-    start: Point;
-    end: Point;
-    from_input: boolean;
-    to_output: boolean;
+    start: Point
+    end: Point
+    fromInput: boolean
+    toOutput: boolean
 }
 
 export interface ConnectionSvgProps {
     connections: ConnectionDrawingData[];
 }
 
-export function connectionPath(props: ConnectionDrawingData): JSX.Element {
+export function connectionPath(props: ConnectionDrawingData, offsetMultiplier: number): JSX.Element {
     const svg_start_sequence = "M " + pointToString(props.start);
-    let offset_start = props.from_input
+    let offset_start = props.fromInput
         ? CONTROL_POINT_OFFSET
         : -CONTROL_POINT_OFFSET;
-    let controlPoint1 = addOffsetX(props.start, offset_start);
-    let offset_end = props.to_output
+    let offset_start_modified = offset_start + offsetMultiplier * CONTROL_POINT_VARIABLE_OFFSET
+    let controlPoint1 = addOffsetX(props.start, offset_start_modified);
+    let offset_end = props.toOutput
         ? -CONTROL_POINT_OFFSET
         : CONTROL_POINT_OFFSET;
     let controlPoint2 = addOffsetX(props.end, offset_end);
@@ -45,8 +47,8 @@ export function connectionPath(props: ConnectionDrawingData): JSX.Element {
 
 export function ConnectionSvg({ ...props }: ConnectionSvgProps) {
     function drawConnections(): JSX.Element[] {
-        const pathElements = props.connections.map((connection) =>
-            connectionPath(connection)
+        const pathElements = props.connections.map((connection, index) =>
+            connectionPath(connection, index)
         );
         return pathElements;
     }
