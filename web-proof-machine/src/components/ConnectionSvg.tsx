@@ -37,7 +37,7 @@ export function connectionPath(props: ConnectionDrawingData): JSX.Element {
         <path
             d={path_command}
             stroke="black"
-            strokeWidth="3px"
+            strokeWidth="2px"
             fill="transparent"
         />
     );
