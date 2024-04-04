@@ -91,7 +91,7 @@ export function Gadget({ ...props }: GadgetProps) {
 
     return (
         <div style={{ textAlign: "center" }}>
-            <span style={{ color: "grey" }}>{props.id}</span>
+            {/* <span style={{ color: "grey" }}>{props.id}</span> */}
             <div className="gadget" id={props.id}>
                 <div className="gadgetInputContainer"
                     style={props.inputs.length === 0 ? { margin: "0px" } : {}}>
