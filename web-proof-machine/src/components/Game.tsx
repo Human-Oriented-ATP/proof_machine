@@ -21,8 +21,10 @@ import 'reactflow/dist/style.css';
 import '../flow.css'
 import { Axiom, HoleValueAssignment, getTermOfHandle, makeAxiomGadget, makeAxiomsFromJSONObject } from '../game/GameLogic';
 import { Equation, unifyEquations } from '../game/Unification';
-import { Term, makeTermWithFreshVariables } from '../game/Term';
-import { GadgetId } from '../game/Primitives';
+import { Term, TermAssignment, hashTerm, makeTermWithFreshVariables } from '../game/Term';
+import { useIdGenerator } from '../util/IdGeneratorHook';
+import { useMap } from 'usehooks-ts';
+import { HoleValue } from '../game/Primitives';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': MultiEdge }
@@ -36,37 +38,100 @@ function compare(prev: Equation[], next: Equation[]) {
 
 }
 
+function getNextFreeHoleValue(offset: number, enumerationMap: Map<number, HoleValue>): number {
+    const values = Array.from(enumerationMap.values())
+    for (let i = offset; true; i++) {
+        if (!values.includes(i)) {
+            return i
+        }
+    }
+}
+
+function updateEnumeration(offset: number, immutablePreviousEnumeration: Map<number, HoleValue>,
+    termAssignment: TermAssignment) {
+    let previousEnumeration = new Map(immutablePreviousEnumeration)
+    const allAssignedTerms = termAssignment.getAssignedValues()
+    for (const term of allAssignedTerms) {
+        const hash = hashTerm(term)
+        if (!(hash in previousEnumeration.keys())) {
+            const value = getNextFreeHoleValue(offset, previousEnumeration)
+            previousEnumeration.set(hash, value)
+        }
+    }
+    return previousEnumeration
+}
+
+function toHoleValue(t: Term, enumerationMap: Map<number, HoleValue>): HoleValue {
+    if ("variable" in t) {
+        throw Error("Cannot get hole value for a variable" + t)
+    } else {
+        if (t.args.length === 0) {
+            const value = Number(t.label)
+            return value
+        } else {
+            const hash = hashTerm(t)
+            const lookup = enumerationMap.get(hash)
+            if (lookup) {
+                return lookup
+            } else {
+                return "?"
+            }
+        }
+    }
+}
+
+function getHoleValueAssignment(enumerationMap: Map<number, HoleValue>, termAssignment: TermAssignment):
+    HoleValueAssignment {
+    return (t => {
+        if ("variable" in t) {
+            const term = termAssignment.getAssignedValue(t.variable)
+            if (term) {
+                return toHoleValue(term, enumerationMap)
+            } else {
+                return ""
+            }
+        } else {
+            return toHoleValue(t, enumerationMap)
+        }
+    })
+}
+
 export function Game() {
     const axioms = makeAxiomsFromJSONObject(problemData)
-
-    const [gadgetIdCounter, setGadgetIdCounter] = useState(0)
+    const getGadgetId = useIdGenerator("gadget_")
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
     const { getNode, screenToFlowPosition } = useReactFlow();
-
-    function getGadgetId(): GadgetId {
-        setGadgetIdCounter(gadgetIdCounter + 1)
-        return "gadget_" + gadgetIdCounter
-    }
-
     const equationsFromStore = useStore(equationSelector, compare)
 
-    const [holeValueAssignment] = useMemo(() => {
+    const init = new Map()
+    const [enumerationMap, setEnumerationMap] = useState<Map<number, HoleValue>>(init)
+
+    const offset = 5
+
+    const [assignment, eqSatisfied] = useMemo(() => {
         console.log("...unifying...")
         const [assignment, eqSatisfied] = unifyEquations(equationsFromStore)
-        console.log("calculated assignment: ", assignment)
-        const holeValueAssignment = (t: Term) => "x"
+        console.log("...calculated assignment: ", assignment)
+        setEnumerationMap(map => updateEnumeration(offset, map, assignment))
+        return [assignment, eqSatisfied]
+    }, [equationsFromStore, setEnumerationMap])
+
+    // Need to useMemo so this only happens when the values actually change 
+    const updateDiagramElements = useMemo(() => {
+        console.log("...in 2nd memo function...")
+        console.log("enumMap", enumerationMap)
+        const holeValueAssignment = getHoleValueAssignment(enumerationMap, assignment)
         setNodes(nodes => nodes.map(node => {
-            const newData = { ...node.data, holeValueAssignment }
+            const newData = { ...node.data, assignment: holeValueAssignment }
             return { ...node, data: newData }
         }))
         setEdges(edges => edges.map(edge => {
             const isSatisfied = eqSatisfied.get(edge.data)
             return { ...edge, animated: isSatisfied ? false : true }
         }))
-        return [holeValueAssignment]
-    }, [equationsFromStore, setNodes, setEdges])
+    }, [assignment, eqSatisfied, enumerationMap, setNodes, setEdges]);
+
 
     function addConnection(params: ReactFlowConnection): void {
         setEdges((edges) => {
@@ -91,9 +156,9 @@ export function Game() {
             id: id,
             type: 'gadgetFlowNode',
             position: screenToFlowPosition({
-                x: e.clientX, y: 250
+                x: e.clientX, y: 450
             }),
-            data: { inputs: inputTerms, output: outputTerm, id, assignment: holeValueAssignment }
+            data: { inputs: inputTerms, output: outputTerm, id, assignment: emptyAssignment }
         }
         setNodes((nodes) => nodes.concat(newNode));
     }

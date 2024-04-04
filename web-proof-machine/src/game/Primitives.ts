@@ -1,6 +1,6 @@
 import { Term } from "./Term"
 
-export type HoleValue = "" | "x" | number
+export type HoleValue = "" | "x" | "?" | number
 
 export interface HoleProps {
     value: HoleValue
