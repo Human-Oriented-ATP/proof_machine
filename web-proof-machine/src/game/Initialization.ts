@@ -1,0 +1,43 @@
+import { Axiom } from "./GameLogic";
+import { Term } from "./Term";
+
+export interface InitializationData {
+    goal: Term
+    axioms: Axiom[]
+}
+
+function makeTermFromJSONObject(jsonObject: any): Term {
+    if ("var" in jsonObject) {
+        const name = jsonObject.var
+        return { variable: name }
+    } else if ("label" in jsonObject && "args" in jsonObject) {
+        const args = jsonObject.args.map(makeTermFromJSONObject)
+        return { label: jsonObject.label, args }
+    } else {
+        throw Error("Error parsing JSON")
+    }
+}
+
+function makeAxiomFromJSONObject(jsonObject: any): Axiom {
+    const inputs = jsonObject.hypotheses.map(makeTermFromJSONObject)
+    const output = makeTermFromJSONObject(jsonObject.targets[0])
+    return { hypotheses: inputs, conclusion: output }
+}
+
+function makeAxiomsFromJSONObject(json: any): Axiom[] {
+    const axiomsJSON = json.axioms
+    const axioms = axiomsJSON.map(makeAxiomFromJSONObject)
+    return axioms
+}
+
+function makeGoalFromJSONObject(json: any): Term {
+    const goalJSON = json.goal
+    const term = makeTermFromJSONObject(goalJSON)
+    return term
+}
+
+export function initializeGame(json: any): InitializationData {
+    const goal = makeGoalFromJSONObject(json)
+    const axioms = makeAxiomsFromJSONObject(json)
+    return { goal, axioms }
+}

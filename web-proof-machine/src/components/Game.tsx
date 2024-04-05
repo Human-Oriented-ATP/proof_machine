@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
-import { Axiom, makeAxiomsFromJSONObject } from "../game/GameLogic";
+import { Axiom } from "../game/GameLogic";
 import problemData from "../game/examples/problem1.json"
 import { makeTermWithFreshVariables } from "../game/Term";
 import { useMemo, useRef, useState } from "react";
@@ -8,12 +8,13 @@ import { Equation, unifyEquations } from "../game/Unification";
 import { useIdGenerator } from "../util/IdGeneratorHook";
 import { GadgetFlowNodeProps } from "./GadgetFlowNode";
 import { TermEnumeration } from "../game/TermEnumeration";
+import { initializeGame } from "../game/Initialization";
 
 export function Game() {
-    const axioms = makeAxiomsFromJSONObject(problemData)
+    const { axioms, goal } = initializeGame(problemData)
+
     const enumerationOffset = 5 // later: get this from axioms
     const generateGadgetId = useIdGenerator("gadget_")
-
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumeration>(new TermEnumeration(enumerationOffset))
 
