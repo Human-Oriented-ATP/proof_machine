@@ -9,26 +9,52 @@ export interface Axiom {
     conclusion: Term
 }
 
-function makeAxiomHole(t: Term): HoleProps {
+function makeHole(assignment: HoleValueAssignment, term: Term): HoleProps {
+    const value = assignment(term)
+    if ("args" in term) {
+        if (term.args.length !== 0) {
+            return { value, isFunctionValue: true }
+        }
+    }
+    return { value, isFunctionValue: false }
+}
+
+export function axiomAssignment(t: Term): HoleValue {
     if ("variable" in t) {
-        return { value: "", isFunctionValue: false }
+        return ""
     } else {
         if (t.args.length === 0) { // constant
-            const value = Number(t.label)
-            return { value, isFunctionValue: false }
+            return Number(t.label)
         } else {
-            return { value: "?", isFunctionValue: true }
+            return "?"
         }
     }
 }
 
-function makeAxiomNode(t: Term): AbstractNodeProps {
+function makeNode(assignment: HoleValueAssignment, t: Term, isAxiom: boolean = false): AbstractNodeProps {
     if ("label" in t && "args" in t) {
-        const values: HoleProps[] = t.args.map(makeAxiomHole)
+        const values: HoleProps[] = t.args.map(t => makeHole(assignment, t))
         const color: Color = t.label
-        return { values, color }
+        if (isAxiom) {
+            return { values, color }
+        } else {
+            return { values, color, term: t }
+        }
     } else {
         throw Error("The given term cannot be rendered as a node")
+    }
+}
+
+function makeAxiomNode(t: Term): AbstractNodeProps {
+    return makeNode(axiomAssignment, t, true)
+}
+
+export function makeGoalGadgetFromTerm(term: Term): GadgetProps {
+    const node = makeNode(axiomAssignment, term, false)
+    return {
+        inputs: [node],
+        id: "goal_gadget",
+        connections: []
     }
 }
 
@@ -92,7 +118,6 @@ function makeConnections(input: Term[], output: Term): InternalConnection[] {
     return connections.flat()
 }
 
-
 export function makeAxiomGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     const inputs = axiom.hypotheses.map(makeAxiomNode)
     const output = makeAxiomNode(axiom.conclusion)
@@ -102,28 +127,8 @@ export function makeAxiomGadget(axiom: Axiom, id: GadgetId): GadgetProps {
 
 export type HoleValueAssignment = (t: Term) => HoleValue
 
-function makeHole(assignment: HoleValueAssignment, term: Term): HoleProps {
-    const value = assignment(term)
-    if ("args" in term) {
-        if (term.args.length !== 0) {
-            return { value, isFunctionValue: true }
-        }
-    }
-    return { value, isFunctionValue: false }
-}
-
-function makeNode(assignment: HoleValueAssignment, term: Term): AbstractNodeProps {
-    if ("label" in term && "args" in term) {
-        const values: HoleProps[] = term.args.map(t => makeHole(assignment, t))
-        const color: Color = term.label
-        return { values, color, term }
-    } else {
-        throw Error("The given term cannot be rendered as a node")
-    }
-}
-
 export function makeGadgetFromTerms(inputTerms: Term[], outputTerm: Term, id: GadgetId,
-    assignment: HoleValueAssignment) {
+    assignment: HoleValueAssignment): GadgetProps {
     const inputs = inputTerms.map(hyp => makeNode(assignment, hyp))
     const output = makeNode(assignment, outputTerm)
     const connections = makeConnections(inputTerms, outputTerm)

@@ -32,12 +32,25 @@ interface DiagramProps {
     deleteEquation: (equation: Equation) => void
     isSatisfied: Map<Equation, boolean>
     holeValueAssignment: HoleValueAssignment
+    goalNodeProps: GadgetFlowNodeProps
 }
 
 export function Diagram(props: DiagramProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode()]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const { getNode, screenToFlowPosition } = useReactFlow();
+    const { getNode, screenToFlowPosition, fitView } = useReactFlow();
+
+    function getGoalNode() {
+        const gadgetFlowNodeProps = props.goalNodeProps
+        const flowNode: ReactFlowNode =
+        {
+            id: gadgetFlowNodeProps.id,
+            type: 'gadgetFlowNode',
+            position: { x: 300, y: 300 },
+            data: gadgetFlowNodeProps
+        }
+        return flowNode
+    }
 
     function addConnection(params: ReactFlowConnection): void {
         setEdges((edges) => {
@@ -54,7 +67,6 @@ export function Diagram(props: DiagramProps) {
             }, edges)
         });
     }
-
 
     function deleteConnections(edges: Edge[]): void {
         function deleteConnection(edge: Edge): void {
@@ -97,6 +109,13 @@ export function Diagram(props: DiagramProps) {
         }))
     }, [props.isSatisfied, props.holeValueAssignment, setEdges, setNodes])
 
+    function init() {
+        const goalNode: (Partial<ReactFlowNode> & { id: string }) = {
+            id: "goal_gadget"
+        }
+        fitView({ nodes: [goalNode] })
+    }
+
     return (
         <ReactFlow
             nodes={nodes}
@@ -107,6 +126,7 @@ export function Diagram(props: DiagramProps) {
             onEdgesDelete={onEdgesDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
+            onInit={init}
         >
             <MiniMap></MiniMap>
             <GadgetPalette {...paletteProps} />

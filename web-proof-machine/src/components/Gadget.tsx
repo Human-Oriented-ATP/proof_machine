@@ -92,7 +92,7 @@ export function Gadget({ ...props }: GadgetProps) {
 
     const numberOfInputHolesPerNode = props.inputs.map(node => node.values.length)
     const numberOfInputHoles = numberOfInputHolesPerNode.reduce((a, b) => a + b, 0)
-    const margin = 5 * numberOfInputHoles
+    const margin = props.output ? 5 * numberOfInputHoles : 0
 
     return (
         <div style={{ textAlign: "center" }}>

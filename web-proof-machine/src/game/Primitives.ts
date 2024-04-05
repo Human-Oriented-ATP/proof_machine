@@ -61,6 +61,6 @@ export interface InternalConnection {
 export interface GadgetProps {
     id: GadgetId
     inputs: AbstractNodeProps[]
-    output: AbstractNodeProps
+    output?: AbstractNodeProps
     connections: InternalConnection[]
 }

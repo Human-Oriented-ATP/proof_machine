@@ -1,9 +1,9 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
-import { Axiom } from "../game/GameLogic";
+import { Axiom, axiomAssignment } from "../game/GameLogic";
 import problemData from "../game/examples/problem1.json"
 import { makeTermWithFreshVariables } from "../game/Term";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
 import { useIdGenerator } from "../util/IdGeneratorHook";
 import { GadgetFlowNodeProps } from "./GadgetFlowNode";
@@ -17,6 +17,7 @@ export function Game() {
     const generateGadgetId = useIdGenerator("gadget_")
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumeration>(new TermEnumeration(enumerationOffset))
+
 
     const [holeValueAssignment, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
@@ -47,6 +48,12 @@ export function Game() {
         return gadget
     }
 
+    const goalNodeProps: GadgetFlowNodeProps = {
+        id: "goal_gadget",
+        inputs: [goal],
+        assignment: axiomAssignment
+    }
+
     return <ReactFlowProvider>
         <Diagram
             axioms={axioms}
@@ -55,6 +62,7 @@ export function Game() {
             deleteEquation={deleteEquation}
             isSatisfied={eqSatisfied}
             holeValueAssignment={holeValueAssignment}
+            goalNodeProps={goalNodeProps}
         ></Diagram>
     </ReactFlowProvider>
 }
