@@ -1,6 +1,6 @@
 import { Term } from "./Term"
 
-export type HoleValue = "" | "x" | "?" | number
+export type HoleValue = "" | "?" | number
 
 /** In addition to storing a `HoleValue`, 
  * `HoleProps` keeps track of whether the hole represents
@@ -11,7 +11,7 @@ export interface HoleProps {
     isFunctionValue: boolean
 }
 
-export type Color = string //"r" | "g" | "b" | "y" | "w"
+export type Color = string
 
 /** The data required to describe a node:
  *  - a list of holes
