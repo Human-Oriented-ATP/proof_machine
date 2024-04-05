@@ -41,26 +41,27 @@ export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
 
-    function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
-        ConnectionDrawingData {
-        const start = calculateHolePosition(props.id, internalConnection.from)
-        const end = calculateHolePosition(props.id, internalConnection.to)
-        const [fromNode] = internalConnection.from
-        const [toNode] = internalConnection.to
-        const from_input = fromNode !== "output"
-        const to_output = toNode === "output"
-        return { start, end, fromInput: from_input, toOutput: to_output }
-    }
-
-    function calculateConnections(): ConnectionSvgProps {
-        const connections = props.connections.map
-            (connection => calculateInternalConnectionDrawingData(connection))
-        return { connections }
-    }
 
     useLayoutEffect(() => {
+        function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
+            ConnectionDrawingData {
+            const start = calculateHolePosition(props.id, internalConnection.from)
+            const end = calculateHolePosition(props.id, internalConnection.to)
+            const [fromNode] = internalConnection.from
+            const [toNode] = internalConnection.to
+            const from_input = fromNode !== "output"
+            const to_output = toNode === "output"
+            return { start, end, fromInput: from_input, toOutput: to_output }
+        }
+
+        function calculateConnections(): ConnectionSvgProps {
+            const connections = props.connections.map
+                (connection => calculateInternalConnectionDrawingData(connection))
+            return { connections }
+        }
+
         setConnectionState(calculateConnections())
-    }, [])
+    }, [props.connections, props.id])
 
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []

@@ -10,6 +10,7 @@ import ReactFlow, {
     Node as ReactFlowNode,
     EdgeTypes,
     Edge,
+    MiniMap,
 } from 'reactflow';
 import { GadgetFlowNode, GadgetFlowNodeProps, getFlowNodeTerms } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -54,16 +55,16 @@ export function Diagram(props: DiagramProps) {
         });
     }
 
-    function deleteConnection(edge: Edge): void {
-        props.deleteEquation(edge.data)
-    }
 
     function deleteConnections(edges: Edge[]): void {
+        function deleteConnection(edge: Edge): void {
+            props.deleteEquation(edge.data)
+        }
         edges.map(deleteConnection)
     }
 
     const onConnect = useCallback(addConnection, [props, getNode, setEdges]);
-    const onEdgesDelete = useCallback(deleteConnections, [])
+    const onEdgesDelete = useCallback(deleteConnections, [props])
 
     function createNewGadget(axiom: Axiom, e: React.MouseEvent): void {
         const gadgetFlowNodeProps = props.makeNewGadget(axiom)
@@ -107,6 +108,7 @@ export function Diagram(props: DiagramProps) {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
         >
+            <MiniMap></MiniMap>
             <GadgetPalette {...paletteProps} />
             <Controls />
         </ReactFlow>
