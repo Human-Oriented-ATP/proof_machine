@@ -23,7 +23,7 @@ const TargetHandle = (props: HandleProps) => {
     }, [nodeInternals, edges, nodeId, props.id])
 
     return (
-        <Handle {...props} isConnectable={isConnectable}></Handle>
+        <Handle {...props} isConnectable={true}></Handle>
     )
 }
 

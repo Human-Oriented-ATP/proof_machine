@@ -11,6 +11,9 @@ import ReactFlow, {
     EdgeTypes,
     Edge,
     MiniMap,
+    HandleType,
+    useStore,
+    ReactFlowState,
 } from 'reactflow';
 import { GadgetFlowNode, GadgetFlowNodeProps, getFlowNodeTerms } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -98,6 +101,30 @@ export function Diagram(props: DiagramProps) {
         makeGadget: createNewGadget
     }
 
+    const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
+        params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
+        function isConnectedToThisHandle(e: Edge) {
+            if (e.targetHandle) {
+                return e.targetHandle === params.handleId
+            } else {
+                return false
+            }
+        }
+
+        function removeEdgeConnectedToHandle() {
+            setEdges(edges => {
+                const edgesConnectedToThisHandle = edges.filter(isConnectedToThisHandle)
+                edgesConnectedToThisHandle.map(e => props.deleteEquation(e.data))
+                return edges.filter(e => !isConnectedToThisHandle(e))
+            })
+        }
+
+        if (params.handleType === "target") {
+            removeEdgeConnectedToHandle()
+        }
+    }, [setEdges, props]);
+
+
     useEffect(() => {
         setNodes(nodes => nodes.map(node => {
             const newData = { ...node.data, assignment: props.holeValueAssignment }
@@ -127,6 +154,7 @@ export function Diagram(props: DiagramProps) {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             onInit={init}
+            onConnectStart={onConnectStart}
         >
             <MiniMap></MiniMap>
             <GadgetPalette {...paletteProps} />
