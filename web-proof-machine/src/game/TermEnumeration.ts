@@ -1,7 +1,7 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { HoleValueAssignment } from "./GameLogic";
 import { HoleValue } from "./Primitives";
-import { Term, TermAssignment, getVariableSet, substitute } from "./Term";
+import { Term, TermAssignment, getVariableSet, hashTerm, substitute } from "./Term";
 
 function isConstant(t: Term) {
     return "label" in t && t.args.length === 0
@@ -15,61 +15,104 @@ function renameVariablesToEmptyString(t: Term): Term {
     return substitute(t, assignment)
 }
 
-function equalUpToVariableNames(t1: Term, t2: Term): boolean {
-    const t1WithVariablesRenamed = renameVariablesToEmptyString(t1)
-    const t2WithVariablesRenamed = renameVariablesToEmptyString(t2)
-    return JSON.stringify(t1WithVariablesRenamed) === JSON.stringify(t2WithVariablesRenamed)
+function assignTermRecursively(t: Term, assignment: TermAssignment): Term {
+    if ("variable" in t) {
+        const assignedValue = assignment.getAssignedValue(t.variable)
+        if (assignedValue) {
+            return assignTermRecursively(assignedValue, assignment)
+        } else {
+            return t
+        }
+    } else {
+        const argsAssigned: Term[] = t.args.map(arg => assignTermRecursively(arg, assignment))
+        return { label: t.label, args: argsAssigned }
+    }
+}
+
+function removeConstants(terms: Term[]): Term[] {
+    return terms.filter(term => !isConstant(term))
 }
 
 export class TermEnumeration {
-    private enumeration: Map<Term, number>
+    private enumeration: Map<number, number>
     private offset: number
 
-    constructor(offset = 100) {
+    constructor(offset: number) {
         this.offset = offset
         this.enumeration = new Map()
     }
 
+    private getIdentifier(t: Term): number {
+        const term = renameVariablesToEmptyString(t)
+        const identifier = hashTerm(term)
+        return identifier
+    }
+
+    private insert(t: Term, value: number) {
+        const identifier = this.getIdentifier(t)
+        this.enumeration.set(identifier, value)
+    }
+
+    private isEnumerated(t: Term): boolean {
+        const identifier = this.getIdentifier(t);
+        return this.enumeration.has(identifier);
+    }
+
+    private getNumber(t: Term): number {
+        const identifier = this.getIdentifier(t)
+        return this.enumeration.get(identifier)!
+    }
+
     private getNextFreeHoleValue(): number {
-        const assignedValues = Array.from(this.enumeration.values());
-        for (let i = this.offset; true; i++) {
-            if (!assignedValues.includes(i)) {
+        const assignedValuesSet = new Set(this.enumeration.values());
+        for (let i = this.offset; ; i++) {
+            if (!assignedValuesSet.has(i)) {
                 return i;
             }
         }
     }
 
-    private appearsIn(t: Term): boolean {
-        for (const enumeratedTerm of this.enumeration.keys()) {
-            if (equalUpToVariableNames(enumeratedTerm, t)) {
-                return true
+    private removeSuperfluousTerms(terms: Term[]) {
+        const identifiers = terms.map(this.getIdentifier)
+        for (const identifier of this.enumeration.keys()) {
+            if (!identifiers.includes(identifier)) {
+                this.enumeration.delete(identifier)
             }
         }
-        return false
+    }
+
+    private enumerateTerms(terms: Term[]) {
+        for (const term of terms) {
+            const value = this.getNextFreeHoleValue()
+            this.insert(term, value)
+        }
+    }
+
+    private enumerateNewTerms(terms: Term[]) {
+        const newTerms = terms.filter(term => !this.isEnumerated(term))
+        this.enumerateTerms(newTerms)
     }
 
     updateEnumeration(termAssignment: TermAssignment) {
-        const allAssignedTerms = termAssignment.getAssignedValues()
-        for (const term of allAssignedTerms) {
-            if (isConstant(term) || this.appearsIn(term)) {
-                continue
-            }
-            const value = this.getNextFreeHoleValue()
-            this.enumeration.set(term, value)
-        }
+        const termsInAssignment = termAssignment.getAssignedValues()
+        const termsWithoutConstants = removeConstants(termsInAssignment)
+        const fullyAssignedTerms = termsWithoutConstants.map(term =>
+            assignTermRecursively(term, termAssignment))
+        this.removeSuperfluousTerms(fullyAssignedTerms)
+        this.enumerateNewTerms(fullyAssignedTerms)
     }
 
-    private toHoleValue(t: Term): HoleValue {
-        if ("variable" in t) {
-            throw Error("Cannot get hole value for a variable" + t)
+    private toHoleValue(t: Term, termAssignment: TermAssignment): HoleValue {
+        const fullyAssignedTerm = assignTermRecursively(t, termAssignment)
+        if ("variable" in fullyAssignedTerm) {
+            throw Error("Cannot get hole value for a variable" + fullyAssignedTerm)
         } else {
-            if (t.args.length === 0) {
-                const value = Number(t.label)
-                return value
+            if (fullyAssignedTerm.args.length === 0) {
+                return Number(fullyAssignedTerm.label)
             } else {
-                const lookup = this.enumeration.get(t)
-                if (lookup) {
-                    return lookup
+                const value = this.getNumber(fullyAssignedTerm)
+                if (value) {
+                    return value
                 } else {
                     return "?"
                 }
@@ -77,18 +120,17 @@ export class TermEnumeration {
         }
     }
 
-    getHoleValueAssignment(termAssignment: TermAssignment):
-        HoleValueAssignment {
+    getHoleValueAssignment(termAssignment: TermAssignment): HoleValueAssignment {
         return (t => {
             if ("variable" in t) {
                 const term = termAssignment.getAssignedValue(t.variable)
                 if (term) {
-                    return this.toHoleValue(term)
+                    return this.toHoleValue(term, termAssignment)
                 } else {
                     return ""
                 }
             } else {
-                return this.toHoleValue(t)
+                return this.toHoleValue(t, termAssignment)
             }
         })
     }
