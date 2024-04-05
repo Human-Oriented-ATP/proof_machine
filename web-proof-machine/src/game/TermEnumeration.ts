@@ -1,10 +1,46 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
-import { HoleValueAssignment } from "./GameLogic";
+import { Axiom, HoleValueAssignment } from "./GameLogic";
+import { InitializationData } from "./Initialization";
 import { HoleValue } from "./Primitives";
 import { Term, TermAssignment, getVariableSet, hashTerm, substitute } from "./Term";
 
 function isConstant(t: Term) {
     return "label" in t && t.args.length === 0
+}
+
+function isNumericalConstant(t : Term): number | undefined  {
+    if("variable" in t) {
+        return undefined;
+    } else {
+        if (isNaN(Number(t.label)) || t.args.length > 0) {
+            return undefined;
+        } else {
+            return Number(t.label);
+        }
+    }
+}
+
+function getNumericalConstantsInTerm(t : Term): number[] {
+    const n = isNumericalConstant(t)
+    if (n === undefined) {
+        if ("variable" in t) {
+            return [];
+        } else {
+            return t.args.flatMap(getNumericalConstantsInTerm);
+        }
+    } else {
+        return [n];
+    }
+}
+
+function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
+    return axiom.hypotheses.flatMap(getNumericalConstantsInTerm)
+    .concat(getNumericalConstantsInTerm(axiom.conclusion));
+}
+
+export function getNumericalConstantsInProblemState(ps: InitializationData): number[] {
+    return ps.axioms.flatMap(getNumericalConstantsInAxiom)
+    .concat(getNumericalConstantsInTerm(ps.goal));
 }
 
 function renameVariablesToEmptyString(t: Term): Term {
