@@ -3,7 +3,7 @@ import { Diagram } from "./Diagram";
 import { Axiom, axiomAssignment } from "../game/GameLogic";
 import problemData from "../game/examples/problem1.json"
 import { makeTermWithFreshVariables } from "../game/Term";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
 import { useIdGenerator } from "../util/IdGeneratorHook";
 import { GadgetFlowNodeProps } from "./GadgetFlowNode";
