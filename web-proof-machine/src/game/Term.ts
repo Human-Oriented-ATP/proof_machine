@@ -23,7 +23,7 @@ export function termHasVariable(term: Term, v: VariableName): boolean {
 
 export type TermAssignment = DisjointSetWithAssignment<VariableName, Term>
 
-function substitute(t: Term, a: TermAssignment): Term {
+export function substitute(t: Term, a: TermAssignment): Term {
     if ("variable" in t) {
         return a.getAssignedValue(t.variable)!
     } else {
@@ -44,7 +44,7 @@ export function getVariableList(t: Term): VariableName[] {
     }
 }
 
-function getVariableSet(t: Term): Set<VariableName> {
+export function getVariableSet(t: Term): Set<VariableName> {
     return new Set(getVariableList(t))
 }
 

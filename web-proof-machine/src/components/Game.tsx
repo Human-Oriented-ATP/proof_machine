@@ -7,20 +7,20 @@ import { useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
 import { useIdGenerator } from "../util/IdGeneratorHook";
 import { GadgetFlowNodeProps } from "./GadgetFlowNode";
-import { EnumerationMap, getHoleValueAssignment, updateEnumeration } from "../game/TermEnumeration";
+import { TermEnumeration } from "../game/TermEnumeration";
 
 export function Game() {
     const axioms = makeAxiomsFromJSONObject(problemData)
-    const enumerationOffset = 10 // later: get this from axioms
+    const enumerationOffset = 5 // later: get this from axioms
     const generateGadgetId = useIdGenerator("gadget_")
 
     const [equations, setEquations] = useState<Equation[]>([])
-    const enumeration = useRef<EnumerationMap>(new Map())
+    const enumeration = useRef<TermEnumeration>(new TermEnumeration(enumerationOffset))
 
     const [holeValueAssignment, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
-        enumeration.current = updateEnumeration(enumerationOffset, enumeration.current, assignment)
-        const holeValueAssignment = getHoleValueAssignment(enumeration.current, assignment)
+        enumeration.current.updateEnumeration(assignment)
+        const holeValueAssignment = enumeration.current.getHoleValueAssignment(assignment)
         return [holeValueAssignment, eqSatisfied]
     }, [equations])
 

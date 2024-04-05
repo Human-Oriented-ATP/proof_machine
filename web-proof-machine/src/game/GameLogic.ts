@@ -2,7 +2,7 @@ import {
     AbstractNodeProps, Color, GadgetId, GadgetProps, HolePosition, HoleProps, HoleValue,
     InternalConnection
 } from "./Primitives";
-import { Term, TermAssignment, hashTerm, getVariableList, VariableName } from "./Term";
+import { Term, hashTerm, getVariableList, VariableName } from "./Term";
 
 export interface Axiom {
     hypotheses: Term[]
