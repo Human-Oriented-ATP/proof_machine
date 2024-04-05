@@ -5,14 +5,18 @@ import { handleIdFromTerm } from '../game/GameLogic';
 import TargetHandle from './TargetHandle';
 
 function styleFromColor(color: Color): React.CSSProperties {
-    const TRANSPARENCY = "AA"
+    const TRANSPARENCY = "FF"
     let bgcolor = "";
     switch (color) {
-        case "r": bgcolor = "#ff0000"; break;
-        case "y": bgcolor = "#ffff00"; break;
-        case "g": bgcolor = "#00ee00"; break;
-        case "b": bgcolor = "#0000ff"; break;
-        case "w": bgcolor = "#ffffff"; break;
+        case "r": bgcolor = "#ff3838"; break;
+        case "y": bgcolor = "#fff200"; break;
+        case "g": bgcolor = "#32ff7e"; break;
+        case "b": bgcolor = "#7d5fff"; break;
+        case "w": bgcolor = "#eeeeee"; break;
+        case "bl": bgcolor = "#3d3d3d"; break; // black
+        case "o": bgcolor = "#ff9f1a"; break; // orange
+        case "p": bgcolor = "#c56cf0"; break; // purple
+        case "c": bgcolor = "#7efff5"; break; // cyan 
         default: bgcolor = "#000000";
     }
     return { backgroundColor: bgcolor + TRANSPARENCY }
