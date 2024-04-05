@@ -41,7 +41,7 @@ function makeAxiomHole(t: Term): HoleProps {
             const value = Number(t.label)
             return { value, isFunctionValue: false }
         } else {
-            return { value: "", isFunctionValue: true }
+            return { value: "?", isFunctionValue: true }
         }
     }
 }
