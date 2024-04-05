@@ -110,7 +110,7 @@ function makeConnectionsForVariable(inputs: Term[], output: Term, v: VariableNam
 
 function makeConnections(input: Term[], output: Term): InternalConnection[] {
     const variableList = (input.concat(output)).map(getVariableList)
-    const variableListDeduplicated = Array.from(new Set(variableList)).flat()
+    const variableListDeduplicated = Array.from(new Set(variableList.flat()))
     const connections = variableListDeduplicated.map(v =>
         makeConnectionsForVariable(input, output, v))
     return connections.flat()

@@ -1,7 +1,7 @@
 import { Point, pointToString, addOffsetX } from "../util/Point";
 
-const CONTROL_POINT_OFFSET = 40;
-const CONTROL_POINT_VARIABLE_OFFSET = 0;
+const CONTROL_POINT_OFFSET = 30;
+const CONTROL_POINT_VARIABLE_OFFSET = 10;
 
 export interface ConnectionDrawingData {
     start: Point
@@ -14,16 +14,17 @@ export interface ConnectionSvgProps {
     connections: ConnectionDrawingData[];
 }
 
-export function connectionPath(props: ConnectionDrawingData, offsetMultiplier: number): JSX.Element {
+export function connectionPath(props: ConnectionDrawingData, offsetMultiplier: number,
+    fixedOffset = CONTROL_POINT_OFFSET): JSX.Element {
     const svg_start_sequence = "M " + pointToString(props.start);
     let offset_start = props.fromInput
-        ? CONTROL_POINT_OFFSET
-        : -CONTROL_POINT_OFFSET;
+        ? fixedOffset
+        : -fixedOffset;
     let offset_start_modified = offset_start + offsetMultiplier * CONTROL_POINT_VARIABLE_OFFSET
     let controlPoint1 = addOffsetX(props.start, offset_start_modified);
     let offset_end = props.toOutput
-        ? -CONTROL_POINT_OFFSET
-        : CONTROL_POINT_OFFSET;
+        ? -fixedOffset
+        : fixedOffset;
     let controlPoint2 = addOffsetX(props.end, offset_end);
     const svg_curve =
         "C " +

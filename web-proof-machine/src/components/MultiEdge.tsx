@@ -14,7 +14,7 @@ export function MultiEdge({ ...props }: EdgeProps<MultiEdgeProps>): JSX.Element 
 
     return (
         <g>
-            {connectionPath(data, 0)}
+            {connectionPath(data, 0, 20)}
         </g>
     )
 }
