@@ -11,6 +11,7 @@
         "@types/node": "^16.18.90",
         "@types/react": "^18.2.67",
         "@types/react-dom": "^18.2.22",
+        "chevrotain": "^11.0.3",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-draggable": "^4.4.6",
