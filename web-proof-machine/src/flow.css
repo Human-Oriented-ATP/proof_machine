@@ -15,6 +15,11 @@
     right: -10px;
 }
 
+.react-flow__handle-valid {
+    transform: scale(1.2);
+}
+
+
 .react-flow__panel.center {
     top: auto;
     transform: auto;

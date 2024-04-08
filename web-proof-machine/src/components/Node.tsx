@@ -2,7 +2,6 @@ import { Color, NodeDisplayProps } from '../game/Primitives';
 import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
 import { handleIdFromTerm } from '../game/GameLogic';
-import TargetHandle from './TargetHandle';
 
 function styleFromColor(color: Color): React.CSSProperties {
     const TRANSPARENCY = "FF"
@@ -26,7 +25,7 @@ export function Node({ ...props }: NodeDisplayProps) {
     function getHandle(id: string): JSX.Element {
         if (props.isInput) {
             const handleProps: HandleProps = { type: "target", position: Position.Left, id }
-            return <TargetHandle {...handleProps}></TargetHandle>
+            return <Handle {...handleProps}></Handle>
         } else {
             const handleProps: HandleProps = { type: "source", position: Position.Right, id }
             return <Handle {...handleProps}></Handle>
