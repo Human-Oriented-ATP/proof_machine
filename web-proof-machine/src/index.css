@@ -48,6 +48,7 @@ body {
 
 .gadget {
     display: flex;
+    position: relative;
 }
 
 .connectionSvg {

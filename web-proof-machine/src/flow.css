@@ -15,6 +15,20 @@
     right: -10px;
 }
 
+.gadgetPalette .react-flow__handle {
+    width: 10px;
+    height: 10px;
+}
+
+.gadgetPalette .react-flow__handle-left {
+    left: -2px;
+}
+
+.gadgetPalette .react-flow__handle-right {
+    right: -2px;
+}
+
+
 .react-flow__handle-valid {
     transform: scale(1.2);
 }
@@ -41,6 +55,8 @@
 
 .insertGadgetButton {
     display: flex;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
 .react-flow__node {

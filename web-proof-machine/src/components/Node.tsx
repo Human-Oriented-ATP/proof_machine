@@ -22,22 +22,28 @@ function styleFromColor(color: Color): React.CSSProperties {
 }
 
 export function Node({ ...props }: NodeDisplayProps) {
-    function getHandle(id: string): JSX.Element {
+    function getHandleProps(id: string): HandleProps {
         if (props.isInput) {
-            const handleProps: HandleProps = { type: "target", position: Position.Left, id }
-            return <Handle {...handleProps}></Handle>
+            return { type: "target", position: Position.Left, id }
         } else {
-            const handleProps: HandleProps = { type: "source", position: Position.Right, id }
-            return <Handle {...handleProps}></Handle>
+            return { type: "source", position: Position.Right, id }
+        }
+    }
+
+    function getDummyHandleProps(): HandleProps {
+        if (props.isInput) {
+            return { type: "target", position: Position.Left, isConnectable: false }
+        } else {
+            return { type: "source", position: Position.Right, isConnectable: false }
         }
     }
 
     function renderHandle(): JSX.Element {
         if (props.term) {
             const handleId: string = handleIdFromTerm(props.term!)
-            return getHandle(handleId)
+            return <Handle {...getHandleProps(handleId)}></Handle>
         } else {
-            return <></>
+            return <Handle {...getDummyHandleProps()}></Handle>
         }
     }
 
