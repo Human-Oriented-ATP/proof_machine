@@ -7,13 +7,13 @@ import { useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
 import { useIdGenerator } from "../util/IdGeneratorHook";
 import { GadgetFlowNodeProps } from "./GadgetFlowNode";
-import { TermEnumeration, getNumericalConstantsInProblemState } from "../game/TermEnumeration";
+import { TermEnumeration, getMaximumNumberInGameData } from "../game/TermEnumeration";
 import { initializeGame } from "../game/Initialization";
 
 export function Game() {
     const { axioms, goal } = initializeGame(problemData)
 
-    const enumerationOffset = 1 + Math.max(...getNumericalConstantsInProblemState({ axioms, goal })) // later: get this from axioms
+    const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
     const generateGadgetId = useIdGenerator("gadget_")
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumeration>(new TermEnumeration(enumerationOffset))

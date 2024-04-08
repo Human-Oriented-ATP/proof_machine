@@ -43,6 +43,10 @@ export function getNumericalConstantsInProblemState(ps: InitializationData): num
     .concat(getNumericalConstantsInTerm(ps.goal));
 }
 
+export function getMaximumNumberInGameData(data: InitializationData): number {
+    return 1 + Math.max(...getNumericalConstantsInProblemState(data))
+}
+
 function renameVariablesToEmptyString(t: Term): Term {
     const assignment: TermAssignment = new DisjointSetWithAssignment()
     getVariableSet(t).forEach(variable =>

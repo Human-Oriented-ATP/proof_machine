@@ -5,12 +5,13 @@ import ReactFlow, {
     useEdgesState,
     addEdge,
     NodeTypes,
-    Connection as ReactFlowConnection,
+    Connection,
     useReactFlow,
     Node as ReactFlowNode,
     EdgeTypes,
     Edge,
     MiniMap,
+    HandleType,
 } from 'reactflow';
 import { GadgetFlowNode, GadgetFlowNodeProps, getFlowNodeTerms } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -52,16 +53,23 @@ export function Diagram(props: DiagramProps) {
         return flowNode
     }
 
-    function addConnection(params: ReactFlowConnection): void {
+    const getEquationFromConnection = useCallback((connection: Connection) => {
+        const sourceTerms: Term[] = getFlowNodeTerms(getNode(connection.source!)!.data)
+        const targetTerms: Term[] = getFlowNodeTerms(getNode(connection.target!)!.data)
+        const sourceTerm: Term = getTermOfHandle(connection.sourceHandle!, sourceTerms)!
+        const targetTerm: Term = getTermOfHandle(connection.targetHandle!, targetTerms)!
+        const equation: Equation = [sourceTerm, targetTerm]
+        return equation
+    }, [getNode])
+
+
+    function addConnection(connection: Connection): void {
+        removeEdgesConnectedToHandle(connection.targetHandle!)
         setEdges((edges) => {
-            const sourceTerms: Term[] = getFlowNodeTerms(getNode(params.source!)!.data)
-            const targetTerms: Term[] = getFlowNodeTerms(getNode(params.target!)!.data)
-            const sourceTerm: Term = getTermOfHandle(params.sourceHandle!, sourceTerms)!
-            const targetTerm: Term = getTermOfHandle(params.targetHandle!, targetTerms)!
-            const equation: Equation = [sourceTerm, targetTerm]
+            const equation = getEquationFromConnection(connection)
             props.addEquation(equation)
             return addEdge({
-                ...params,
+                ...connection,
                 type: 'multiEdge',
                 data: equation
             }, edges)
@@ -75,7 +83,7 @@ export function Diagram(props: DiagramProps) {
         edges.map(deleteConnection)
     }
 
-    const onConnect = useCallback(addConnection, [props, getNode, setEdges]);
+    const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection]);
     const onEdgesDelete = useCallback(deleteConnections, [props])
 
     function createNewGadget(axiom: Axiom, e: React.MouseEvent): void {
@@ -97,6 +105,45 @@ export function Diagram(props: DiagramProps) {
         makeAxiomGadget: makeAxiomGadget,
         makeGadget: createNewGadget
     }
+
+    const hasTargetHandle = useCallback((e: Edge, handleId : string) => {
+        if (e.targetHandle) {
+            return e.targetHandle === handleId
+        } else {
+            return false
+        }
+    }, [])
+
+    const removeEdgesConnectedToHandle = useCallback((handleId : string) => {
+        setEdges(edges => {
+            const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
+            edgesConnectedToThisHandle.map(e => props.deleteEquation(e.data))
+            return edges.filter(e => !hasTargetHandle(e, handleId))
+        })
+    }, [hasTargetHandle, setEdges, props])
+
+
+    const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
+        params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
+
+        if (params.handleType === "target") {
+            removeEdgesConnectedToHandle(params.handleId!)
+        }
+    }, [removeEdgesConnectedToHandle]);
+
+
+    const isValidConnection = useCallback((connection: Connection) => {
+        function colorsMatch(term1 : Term, term2 : Term): boolean {
+            if ("label" in term1 && "label" in term2) {
+                return term1.label === term2.label
+            }
+            return false
+        }    
+
+        const [source, target] = getEquationFromConnection(connection)
+        const colorsOk = colorsMatch(source, target)
+        return colorsOk
+    }, [getEquationFromConnection]);
 
     useEffect(() => {
         setNodes(nodes => nodes.map(node => {
@@ -127,6 +174,8 @@ export function Diagram(props: DiagramProps) {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             onInit={init}
+            onConnectStart={onConnectStart}
+            isValidConnection={isValidConnection}
         >
             <MiniMap></MiniMap>
             <GadgetPalette {...paletteProps} />
