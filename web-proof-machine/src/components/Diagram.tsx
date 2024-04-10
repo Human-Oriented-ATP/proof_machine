@@ -12,6 +12,7 @@ import ReactFlow, {
     Edge,
     MiniMap,
     HandleType,
+    getOutgoers,
 } from 'reactflow';
 import { GadgetFlowNode, GadgetFlowNodeProps, getFlowNodeTerms } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -39,7 +40,7 @@ interface DiagramProps {
 export function Diagram(props: DiagramProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode()]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const { getNode, screenToFlowPosition, fitView } = useReactFlow();
+    const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
 
     function getGoalNode() {
         const gadgetFlowNodeProps = props.goalNodeProps
@@ -133,6 +134,26 @@ export function Diagram(props: DiagramProps) {
 
 
     const isValidConnection = useCallback((connection: Connection) => {
+        function doesNotCreateACycle(): boolean {
+            const nodes = getNodes();
+            const edges = getEdges();
+      
+            const target = nodes.find((node) => node.id === connection.target)!
+            const hasCycle = (node : ReactFlowNode, visited = new Set()) => {
+              if (visited.has(node.id)) return false;
+      
+              visited.add(node.id);
+      
+              for (const outgoer of getOutgoers(node, nodes, edges)) {
+                if (outgoer.id === connection.source) return true;
+                if (hasCycle(outgoer, visited)) return true;
+              }
+            };
+      
+            if (target.id === connection.source) return false;
+            return !hasCycle(target);
+        }
+
         function colorsMatch(term1 : Term, term2 : Term): boolean {
             if ("label" in term1 && "label" in term2) {
                 return term1.label === term2.label
@@ -142,7 +163,8 @@ export function Diagram(props: DiagramProps) {
 
         const [source, target] = getEquationFromConnection(connection)
         const colorsOk = colorsMatch(source, target)
-        return colorsOk
+        const noCircle = doesNotCreateACycle()
+        return colorsOk && noCircle
     }, [getEquationFromConnection]);
 
     useEffect(() => {
