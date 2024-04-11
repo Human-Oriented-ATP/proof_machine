@@ -1,7 +1,8 @@
 # proof_machine
 
+## Python version
 
-## Windows setup instructions
+### Windows setup instructions
 1. Install PyGObject with Gtk3. To do this, you can follow the instructions as explained on https://gnome.pages.gitlab.gnome.org/pygobject/getting_started.html#windows-getting-started but make sure to replace `gtk4` with `gtk3`. That is, step 5 should be to execute
 `pacman -S mingw-w64-ucrt-x86_64-gtk3 mingw-w64-ucrt-x86_64-python3 mingw-w64-ucrt-x86_64-python3-gobject` and step 6 becomes `gtk3-demo`.
 2. Run `python3` in the UCRT console to check that the python installation has worked. 
@@ -10,7 +11,7 @@
 4. Navigate to that folder in the UCRT console and run `python3 tim.py problem1.pl`
 
 
-## Mac setup instructions
+### Mac setup instructions
 1. Install gtk3 with
 ```
 brew install gtk+3
