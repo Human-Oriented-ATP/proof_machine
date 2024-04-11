@@ -1,9 +1,7 @@
-import { Game } from "./components/Game"
+import { ProblemSelector } from "./components/ProblemSelector";
 
 export default function App() {
     return (
-        <div style={{ width: "100vw", height: "100vh" }}>
-            <Game></Game>
-        </div>
+        <ProblemSelector></ProblemSelector>
     );
 }

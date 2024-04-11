@@ -1,7 +1,6 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
 import { Axiom, axiomAssignment } from "../game/GameLogic";
-import problemData from "../game/examples/problem1.json"
 import { makeTermWithFreshVariables } from "../game/Term";
 import { useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
@@ -10,8 +9,12 @@ import { GadgetFlowNodeProps } from "./GadgetFlowNode";
 import { TermEnumeration, getMaximumNumberInGameData } from "../game/TermEnumeration";
 import { initializeGame } from "../game/Initialization";
 
-export function Game() {
-    const { axioms, goal } = initializeGame(problemData)
+export interface GameProps {
+    problemData: any
+}
+
+export function Game(props : GameProps) {
+    const { axioms, goal } = initializeGame(props.problemData)
 
     const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
     const generateGadgetId = useIdGenerator("gadget_")
@@ -54,7 +57,8 @@ export function Game() {
         assignment: axiomAssignment
     }
 
-    return <ReactFlowProvider>
+    return <div style={{ width: "100vw", height: "100vh" }}>
+    <ReactFlowProvider>
         <Diagram
             axioms={axioms}
             makeNewGadget={makeNewGadget}
@@ -65,4 +69,5 @@ export function Game() {
             goalNodeProps={goalNodeProps}
         ></Diagram>
     </ReactFlowProvider>
+    </div>
 }
