@@ -198,7 +198,6 @@ export function Diagram(props: DiagramProps) {
             onConnectStart={onConnectStart}
             isValidConnection={isValidConnection}
         >
-            <MiniMap></MiniMap>
             <GadgetPalette {...paletteProps} />
             <Controls />
         </ReactFlow>
