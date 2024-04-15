@@ -2,6 +2,7 @@ import { NodeDisplayProps } from '../game/Primitives';
 import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
 import { handleIdFromTerm } from '../game/GameLogic';
+import { DummyHandle } from './DummyHandle';
 
 function styleFromColor(color: string): React.CSSProperties {
     const TRANSPARENCY = "F0"
@@ -30,20 +31,13 @@ export function Node(props: NodeDisplayProps) {
         }
     }
 
-    function getDummyHandleProps(): HandleProps {
-        if (props.isInput) {
-            return { type: "target", position: Position.Left, isConnectable: false }
-        } else {
-            return { type: "source", position: Position.Right, isConnectable: false }
-        }
-    }
-
     function renderHandle(): JSX.Element {
-        if (props.term) {
+        if (!props.useDummyHandle) {
             const handleId: string = handleIdFromTerm(props.term!)
             return <Handle {...getHandleProps(handleId)}></Handle>
         } else {
-            return <Handle {...getDummyHandleProps()}></Handle>
+            const position = props.isInput ? "left" : "right"
+            return <DummyHandle position={position}></DummyHandle>
         }
     }
 

@@ -70,6 +70,7 @@ export function Gadget({ ...props }: GadgetProps) {
             const nodeDisplayProps: NodeDisplayProps = {
                 term,
                 isInput: true,
+                useDummyHandle: props.useDummyHandle,
             }
             buffer.push(<Node {...nodeDisplayProps}></Node>)
         }
@@ -81,7 +82,7 @@ export function Gadget({ ...props }: GadgetProps) {
             const nodeDisplayProps = {
                 term: props.output,
                 isInput: false,
-                setFocus: (t: Term) => void (0)
+                useDummyHandle: props.useDummyHandle,
             }
             return (<div className="gadgetOutputContainer">
                 <Node {...nodeDisplayProps}></Node>

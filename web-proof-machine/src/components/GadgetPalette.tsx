@@ -27,7 +27,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
     resetIdGenerator()
 
     function makeAxiomGadget(axiom: Axiom): GadgetProps {
-        return { inputs: axiom.hypotheses, output: axiom.conclusion, id: getAxiomId() }
+        return { inputs: axiom.hypotheses, output: axiom.conclusion, id: getAxiomId(), useDummyHandle: true }
     }
 
     return (

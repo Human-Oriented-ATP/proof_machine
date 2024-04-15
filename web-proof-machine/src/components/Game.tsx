@@ -40,7 +40,8 @@ export function Game(props: GameProps) {
 
     const goalNodeProps: GadgetProps = {
         id: "goal_gadget",
-        inputs: [goal]
+        inputs: [goal],
+        useDummyHandle: false
     }
 
     const controlProps: CustomControlProps = {
