@@ -14,33 +14,42 @@ import ReactFlow, {
     HandleType,
     getOutgoers,
 } from 'reactflow';
-import { GadgetFlowNode, GadgetFlowNodeProps, getFlowNodeTerms } from './GadgetFlowNode';
+import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
 import { MultiEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import '../flow.css'
-import { Axiom, HoleValueAssignment, getTermOfHandle, makeAxiomGadget } from '../game/GameLogic';
+import { Axiom, axiomToGadget, getTermOfHandle } from '../game/GameLogic';
 import { Equation } from '../game/Unification';
 import { Term } from '../game/Term';
+import { GadgetProps } from '../game/Primitives';
+import { useIdGenerator } from '../util/IdGeneratorHook';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': MultiEdge }
 
 interface DiagramProps {
     axioms: Axiom[]
-    makeNewGadget: (axiom: Axiom) => GadgetFlowNodeProps
     addEquation: (equation: Equation) => void
     deleteEquation: (equation: Equation) => void
     isSatisfied: Map<Equation, boolean>
-    holeValueAssignment: HoleValueAssignment
-    goalNodeProps: GadgetFlowNodeProps
+    goalNodeProps: GadgetProps
+}
+
+export function getFlowNodeTerms(props: GadgetProps): Term[] {
+    if (props.output) {
+        return props.inputs.concat(props.output)
+    } else {
+        return props.inputs
+    }
 }
 
 export function Diagram(props: DiagramProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode()]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
+    const generateGadgetId = useIdGenerator("gadget_")
 
     function getGoalNode() {
         const gadgetFlowNodeProps = props.goalNodeProps
@@ -62,7 +71,6 @@ export function Diagram(props: DiagramProps) {
         const equation: Equation = [sourceTerm, targetTerm]
         return equation
     }, [getNode])
-
 
     function addConnection(connection: Connection): void {
         removeEdgesConnectedToHandle(connection.targetHandle!)
@@ -88,22 +96,21 @@ export function Diagram(props: DiagramProps) {
     const onEdgesDelete = useCallback(deleteConnections, [props])
 
     function createNewGadget(axiom: Axiom, e: React.MouseEvent): void {
-        const gadgetFlowNodeProps = props.makeNewGadget(axiom)
+        const id = generateGadgetId()
         const flowNode: ReactFlowNode =
         {
-            id: gadgetFlowNodeProps.id,
+            id: id,
             type: 'gadgetFlowNode',
             position: screenToFlowPosition({
                 x: e.clientX, y: 450
             }),
-            data: gadgetFlowNodeProps
+            data: axiomToGadget(axiom, id)
         }
         setNodes((nodes) => nodes.concat(flowNode));
     }
 
     const paletteProps: GadgetPaletteProps = {
         axioms: props.axioms,
-        makeAxiomGadget: makeAxiomGadget,
         makeGadget: createNewGadget
     }
 
@@ -168,15 +175,11 @@ export function Diagram(props: DiagramProps) {
     }, [getEquationFromConnection]);
 
     useEffect(() => {
-        setNodes(nodes => nodes.map(node => {
-            const newData = { ...node.data, assignment: props.holeValueAssignment }
-            return { ...node, data: newData }
-        }))
         setEdges(edges => edges.map(edge => {
             const isSatisfied = props.isSatisfied.get(edge.data)
             return { ...edge, animated: isSatisfied ? false : true }
         }))
-    }, [props.isSatisfied, props.holeValueAssignment, setEdges, setNodes])
+    }, [props.isSatisfied, setEdges, setNodes])
 
     function init() {
         const goalNode: (Partial<ReactFlowNode> & { id: string }) = {

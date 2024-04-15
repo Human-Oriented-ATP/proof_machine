@@ -48,6 +48,10 @@ body {
     user-select: none;
 }
 
+.hole-function {
+    background-color: "#ffcccc"
+}
+
 .node {
     margin: 5px;
     border: solid 2px black;

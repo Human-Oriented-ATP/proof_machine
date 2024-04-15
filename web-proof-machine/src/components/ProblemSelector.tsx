@@ -21,7 +21,7 @@ function ProblemSelectionPane(props : ProblemSelectionPaneProps) {
 }
 
 export function ProblemSelector() {
-    const [selectedProblem, setProblem] = useState("")
+    const [selectedProblem, setProblem] = useState("problem1")
 
     return <div>
         { selectedProblem ? <GameLoader problemFile={selectedProblem}></GameLoader> : 

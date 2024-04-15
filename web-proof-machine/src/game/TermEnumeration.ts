@@ -1,7 +1,6 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Axiom, HoleValueAssignment } from "./GameLogic";
 import { InitializationData } from "./Initialization";
-import { HoleValue } from "./Primitives";
 import { Term, TermAssignment, getVariableSet, hashTerm, substitute } from "./Term";
 
 function isConstant(t: Term) {
@@ -142,17 +141,17 @@ export class TermEnumeration {
         this.enumerateNewTerms(fullyAssignedTerms)
     }
 
-    private toHoleValue(t: Term, termAssignment: TermAssignment): HoleValue {
+    private toHoleValue(t: Term, termAssignment: TermAssignment): string {
         const fullyAssignedTerm = assignTermRecursively(t, termAssignment)
         if ("variable" in fullyAssignedTerm) {
             throw Error("Cannot get hole value for a variable" + fullyAssignedTerm)
         } else {
             if (fullyAssignedTerm.args.length === 0) {
-                return Number(fullyAssignedTerm.label)
+                return fullyAssignedTerm.label
             } else {
                 const value = this.getNumber(fullyAssignedTerm)
                 if (value) {
-                    return value
+                    return value.toString()
                 } else {
                     return "?"
                 }

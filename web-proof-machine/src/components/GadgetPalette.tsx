@@ -1,11 +1,12 @@
 import { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
-import { Axiom } from '../game/GameLogic';
+import { Axiom, axiomAssignment } from '../game/GameLogic';
 import { GadgetId, GadgetProps } from '../game/Primitives';
+import { AssignmentContext } from '../game/AssignmentContext';
+import { useIdGenerator } from '../util/IdGeneratorHook';
 
 export interface GadgetPaletteProps {
     axioms: Axiom[]
-    makeAxiomGadget: (a: Axiom, id: GadgetId) => GadgetProps
     makeGadget: (a: Axiom, e: React.MouseEvent) => void
 }
 
@@ -21,24 +22,24 @@ export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonP
 }
 
 export function GadgetPalette({ ...props }: GadgetPaletteProps) {
-    let currentId = 0
+    const getAxiomId = useIdGenerator("axiom_")
 
-    function getAxiomId(): GadgetId {
-        currentId++
-        return "axiom_" + currentId
+    function makeAxiomGadget(axiom : Axiom, id : GadgetId): GadgetProps {
+        return { inputs: axiom.hypotheses, output: axiom.conclusion, id}
     }
 
     return (
         <Panel position='top-center'>
+            <AssignmentContext.Provider value={axiomAssignment}>
             <div className="gadgetPalette">
                 {props.axioms.map(axiom => {
-                    let displayProps: GadgetProps =
-                        { ...props.makeAxiomGadget(axiom, getAxiomId()) }
+                    // const id = getAxiomId()
                     return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>
-                        <Gadget {...displayProps}></Gadget>
+                        <Gadget {...makeAxiomGadget(axiom, "123")}></Gadget>
                     </InsertGadgetButton>
                 })}
             </div>
+            </AssignmentContext.Provider>
         </Panel >
     )
 }

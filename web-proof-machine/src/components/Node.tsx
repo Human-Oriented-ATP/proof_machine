@@ -1,9 +1,9 @@
-import { Color, NodeDisplayProps } from '../game/Primitives';
+import { NodeDisplayProps } from '../game/Primitives';
 import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
 import { handleIdFromTerm } from '../game/GameLogic';
 
-function styleFromColor(color: Color): React.CSSProperties {
+function styleFromColor(color: string): React.CSSProperties {
     const TRANSPARENCY = "FF"
     let bgcolor = "";
     switch (color) {
@@ -47,12 +47,19 @@ export function Node({ ...props }: NodeDisplayProps) {
         }
     }
 
-    return (
-        <div className="nodeHandleWrapper">
-            <div className="node" style={styleFromColor(props.color)}>
-                {props.values.map(props => <Hole {...props}></Hole>)}
+    if ("variable" in props.term) {
+        console.error("Term cannot be rendered as node:" + props.term)
+        return <></>
+    } else {
+        const style = styleFromColor(props.term.label)
+
+        return (
+            <div className="nodeHandleWrapper">
+                <div className="node" style={style}>
+                    {props.term.args.map(arg => <Hole term={arg} setFocus={props.setFocus}></Hole>)}
+                </div>
+                {renderHandle()}
             </div>
-            {renderHandle()}
-        </div>
-    )
+        )
+    }
 }
