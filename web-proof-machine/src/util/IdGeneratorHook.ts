@@ -1,12 +1,16 @@
-import { useState } from "react"
+import { useRef } from "react"
 
-export function useIdGenerator(prefix: string) {
-    const [idCounter, setIdCounter] = useState(0)
+export function useIdGenerator(prefix: string): [() => string, () => void] {
+    const counter = useRef(0)
 
     function getId(): string {
-        setIdCounter(idCounter + 1)
-        return prefix + idCounter
+        counter.current = counter.current + 1
+        return prefix + counter.current
     }
 
-    return getId
+    function reset(): void {
+        counter.current = 0
+    }
+
+    return [getId, reset]
 }

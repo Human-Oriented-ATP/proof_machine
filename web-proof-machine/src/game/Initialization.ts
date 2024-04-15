@@ -1,4 +1,4 @@
-import { Axiom } from "./GameLogic";
+import { Axiom } from "./Primitives";
 import { Term } from "./Term";
 
 export interface InitializationData {
