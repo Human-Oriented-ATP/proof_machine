@@ -20,7 +20,7 @@ body {
     margin: 20px;
 }
 
-.problemSelectionButtons > button {
+.problemSelectionButtons>button {
     font-size: 1.2em;
     background-color: white;
     border: solid 2px black;
@@ -29,11 +29,10 @@ body {
     margin: 10px
 }
 
-.problemSelectionButtons > button:hover {
+.problemSelectionButtons>button:hover {
     background-color: black;
     color: white;
 }
-
 
 .hole {
     background-color: rgb(252, 252, 252);
@@ -49,7 +48,11 @@ body {
 }
 
 .hole-function {
-    background-color: "#ffcccc"
+    background-color: #ffcccc
+}
+
+.hole-focussed {
+    border-color: yellow
 }
 
 .node {

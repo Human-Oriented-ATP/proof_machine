@@ -42,7 +42,6 @@ export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): P
 export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
-    const [focus, setFocus] = useState("")
 
     // useLayoutEffect(() => {
     //     function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
@@ -72,7 +71,6 @@ export function Gadget({ ...props }: GadgetProps) {
             const nodeDisplayProps: NodeDisplayProps = {
                 term,
                 isInput: true,
-                setFocus: (t: Term) => void(0)
             }
             buffer.push(<Node {...nodeDisplayProps}></Node>)
         }
@@ -84,7 +82,7 @@ export function Gadget({ ...props }: GadgetProps) {
             const nodeDisplayProps = {
                 term: props.output,
                 isInput: false,
-                setFocus: (t : Term) => void(0)
+                setFocus: (t: Term) => void (0)
             }
             return (<div className="gadgetOutputContainer">
                 <Node {...nodeDisplayProps}></Node>

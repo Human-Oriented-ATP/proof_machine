@@ -16,25 +16,26 @@ import ReactFlow, {
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { MultiEdge } from './MultiEdge';
+import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import '../flow.css'
-import { Axiom, axiomToGadget, getTermOfHandle } from '../game/GameLogic';
+import { axiomToGadget, getTermOfHandle } from '../game/GameLogic';
+import { Axiom } from "../game/Primitives";
 import { Equation } from '../game/Unification';
 import { Term } from '../game/Term';
 import { GadgetProps } from '../game/Primitives';
 import { useIdGenerator } from '../util/IdGeneratorHook';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
-const edgeTypes: EdgeTypes = { 'multiEdge': MultiEdge }
+const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
 
 interface DiagramProps {
     axioms: Axiom[]
     addEquation: (equation: Equation) => void
     deleteEquation: (equation: Equation) => void
     isSatisfied: Map<Equation, boolean>
-    goalNodeProps: GadgetProps
+    goal: GadgetProps
 }
 
 export function getFlowNodeTerms(props: GadgetProps): Term[] {
@@ -45,23 +46,28 @@ export function getFlowNodeTerms(props: GadgetProps): Term[] {
     }
 }
 
+function hasTargetHandle(e: Edge, handleId: string): boolean {
+    if (e.targetHandle) {
+        return e.targetHandle === handleId
+    } else {
+        return false
+    }
+}
+
+function getGoal(props: GadgetProps): ReactFlowNode {
+    return {
+        id: props.id,
+        type: 'gadgetFlowNode',
+        position: { x: 300, y: 300 },
+        data: props
+    }
+}
+
 export function Diagram(props: DiagramProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode()]);
+    const [nodes, setNodes, onNodesChange] = useNodesState([getGoal(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
-    const generateGadgetId = useIdGenerator("gadget_")
-
-    function getGoalNode() {
-        const gadgetFlowNodeProps = props.goalNodeProps
-        const flowNode: ReactFlowNode =
-        {
-            id: gadgetFlowNodeProps.id,
-            type: 'gadgetFlowNode',
-            position: { x: 300, y: 300 },
-            data: gadgetFlowNodeProps
-        }
-        return flowNode
-    }
+    const [generateGadgetId] = useIdGenerator("gadget_")
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
         const sourceTerms: Term[] = getFlowNodeTerms(getNode(connection.source!)!.data)
@@ -92,10 +98,19 @@ export function Diagram(props: DiagramProps) {
         edges.map(deleteConnection)
     }
 
-    const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection]);
-    const onEdgesDelete = useCallback(deleteConnections, [props])
+    const paletteProps: GadgetPaletteProps = {
+        axioms: props.axioms,
+        makeGadget: makeGadget
+    }
 
-    function createNewGadget(axiom: Axiom, e: React.MouseEvent): void {
+    function init() {
+        const goalNode: (Partial<ReactFlowNode> & { id: string }) = {
+            id: "goal_gadget"
+        }
+        fitView({ nodes: [goalNode] })
+    }
+
+    function makeGadget(axiom: Axiom, e: React.MouseEvent): void {
         const id = generateGadgetId()
         const flowNode: ReactFlowNode =
         {
@@ -109,27 +124,13 @@ export function Diagram(props: DiagramProps) {
         setNodes((nodes) => nodes.concat(flowNode));
     }
 
-    const paletteProps: GadgetPaletteProps = {
-        axioms: props.axioms,
-        makeGadget: createNewGadget
-    }
-
-    const hasTargetHandle = useCallback((e: Edge, handleId : string) => {
-        if (e.targetHandle) {
-            return e.targetHandle === handleId
-        } else {
-            return false
-        }
-    }, [])
-
-    const removeEdgesConnectedToHandle = useCallback((handleId : string) => {
+    const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
         setEdges(edges => {
             const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
             edgesConnectedToThisHandle.map(e => props.deleteEquation(e.data))
             return edges.filter(e => !hasTargetHandle(e, handleId))
         })
-    }, [hasTargetHandle, setEdges, props])
-
+    }, [setEdges, props])
 
     const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
         params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
@@ -139,40 +140,39 @@ export function Diagram(props: DiagramProps) {
         }
     }, [removeEdgesConnectedToHandle]);
 
-
     const isValidConnection = useCallback((connection: Connection) => {
         function doesNotCreateACycle(): boolean {
             const nodes = getNodes();
             const edges = getEdges();
-      
+
             const target = nodes.find((node) => node.id === connection.target)!
-            const hasCycle = (node : ReactFlowNode, visited = new Set()) => {
-              if (visited.has(node.id)) return false;
-      
-              visited.add(node.id);
-      
-              for (const outgoer of getOutgoers(node, nodes, edges)) {
-                if (outgoer.id === connection.source) return true;
-                if (hasCycle(outgoer, visited)) return true;
-              }
+            const hasCycle = (node: ReactFlowNode, visited = new Set()) => {
+                if (visited.has(node.id)) return false;
+
+                visited.add(node.id);
+
+                for (const outgoer of getOutgoers(node, nodes, edges)) {
+                    if (outgoer.id === connection.source) return true;
+                    if (hasCycle(outgoer, visited)) return true;
+                }
             };
-      
+
             if (target.id === connection.source) return false;
             return !hasCycle(target);
         }
 
-        function colorsMatch(term1 : Term, term2 : Term): boolean {
+        function colorsMatch(term1: Term, term2: Term): boolean {
             if ("label" in term1 && "label" in term2) {
                 return term1.label === term2.label
             }
             return false
-        }    
+        }
 
         const [source, target] = getEquationFromConnection(connection)
         const colorsOk = colorsMatch(source, target)
         const noCircle = doesNotCreateACycle()
         return colorsOk && noCircle
-    }, [getEquationFromConnection]);
+    }, [getEquationFromConnection, getEdges, getNodes]);
 
     useEffect(() => {
         setEdges(edges => edges.map(edge => {
@@ -181,12 +181,8 @@ export function Diagram(props: DiagramProps) {
         }))
     }, [props.isSatisfied, setEdges, setNodes])
 
-    function init() {
-        const goalNode: (Partial<ReactFlowNode> & { id: string }) = {
-            id: "goal_gadget"
-        }
-        fitView({ nodes: [goalNode] })
-    }
+    const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
+    const onEdgesDelete = useCallback(deleteConnections, [props])
 
     return (
         <ReactFlow

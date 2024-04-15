@@ -1,9 +1,9 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
-import { Term, TermAssignment, VariableName, termHasVariable } from "./Term";
+import { Term, Assignment, VariableName, termHasVariable } from "./Term";
 
 export type Equation = [Term, Term]
 
-function unifyVariable(currentAssignment: TermAssignment, v: VariableName, term: Term): boolean {
+function unifyVariable(currentAssignment: Assignment, v: VariableName, term: Term): boolean {
     if (currentAssignment.isAssigned(v)) {
         const value = currentAssignment.getAssignedValue(v)!
         return unifyEquation(currentAssignment, [value, term])
@@ -20,7 +20,7 @@ function unifyVariable(currentAssignment: TermAssignment, v: VariableName, term:
     }
 }
 
-function unifyEquation(currentAssignment: TermAssignment, equation: Equation): boolean {
+function unifyEquation(currentAssignment: Assignment, equation: Equation): boolean {
     const [lhs, rhs] = equation
     if ("variable" in lhs) {
         if ("variable" in rhs) {
@@ -50,9 +50,9 @@ function unifyEquation(currentAssignment: TermAssignment, equation: Equation): b
     }
 }
 
-export function unifyEquations(equations: Equation[]): [TermAssignment, Map<Equation, boolean>] {
+export function unifyEquations(equations: Equation[]): [Assignment, Map<Equation, boolean>] {
     const equationIsSatisfied = new Map()
-    const assignment: TermAssignment = new DisjointSetWithAssignment()
+    const assignment: Assignment = new DisjointSetWithAssignment()
     for (let i = 0; i < equations.length; i++) {
         const equation = equations[i]
         const unifiedSuccessfully = unifyEquation(assignment, equation)

@@ -1,7 +1,8 @@
 import { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
-import { Axiom, axiomAssignment } from '../game/GameLogic';
-import { GadgetId, GadgetProps } from '../game/Primitives';
+import { axiomTermEnumeration } from '../game/GameLogic';
+import { Axiom } from "../game/Primitives";
+import { GadgetProps } from '../game/Primitives';
 import { AssignmentContext } from '../game/AssignmentContext';
 import { useIdGenerator } from '../util/IdGeneratorHook';
 
@@ -22,23 +23,24 @@ export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonP
 }
 
 export function GadgetPalette({ ...props }: GadgetPaletteProps) {
-    const getAxiomId = useIdGenerator("axiom_")
+    const [getAxiomId, resetIdGenerator] = useIdGenerator("axiom_")
+    resetIdGenerator()
 
-    function makeAxiomGadget(axiom : Axiom, id : GadgetId): GadgetProps {
-        return { inputs: axiom.hypotheses, output: axiom.conclusion, id}
+    function makeAxiomGadget(axiom: Axiom): GadgetProps {
+        return { inputs: axiom.hypotheses, output: axiom.conclusion, id: getAxiomId() }
     }
 
     return (
         <Panel position='top-center'>
-            <AssignmentContext.Provider value={axiomAssignment}>
-            <div className="gadgetPalette">
-                {props.axioms.map(axiom => {
-                    // const id = getAxiomId()
-                    return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>
-                        <Gadget {...makeAxiomGadget(axiom, "123")}></Gadget>
-                    </InsertGadgetButton>
-                })}
-            </div>
+            <AssignmentContext.Provider value={axiomTermEnumeration}>
+                <div className="gadgetPalette">
+                    {props.axioms.map(axiom => {
+                        // const id = getAxiomId()
+                        return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>
+                            <Gadget {...makeAxiomGadget(axiom)}></Gadget>
+                        </InsertGadgetButton>
+                    })}
+                </div>
             </AssignmentContext.Provider>
         </Panel >
     )

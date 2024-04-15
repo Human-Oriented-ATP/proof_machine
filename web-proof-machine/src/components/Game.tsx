@@ -2,7 +2,7 @@ import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
 import { useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
-import { TermEnumeration, getMaximumNumberInGameData } from "../game/TermEnumeration";
+import { TermEnumerator, getMaximumNumberInGameData } from "../game/TermEnumeration";
 import { initializeGame } from "../game/Initialization";
 import { GadgetProps } from "../game/Primitives";
 import { AssignmentContext } from "../game/AssignmentContext";
@@ -11,12 +11,12 @@ export interface GameProps {
     problemData: any
 }
 
-export function Game(props : GameProps) {
+export function Game(props: GameProps) {
     const { axioms, goal } = initializeGame(props.problemData)
 
     const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
     const [equations, setEquations] = useState<Equation[]>([])
-    const enumeration = useRef<TermEnumeration>(new TermEnumeration(enumerationOffset))
+    const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
 
     const [holeValueAssignment, eqSatisfied] = useMemo(() => {
@@ -41,16 +41,16 @@ export function Game(props : GameProps) {
     }
 
     return <div style={{ width: "100vw", height: "100vh" }}>
-    <AssignmentContext.Provider value={holeValueAssignment}>
-    <ReactFlowProvider>
-        <Diagram
-            axioms={axioms}
-            addEquation={addEquation}
-            deleteEquation={deleteEquation}
-            isSatisfied={eqSatisfied}
-            goalNodeProps={goalNodeProps}
-            ></Diagram>
-    </ReactFlowProvider>
-    </AssignmentContext.Provider>
+        <AssignmentContext.Provider value={holeValueAssignment}>
+            <ReactFlowProvider>
+                <Diagram
+                    axioms={axioms}
+                    addEquation={addEquation}
+                    deleteEquation={deleteEquation}
+                    isSatisfied={eqSatisfied}
+                    goal={goalNodeProps}
+                ></Diagram>
+            </ReactFlowProvider>
+        </AssignmentContext.Provider>
     </div>
 }

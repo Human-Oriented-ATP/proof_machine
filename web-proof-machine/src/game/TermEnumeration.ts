@@ -1,14 +1,14 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
-import { Axiom, HoleValueAssignment } from "./GameLogic";
+import { Axiom } from "./Primitives";
 import { InitializationData } from "./Initialization";
-import { Term, TermAssignment, getVariableSet, hashTerm, substitute } from "./Term";
+import { Term, Assignment, getVariableSet, hashTerm, substitute } from "./Term";
 
 function isConstant(t: Term) {
     return "label" in t && t.args.length === 0
 }
 
-function isNumericalConstant(t : Term): number | undefined  {
-    if("variable" in t) {
+function isNumericalConstant(t: Term): number | undefined {
+    if ("variable" in t) {
         return undefined;
     } else {
         if (isNaN(Number(t.label)) || t.args.length > 0) {
@@ -19,7 +19,7 @@ function isNumericalConstant(t : Term): number | undefined  {
     }
 }
 
-function getNumericalConstantsInTerm(t : Term): number[] {
+function getNumericalConstantsInTerm(t: Term): number[] {
     const n = isNumericalConstant(t)
     if (n === undefined) {
         if ("variable" in t) {
@@ -34,12 +34,12 @@ function getNumericalConstantsInTerm(t : Term): number[] {
 
 function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
     return axiom.hypotheses.flatMap(getNumericalConstantsInTerm)
-    .concat(getNumericalConstantsInTerm(axiom.conclusion));
+        .concat(getNumericalConstantsInTerm(axiom.conclusion));
 }
 
 export function getNumericalConstantsInProblemState(ps: InitializationData): number[] {
     return ps.axioms.flatMap(getNumericalConstantsInAxiom)
-    .concat(getNumericalConstantsInTerm(ps.goal));
+        .concat(getNumericalConstantsInTerm(ps.goal));
 }
 
 export function getMaximumNumberInGameData(data: InitializationData): number {
@@ -47,14 +47,14 @@ export function getMaximumNumberInGameData(data: InitializationData): number {
 }
 
 function renameVariablesToEmptyString(t: Term): Term {
-    const assignment: TermAssignment = new DisjointSetWithAssignment()
+    const assignment: Assignment = new DisjointSetWithAssignment()
     getVariableSet(t).forEach(variable =>
         assignment.assign(variable, { variable: "" })
     )
     return substitute(t, assignment)
 }
 
-function assignTermRecursively(t: Term, assignment: TermAssignment): Term {
+function assignTermRecursively(t: Term, assignment: Assignment): Term {
     if ("variable" in t) {
         const assignedValue = assignment.getAssignedValue(t.variable)
         if (assignedValue) {
@@ -72,7 +72,9 @@ function removeConstants(terms: Term[]): Term[] {
     return terms.filter(term => !isConstant(term))
 }
 
-export class TermEnumeration {
+export type TermEnumeration = (t: Term) => string
+
+export class TermEnumerator {
     private enumeration: Map<number, number>
     private offset: number
 
@@ -132,7 +134,7 @@ export class TermEnumeration {
         this.enumerateTerms(newTerms)
     }
 
-    updateEnumeration(termAssignment: TermAssignment) {
+    updateEnumeration(termAssignment: Assignment) {
         const termsInAssignment = termAssignment.getAssignedValues()
         const termsWithoutConstants = removeConstants(termsInAssignment)
         const fullyAssignedTerms = termsWithoutConstants.map(term =>
@@ -141,7 +143,7 @@ export class TermEnumeration {
         this.enumerateNewTerms(fullyAssignedTerms)
     }
 
-    private toHoleValue(t: Term, termAssignment: TermAssignment): string {
+    private toHoleValue(t: Term, termAssignment: Assignment): string {
         const fullyAssignedTerm = assignTermRecursively(t, termAssignment)
         if ("variable" in fullyAssignedTerm) {
             throw Error("Cannot get hole value for a variable" + fullyAssignedTerm)
@@ -159,7 +161,7 @@ export class TermEnumeration {
         }
     }
 
-    getHoleValueAssignment(termAssignment: TermAssignment): HoleValueAssignment {
+    getHoleValueAssignment(termAssignment: Assignment): TermEnumeration {
         return (t => {
             if ("variable" in t) {
                 const term = termAssignment.getAssignedValue(t.variable)

@@ -1,18 +1,13 @@
-import {
-    AbstractNodeProps, GadgetId, GadgetProps, HoleProps,
-} from "./Primitives";
-import { Term, hashTerm, VariableName } from "./Term";
+import { Axiom } from "./Primitives";
+import { GadgetId, GadgetProps } from "./Primitives";
+import { Term, hashTerm, makeAxiomWithFreshVariables } from "./Term";
 
-export interface Axiom {
-    hypotheses: Term[]
-    conclusion: Term
+export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
+    const axiomWithFreshVariables = makeAxiomWithFreshVariables(axiom, id)
+    return { inputs: axiomWithFreshVariables.hypotheses, output: axiomWithFreshVariables.conclusion, id }
 }
 
-export function axiomToGadget(axiom: Axiom, id : GadgetId): GadgetProps {
-    return { inputs: axiom.hypotheses, output: axiom.conclusion, id }
-} 
-
-export function axiomAssignment(t: Term): string {
+export function axiomTermEnumeration(t: Term): string {
     if ("variable" in t) {
         return ""
     } else {
@@ -23,8 +18,6 @@ export function axiomAssignment(t: Term): string {
         }
     }
 }
-
-export type HoleValueAssignment = (t: Term) => string
 
 export function handleIdFromTerm(t: Term): string {
     return "handle_" + hashTerm(t)

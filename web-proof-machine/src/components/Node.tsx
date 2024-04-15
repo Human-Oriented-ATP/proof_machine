@@ -4,7 +4,7 @@ import { Hole } from './Hole';
 import { handleIdFromTerm } from '../game/GameLogic';
 
 function styleFromColor(color: string): React.CSSProperties {
-    const TRANSPARENCY = "FF"
+    const TRANSPARENCY = "F0"
     let bgcolor = "";
     switch (color) {
         case "r": bgcolor = "#ff3838"; break;
@@ -21,7 +21,7 @@ function styleFromColor(color: string): React.CSSProperties {
     return { backgroundColor: bgcolor + TRANSPARENCY }
 }
 
-export function Node({ ...props }: NodeDisplayProps) {
+export function Node(props: NodeDisplayProps) {
     function getHandleProps(id: string): HandleProps {
         if (props.isInput) {
             return { type: "target", position: Position.Left, id }
@@ -56,7 +56,7 @@ export function Node({ ...props }: NodeDisplayProps) {
         return (
             <div className="nodeHandleWrapper">
                 <div className="node" style={style}>
-                    {props.term.args.map(arg => <Hole term={arg} setFocus={props.setFocus}></Hole>)}
+                    {props.term.args.map(arg => <Hole term={arg}></Hole>)}
                 </div>
                 {renderHandle()}
             </div>
