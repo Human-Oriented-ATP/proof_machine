@@ -20,7 +20,7 @@ export function GameLoader(props: GameLoaderProps) {
 
   useEffect(() => {
     loadData()
-  }, [])
+  })
 
   if (data) {
     return <Game problemData={data}></Game>

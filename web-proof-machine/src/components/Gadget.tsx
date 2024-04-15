@@ -2,8 +2,10 @@ import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../util/Point'
-import { GadgetProps, NodeDisplayProps, HolePosition, GadgetId, InternalConnection }
+import { GadgetProps, NodeDisplayProps, GadgetId }
     from '../game/Primitives'
+import { Term } from '../game/Term'
+import { HolePosition, InternalConnection, makeConnections } from '../game/ConnectionsFromTerms'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1]
@@ -41,7 +43,6 @@ export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
 
-
     useLayoutEffect(() => {
         function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
             ConnectionDrawingData {
@@ -54,22 +55,21 @@ export function Gadget({ ...props }: GadgetProps) {
             return { start, end, fromInput: from_input, toOutput: to_output }
         }
 
-        function calculateConnections(): ConnectionSvgProps {
-            const connections = props.connections.map
-                (connection => calculateInternalConnectionDrawingData(connection))
-            return { connections }
+        if (props.output) {
+            const connections = makeConnections(props.inputs, props.output)
+            const drawingData = connections.map(calculateInternalConnectionDrawingData)
+            setConnectionState({ connections: drawingData })
         }
 
-        setConnectionState(calculateConnections())
-    }, [props.connections, props.id])
+    }, [props.inputs, props.output, props.id])
 
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []
         for (let i = 0; i < props.inputs.length; i++) {
-            const nodeProps = props.inputs[i]
+            const term = props.inputs[i]
             const nodeDisplayProps: NodeDisplayProps = {
-                ...nodeProps,
-                isInput: true
+                term,
+                isInput: true,
             }
             buffer.push(<Node {...nodeDisplayProps}></Node>)
         }
@@ -79,8 +79,9 @@ export function Gadget({ ...props }: GadgetProps) {
     function makeOutputNodeContainer(): JSX.Element {
         if (props.output) {
             const nodeDisplayProps = {
-                ...props.output,
-                isInput: false
+                term: props.output,
+                isInput: false,
+                setFocus: (t: Term) => void (0)
             }
             return (<div className="gadgetOutputContainer">
                 <Node {...nodeDisplayProps}></Node>
@@ -90,7 +91,13 @@ export function Gadget({ ...props }: GadgetProps) {
         }
     }
 
-    const numberOfInputHolesPerNode = props.inputs.map(node => node.values.length)
+    const numberOfInputHolesPerNode = props.inputs.map(term => {
+        if ('variable' in term) {
+            return 0
+        } else {
+            return term.args.length
+        }
+    })
     const numberOfInputHoles = numberOfInputHolesPerNode.reduce((a, b) => a + b, 0)
     const margin = props.output ? 5 * numberOfInputHoles : 0
 

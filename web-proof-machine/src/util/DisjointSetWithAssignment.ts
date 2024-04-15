@@ -28,10 +28,6 @@ export class DisjointSetWithAssignment<T, S> {
         return this.parent.get(x)!;
     }
 
-    assignedValuesConflict(s1: S | undefined, s2: S | undefined) {
-        return s1 !== undefined && s2 !== undefined && s1 !== s2
-    }
-
     valueToBeAssigned(s1: S | undefined, s2: S | undefined) {
         if (s1 === undefined) {
             return s2
@@ -46,17 +42,13 @@ export class DisjointSetWithAssignment<T, S> {
         }
     }
 
-    unite(x: T, y: T): boolean { // need to be careful with assignment
+    unite(x: T, y: T) { // need to be careful with assignment
         let rootX = this.findRepresentative(x);
         let rootY = this.findRepresentative(y);
 
         if (rootX !== rootY) {
             let valueX = this.assignments.get(rootX)
             let valueY = this.assignments.get(rootY)
-
-            if (this.assignedValuesConflict(valueX, valueY)) {
-                return false
-            }
 
             const value = this.valueToBeAssigned(valueX, valueY)
 
@@ -75,7 +67,6 @@ export class DisjointSetWithAssignment<T, S> {
                 this.rank.set(rootX, rankX + 1);
             }
         }
-        return true
     }
 
     assign(t: T, value: S) {

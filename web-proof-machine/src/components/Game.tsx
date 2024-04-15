@@ -1,32 +1,29 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
-import { Axiom, axiomAssignment } from "../game/GameLogic";
-import { makeTermWithFreshVariables } from "../game/Term";
 import { useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
-import { useIdGenerator } from "../util/IdGeneratorHook";
-import { GadgetFlowNodeProps } from "./GadgetFlowNode";
-import { TermEnumeration, getMaximumNumberInGameData } from "../game/TermEnumeration";
+import { TermEnumerator, getMaximumNumberInGameData } from "../game/TermEnumeration";
 import { initializeGame } from "../game/Initialization";
+import { GadgetProps } from "../game/Primitives";
+import { AssignmentContext } from "../game/AssignmentContext";
 
 export interface GameProps {
     problemData: any
 }
 
-export function Game(props : GameProps) {
+export function Game(props: GameProps) {
     const { axioms, goal } = initializeGame(props.problemData)
 
     const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
-    const generateGadgetId = useIdGenerator("gadget_")
     const [equations, setEquations] = useState<Equation[]>([])
-    const enumeration = useRef<TermEnumeration>(new TermEnumeration(enumerationOffset))
+    const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
 
-    const [holeValueAssignment, eqSatisfied] = useMemo(() => {
+    const [termEnumeration, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
         enumeration.current.updateEnumeration(assignment)
-        const holeValueAssignment = enumeration.current.getHoleValueAssignment(assignment)
-        return [holeValueAssignment, eqSatisfied]
+        const termEnumeration = enumeration.current.getHoleValueAssignment(assignment)
+        return [termEnumeration, eqSatisfied]
     }, [equations])
 
     function addEquation(newEquation: Equation) {
@@ -38,36 +35,22 @@ export function Game(props : GameProps) {
             JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
     }
 
-    function makeNewGadget(axiom: Axiom): GadgetFlowNodeProps {
-        const id = generateGadgetId()
-        const inputTerms = axiom.hypotheses.map(hyp => makeTermWithFreshVariables(hyp, id))
-        const outputTerm = makeTermWithFreshVariables(axiom.conclusion, id)
-        const gadget: GadgetFlowNodeProps = {
-            inputs: inputTerms,
-            output: outputTerm,
-            id,
-            assignment: holeValueAssignment
-        }
-        return gadget
-    }
-
-    const goalNodeProps: GadgetFlowNodeProps = {
+    const goalNodeProps: GadgetProps = {
         id: "goal_gadget",
-        inputs: [goal],
-        assignment: axiomAssignment
+        inputs: [goal]
     }
 
     return <div style={{ width: "100vw", height: "100vh" }}>
-    <ReactFlowProvider>
-        <Diagram
-            axioms={axioms}
-            makeNewGadget={makeNewGadget}
-            addEquation={addEquation}
-            deleteEquation={deleteEquation}
-            isSatisfied={eqSatisfied}
-            holeValueAssignment={holeValueAssignment}
-            goalNodeProps={goalNodeProps}
-        ></Diagram>
-    </ReactFlowProvider>
+        <AssignmentContext.Provider value={termEnumeration}>
+            <ReactFlowProvider>
+                <Diagram
+                    axioms={axioms}
+                    addEquation={addEquation}
+                    deleteEquation={deleteEquation}
+                    isSatisfied={eqSatisfied}
+                    goal={goalNodeProps}
+                ></Diagram>
+            </ReactFlowProvider>
+        </AssignmentContext.Provider>
     </div>
 }
