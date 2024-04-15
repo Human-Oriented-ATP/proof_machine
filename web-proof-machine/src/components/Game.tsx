@@ -6,9 +6,12 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../game/TermEnumerat
 import { initializeGame } from "../game/Initialization";
 import { GadgetProps } from "../game/Primitives";
 import { AssignmentContext } from "../game/AssignmentContext";
+import { CustomControlProps } from "./ControlButtons";
+import { HelpScreen } from "./HelpScreen";
 
 export interface GameProps {
     problemData: any
+    goToHomeScreen: () => void
 }
 
 export function Game(props: GameProps) {
@@ -17,7 +20,7 @@ export function Game(props: GameProps) {
     const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
-
+    const [displayHelp, setDisplayHelp] = useState(false)
 
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
@@ -40,6 +43,11 @@ export function Game(props: GameProps) {
         inputs: [goal]
     }
 
+    const controlProps: CustomControlProps = {
+        goToHomeScreen: props.goToHomeScreen,
+        showHelpWindow: () => setDisplayHelp(true)
+    }
+
     return <div style={{ width: "100vw", height: "100vh" }}>
         <AssignmentContext.Provider value={termEnumeration}>
             <ReactFlowProvider>
@@ -49,8 +57,10 @@ export function Game(props: GameProps) {
                     deleteEquation={deleteEquation}
                     isSatisfied={eqSatisfied}
                     goal={goalNodeProps}
+                    controlProps={controlProps}
                 ></Diagram>
             </ReactFlowProvider>
         </AssignmentContext.Provider>
+        <HelpScreen visible={displayHelp} closeHelp={() => setDisplayHelp(false)}></HelpScreen>
     </div>
 }

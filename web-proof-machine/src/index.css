@@ -20,76 +20,37 @@ body {
     margin: 20px;
 }
 
-.problemSelectionButtons>button {
+button {
     font-size: 1.2em;
-    background-color: white;
+    background-color: rgb(252, 252, 252);
+    ;
     border: solid 2px black;
     border-radius: 10px;
     padding: 10px;
     margin: 10px
 }
 
-.problemSelectionButtons>button:hover {
+button:hover {
     background-color: black;
-    color: white;
+    color: rgb(252, 252, 252);
 }
 
-.hole {
-    background-color: rgb(252, 252, 252);
-    width: 20px;
-    height: 20px;
-    border: solid 2px black;
-    border-radius: 20px;
-    text-align: center;
-    margin: 3px;
-    z-index: 10;
-    position: relative;
-    user-select: none;
-}
-
-.hole-function {
-    background-color: #ffcccc
-}
-
-.hole-focussed {
-    border-color: yellow
-}
-
-.node {
-    margin: 5px;
-    border: solid 2px black;
-    padding: 3px;
-    border-radius: 10px;
-}
-
-.nodeHandleWrapper {
-    display: flex;
-    align-items: center;
-}
-
-.gadgetInputContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.gadgetOutputContainer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.gadget {
-    display: flex;
-    position: relative;
-}
-
-.connectionSvg {
-    position: absolute;
-    left: 0px;
+.helpBackground {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
     top: 0px;
-    width: 100%;
-    height: 100%;
-    z-index: 5;
-    pointer-events: none;
+    left: 0px;
+    background-color: #000000aa;
+}
+
+.helpWindow {
+    position: absolute;
+    margin: auto;
+    inset: 0;
+    width: 50vw;
+    height: 70vh;
+    background-color: rgb(252, 252, 252);
+    border-radius: 10px;
+    text-align: center;
 }

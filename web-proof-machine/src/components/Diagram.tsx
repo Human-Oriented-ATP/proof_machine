@@ -26,6 +26,7 @@ import { Equation } from '../game/Unification';
 import { Term } from '../game/Term';
 import { GadgetProps } from '../game/Primitives';
 import { useIdGenerator } from '../util/IdGeneratorHook';
+import { ControlButtons, CustomControlProps } from './ControlButtons';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -36,6 +37,7 @@ interface DiagramProps {
     deleteEquation: (equation: Equation) => void
     isSatisfied: Map<Equation, boolean>
     goal: GadgetProps
+    controlProps: CustomControlProps
 }
 
 export function getFlowNodeTerms(props: GadgetProps): Term[] {
@@ -199,7 +201,7 @@ export function Diagram(props: DiagramProps) {
             isValidConnection={isValidConnection}
         >
             <GadgetPalette {...paletteProps} />
-            <Controls />
+            <ControlButtons {...props.controlProps}></ControlButtons>
         </ReactFlow>
     )
 }

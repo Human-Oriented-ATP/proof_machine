@@ -3,6 +3,7 @@ import { Game } from "./Game"
 
 export interface GameLoaderProps {
   problemFile: string
+  goToHomeScreen: () => void
 }
 
 export function GameLoader(props: GameLoaderProps) {
@@ -23,7 +24,7 @@ export function GameLoader(props: GameLoaderProps) {
   })
 
   if (data) {
-    return <Game problemData={data}></Game>
+    return <Game problemData={data} goToHomeScreen={props.goToHomeScreen}></Game>
   } else {
     return <></>
   }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { GameLoader } from "./GameLoader";
 
 const problems = ["problem1", "tim_easyproblem1"]
@@ -23,8 +23,13 @@ function ProblemSelectionPane(props: ProblemSelectionPaneProps) {
 export function ProblemSelector() {
     const [selectedProblem, setProblem] = useState("")
 
-    return <div>
-        {selectedProblem ? <GameLoader problemFile={selectedProblem}></GameLoader> :
-            <ProblemSelectionPane setProblem={setProblem}></ProblemSelectionPane>}
-    </div>
+    const goToHomeScreen = useCallback(() => {
+        setProblem("")
+    }, [setProblem])
+
+    if (selectedProblem) {
+        return <GameLoader problemFile={selectedProblem} goToHomeScreen={goToHomeScreen}></GameLoader>
+    } else {
+        return <ProblemSelectionPane setProblem={setProblem}></ProblemSelectionPane>
+    }
 }

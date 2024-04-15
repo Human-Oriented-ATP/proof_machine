@@ -1,0 +1,59 @@
+.hole {
+    background-color: rgb(252, 252, 252);
+    width: 20px;
+    height: 20px;
+    border: solid 2px black;
+    border-radius: 20px;
+    text-align: center;
+    margin: 3px;
+    z-index: 10;
+    position: relative;
+    user-select: none;
+}
+
+.hole-function {
+    background-color: #ffcccc
+}
+
+.hole-focussed {
+    border-color: yellow
+}
+
+.node {
+    margin: 5px;
+    border: solid 2px black;
+    padding: 3px;
+    border-radius: 10px;
+}
+
+.nodeHandleWrapper {
+    display: flex;
+    align-items: center;
+}
+
+.gadgetInputContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.gadgetOutputContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gadget {
+    display: flex;
+    position: relative;
+}
+
+.connectionSvg {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+}
