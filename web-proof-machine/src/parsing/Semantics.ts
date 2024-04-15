@@ -2,27 +2,7 @@ import { PrologParser, parse, parser} from "./Parser"
 import { Term } from "../game/Term"
 import { Axiom } from "../game/GameLogic"
 import { Statement, InitializationData, makeIntializationDataFromStatements } from "../game/Initialization"
-import {CstNode, IToken} from 'chevrotain';
-
-export interface CompoundTermNode {
-    label: IToken[]
-    args: CstNode[]
-}
-
-export interface ArgumentNode {
-    Number?: IToken[]
-    Variable?: IToken[]
-    compoundTerm?: CstNode[]
-}
-
-export interface SentenceNode {
-    conclusion?: CstNode[]
-    hypotheses?: CstNode[]
-}
-
-export interface ProblemNode {
-    statements: CstNode[]
-}
+import { ArgumentNode, CompoundTermNode, ProblemNode, SentenceNode } from "./Nodes"
 
 class PrologAstBuilderVisitor extends parser.getBaseCstVisitorConstructor() {
     constructor() {
