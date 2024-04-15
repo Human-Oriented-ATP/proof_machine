@@ -19,11 +19,11 @@ export function Game(props: GameProps) {
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
 
-    const [holeValueAssignment, eqSatisfied] = useMemo(() => {
+    const [termEnumeration, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
         enumeration.current.updateEnumeration(assignment)
-        const holeValueAssignment = enumeration.current.getHoleValueAssignment(assignment)
-        return [holeValueAssignment, eqSatisfied]
+        const termEnumeration = enumeration.current.getHoleValueAssignment(assignment)
+        return [termEnumeration, eqSatisfied]
     }, [equations])
 
     function addEquation(newEquation: Equation) {
@@ -41,7 +41,7 @@ export function Game(props: GameProps) {
     }
 
     return <div style={{ width: "100vw", height: "100vh" }}>
-        <AssignmentContext.Provider value={holeValueAssignment}>
+        <AssignmentContext.Provider value={termEnumeration}>
             <ReactFlowProvider>
                 <Diagram
                     axioms={axioms}

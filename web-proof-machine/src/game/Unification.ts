@@ -20,12 +20,31 @@ function unifyVariable(currentAssignment: Assignment, v: VariableName, term: Ter
     }
 }
 
+function unifyVariables(currentAssignment: Assignment, v1: VariableName, v2: VariableName): boolean {
+    if (currentAssignment.isAssigned(v1)) {
+        const v1Value = currentAssignment.getAssignedValue(v1)!
+        if (currentAssignment.isAssigned(v2)) {
+            const v2Value = currentAssignment.getAssignedValue(v2)!
+            return unifyEquation(currentAssignment, [v1Value, v2Value])
+        } else {
+            return unifyEquation(currentAssignment, [v1Value, { variable: v2 }])
+        }
+    } else {
+        if (currentAssignment.isAssigned(v2)) {
+            const v2Value = currentAssignment.getAssignedValue(v2)!
+            return unifyEquation(currentAssignment, [{ variable: v1 }, v2Value])
+        } else {
+            currentAssignment.unite(v1, v2)
+            return true
+        }
+    }
+}
+
 function unifyEquation(currentAssignment: Assignment, equation: Equation): boolean {
     const [lhs, rhs] = equation
     if ("variable" in lhs) {
         if ("variable" in rhs) {
-            const canUnite = currentAssignment.unite(lhs.variable, rhs.variable)
-            return canUnite
+            return unifyVariables(currentAssignment, lhs.variable, rhs.variable)
         } else {
             return unifyVariable(currentAssignment, lhs.variable, rhs)
         }
