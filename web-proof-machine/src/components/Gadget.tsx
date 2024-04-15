@@ -5,7 +5,7 @@ import { Point, getCenterRelativeToParent } from '../util/Point'
 import { GadgetProps, NodeDisplayProps, GadgetId }
     from '../game/Primitives'
 import { Term } from '../game/Term'
-import { HolePosition } from '../game/ConnectionsFromTerms'
+import { HolePosition, InternalConnection, makeConnections } from '../game/ConnectionsFromTerms'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1]
@@ -43,26 +43,25 @@ export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
 
-    // useLayoutEffect(() => {
-    //     function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
-    //         ConnectionDrawingData {
-    //         const start = calculateHolePosition(props.id, internalConnection.from)
-    //         const end = calculateHolePosition(props.id, internalConnection.to)
-    //         const [fromNode] = internalConnection.from
-    //         const [toNode] = internalConnection.to
-    //         const from_input = fromNode !== "output"
-    //         const to_output = toNode === "output"
-    //         return { start, end, fromInput: from_input, toOutput: to_output }
-    //     }
+    useLayoutEffect(() => {
+        function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
+            ConnectionDrawingData {
+            const start = calculateHolePosition(props.id, internalConnection.from)
+            const end = calculateHolePosition(props.id, internalConnection.to)
+            const [fromNode] = internalConnection.from
+            const [toNode] = internalConnection.to
+            const from_input = fromNode !== "output"
+            const to_output = toNode === "output"
+            return { start, end, fromInput: from_input, toOutput: to_output }
+        }
 
-    //     function calculateConnections(): ConnectionSvgProps {
-    //         const connections = props.connections.map
-    //             (connection => calculateInternalConnectionDrawingData(connection))
-    //         return { connections }
-    //     }
+        if (props.output) {
+            const connections = makeConnections(props.inputs, props.output)
+            const drawingData = connections.map(calculateInternalConnectionDrawingData)
+            setConnectionState({ connections: drawingData })
+        }
 
-    //     setConnectionState(calculateConnections())
-    // }, [props.connections, props.id])
+    }, [props.inputs, props.output, props.id])
 
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []
@@ -92,7 +91,13 @@ export function Gadget({ ...props }: GadgetProps) {
         }
     }
 
-    const numberOfInputHolesPerNode = props.inputs.map(node => 3) //node.values.length)
+    const numberOfInputHolesPerNode = props.inputs.map(term => {
+        if ('variable' in term) {
+            return 0
+        } else {
+            return term.args.length
+        }
+    })
     const numberOfInputHoles = numberOfInputHolesPerNode.reduce((a, b) => a + b, 0)
     const margin = props.output ? 5 * numberOfInputHoles : 0
 
@@ -105,7 +110,7 @@ export function Gadget({ ...props }: GadgetProps) {
                     {makeInputNodes()}
                 </div>
                 {makeOutputNodeContainer()}
-                {/* <ConnectionSvg {...connectionState}></ConnectionSvg> */}
+                <ConnectionSvg {...connectionState}></ConnectionSvg>
             </div>
         </div>
     )
