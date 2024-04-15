@@ -8,13 +8,12 @@ export class PrologParser extends CstParser {
     }
 
     compoundTerm = this.RULE("compoundTerm", () => {
-        this.CONSUME(Atom)
+        this.CONSUME(Atom, { LABEL: "label" })
         this.CONSUME(LeftParen)
         this.AT_LEAST_ONE_SEP({
             SEP: Comma,
             DEF: () => {
-            this.CONSUME(Comma)
-            this.SUBRULE(this.argument)
+            this.SUBRULE(this.argument, { LABEL: "args" })
         }})
         this.CONSUME(RightParen)
     })
@@ -29,13 +28,13 @@ export class PrologParser extends CstParser {
 
     sentence = this.RULE("sentence", () => {
         this.OR([
-            { ALT: () => { this.SUBRULE(this.compoundTerm) }},
+            { ALT: () => { this.SUBRULE(this.compoundTerm, { LABEL: "conclusion" }) }},
             { ALT: () => {
-                this.OPTION(() => {this.SUBRULE(this.compoundTerm)})
+                this.OPTION(() => { this.SUBRULE(this.compoundTerm, { LABEL: "conclusion" }) })
                 this.CONSUME(Entails)
                 this.MANY_SEP({
                     SEP: Comma,
-                    DEF: () => { this.SUBRULE(this.compoundTerm) }
+                    DEF: () => { this.SUBRULE(this.compoundTerm, { LABEL: "hypotheses" }) }
                 })
             }}
         ])
@@ -45,7 +44,7 @@ export class PrologParser extends CstParser {
     problem = this.RULE("problem", () => {
         this.AT_LEAST_ONE_SEP({
             SEP: WhiteSpace,
-            DEF: () => { this.SUBRULE(this.sentence) }
+            DEF: () => { this.SUBRULE(this.sentence, { LABEL: "statements" }) }
         })
     })
 }

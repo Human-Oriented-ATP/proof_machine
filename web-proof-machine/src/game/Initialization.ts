@@ -6,6 +6,19 @@ export interface InitializationData {
     axioms: Axiom[]
 }
 
+export type Statement = Axiom | { goal : Term }
+
+export function makeIntializationDataFromStatements(statements: Statement[]): InitializationData {
+    const goals = statements.filter(stmt => ("goal" in stmt))
+    if (goals.length !== 1) {
+        throw new Error("Expected exactly one goal.")
+    }
+    return {
+        goal: (goals!![0] as { goal : Term }).goal,
+        axioms: statements.filter((stmt) => ("conclusion" in stmt)) as Axiom[]
+    }
+}
+
 function makeTermFromJSONObject(jsonObject: any): Term {
     if ("var" in jsonObject) {
         const name = jsonObject.var
