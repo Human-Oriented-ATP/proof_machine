@@ -1,6 +1,5 @@
 import { PrologParser, parse, parser} from "./Parser"
 import { Term } from "../game/Term"
-import { Axiom } from "../game/GameLogic"
 import { Statement, InitializationData, makeIntializationDataFromStatements } from "../game/Initialization"
 import { ArgumentNode, CompoundTermNode, ProblemNode, SentenceNode } from "./Nodes"
 
