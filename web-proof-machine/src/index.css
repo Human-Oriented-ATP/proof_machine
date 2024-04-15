@@ -46,11 +46,19 @@ button:hover {
 
 .helpWindow {
     position: absolute;
-    margin: auto;
-    inset: 0;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     width: 50vw;
-    height: 70vh;
+    min-width: 700px;
     background-color: rgb(252, 252, 252);
     border-radius: 10px;
     text-align: center;
+    padding: 15px;
+}
+
+.helpWindow>ul {
+    list-style-type: none;
+    text-align: left;
+    line-height: 40px;
 }

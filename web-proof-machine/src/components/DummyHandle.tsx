@@ -1,4 +1,4 @@
-export type DummyHandlePosition = "left" | "right" | "none"
+export type DummyHandlePosition = "left" | "right" | "inline"
 
 export interface DummyHandleProps {
     position: DummyHandlePosition
@@ -10,6 +10,6 @@ export function DummyHandle({ position }: DummyHandleProps) {
     } else if (position === "right") {
         return <div className="react-flow__handle react-flow__handle-right"></div>
     } else {
-        return <div className="react-flow__handle"></div>
+        return <div className="react-flow__handle handle-inline"></div>
     }
 }

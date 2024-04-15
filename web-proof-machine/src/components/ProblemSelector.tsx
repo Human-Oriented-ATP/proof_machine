@@ -13,7 +13,7 @@ function ProblemSelectionPane(props: ProblemSelectionPaneProps) {
     }
 
     return <div className="problemSelectionPane">
-        <div className="problemSelectionText">Choose the game you'd like to play:</div>
+        <h2>Choose the game you want to play:</h2>
         <div className="problemSelectionButtons">
             {problems.map(makeProblemSelectionButton)}
         </div>

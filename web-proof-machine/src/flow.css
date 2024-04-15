@@ -28,11 +28,16 @@
     right: -2px;
 }
 
-
 .react-flow__handle-valid {
     transform: scale(1.2);
 }
 
+.handle-inline {
+    display: inline-block;
+    position: inherit;
+    height: 14px;
+    width: 14px;
+}
 
 .react-flow__panel.center {
     top: auto;
