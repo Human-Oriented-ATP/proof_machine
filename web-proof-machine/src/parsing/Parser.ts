@@ -1,5 +1,5 @@
-import { CstParser } from "chevrotain"
-import { Atom, Comma, Entails, FullStop, LeftParen, Number, RightParen, Variable, WhiteSpace, allTokens } from "./Lexer"
+import { CstNode, CstParser } from "chevrotain"
+import { Atom, Comma, Entails, FullStop, LeftParen, Number, RightParen, Variable, WhiteSpace, allTokens, tokenize } from "./Lexer"
 
 export class PrologParser extends CstParser {
     constructor() {
@@ -48,4 +48,18 @@ export class PrologParser extends CstParser {
             DEF: () => { this.SUBRULE(this.sentence) }
         })
     })
+}
+
+export const parser: PrologParser = new PrologParser()
+
+export function parse(text: string): CstNode {
+  parser.input = tokenize(text)
+  const cst = parser.problem()
+
+  if (parser.errors.length > 0) {
+    const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
+    throw new Error(msg)
+  }
+
+  return cst
 }

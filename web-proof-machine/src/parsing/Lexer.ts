@@ -44,3 +44,14 @@ export const allTokens = [
 ]
 
 export const PrologLexer = new Lexer(allTokens)
+
+export function tokenize(text: string) {
+  const result = PrologLexer.tokenize(text)
+
+  if (result.errors.length > 0) {
+    const msg = result.errors.map((error) => `[${error.line}:${error.column}] ${error.message}`).join(', ')
+    throw new Error(`Error tokenizing the text. ${msg}`)
+  }
+
+  return result.tokens
+}
