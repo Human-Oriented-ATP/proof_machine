@@ -27,22 +27,18 @@ export class PrologParser extends CstParser {
     })
 
     sentence = this.RULE("sentence", () => {
-        this.OR([
-            { ALT: () => { this.SUBRULE(this.compoundTerm, { LABEL: "conclusion" }) }},
-            { ALT: () => {
-                this.OPTION(() => { this.SUBRULE(this.compoundTerm, { LABEL: "conclusion" }) })
-                this.CONSUME(Entails)
-                this.MANY_SEP({
-                    SEP: Comma,
-                    DEF: () => { this.SUBRULE(this.compoundTerm, { LABEL: "hypotheses" }) }
-                })
-            }}
-        ])
+        this.OPTION(() => { this.SUBRULE(this.compoundTerm, { LABEL: "conclusion" }) })
+        this.OPTION1(() => {
+            this.CONSUME(Entails)
+            this.MANY_SEP({
+                SEP: Comma,
+                DEF: () => { this.SUBRULE1(this.compoundTerm, { LABEL: "hypotheses" }) }
+        })})
         this.CONSUME(FullStop)
     })
 
     problem = this.RULE("problem", () => {
-        this.AT_LEAST_ONE_SEP({
+        this.MANY_SEP({
             SEP: WhiteSpace,
             DEF: () => { this.SUBRULE(this.sentence, { LABEL: "statements" }) }
         })

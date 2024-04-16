@@ -1,9 +1,11 @@
-import { PrologParser, parse, parser} from "./Parser"
+import { parse, parser } from "./Parser"
 import { Term } from "../game/Term"
 import { Statement, InitializationData, makeIntializationDataFromStatements } from "../game/Initialization"
 import { ArgumentNode, CompoundTermNode, ProblemNode, SentenceNode } from "./Nodes"
 
-class PrologAstBuilderVisitor extends parser.getBaseCstVisitorConstructor() {
+const BaseVisitor = parser.getBaseCstVisitorConstructor()
+
+class PrologAstBuilderVisitor extends BaseVisitor {
     constructor() {
         super()
         this.validateVisitor()
@@ -65,7 +67,7 @@ class PrologAstBuilderVisitor extends parser.getBaseCstVisitorConstructor() {
 
 const astBuilder = new PrologAstBuilderVisitor()
 
-export function buildAst(text: string) {
+export function buildAst(text: string): InitializationData {
     const cst = parse(text)
     const ast = astBuilder.visit(cst)
     return ast

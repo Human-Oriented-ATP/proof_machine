@@ -19,7 +19,7 @@ export const Entails = createToken({ name: "Entails", pattern: /:-/ });
 
 export const Comma = createToken({ name: "Comma", pattern: /,/ })
 
-export const FullStop = createToken({ name: "FullStop", pattern: /./ })
+export const FullStop = createToken({ name: "FullStop", pattern: /\./ })
 
 export const LeftParen = createToken({ name: "LeftParen", pattern: /\(/ })
 
