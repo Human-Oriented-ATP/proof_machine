@@ -1,7 +1,7 @@
-import { parseStatement, parser } from "./Parser"
+import { parse, parser } from "./Parser"
 import { Term } from "../game/Term"
 import { Statement, InitializationData, makeInitializationDataFromStatements } from "../game/Initialization"
-import { ArgumentNode, CompoundTermNode, StatementNode } from "./Nodes"
+import { ArgumentNode, CompoundTermNode, ProblemNode, StatementNode } from "./Nodes"
 
 const BaseVisitor = parser.getBaseCstVisitorConstructor()
 
@@ -58,13 +58,18 @@ class PrologAstBuilderVisitor extends BaseVisitor {
             }
         }   
     }
+
+    problem(node: ProblemNode): InitializationData {
+        const stmts = node.statements.map(stmt => this.visit(stmt))
+        return makeInitializationDataFromStatements(stmts);
+    }
+
 }
 
 const astBuilder = new PrologAstBuilderVisitor()
 
 export function buildAst(text: string): InitializationData {
-    const lines = text.split(/\n/)
-    console.log(lines)
-    const statements: Statement[] = lines.map(parseStatement).map(astBuilder.visit)
-    return makeInitializationDataFromStatements(statements)
+    const cst = parse(text)
+    const ast = astBuilder.visit(cst)
+    return ast
 }

@@ -15,3 +15,7 @@ export interface StatementNode {
     conclusion?: CstNode[]
     hypotheses?: CstNode[]
 }
+
+export interface ProblemNode {
+    statements: CstNode[]
+}
