@@ -1,7 +1,7 @@
-import { parse, parser } from "./Parser"
+import { parseStatement, parser } from "./Parser"
 import { Term } from "../game/Term"
-import { Statement, InitializationData, makeIntializationDataFromStatements } from "../game/Initialization"
-import { ArgumentNode, CompoundTermNode, ProblemNode, SentenceNode } from "./Nodes"
+import { Statement, InitializationData, makeInitializationDataFromStatements } from "../game/Initialization"
+import { ArgumentNode, CompoundTermNode, StatementNode } from "./Nodes"
 
 const BaseVisitor = parser.getBaseCstVisitorConstructor()
 
@@ -32,7 +32,7 @@ class PrologAstBuilderVisitor extends BaseVisitor {
         }
     }
 
-    sentence(node: SentenceNode): Statement {
+    statement(node: StatementNode): Statement {
         if (node.conclusion) {
             const conclusion = this.visit(node.conclusion)
             if (node.hypotheses) {
@@ -54,21 +54,17 @@ class PrologAstBuilderVisitor extends BaseVisitor {
                   goal: hypotheses[0]!!  
                 }
             } else {
-                throw new Error("Error in parsing sentence, no conclusions or hypotheses found.")
+                throw new Error("Error in parsing statement, no conclusions or hypotheses found.")
             }
         }   
-    }
-
-    problem(node: ProblemNode): InitializationData {
-        const sentences = node.statements.map(stmt => this.visit(stmt))
-        return makeIntializationDataFromStatements(sentences);
     }
 }
 
 const astBuilder = new PrologAstBuilderVisitor()
 
 export function buildAst(text: string): InitializationData {
-    const cst = parse(text)
-    const ast = astBuilder.visit(cst)
-    return ast
+    const lines = text.split(/\n/)
+    console.log(lines)
+    const statements: Statement[] = lines.map(parseStatement).map(astBuilder.visit)
+    return makeInitializationDataFromStatements(statements)
 }

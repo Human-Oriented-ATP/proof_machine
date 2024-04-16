@@ -26,7 +26,7 @@ export class PrologParser extends CstParser {
         ])
     })
 
-    sentence = this.RULE("sentence", () => {
+    statement = this.RULE("statement", () => {
         this.OPTION(() => { this.SUBRULE(this.compoundTerm, { LABEL: "conclusion" }) })
         this.OPTION1(() => {
             this.CONSUME(Entails)
@@ -36,20 +36,13 @@ export class PrologParser extends CstParser {
         })})
         this.CONSUME(FullStop)
     })
-
-    problem = this.RULE("problem", () => {
-        this.MANY_SEP({
-            SEP: WhiteSpace,
-            DEF: () => { this.SUBRULE(this.sentence, { LABEL: "statements" }) }
-        })
-    })
 }
 
 export const parser: PrologParser = new PrologParser()
 
-export function parse(text: string): CstNode {
+export function parseStatement(text: string): CstNode {
   parser.input = tokenize(text)
-  const cst = parser.problem()
+  const cst = parser.statement()
 
   if (parser.errors.length > 0) {
     const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')

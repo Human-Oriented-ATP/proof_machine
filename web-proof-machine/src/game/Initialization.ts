@@ -8,13 +8,13 @@ export interface InitializationData {
 
 export type Statement = Axiom | { goal : Term }
 
-export function makeIntializationDataFromStatements(statements: Statement[]): InitializationData {
+export function makeInitializationDataFromStatements(statements: Statement[]): InitializationData {
     const goals = statements.filter(stmt => ("goal" in stmt))
     if (goals.length !== 1) {
-        throw new Error("Expected exactly one goal.")
+        throw new Error(`Expected exactly one goal, found ${goals.length}.`)
     }
     return {
-        goal: (goals!![0] as { goal : Term }).goal,
+        goal: (goals!![0] as { goal: Term }).goal,
         axioms: statements.filter((stmt) => ("conclusion" in stmt)) as Axiom[]
     }
 }
