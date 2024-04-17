@@ -13,6 +13,7 @@ import ReactFlow, {
     getOutgoers,
     getIncomers,
     getConnectedEdges,
+    useKeyPress,
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -66,11 +67,24 @@ function getGoal(props: GadgetProps): ReactFlowNode {
     }
 }
 
+function isSelectedAndNotGoal(node: ReactFlowNode) {
+    return node.selected && node.id !== "goal_gadget"
+}
+
 export function Diagram(props: DiagramProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoal(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
     const [generateGadgetId] = useIdGenerator("gadget_")
+    const backspacePressed = useKeyPress("Backspace")
+
+    useEffect(() => {
+        if (backspacePressed) {
+            setNodes(nodes => {
+                return nodes.filter(node => !isSelectedAndNotGoal(node))
+            })
+        }
+    }, [backspacePressed, setNodes])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
         const sourceTerms: Term[] = getFlowNodeTerms(getNode(connection.source!)!.data)
@@ -241,6 +255,7 @@ export function Diagram(props: DiagramProps) {
             onInit={init}
             onConnectStart={onConnectStart}
             isValidConnection={isValidConnection}
+            deleteKeyCode={null}
         >
             <GadgetPalette {...paletteProps} />
             <ControlButtons {...props.controlProps}></ControlButtons>
