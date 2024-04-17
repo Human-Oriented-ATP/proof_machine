@@ -1,4 +1,5 @@
 import { createToken, Lexer } from "chevrotain"
+import { create } from "domain";
 
 export const Atom = createToken({
     name: "Atom",
@@ -19,7 +20,7 @@ export const Entails = createToken({ name: "Entails", pattern: /:-/ });
 
 export const Comma = createToken({ name: "Comma", pattern: /,/ })
 
-export const FullStop = createToken({ name: "FullStop", pattern: /./ })
+export const FullStop = createToken({ name: "FullStop", pattern: /\./ })
 
 export const LeftParen = createToken({ name: "LeftParen", pattern: /\(/ })
 
@@ -28,10 +29,16 @@ export const RightParen = createToken({ name: "RightParen", pattern: /\)/ })
 export const WhiteSpace = createToken({
     name: "WhiteSpace",
     pattern: /\s+/,
-    group: Lexer.SKIPPED,
+    group: Lexer.SKIPPED
   })
 
+export const NewLine = createToken({ 
+    name: "NewLine", 
+    pattern: /\n/,
+})
+
 export const allTokens = [
+    NewLine,
     WhiteSpace,
     Entails,
     LeftParen,

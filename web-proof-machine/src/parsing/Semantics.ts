@@ -1,9 +1,11 @@
-import { PrologParser, parse, parser} from "./Parser"
+import { parse, parser } from "./Parser"
 import { Term } from "../game/Term"
-import { Statement, InitializationData, makeIntializationDataFromStatements } from "../game/Initialization"
-import { ArgumentNode, CompoundTermNode, ProblemNode, SentenceNode } from "./Nodes"
+import { Statement, InitializationData, makeInitializationDataFromStatements } from "../game/Initialization"
+import { ArgumentNode, CompoundTermNode, ProblemNode, StatementNode } from "./Nodes"
 
-class PrologAstBuilderVisitor extends parser.getBaseCstVisitorConstructor() {
+const BaseVisitor = parser.getBaseCstVisitorConstructor()
+
+class PrologAstBuilderVisitor extends BaseVisitor {
     constructor() {
         super()
         this.validateVisitor()
@@ -30,7 +32,7 @@ class PrologAstBuilderVisitor extends parser.getBaseCstVisitorConstructor() {
         }
     }
 
-    sentence(node: SentenceNode): Statement {
+    statement(node: StatementNode): Statement {
         if (node.conclusion) {
             const conclusion = this.visit(node.conclusion)
             if (node.hypotheses) {
@@ -52,20 +54,21 @@ class PrologAstBuilderVisitor extends parser.getBaseCstVisitorConstructor() {
                   goal: hypotheses[0]!!  
                 }
             } else {
-                throw new Error("Error in parsing sentence, no conclusions or hypotheses found.")
+                throw new Error("Error in parsing statement, no conclusions or hypotheses found.")
             }
         }   
     }
 
     problem(node: ProblemNode): InitializationData {
-        const sentences = node.statements.map(stmt => this.visit(stmt))
-        return makeIntializationDataFromStatements(sentences);
+        const stmts = node.statements.map(stmt => this.visit(stmt))
+        return makeInitializationDataFromStatements(stmts);
     }
+
 }
 
 const astBuilder = new PrologAstBuilderVisitor()
 
-export function buildAst(text: string) {
+export function buildAst(text: string): InitializationData {
     const cst = parse(text)
     const ast = astBuilder.visit(cst)
     return ast

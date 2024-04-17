@@ -11,7 +11,7 @@ export interface ArgumentNode {
     compoundTerm?: CstNode[]
 }
 
-export interface SentenceNode {
+export interface StatementNode {
     conclusion?: CstNode[]
     hypotheses?: CstNode[]
 }
