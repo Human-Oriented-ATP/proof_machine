@@ -1,6 +1,5 @@
-import { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ReactFlow, {
-    Controls,
     useNodesState,
     useEdgesState,
     addEdge,
@@ -10,9 +9,10 @@ import ReactFlow, {
     Node as ReactFlowNode,
     EdgeTypes,
     Edge,
-    MiniMap,
     HandleType,
     getOutgoers,
+    getIncomers,
+    getConnectedEdges,
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -38,6 +38,7 @@ interface DiagramProps {
     isSatisfied: Map<Equation, boolean>
     goal: GadgetProps
     controlProps: CustomControlProps
+    setProblemSolved: (b: boolean) => void
 }
 
 export function getFlowNodeTerms(props: GadgetProps): Term[] {
@@ -82,9 +83,9 @@ export function Diagram(props: DiagramProps) {
 
     function addConnection(connection: Connection): void {
         removeEdgesConnectedToHandle(connection.targetHandle!)
+        const equation = getEquationFromConnection(connection)
+        props.addEquation(equation)
         setEdges((edges) => {
-            const equation = getEquationFromConnection(connection)
-            props.addEquation(equation)
             return addEdge({
                 ...connection,
                 type: 'multiEdge',
@@ -93,11 +94,8 @@ export function Diagram(props: DiagramProps) {
         });
     }
 
-    function deleteConnections(edges: Edge[]): void {
-        function deleteConnection(edge: Edge): void {
-            props.deleteEquation(edge.data)
-        }
-        edges.map(deleteConnection)
+    function deleteEquationsOfEdges(edges: Edge[]): void {
+        edges.map(e => props.deleteEquation(e.data))
     }
 
     const paletteProps: GadgetPaletteProps = {
@@ -114,8 +112,7 @@ export function Diagram(props: DiagramProps) {
 
     function makeGadget(axiom: Axiom, e: React.MouseEvent): void {
         const id = generateGadgetId()
-        const flowNode: ReactFlowNode =
-        {
+        const flowNode: ReactFlowNode = {
             id: id,
             type: 'gadgetFlowNode',
             position: screenToFlowPosition({
@@ -176,15 +173,60 @@ export function Diagram(props: DiagramProps) {
         return colorsOk && noCircle
     }, [getEquationFromConnection, getEdges, getNodes]);
 
+    const isCompleted = useCallback(() => {
+        function onlyContainsValidConnections(edges: Edge[]): boolean {
+            for (const edge of edges) {
+                if (edge.animated) {
+                    return false
+                }
+            }
+            return true
+        }
+
+        function hasUnconnectedInputHandle(node: ReactFlowNode): boolean {
+            const numberOfIncomingEdges = getIncomers(node, nodes, edges).length
+            const numberOfInputTerms = node.data.inputs.length
+            return numberOfInputTerms !== numberOfIncomingEdges
+        }
+
+        const goalNode = getNode("goal_gadget")!
+        let observedComponent: ReactFlowNode<any>[] = []
+        let currentLayer = [goalNode]
+        while (true) {
+            for (const node of currentLayer) {
+                if (hasUnconnectedInputHandle(node)) {
+                    return false
+                }
+            }
+            observedComponent.concat(currentLayer)
+            const nextLayer = currentLayer.map(node => getIncomers(node, nodes, edges)).flat()
+            if (nextLayer.length === 0) {
+                break
+            } else {
+                currentLayer = nextLayer
+            }
+        }
+        const edgesInComponent = getConnectedEdges(observedComponent, edges)
+        return onlyContainsValidConnections(edgesInComponent)
+    }, [edges, getNode, nodes])
+
+    const isSatisfied = props.isSatisfied
+    const setProblemSolved = props.setProblemSolved
+
     useEffect(() => {
         setEdges(edges => edges.map(edge => {
-            const isSatisfied = props.isSatisfied.get(edge.data)
-            return { ...edge, animated: isSatisfied ? false : true }
+            const edgeIsSatisfied = isSatisfied.get(edge.data)
+            return { ...edge, animated: edgeIsSatisfied ? false : true }
         }))
-    }, [props.isSatisfied, setEdges, setNodes])
+        if (isCompleted()) {
+            setProblemSolved(true)
+        } else {
+            setProblemSolved(false)
+        }
+    }, [isSatisfied, setProblemSolved, setEdges, setNodes, isCompleted])
 
     const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
-    const onEdgesDelete = useCallback(deleteConnections, [props])
+    const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])
 
     return (
         <ReactFlow

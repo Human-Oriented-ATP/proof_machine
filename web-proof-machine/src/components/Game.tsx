@@ -1,6 +1,6 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../game/TermEnumeration";
 import { initializeGame } from "../game/Initialization";
@@ -21,6 +21,7 @@ export function Game(props: GameProps) {
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
     const [displayHelp, setDisplayHelp] = useState(false)
+    const [isSolved, setIsSolved] = useState(false)
 
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
@@ -49,6 +50,12 @@ export function Game(props: GameProps) {
         showHelpWindow: () => setDisplayHelp(true)
     }
 
+    useEffect(() => {
+        if (isSolved) {
+            alert("Problem solved!")
+        }
+    }, [isSolved])
+
     return <div style={{ width: "100vw", height: "100vh" }}>
         <AssignmentContext.Provider value={termEnumeration}>
             <ReactFlowProvider>
@@ -59,6 +66,7 @@ export function Game(props: GameProps) {
                     isSatisfied={eqSatisfied}
                     goal={goalNodeProps}
                     controlProps={controlProps}
+                    setProblemSolved={setIsSolved}
                 ></Diagram>
             </ReactFlowProvider>
         </AssignmentContext.Provider>
