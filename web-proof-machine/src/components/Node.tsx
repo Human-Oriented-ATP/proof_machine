@@ -50,7 +50,7 @@ export function Node(props: NodeDisplayProps) {
         return (
             <div className="nodeHandleWrapper">
                 <div className="node" style={style}>
-                    {props.term.args.map(arg => <Hole term={arg}></Hole>)}
+                    {props.term.args.map(arg => <Hole term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}
             </div>

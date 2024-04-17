@@ -2,9 +2,8 @@ import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../util/Point'
-import { GadgetProps, NodeDisplayProps, GadgetId }
+import { GadgetProps, NodeDisplayProps, GadgetId, Focus }
     from '../game/Primitives'
-import { Term } from '../game/Term'
 import { HolePosition, InternalConnection, makeConnections } from '../game/ConnectionsFromTerms'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
@@ -42,6 +41,13 @@ export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): P
 export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
+    const [focussedHole, setFocussedHole] = useState("")
+
+    const focus: Focus<string> = {
+        isFocussed: hole => hole === focussedHole,
+        focus: hole => setFocussedHole(hole),
+        resetFocus: () => setFocussedHole("")
+    }
 
     useLayoutEffect(() => {
         function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
@@ -69,6 +75,7 @@ export function Gadget({ ...props }: GadgetProps) {
             const term = props.inputs[i]
             const nodeDisplayProps: NodeDisplayProps = {
                 term,
+                holeFocus: focus,
                 isInput: true,
                 useDummyHandle: props.useDummyHandle,
             }
@@ -81,6 +88,7 @@ export function Gadget({ ...props }: GadgetProps) {
         if (props.output) {
             const nodeDisplayProps = {
                 term: props.output,
+                holeFocus: focus,
                 isInput: false,
                 useDummyHandle: props.useDummyHandle,
             }
