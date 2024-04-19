@@ -11,7 +11,7 @@ export function GameLoader(props: GameLoaderProps) {
 
   const loadData = async () => {
     try {
-      const module = await import(`../problems/${props.problemFile}.json`)
+      const module = await import(`../../problems/${props.problemFile}.json`)
       setData(module.default)
     } catch (error) {
       console.error("Failed to load the data file", error);

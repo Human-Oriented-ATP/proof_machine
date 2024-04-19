@@ -20,7 +20,8 @@ import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
 import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
-import '../flow.css'
+import './flow.css'
+import './game.css'
 import { axiomToGadget, getTermOfHandle } from '../lib/game/GameLogic';
 import { Axiom } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
@@ -227,17 +228,20 @@ export function Diagram(props: DiagramProps) {
     const isSatisfied = props.isSatisfied
     const setProblemSolved = props.setProblemSolved
 
-    // useEffect(() => {
-    //     setEdges(edges => edges.map(edge => {
-    //         const edgeIsSatisfied = isSatisfied.get(edge.data)
-    //         return { ...edge, animated: edgeIsSatisfied ? false : true }
-    //     }))
-    //     if (isCompleted()) {
-    //         setProblemSolved(true)
-    //     } else {
-    //         setProblemSolved(false)
-    //     }
-    // }, [isSatisfied, setProblemSolved, setEdges, setNodes, isCompleted])
+    useEffect(() => {
+        setEdges(edges => edges.map(edge => {
+            const edgeIsSatisfied = isSatisfied.get(edge.data)
+            return { ...edge, animated: edgeIsSatisfied ? false : true }
+        }))
+    }, [isSatisfied, setEdges, setNodes])
+
+    useEffect(() => {
+        if (isCompleted()) {
+            setProblemSolved(true)
+        } else {
+            setProblemSolved(false)
+        }
+    }, [setProblemSolved, isCompleted])
 
     const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
     const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])
