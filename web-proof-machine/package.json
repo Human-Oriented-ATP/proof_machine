@@ -3,7 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@dnd-kit/core": "^6.1.0",
         "@radix-ui/react-icons": "^1.3.0",
         "@testing-library/jest-dom": "^5.17.0",
         "@testing-library/react": "^13.4.0",
@@ -13,27 +12,21 @@
         "@types/react": "^18.2.67",
         "@types/react-dom": "^18.2.22",
         "chevrotain": "^11.0.3",
+        "next": "^14.2.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-draggable": "^4.4.6",
-        "react-scripts": "5.0.1",
-        "react-scrollable-list": "^1.3.1",
-        "react-zoom-pan-pinch": "^3.4.3",
         "reactflow": "^11.10.4",
         "typescript": "^4.9.5",
         "web-vitals": "^2.1.4"
     },
     "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test --watchAll",
-        "eject": "react-scripts eject"
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
     },
     "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
+        "extends": "next/core-web-vitals"
     },
     "browserslist": {
         "production": [
@@ -46,8 +39,5 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
-    },
-    "devDependencies": {
-        "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
     }
 }
