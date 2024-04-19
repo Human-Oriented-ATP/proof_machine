@@ -1,5 +1,5 @@
 import { InitializationData } from "../game/Initialization"
-import { buildAst} from "./Semantics"
+import { buildAst } from "./Semantics"
 import { readFileSync } from "fs"
 
 const problemsFolder = "../../../problems/"

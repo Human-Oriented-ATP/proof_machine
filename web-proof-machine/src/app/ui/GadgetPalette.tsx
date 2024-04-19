@@ -1,10 +1,10 @@
 import { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
-import { axiomTermEnumeration } from '../game/GameLogic';
-import { Axiom } from "../game/Primitives";
-import { GadgetProps } from '../game/Primitives';
-import { AssignmentContext } from '../game/AssignmentContext';
-import { useIdGenerator } from '../util/IdGeneratorHook';
+import { axiomTermEnumeration } from '../lib/game/GameLogic';
+import { Axiom } from "../lib/game/Primitives";
+import { GadgetProps } from '../lib/game/Primitives';
+import { AssignmentContext } from '../lib/game/AssignmentContext';
+import { useIdGenerator } from '../lib/util/IdGeneratorHook';
 
 export interface GadgetPaletteProps {
     axioms: Axiom[]

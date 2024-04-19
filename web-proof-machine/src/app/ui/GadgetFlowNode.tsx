@@ -1,6 +1,6 @@
 import { NodeProps as FlowNodeProps } from "reactflow";
-import { Gadget } from "../components/Gadget";
-import { GadgetProps } from "../game/Primitives";
+import { Gadget } from "./Gadget";
+import { GadgetProps } from "../lib/game/Primitives";
 
 export function GadgetFlowNode({ ...props }: FlowNodeProps<GadgetProps>) {
     return (

@@ -13,9 +13,9 @@ class PrologAstBuilderVisitor extends BaseVisitor {
 
     compoundTerm(node: CompoundTermNode): Term {
         const label = node.label!![0].image
-        const args = node.args.map(arg => this.visit(arg)) 
+        const args = node.args.map(arg => this.visit(arg))
         return {
-            label: label, 
+            label: label,
             args: args
         }
     }
@@ -27,7 +27,7 @@ class PrologAstBuilderVisitor extends BaseVisitor {
         else if (node.Variable) {
             return { variable: node.Variable!![0].image }
         }
-        else { 
+        else {
             return this.visit(node.compoundTerm!!)
         }
     }
@@ -43,7 +43,7 @@ class PrologAstBuilderVisitor extends BaseVisitor {
                 }
             } else {
                 return { conclusion: conclusion, hypotheses: [] }
-            }            
+            }
         } else {
             if (node.hypotheses) {
                 const hypotheses = node.hypotheses.map((hyp) => this.visit(hyp))
@@ -51,12 +51,12 @@ class PrologAstBuilderVisitor extends BaseVisitor {
                     throw new Error("Expected exactly one term in the conclusion.")
                 }
                 return {
-                  goal: hypotheses[0]!!  
+                    goal: hypotheses[0]!!
                 }
             } else {
                 throw new Error("Error in parsing statement, no conclusions or hypotheses found.")
             }
-        }   
+        }
     }
 
     problem(node: ProblemNode): InitializationData {

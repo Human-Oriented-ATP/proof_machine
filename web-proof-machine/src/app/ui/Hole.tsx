@@ -1,6 +1,6 @@
 import { useContext } from 'react'
-import { HoleProps } from '../game/Primitives'
-import { AssignmentContext } from '../game/AssignmentContext'
+import { HoleProps } from '../lib/game/Primitives'
+import { AssignmentContext } from '../lib/game/AssignmentContext'
 
 export function Hole(props: HoleProps) {
     const termString = JSON.stringify(props.term)

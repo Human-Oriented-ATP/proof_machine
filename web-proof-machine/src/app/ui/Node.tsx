@@ -1,7 +1,7 @@
-import { NodeDisplayProps } from '../game/Primitives';
+import { NodeDisplayProps } from '../lib/game/Primitives';
 import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
-import { handleIdFromTerm } from '../game/GameLogic';
+import { handleIdFromTerm } from '../lib/game/GameLogic';
 import { DummyHandle } from './DummyHandle';
 
 function styleFromColor(color: string): React.CSSProperties {

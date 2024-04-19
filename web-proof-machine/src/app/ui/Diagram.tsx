@@ -21,12 +21,12 @@ import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import '../flow.css'
-import { axiomToGadget, getTermOfHandle } from '../game/GameLogic';
-import { Axiom } from "../game/Primitives";
-import { Equation } from '../game/Unification';
-import { Term } from '../game/Term';
-import { GadgetProps } from '../game/Primitives';
-import { useIdGenerator } from '../util/IdGeneratorHook';
+import { axiomToGadget, getTermOfHandle } from '../lib/game/GameLogic';
+import { Axiom } from "../lib/game/Primitives";
+import { Equation } from '../lib/game/Unification';
+import { Term } from '../lib/game/Term';
+import { GadgetProps } from '../lib/game/Primitives';
+import { useIdGenerator } from '../lib/util/IdGeneratorHook';
 import { ControlButtons, CustomControlProps } from './ControlButtons';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
@@ -227,17 +227,17 @@ export function Diagram(props: DiagramProps) {
     const isSatisfied = props.isSatisfied
     const setProblemSolved = props.setProblemSolved
 
-    useEffect(() => {
-        setEdges(edges => edges.map(edge => {
-            const edgeIsSatisfied = isSatisfied.get(edge.data)
-            return { ...edge, animated: edgeIsSatisfied ? false : true }
-        }))
-        if (isCompleted()) {
-            setProblemSolved(true)
-        } else {
-            setProblemSolved(false)
-        }
-    }, [isSatisfied, setProblemSolved, setEdges, setNodes, isCompleted])
+    // useEffect(() => {
+    //     setEdges(edges => edges.map(edge => {
+    //         const edgeIsSatisfied = isSatisfied.get(edge.data)
+    //         return { ...edge, animated: edgeIsSatisfied ? false : true }
+    //     }))
+    //     if (isCompleted()) {
+    //         setProblemSolved(true)
+    //     } else {
+    //         setProblemSolved(false)
+    //     }
+    // }, [isSatisfied, setProblemSolved, setEdges, setNodes, isCompleted])
 
     const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
     const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])

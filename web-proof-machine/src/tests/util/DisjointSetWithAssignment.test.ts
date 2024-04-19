@@ -1,4 +1,4 @@
-import { DisjointSetWithAssignment } from "../../util/DisjointSetWithAssignment"
+import { DisjointSetWithAssignment } from "../../app/lib/util/DisjointSetWithAssignment"
 
 test("Adding a new element", () => {
     const x = new DisjointSetWithAssignment<number, number>()

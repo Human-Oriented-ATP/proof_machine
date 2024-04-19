@@ -1,4 +1,4 @@
-import { ProblemSelector } from "./components/ProblemSelector";
+import { ProblemSelector } from "./ProblemSelector";
 
 export default function App() {
     return (

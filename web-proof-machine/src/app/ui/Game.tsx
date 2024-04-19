@@ -1,11 +1,11 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Equation, unifyEquations } from "../game/Unification";
-import { TermEnumerator, getMaximumNumberInGameData } from "../game/TermEnumeration";
-import { initializeGame } from "../game/Initialization";
-import { GadgetProps } from "../game/Primitives";
-import { AssignmentContext } from "../game/AssignmentContext";
+import { Equation, unifyEquations } from "../lib/game/Unification";
+import { TermEnumerator, getMaximumNumberInGameData } from "../lib/game/TermEnumeration";
+import { initializeGame } from "../lib/game/Initialization";
+import { GadgetProps } from "../lib/game/Primitives";
+import { AssignmentContext } from "../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
 import { HelpScreen } from "./HelpScreen";
 

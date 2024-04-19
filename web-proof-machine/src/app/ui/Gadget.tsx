@@ -1,10 +1,10 @@
 import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
-import { Point, getCenterRelativeToParent } from '../util/Point'
+import { Point, getCenterRelativeToParent } from '../lib/util/Point'
 import { GadgetProps, NodeDisplayProps, GadgetId, Focus }
-    from '../game/Primitives'
-import { HolePosition, InternalConnection, makeConnections } from '../game/ConnectionsFromTerms'
+    from '../lib/game/Primitives'
+import { HolePosition, InternalConnection, makeConnections } from '../lib/game/ConnectionsFromTerms'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1]
