@@ -58,7 +58,7 @@ function unifyEquation(currentAssignment: Assignment, equation: Equation): boole
             if (lhs.args.length !== rhs.args.length) {
                 return false
             }
-            let unifiedSuccessfully = []
+            let unifiedSuccessfully: boolean[] = []
             for (let i = 0; i < lhs.args.length; i++) {
                 const lhsArg = lhs.args[i]
                 const rhsArg = rhs.args[i]
