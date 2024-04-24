@@ -1,14 +1,16 @@
 import { ControlButton, Controls } from "reactflow";
 import { HomeIcon, QuestionMarkIcon } from '@radix-ui/react-icons'
+import { useRouter } from "next/navigation";
 
 export interface CustomControlProps {
-    goToHomeScreen: () => void
     showHelpWindow: () => void
 }
 
 export function ControlButtons(props: CustomControlProps): JSX.Element {
+    const router = useRouter()
+
     return <Controls showInteractive={false}>
         <ControlButton onClick={props.showHelpWindow}><QuestionMarkIcon /></ControlButton>
-        <ControlButton onClick={props.goToHomeScreen}><HomeIcon /></ControlButton>
-    </Controls>
+        <ControlButton onClick={() => router.push("../")}><HomeIcon /></ControlButton>
+    </Controls >
 }

@@ -1,3 +1,5 @@
+"use client"
+
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -11,7 +13,6 @@ import { HelpScreen } from "./HelpScreen";
 
 export interface GameProps {
     problemData: any
-    goToHomeScreen: () => void
 }
 
 export function Game(props: GameProps) {
@@ -46,7 +47,6 @@ export function Game(props: GameProps) {
     }
 
     const controlProps: CustomControlProps = {
-        goToHomeScreen: props.goToHomeScreen,
         showHelpWindow: () => setDisplayHelp(true)
     }
 

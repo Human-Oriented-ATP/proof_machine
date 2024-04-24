@@ -1,14 +1,16 @@
-import { useCallback, useState } from "react";
-import { GameLoader } from "./GameLoader";
+"use client"
+
+import Link from "next/link"
 
 interface ProblemSelectionPaneProps {
     problems: string[]
-    setProblem: (problem: string) => void
 }
 
 function ProblemSelectionPane(props: ProblemSelectionPaneProps) {
     function makeProblemSelectionButton(name: string): JSX.Element {
-        return <button onClick={e => props.setProblem(name)}>{name}</button>
+        return <Link href={"game/" + name}>
+            <button>{name}</button>
+        </Link>
     }
 
     return <div className="problemSelectionPane">
@@ -24,15 +26,5 @@ interface ProblemSelectorProps {
 }
 
 export default function ProblemSelector(props: ProblemSelectorProps) {
-    const [selectedProblem, setProblem] = useState("")
-
-    const goToHomeScreen = useCallback(() => {
-        setProblem("")
-    }, [setProblem])
-
-    if (selectedProblem) {
-        return <GameLoader problemFile={selectedProblem} goToHomeScreen={goToHomeScreen}></GameLoader>
-    } else {
-        return <ProblemSelectionPane problems={props.problems} setProblem={setProblem}></ProblemSelectionPane>
-    }
+    return <ProblemSelectionPane problems={props.problems}></ProblemSelectionPane>
 }
