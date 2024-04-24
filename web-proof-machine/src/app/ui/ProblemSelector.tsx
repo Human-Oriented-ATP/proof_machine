@@ -1,9 +1,8 @@
 import { useCallback, useState } from "react";
 import { GameLoader } from "./GameLoader";
 
-const problems = ["problem1", "tim_easyproblem1"]
-
 interface ProblemSelectionPaneProps {
+    problems: string[]
     setProblem: (problem: string) => void
 }
 
@@ -15,12 +14,16 @@ function ProblemSelectionPane(props: ProblemSelectionPaneProps) {
     return <div className="problemSelectionPane">
         <h2>Choose the game you want to play:</h2>
         <div className="problemSelectionButtons">
-            {problems.map(makeProblemSelectionButton)}
+            {props.problems.map(makeProblemSelectionButton)}
         </div>
     </div>
 }
 
-export function ProblemSelector() {
+interface ProblemSelectorProps {
+    problems: string[]
+}
+
+export default function ProblemSelector(props: ProblemSelectorProps) {
     const [selectedProblem, setProblem] = useState("")
 
     const goToHomeScreen = useCallback(() => {
@@ -30,6 +33,6 @@ export function ProblemSelector() {
     if (selectedProblem) {
         return <GameLoader problemFile={selectedProblem} goToHomeScreen={goToHomeScreen}></GameLoader>
     } else {
-        return <ProblemSelectionPane setProblem={setProblem}></ProblemSelectionPane>
+        return <ProblemSelectionPane problems={props.problems} setProblem={setProblem}></ProblemSelectionPane>
     }
 }

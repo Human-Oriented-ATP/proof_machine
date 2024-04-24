@@ -1,10 +1,8 @@
 'use client'
 
 import React from 'react'
-import dynamic from 'next/dynamic'
+import ProblemSelector from '../ui/ProblemSelector'
 
-const App = dynamic(() => import('../ui/App'), { ssr: false })
-
-export function ClientOnly() {
-    return <App />
+export function ClientOnly(props) {
+    return <ProblemSelector problems={props.problems} />
 }

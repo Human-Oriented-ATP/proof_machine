@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Game } from "./Game"
+import { promises as fs } from "fs"
 
 export interface GameLoaderProps {
   problemFile: string
@@ -11,8 +12,8 @@ export function GameLoader(props: GameLoaderProps) {
 
   const loadData = async () => {
     try {
-      const module = await import(`../../problems/${props.problemFile}.json`)
-      setData(module.default)
+      const module = await fs.readFile(`../../problems/${props.problemFile}.json`, "utf-8")
+      setData(JSON.parse(module))
     } catch (error) {
       console.error("Failed to load the data file", error);
       setData(null)
