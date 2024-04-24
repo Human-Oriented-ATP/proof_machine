@@ -103,6 +103,7 @@ export function Diagram(props: DiagramProps) {
         setEdges((edges) => {
             return addEdge({
                 ...connection,
+                animated: true,
                 type: 'multiEdge',
                 data: equation
             }, edges)
@@ -213,7 +214,7 @@ export function Diagram(props: DiagramProps) {
                     return false
                 }
             }
-            observedComponent.concat(currentLayer)
+            observedComponent = observedComponent.concat(currentLayer)
             const nextLayer = currentLayer.map(node => getIncomers(node, nodes, edges)).flat()
             if (nextLayer.length === 0) {
                 break
