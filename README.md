@@ -35,7 +35,7 @@ If it worked, running `python3 -c "import ply"` should produce no errors.
 1. You need to have the package manager `npm` and `Node.js` installed.
 2. Open a console in the directory `web-proof-machine`.
 3. Run `npm ci` which should install the required packages. 
-4. Run `npm start` to run the development version of the game.
+4. Run `npm run dev` to run the development version of the game.
 
 ## Writing problem files
 The colors compatible with the web version are: 
