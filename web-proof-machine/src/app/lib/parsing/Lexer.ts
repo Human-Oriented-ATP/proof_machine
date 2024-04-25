@@ -1,6 +1,4 @@
 import { createToken, Lexer } from "chevrotain"
-import { create } from "domain";
-
 export const Atom = createToken({
     name: "Atom",
     pattern: /[a-z]\w*/
@@ -37,7 +35,14 @@ export const NewLine = createToken({
     pattern: /\n/,
 })
 
+export const Comment = createToken({
+  name: "Comment",
+  pattern: /\/\*[\s\S]*?\*\//,
+  group: Lexer.SKIPPED
+})
+
 export const allTokens = [
+    Comment,    
     NewLine,
     WhiteSpace,
     Entails,
