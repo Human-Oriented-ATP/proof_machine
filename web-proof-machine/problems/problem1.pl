@@ -1,7 +1,8 @@
-g(1,2,3). /* this is a comment */
+g(1,2,3). % this is a comment
 b(4,2,3).
-r(1,2). /* this is a comment
-on a standalone line */
+r(1,2).
+% this is a comment
+% on a standalone line
 r(A,B) :- g(B,A,C).
 r(A,B) :- b(A,B,C).
 r(A,B) :- r(A,C), r(C,B).
