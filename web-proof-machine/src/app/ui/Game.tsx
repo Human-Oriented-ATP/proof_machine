@@ -5,18 +5,18 @@ import { Diagram } from "./Diagram";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../lib/game/TermEnumeration";
-import { initializeGame } from "../lib/game/Initialization";
+import { InitializationData, initializeGame } from "../lib/game/Initialization";
 import { GadgetProps } from "../lib/game/Primitives";
 import { AssignmentContext } from "../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
 import { HelpScreen } from "./HelpScreen";
 
 export interface GameProps {
-    problemData: any
+    initData: InitializationData
 }
 
 export function Game(props: GameProps) {
-    const { axioms, goal } = initializeGame(props.problemData)
+    const { axioms, goal } = props.initData
 
     const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
     const [equations, setEquations] = useState<Equation[]>([])
