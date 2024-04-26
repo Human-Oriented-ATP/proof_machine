@@ -37,7 +37,7 @@ export const NewLine = createToken({
 
 export const Comment = createToken({
   name: "Comment",
-  pattern: /%[^\\n]*/,
+  pattern: /%[^\n]*/,
   group: Lexer.SKIPPED
 })
 
