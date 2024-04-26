@@ -42,7 +42,6 @@ export class PrologParser extends CstParser {
             SEP: NewLine,
             DEF: () => { this.SUBRULE(this.statement, { LABEL: "statements" }) }
         })
-        this.OPTION(() => this.CONSUME(NewLine))
     })
 }
 
