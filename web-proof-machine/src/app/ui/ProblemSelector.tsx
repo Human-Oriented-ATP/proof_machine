@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Button from "./Button"
 
 interface ProblemSelectionPaneProps {
     problems: string[]
@@ -9,13 +10,13 @@ interface ProblemSelectionPaneProps {
 function ProblemSelectionPane(props: ProblemSelectionPaneProps) {
     function makeProblemSelectionButton(name: string): JSX.Element {
         return <Link href={"game/" + name}>
-            <button>{name}</button>
+            <Button>{name}</Button>
         </Link>
     }
 
-    return <div className="problemSelectionPane">
-        <h2>Choose the game you want to play:</h2>
-        <div className="problemSelectionButtons">
+    return <div className="w-screen text-center pt-24">
+        <h2 className="text-xl">Choose the game you want to play:</h2>
+        <div>
             {props.problems.map(makeProblemSelectionButton)}
         </div>
     </div>

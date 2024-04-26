@@ -5,18 +5,18 @@ import { handleIdFromTerm } from '../lib/game/GameLogic';
 import { DummyHandle } from './DummyHandle';
 import { twJoin } from 'tailwind-merge';
 
-function colorFromColorAbbreviation(abbreviation: string) {
+function backgroundColorFromColorAbbreviation(abbreviation: string) {
     let bgcolor = "";
     switch (abbreviation) {
-        case "r": bgcolor = "red"; break;
-        case "y": bgcolor = "yellow"; break;
-        case "g": bgcolor = "green"; break;
-        case "b": bgcolor = "blue"; break;
-        case "w": bgcolor = "white"; break;
-        case "bl": bgcolor = "black"; break;
-        case "o": bgcolor = "orange"; break;
-        case "p": bgcolor = "purple"; break;
-        case "c": bgcolor = "cyan"; break;
+        case "r": bgcolor = "bg-red"; break;
+        case "y": bgcolor = "bg-yellow"; break;
+        case "g": bgcolor = "bg-green"; break;
+        case "b": bgcolor = "bg-blue"; break;
+        case "w": bgcolor = "bg-white"; break;
+        case "bl": bgcolor = "bg-black"; break;
+        case "o": bgcolor = "bg-orange"; break;
+        case "p": bgcolor = "bg-purple"; break;
+        case "c": bgcolor = "bg-cyan"; break;
     }
     return bgcolor
 }
@@ -44,12 +44,10 @@ export function Node(props: NodeDisplayProps) {
         console.error("Term cannot be rendered as node:" + props.term)
         return <></>
     } else {
-        const color = colorFromColorAbbreviation(props.term.label)
-
+        const backgroundColor = backgroundColorFromColorAbbreviation(props.term.label)
         return (
             <div className="flex items-center">
-                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5",
-                    `bg-${color}`)}>
+                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5", backgroundColor)}>
                     {props.term.args.map(arg => <Hole term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}
