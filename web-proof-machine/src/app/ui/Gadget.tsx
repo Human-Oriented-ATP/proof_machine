@@ -92,7 +92,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 isInput: false,
                 useDummyHandle: props.useDummyHandle,
             }
-            return (<div className="gadgetOutputContainer">
+            return (<div className="flex flex-col justify-center">
                 <Node {...nodeDisplayProps}></Node>
             </div>)
         } else {
@@ -111,10 +111,10 @@ export function Gadget({ ...props }: GadgetProps) {
     const margin = props.output ? 5 * numberOfInputHoles : 0
 
     return (
-        <div style={{ textAlign: "center" }}>
+        <div className="text-center">
             {/* <span style={{ color: "grey" }}>{props.id}</span> */}
-            <div className="gadget" id={props.id}>
-                <div className="gadgetInputContainer"
+            <div className="flex relative" id={props.id}>
+                <div className="flex flex-col items-start"
                     style={props.inputs.length === 0 ? {} : { marginRight: margin + "px" }}>
                     {makeInputNodes()}
                 </div>

@@ -54,5 +54,5 @@ export function ConnectionSvg({ ...props }: ConnectionSvgProps) {
         return pathElements;
     }
 
-    return <svg className="connectionSvg">{drawConnections()}</svg>;
+    return <svg className="absolute top-0 left-0 w-full h-full z-5 pointer-events-none">{drawConnections()}</svg>;
 }

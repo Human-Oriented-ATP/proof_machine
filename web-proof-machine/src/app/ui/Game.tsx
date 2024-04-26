@@ -5,7 +5,7 @@ import { Diagram } from "./Diagram";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../lib/game/TermEnumeration";
-import { InitializationData, initializeGame } from "../lib/game/Initialization";
+import { InitializationData } from "../lib/game/Initialization";
 import { GadgetProps } from "../lib/game/Primitives";
 import { AssignmentContext } from "../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";

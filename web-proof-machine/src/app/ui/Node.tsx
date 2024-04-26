@@ -3,23 +3,22 @@ import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
 import { handleIdFromTerm } from '../lib/game/GameLogic';
 import { DummyHandle } from './DummyHandle';
+import { twJoin } from 'tailwind-merge';
 
-function styleFromColor(color: string): React.CSSProperties {
-    const TRANSPARENCY = "F0"
+function colorFromColorAbbreviation(abbreviation: string) {
     let bgcolor = "";
-    switch (color) {
-        case "r": bgcolor = "#ff3838"; break;
-        case "y": bgcolor = "#fff200"; break;
-        case "g": bgcolor = "#32ff7e"; break;
-        case "b": bgcolor = "#7d5fff"; break;
-        case "w": bgcolor = "#eeeeee"; break;
-        case "bl": bgcolor = "#3d3d3d"; break; // black
-        case "o": bgcolor = "#ff9f1a"; break; // orange
-        case "p": bgcolor = "#c56cf0"; break; // purple
-        case "c": bgcolor = "#7efff5"; break; // cyan 
-        default: bgcolor = "#000000";
+    switch (abbreviation) {
+        case "r": bgcolor = "red"; break;
+        case "y": bgcolor = "yellow"; break;
+        case "g": bgcolor = "green"; break;
+        case "b": bgcolor = "blue"; break;
+        case "w": bgcolor = "white"; break;
+        case "bl": bgcolor = "black"; break;
+        case "o": bgcolor = "orange"; break;
+        case "p": bgcolor = "purple"; break;
+        case "c": bgcolor = "cyan"; break;
     }
-    return { backgroundColor: bgcolor + TRANSPARENCY }
+    return bgcolor
 }
 
 export function Node(props: NodeDisplayProps) {
@@ -45,11 +44,12 @@ export function Node(props: NodeDisplayProps) {
         console.error("Term cannot be rendered as node:" + props.term)
         return <></>
     } else {
-        const style = styleFromColor(props.term.label)
+        const color = colorFromColorAbbreviation(props.term.label)
 
         return (
-            <div className="nodeHandleWrapper">
-                <div className="node" style={style}>
+            <div className="flex items-center">
+                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5",
+                    `bg-${color}`)}>
                     {props.term.args.map(arg => <Hole term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}

@@ -21,7 +21,6 @@ import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import './flow.css'
-import './game.css'
 import { axiomToGadget, getTermOfHandle } from '../lib/game/GameLogic';
 import { Axiom } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
