@@ -32,12 +32,12 @@ export const WhiteSpace = createToken({
 
 export const NewLine = createToken({ 
     name: "NewLine", 
-    pattern: /\n/,
+    pattern: /\n+/,
 })
 
 export const Comment = createToken({
   name: "Comment",
-  pattern: /\/\*[\s\S]*?\*\//,
+  pattern: /%[^\\n]*/,
   group: Lexer.SKIPPED
 })
 
