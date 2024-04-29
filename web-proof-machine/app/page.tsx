@@ -1,6 +1,6 @@
 import '../index.css'
-import { loadProblemList } from './lib/game/LoadProblems'
-import ProblemSelector from './ui/ProblemSelector'
+import { loadProblemList } from '../lib/game/LoadProblems'
+import ProblemSelector from '../components/ProblemSelector'
 
 export function generateStaticParams() {
     return [{ slug: [''] }]

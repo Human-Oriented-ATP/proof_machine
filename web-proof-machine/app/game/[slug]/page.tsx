@@ -1,7 +1,7 @@
-import { loadProblemList } from "src/app/lib/game/LoadProblems";
-import { Game } from "src/app/ui/Game";
+import { loadProblemList } from "lib/game/LoadProblems";
+import { Game } from "components/Game";
 import { promises as fs } from "fs"
-import { buildAst } from "src/app/lib/parsing/Semantics";
+import { buildAst } from "lib/parsing/Semantics";
 
 export async function generateStaticParams() {
     let problems = await loadProblemList()
