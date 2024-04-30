@@ -95,6 +95,10 @@ export function Diagram(props: DiagramProps) {
     useEffect(() => {
         if (backspacePressed) {
             setNodes(nodes => {
+                const nodesToBeDeleted = nodes.filter(node => !isSelectedAndNotGoal(node))
+                const edges = getEdges()
+                const edgesToBeDeleted = getConnectedEdges(nodesToBeDeleted, edges)
+                deleteEquationsOfEdges(edgesToBeDeleted)
                 return nodes.filter(node => !isSelectedAndNotGoal(node))
             })
         }
