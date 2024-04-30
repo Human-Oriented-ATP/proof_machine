@@ -68,7 +68,7 @@ class PrologAstBuilderVisitor extends BaseVisitor {
 
 const astBuilder = new PrologAstBuilderVisitor()
 
-export function buildAst(text: string): InitializationData {
+export function parseProblem(text: string): InitializationData {
     const cst = parse(text)
     const ast = astBuilder.visit(cst)
     return ast
