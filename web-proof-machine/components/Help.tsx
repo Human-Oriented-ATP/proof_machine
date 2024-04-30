@@ -2,7 +2,7 @@ import { DummyHandle } from "./DummyHandle"
 
 export function Help() {
     return <>
-        <h2 className="text-xl">Game Help</h2>
+        <h2 className="text-lg">Game Help</h2>
         <ul className="text-left leading-10 p-3">
             <li>Press shift to select multiple gadgets</li>
             <li>Press the delete key to remove selected gadgets</li>
