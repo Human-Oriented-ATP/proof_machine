@@ -268,6 +268,7 @@ export function Diagram(props: DiagramProps) {
             onConnectStart={onConnectStart}
             isValidConnection={isValidConnection}
             deleteKeyCode={null}
+            minZoom={0.1}
         >
             <GadgetPalette {...paletteProps} />
             <ControlButtons {...props.controlProps}></ControlButtons>
