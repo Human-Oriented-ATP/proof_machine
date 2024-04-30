@@ -13,7 +13,13 @@ export default async function Page({ params }: { params: { slug: string } }) {
     const problemFile = params.slug + ".pl"
     const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
 
-    const initData = parseProblem(problemData.trim())
-
-    return <Game initData={initData} />
+    try {
+        const initData = parseProblem(problemData.trim())
+        return <Game initData={initData} />
+    } catch (e) {
+        return <div>
+            <div>The problem file couldn't be parsed.</div>
+            <div>{e.message}</div>
+        </div>
+    }
 }
