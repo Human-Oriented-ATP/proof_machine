@@ -92,12 +92,17 @@ export function Diagram(props: DiagramProps) {
     const [generateGadgetId] = useIdGenerator("gadget_")
     const backspacePressed = useKeyPress("Backspace")
 
+    const getAdjacentEdges = useCallback((node: ReactFlowNode) => {
+        const edges = getEdges()
+        const adjacentEdges = edges.filter(e => e.source === node.id || e.target === node.id)
+        return adjacentEdges
+    }, [getEdges])
+
     useEffect(() => {
         if (backspacePressed) {
             setNodes(nodes => {
-                const nodesToBeDeleted = nodes.filter(node => !isSelectedAndNotGoal(node))
-                const edges = getEdges()
-                const edgesToBeDeleted = getConnectedEdges(nodesToBeDeleted, edges)
+                const nodesToBeDeleted = nodes.filter(node => isSelectedAndNotGoal(node))
+                const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
                 deleteEquationsOfEdges(edgesToBeDeleted)
                 return nodes.filter(node => !isSelectedAndNotGoal(node))
             })
