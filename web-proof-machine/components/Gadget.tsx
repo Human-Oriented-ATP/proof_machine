@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../lib/util/Point'
@@ -77,7 +77,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 term,
                 holeFocus: focus,
                 isInput: true,
-                useDummyHandle: props.useDummyHandle,
+                useDummyHandle: props.isAxiom,
             }
             buffer.push(<Node {...nodeDisplayProps}></Node>)
         }
@@ -90,7 +90,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 term: props.output,
                 holeFocus: focus,
                 isInput: false,
-                useDummyHandle: props.useDummyHandle,
+                useDummyHandle: props.isAxiom,
             }
             return (<div className="flex flex-col justify-center">
                 <Node {...nodeDisplayProps}></Node>
@@ -110,8 +110,18 @@ export function Gadget({ ...props }: GadgetProps) {
     const numberOfInputHoles = numberOfInputHolesPerNode.reduce((a, b) => a + b, 0)
     const margin = props.output ? 5 * numberOfInputHoles : 0
 
+    let scaleFactor = 1
+
+    if (props.isAxiom) {
+        const appropriateSize = 5
+        if (numberOfInputHoles > appropriateSize) {
+            const overflow = numberOfInputHoles - appropriateSize
+            scaleFactor = Math.max(1 - overflow / appropriateSize * 0.4, 0.5)
+        }
+    }
+
     return (
-        <div className="text-center">
+        <div className="text-center" style={{ transform: `scale(${scaleFactor})`, transformOrigin: "top center" }}>
             {/* <span style={{ color: "grey" }}>{props.id}</span> */}
             <div className="flex relative" id={props.id}>
                 <div className="flex flex-col items-start"

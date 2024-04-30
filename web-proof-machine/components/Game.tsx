@@ -46,7 +46,7 @@ export function Game(props: GameProps) {
     const goalNodeProps: GadgetProps = {
         id: "goal_gadget",
         inputs: [goal],
-        useDummyHandle: false
+        isAxiom: false
     }
 
     useEffect(() => {

@@ -27,7 +27,7 @@ export interface GadgetProps {
     id: GadgetId
     inputs: Term[]
     output?: Term
-    useDummyHandle: boolean
+    isAxiom: boolean
 }
 
 export interface Axiom {

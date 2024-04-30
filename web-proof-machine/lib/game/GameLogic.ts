@@ -4,7 +4,7 @@ import { Term, hashTerm, makeAxiomWithFreshVariables } from "./Term";
 
 export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     const axiomWithFreshVariables = makeAxiomWithFreshVariables(axiom, id)
-    return { inputs: axiomWithFreshVariables.hypotheses, output: axiomWithFreshVariables.conclusion, id, useDummyHandle: false }
+    return { inputs: axiomWithFreshVariables.hypotheses, output: axiomWithFreshVariables.conclusion, id, isAxiom: false }
 }
 
 export function axiomTermEnumeration(t: Term): string {
