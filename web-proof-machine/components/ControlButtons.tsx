@@ -9,7 +9,7 @@ export interface CustomControlProps {
 export function ControlButtons(props: CustomControlProps): JSX.Element {
     const router = useRouter()
 
-    return <Controls showInteractive={false}>
+    return <Controls showInteractive={false} position="bottom-right">
         <ControlButton onClick={props.showHelpWindow}><QuestionMarkIcon /></ControlButton>
         <ControlButton onClick={() => router.push("../")}><HomeIcon /></ControlButton>
     </Controls >

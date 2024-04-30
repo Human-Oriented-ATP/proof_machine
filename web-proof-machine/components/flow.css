@@ -41,25 +41,29 @@
 
 .react-flow__panel.center {
     top: auto;
+    left: auto;
     transform: auto;
     margin: 0px;
 }
 
 .gadgetPalette {
     background-color: rgba(225, 225, 225, 0.9);
-    width: 100vw;
+    min-width: 100px;
+    height: 100vh;
     margin: 0px;
     display: flex;
-    position: relative;
+    flex-direction: column;
+    position: fixed;
     left: 0px;
     top: 0px;
     padding-left: 3px;
     padding-right: 3px;
-    overflow-x: scroll;
+    overflow-y: scroll;
 }
 
 .insertGadgetButton {
     display: flex;
+    justify-content: center;
     padding-left: 3px;
     padding-right: 3px;
 }

@@ -145,7 +145,7 @@ export function Diagram(props: DiagramProps) {
             id: id,
             type: 'gadgetFlowNode',
             position: screenToFlowPosition({
-                x: e.clientX, y: 450
+                x: 180, y: e.clientY
             }),
             data: axiomToGadget(axiom, id)
         }

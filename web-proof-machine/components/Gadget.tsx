@@ -107,21 +107,11 @@ export function Gadget({ ...props }: GadgetProps) {
             return term.args.length
         }
     })
-    const numberOfInputHoles = numberOfInputHolesPerNode.reduce((a, b) => a + b, 0)
-    const margin = props.output ? 5 * numberOfInputHoles : 0
 
-    let scaleFactor = 1
-
-    if (props.isAxiom) {
-        const appropriateSize = 5
-        if (numberOfInputHoles > appropriateSize) {
-            const overflow = numberOfInputHoles - appropriateSize
-            scaleFactor = Math.max(1 - overflow / appropriateSize * 0.4, 0.5)
-        }
-    }
+    const margin = props.output ? 25 : 0
 
     return (
-        <div className="text-center" style={{ transform: `scale(${scaleFactor})`, transformOrigin: "top center" }}>
+        <div className="text-center">
             {/* <span style={{ color: "grey" }}>{props.id}</span> */}
             <div className="flex relative" id={props.id}>
                 <div className="flex flex-col items-start"
