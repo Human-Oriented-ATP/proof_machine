@@ -71,6 +71,20 @@ function isSelectedAndNotGoal(node: ReactFlowNode) {
     return node.selected && node.id !== "goal_gadget"
 }
 
+function colorsMatch(term1: Term, term2: Term): boolean {
+    if ("label" in term1 && "label" in term2) {
+        return term1.label === term2.label
+    }
+    return false
+}
+
+function sameArity(term1: Term, term2: Term): boolean {
+    if ("args" in term1 && "args" in term2) {
+        return term1.args.length === term2.args.length
+    }
+    return false
+}
+
 export function Diagram(props: DiagramProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoal(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -154,38 +168,32 @@ export function Diagram(props: DiagramProps) {
         }
     }, [removeEdgesConnectedToHandle]);
 
-    const isValidConnection = useCallback((connection: Connection) => {
-        function doesNotCreateACycle(): boolean {
-            const nodes = getNodes();
-            const edges = getEdges();
+    const doesNotCreateACycle = useCallback((connection: Connection) => {
+        const nodes = getNodes();
+        const edges = getEdges();
 
-            const target = nodes.find((node) => node.id === connection.target)!
-            const hasCycle = (node: ReactFlowNode, visited = new Set()) => {
-                if (visited.has(node.id)) return false;
+        const target = nodes.find((node) => node.id === connection.target)!
+        const hasCycle = (node: ReactFlowNode, visited = new Set()) => {
+            if (visited.has(node.id)) return false;
 
-                visited.add(node.id);
+            visited.add(node.id);
 
-                for (const outgoer of getOutgoers(node, nodes, edges)) {
-                    if (outgoer.id === connection.source) return true;
-                    if (hasCycle(outgoer, visited)) return true;
-                }
-            };
-
-            if (target.id === connection.source) return false;
-            return !hasCycle(target);
-        }
-
-        function colorsMatch(term1: Term, term2: Term): boolean {
-            if ("label" in term1 && "label" in term2) {
-                return term1.label === term2.label
+            for (const outgoer of getOutgoers(node, nodes, edges)) {
+                if (outgoer.id === connection.source) return true;
+                if (hasCycle(outgoer, visited)) return true;
             }
-            return false
-        }
+        };
 
+        if (target.id === connection.source) return false;
+        return !hasCycle(target);
+    }, [getNodes, getEdges]);
+
+    const isValidConnection = useCallback((connection: Connection) => {
         const [source, target] = getEquationFromConnection(connection)
+        const arityOk = sameArity(source, target)
         const colorsOk = colorsMatch(source, target)
-        const noCircle = doesNotCreateACycle()
-        return colorsOk && noCircle
+        const noCycle = doesNotCreateACycle(connection)
+        return colorsOk && arityOk && noCycle
     }, [getEquationFromConnection, getEdges, getNodes]);
 
     const isCompleted = useCallback(() => {
