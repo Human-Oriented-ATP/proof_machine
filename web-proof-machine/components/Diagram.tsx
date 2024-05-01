@@ -92,11 +92,21 @@ export function Diagram(props: DiagramProps) {
     const [generateGadgetId] = useIdGenerator("gadget_")
     const backspacePressed = useKeyPress("Backspace")
 
+    const getAdjacentEdges = useCallback((node: ReactFlowNode) => {
+        const edges = getEdges()
+        const adjacentEdges = edges.filter(e => e.source === node.id || e.target === node.id)
+        return adjacentEdges
+    }, [getEdges])
+
     useEffect(() => {
         if (backspacePressed) {
-            setNodes(nodes => {
-                return nodes.filter(node => !isSelectedAndNotGoal(node))
-            })
+            const nodes = getNodes()
+            const nodesToBeDeleted = nodes.filter(node => isSelectedAndNotGoal(node))
+            const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
+            deleteEquationsOfEdges(edgesToBeDeleted)
+            const edgeIds = edgesToBeDeleted.map(e => e.id)
+            setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
+            setNodes(nodes => nodes.filter(node => !isSelectedAndNotGoal(node)))
         }
     }, [backspacePressed, setNodes])
 
@@ -239,6 +249,9 @@ export function Diagram(props: DiagramProps) {
     useEffect(() => {
         setEdges(edges => edges.map(edge => {
             const edgeIsSatisfied = isSatisfied.get(edge.data)
+            if (edgeIsSatisfied === undefined) {
+                throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
+            }
             return { ...edge, animated: edgeIsSatisfied ? false : true }
         }))
     }, [isSatisfied, setEdges, setNodes])
