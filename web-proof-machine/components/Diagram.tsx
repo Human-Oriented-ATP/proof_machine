@@ -14,6 +14,8 @@ import ReactFlow, {
     getIncomers,
     getConnectedEdges,
     useKeyPress,
+    useStoreApi,
+    XYPosition,
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -86,6 +88,7 @@ function sameArity(term1: Term, term2: Term): boolean {
 }
 
 export function Diagram(props: DiagramProps) {
+    const store = useStoreApi();
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoal(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
@@ -266,6 +269,65 @@ export function Diagram(props: DiagramProps) {
 
     const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
     const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])
+
+    const MIN_DISTANCE = 100
+
+    const getHandlePositions = useCallback((node: ReactFlowNode) => {
+        const handlePositions: XYPosition[] = []
+        return handlePositions
+    }, [])
+
+    const getClosestHandleToPosition = useCallback((position: XYPosition) => {
+        const result: [string, number] = ["", 0]
+        return result
+    }, [])
+
+    const getClosestHandle = useCallback((node: ReactFlowNode) => {
+        const handlePositions = getHandlePositions(node)
+        const getClosestHandles = handlePositions.map(handlePosition => {
+            return getClosestHandleToPosition(handlePosition)
+        })
+        const [closestHandleId, closestDistance] = getClosestHandles.reduce((acc, [handleId, distance]) => {
+            if (distance < acc[1]) {
+                return [handleId, distance];
+            } else {
+                return acc;
+            }
+        }, ["", Infinity]);
+        if (closestDistance < MIN_DISTANCE) {
+            return closestHandleId
+        } else {
+            return null
+        }
+    }, [])
+
+    const getProximityConnection = useCallback((node: ReactFlowNode) => {
+        const connection: Connection | null = {
+            source: node.id,
+            target: "goal_gadget",
+            sourceHandle: "",
+            targetHandle: ""
+        }
+        return connection
+    }, [])
+
+    const onNodeDrag = useCallback((event, node: ReactFlowNode) => {
+        const candidateConnection = getProximityConnection(node)
+        if (candidateConnection) {
+            if (isValidConnection(candidateConnection)) {
+                // make target handle glow
+            }
+        }
+    }, [])
+
+    const onNodeDragStop = useCallback((event, node: ReactFlowNode) => {
+        const candidateConnection = getProximityConnection(node)
+        if (getClosestHandle(node)) {
+            if (isValidConnection(candidateConnection)) {
+                addConnection(candidateConnection)
+            }
+        }
+    }, [])
 
     return (
         <ReactFlow
