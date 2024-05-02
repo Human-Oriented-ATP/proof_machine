@@ -18,7 +18,7 @@ import { useIdGenerator } from '../lib/util/IdGeneratorHook';
 import { ControlButtons, CustomControlProps } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { getAllTermsOfGadget } from './Gadget';
-import { getGoal, hasTargetHandle } from '../lib/util/ReactFlow';
+import { getGoalNode, hasTargetHandle, init } from '../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/util/CompletionCheckHook';
 import { useCustomDelete } from 'lib/util/CustomDeleteHook';
 
@@ -36,10 +36,14 @@ interface DiagramProps {
 }
 
 export function Diagram(props: DiagramProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState([getGoal(props.goal)]);
+    const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
+    const rf = useReactFlow();
     const [generateGadgetId] = useIdGenerator("gadget_")
+
+    const getNode = rf.getNode
+    const getNodes = rf.getNodes
+    const getEdges = rf.getEdges
 
     const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
         edges.map(e => props.deleteEquation(e.data))
@@ -74,7 +78,7 @@ export function Diagram(props: DiagramProps) {
         return !hasCycle(target);
     }, [getNodes, getEdges]);
 
-    function addConnection(connection: Connection): void {
+    const onConnect = useCallback((connection: Connection): void => {
         removeEdgesConnectedToHandle(connection.targetHandle!)
         const equation = getEquationFromConnection(connection)
         props.addEquation(equation)
@@ -86,18 +90,11 @@ export function Diagram(props: DiagramProps) {
                 data: equation
             }, edges)
         });
-    }
+    }, [props, setEdges, getEquationFromConnection])
 
     const paletteProps: GadgetPaletteProps = {
         axioms: props.axioms,
         makeGadget: makeGadget
-    }
-
-    function init() {
-        const goalNode: (Partial<ReactFlowNode> & { id: string }) = {
-            id: "goal_gadget"
-        }
-        fitView({ nodes: [goalNode] })
     }
 
     function makeGadget(axiom: Axiom, e: React.MouseEvent): void {
@@ -105,7 +102,7 @@ export function Diagram(props: DiagramProps) {
         const flowNode: ReactFlowNode = {
             id: id,
             type: 'gadgetFlowNode',
-            position: screenToFlowPosition({
+            position: rf.screenToFlowPosition({
                 x: 180, y: e.clientY
             }),
             data: axiomToGadget(axiom, id)
@@ -116,7 +113,7 @@ export function Diagram(props: DiagramProps) {
     const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
         setEdges(edges => {
             const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
-            edgesConnectedToThisHandle.map(e => props.deleteEquation(e.data))
+            deleteEquationsOfEdges(edgesConnectedToThisHandle)
             return edges.filter(e => !hasTargetHandle(e, handleId))
         })
     }, [setEdges, props])
@@ -138,8 +135,6 @@ export function Diagram(props: DiagramProps) {
     }, [getEquationFromConnection, getEdges, getNodes]);
 
     const isSatisfied = props.isSatisfied
-    const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
-    const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])
 
     const updateEdgeAnimation = useCallback(() => {
         setEdges(edges => edges.map(edge => {
@@ -166,10 +161,9 @@ export function Diagram(props: DiagramProps) {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                onEdgesDelete={onEdgesDelete}
                 edgeTypes={edgeTypes}
                 nodeTypes={nodeTypes}
-                onInit={init}
+                onInit={() => init(rf)}
                 onConnectStart={onConnectStart}
                 isValidConnection={isValidConnection}
                 deleteKeyCode={null}
