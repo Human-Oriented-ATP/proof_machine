@@ -1,21 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
-    useNodesState,
-    useEdgesState,
-    addEdge,
-    NodeTypes,
-    Connection,
-    useReactFlow,
-    Node as ReactFlowNode,
-    EdgeTypes,
-    Edge,
-    HandleType,
-    getOutgoers,
-    getIncomers,
-    getConnectedEdges,
-    useKeyPress,
-    useStoreApi,
-    XYPosition,
+    useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
+    EdgeTypes, Edge, HandleType, getOutgoers, getIncomers, getConnectedEdges, useKeyPress, XYPosition,
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -23,13 +9,17 @@ import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import './flow.css'
-import { axiomToGadget, getTermOfHandle } from '../lib/game/GameLogic';
+import { axiomToGadget, getTermOfHandle, handleIdFromTerm } from '../lib/game/GameLogic';
 import { Axiom } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
 import { Term } from '../lib/game/Term';
 import { GadgetProps } from '../lib/game/Primitives';
 import { useIdGenerator } from '../lib/util/IdGeneratorHook';
 import { ControlButtons, CustomControlProps } from './ControlButtons';
+import { getCenter } from 'lib/util/Point';
+import { sameArity, colorsMatch } from 'lib/game/Term';
+import { getAllTermsOfGadget } from './Gadget';
+import { getGoal, isSelectedAndNotGoal, hasTargetHandle } from '../lib/util/ReactFlow';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -44,51 +34,7 @@ interface DiagramProps {
     setProblemSolved: (b: boolean) => void
 }
 
-export function getFlowNodeTerms(props: GadgetProps): Term[] {
-    if (props.output) {
-        return props.inputs.concat(props.output)
-    } else {
-        return props.inputs
-    }
-}
-
-function hasTargetHandle(e: Edge, handleId: string): boolean {
-    if (e.targetHandle) {
-        return e.targetHandle === handleId
-    } else {
-        return false
-    }
-}
-
-function getGoal(props: GadgetProps): ReactFlowNode {
-    return {
-        id: props.id,
-        type: 'gadgetFlowNode',
-        position: { x: 300, y: 300 },
-        data: props
-    }
-}
-
-function isSelectedAndNotGoal(node: ReactFlowNode) {
-    return node.selected && node.id !== "goal_gadget"
-}
-
-function colorsMatch(term1: Term, term2: Term): boolean {
-    if ("label" in term1 && "label" in term2) {
-        return term1.label === term2.label
-    }
-    return false
-}
-
-function sameArity(term1: Term, term2: Term): boolean {
-    if ("args" in term1 && "args" in term2) {
-        return term1.args.length === term2.args.length
-    }
-    return false
-}
-
 export function Diagram(props: DiagramProps) {
-    const store = useStoreApi();
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoal(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
@@ -114,8 +60,8 @@ export function Diagram(props: DiagramProps) {
     }, [backspacePressed, setNodes])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
-        const sourceTerms: Term[] = getFlowNodeTerms(getNode(connection.source!)!.data)
-        const targetTerms: Term[] = getFlowNodeTerms(getNode(connection.target!)!.data)
+        const sourceTerms: Term[] = getAllTermsOfGadget(getNode(connection.source!)!.data)
+        const targetTerms: Term[] = getAllTermsOfGadget(getNode(connection.target!)!.data)
         const sourceTerm: Term = getTermOfHandle(connection.sourceHandle!, sourceTerms)!
         const targetTerm: Term = getTermOfHandle(connection.targetHandle!, targetTerms)!
         const equation: Equation = [sourceTerm, targetTerm]
@@ -272,6 +218,11 @@ export function Diagram(props: DiagramProps) {
 
     const MIN_DISTANCE = 100
 
+    const getHandles = useCallback((node: ReactFlowNode) => {
+        const terms = getAllTermsOfGadget(node.data)
+        return terms.map(handleIdFromTerm)
+    }, [])
+
     const getHandlePositions = useCallback((node: ReactFlowNode) => {
         const handlePositions: XYPosition[] = []
         return handlePositions
@@ -311,13 +262,32 @@ export function Diagram(props: DiagramProps) {
         return connection
     }, [])
 
-    const onNodeDrag = useCallback((event, node: ReactFlowNode) => {
-        const candidateConnection = getProximityConnection(node)
-        if (candidateConnection) {
-            if (isValidConnection(candidateConnection)) {
-                // make target handle glow
-            }
+    let info = useRef("node info")
+    let mouseInfo = useRef("mouse info")
+    let handleInfo = useRef("handle info")
+
+    const getHandlePosition = useCallback((handleId: string) => {
+        const handle = document.querySelector(`[data-handleid="${handleId}"]`);
+        if (handle) {
+            const positionOnScreen = getCenter(handle.getBoundingClientRect());
+            return screenToFlowPosition(positionOnScreen);
+        } else {
+            return null
         }
+    }, []);
+
+    const onNodeDrag = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
+        info.current = JSON.stringify(node.position)
+        mouseInfo.current = JSON.stringify(screenToFlowPosition({ x: event.clientX, y: event.clientY }))
+        const handles = getHandles(node)
+        const handlePositions = handles.map(getHandlePosition)
+        handleInfo.current = JSON.stringify(handlePositions)
+        // const candidateConnection = getProximityConnection(node)
+        // if (candidateConnection) {
+        //     if (isValidConnection(candidateConnection)) {
+        //         // make target handle glow
+        //     }
+        // }
     }, [])
 
     const onNodeDragStop = useCallback((event, node: ReactFlowNode) => {
@@ -330,23 +300,29 @@ export function Diagram(props: DiagramProps) {
     }, [])
 
     return (
-        <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onEdgesDelete={onEdgesDelete}
-            edgeTypes={edgeTypes}
-            nodeTypes={nodeTypes}
-            onInit={init}
-            onConnectStart={onConnectStart}
-            isValidConnection={isValidConnection}
-            deleteKeyCode={null}
-            minZoom={0.1}
-        >
-            <GadgetPalette {...paletteProps} />
-            <ControlButtons {...props.controlProps}></ControlButtons>
-        </ReactFlow>
+        <>
+            <div>{info.current}</div>
+            <div>{mouseInfo.current}</div>
+            <div>{handleInfo.current}</div>
+            <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onEdgesDelete={onEdgesDelete}
+                edgeTypes={edgeTypes}
+                nodeTypes={nodeTypes}
+                onInit={init}
+                onConnectStart={onConnectStart}
+                isValidConnection={isValidConnection}
+                deleteKeyCode={null}
+                minZoom={0.1}
+                onNodeDrag={onNodeDrag}
+            >
+                <GadgetPalette {...paletteProps} />
+                <ControlButtons {...props.controlProps}></ControlButtons>
+            </ReactFlow>
+        </>
     )
 }

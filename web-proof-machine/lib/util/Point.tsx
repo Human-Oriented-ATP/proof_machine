@@ -1,3 +1,5 @@
+import { XYPosition } from 'reactflow';
+
 export interface Point {
     x: number
     y: number
@@ -17,4 +19,10 @@ export function getCenterRelativeToParent(e: HTMLElement): Point {
     const width = e.offsetWidth
     const height = e.offsetHeight
     return { x: left + width / 2, y: top + height / 2 }
+}
+export function getCenter(rect: DOMRect): XYPosition {
+    return {
+        x: rect.x + rect.width / 2,
+        y: rect.y + rect.height / 2
+    };
 }
