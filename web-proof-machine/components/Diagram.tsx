@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { use, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
     EdgeTypes, Edge, HandleType, getOutgoers, getIncomers, getConnectedEdges, useKeyPress, XYPosition,
@@ -20,6 +20,7 @@ import { getCenter } from 'lib/util/Point';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { getAllTermsOfGadget } from './Gadget';
 import { getGoal, isSelectedAndNotGoal, hasTargetHandle } from '../lib/util/ReactFlow';
+import { useCompletionCheck } from 'lib/util/CompletionCheckHook';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -47,18 +48,6 @@ export function Diagram(props: DiagramProps) {
         return adjacentEdges
     }, [getEdges])
 
-    useEffect(() => {
-        if (backspacePressed) {
-            const nodes = getNodes()
-            const nodesToBeDeleted = nodes.filter(node => isSelectedAndNotGoal(node))
-            const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
-            deleteEquationsOfEdges(edgesToBeDeleted)
-            const edgeIds = edgesToBeDeleted.map(e => e.id)
-            setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
-            setNodes(nodes => nodes.filter(node => !isSelectedAndNotGoal(node)))
-        }
-    }, [backspacePressed, setNodes])
-
     const getEquationFromConnection = useCallback((connection: Connection) => {
         const sourceTerms: Term[] = getAllTermsOfGadget(getNode(connection.source!)!.data)
         const targetTerms: Term[] = getAllTermsOfGadget(getNode(connection.target!)!.data)
@@ -67,6 +56,30 @@ export function Diagram(props: DiagramProps) {
         const equation: Equation = [sourceTerm, targetTerm]
         return equation
     }, [getNode])
+
+    const doesNotCreateACycle = useCallback((connection: Connection) => {
+        const nodes = getNodes();
+        const edges = getEdges();
+
+        const target = nodes.find((node) => node.id === connection.target)!
+        const hasCycle = (node: ReactFlowNode, visited = new Set()) => {
+            if (visited.has(node.id)) return false;
+
+            visited.add(node.id);
+
+            for (const outgoer of getOutgoers(node, nodes, edges)) {
+                if (outgoer.id === connection.source) return true;
+                if (hasCycle(outgoer, visited)) return true;
+            }
+        };
+
+        if (target.id === connection.source) return false;
+        return !hasCycle(target);
+    }, [getNodes, getEdges]);
+
+    function deleteEquationsOfEdges(edges: Edge[]): void {
+        edges.map(e => props.deleteEquation(e.data))
+    }
 
     function addConnection(connection: Connection): void {
         removeEdgesConnectedToHandle(connection.targetHandle!)
@@ -80,10 +93,6 @@ export function Diagram(props: DiagramProps) {
                 data: equation
             }, edges)
         });
-    }
-
-    function deleteEquationsOfEdges(edges: Edge[]): void {
-        edges.map(e => props.deleteEquation(e.data))
     }
 
     const paletteProps: GadgetPaletteProps = {
@@ -127,26 +136,6 @@ export function Diagram(props: DiagramProps) {
         }
     }, [removeEdgesConnectedToHandle]);
 
-    const doesNotCreateACycle = useCallback((connection: Connection) => {
-        const nodes = getNodes();
-        const edges = getEdges();
-
-        const target = nodes.find((node) => node.id === connection.target)!
-        const hasCycle = (node: ReactFlowNode, visited = new Set()) => {
-            if (visited.has(node.id)) return false;
-
-            visited.add(node.id);
-
-            for (const outgoer of getOutgoers(node, nodes, edges)) {
-                if (outgoer.id === connection.source) return true;
-                if (hasCycle(outgoer, visited)) return true;
-            }
-        };
-
-        if (target.id === connection.source) return false;
-        return !hasCycle(target);
-    }, [getNodes, getEdges]);
-
     const isValidConnection = useCallback((connection: Connection) => {
         const [source, target] = getEquationFromConnection(connection)
         const arityOk = sameArity(source, target)
@@ -155,64 +144,8 @@ export function Diagram(props: DiagramProps) {
         return colorsOk && arityOk && noCycle
     }, [getEquationFromConnection, getEdges, getNodes]);
 
-    const isCompleted = useCallback(() => {
-        function onlyContainsValidConnections(edges: Edge[]): boolean {
-            for (const edge of edges) {
-                if (edge.animated) {
-                    return false
-                }
-            }
-            return true
-        }
-
-        function hasUnconnectedInputHandle(node: ReactFlowNode): boolean {
-            const numberOfIncomingEdges = getIncomers(node, nodes, edges).length
-            const numberOfInputTerms = node.data.inputs.length
-            return numberOfInputTerms !== numberOfIncomingEdges
-        }
-
-        const goalNode = getNode("goal_gadget")!
-        let observedComponent: ReactFlowNode<any>[] = []
-        let currentLayer = [goalNode]
-        while (true) {
-            for (const node of currentLayer) {
-                if (hasUnconnectedInputHandle(node)) {
-                    return false
-                }
-            }
-            observedComponent = observedComponent.concat(currentLayer)
-            const nextLayer = currentLayer.map(node => getIncomers(node, nodes, edges)).flat()
-            if (nextLayer.length === 0) {
-                break
-            } else {
-                currentLayer = nextLayer
-            }
-        }
-        const edgesInComponent = getConnectedEdges(observedComponent, edges)
-        return onlyContainsValidConnections(edgesInComponent)
-    }, [edges, getNode, nodes])
-
     const isSatisfied = props.isSatisfied
     const setProblemSolved = props.setProblemSolved
-
-    useEffect(() => {
-        setEdges(edges => edges.map(edge => {
-            const edgeIsSatisfied = isSatisfied.get(edge.data)
-            if (edgeIsSatisfied === undefined) {
-                throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
-            }
-            return { ...edge, animated: edgeIsSatisfied ? false : true }
-        }))
-    }, [isSatisfied, setEdges, setNodes])
-
-    useEffect(() => {
-        if (isCompleted()) {
-            setProblemSolved(true)
-        } else {
-            setProblemSolved(false)
-        }
-    }, [setProblemSolved, isCompleted])
-
     const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
     const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])
 
@@ -298,6 +231,38 @@ export function Diagram(props: DiagramProps) {
             }
         }
     }, [])
+
+    const updateEdgeAnimation = useCallback(() => {
+        setEdges(edges => edges.map(edge => {
+            const edgeIsSatisfied = isSatisfied.get(edge.data)
+            if (edgeIsSatisfied === undefined) {
+                throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
+            }
+            return { ...edge, animated: edgeIsSatisfied ? false : true }
+        }))
+    }, [isSatisfied, setEdges])
+
+    const deleteSelectedNodesExceptGoal = useCallback(() => {
+        const nodes = getNodes()
+        const nodesToBeDeleted = nodes.filter(node => isSelectedAndNotGoal(node))
+        const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
+        deleteEquationsOfEdges(edgesToBeDeleted)
+        const edgeIds = edgesToBeDeleted.map(e => e.id)
+        setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
+        setNodes(nodes => nodes.filter(node => !isSelectedAndNotGoal(node)))
+    }, [])
+
+    useEffect(() => {
+        updateEdgeAnimation()
+    }, [isSatisfied, setEdges, setNodes])
+
+    useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
+
+    useEffect(() => {
+        if (backspacePressed) {
+            deleteSelectedNodesExceptGoal()
+        }
+    }, [backspacePressed, deleteSelectedNodesExceptGoal])
 
     return (
         <>
