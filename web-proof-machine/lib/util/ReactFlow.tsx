@@ -16,6 +16,3 @@ export function getGoal(props: GadgetProps): ReactFlowNode {
         data: props
     };
 }
-export function isSelectedAndNotGoal(node: ReactFlowNode) {
-    return node.selected && node.id !== "goal_gadget";
-}

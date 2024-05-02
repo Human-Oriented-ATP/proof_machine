@@ -1,7 +1,7 @@
-import React, { use, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ReactFlow, {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers, getIncomers, getConnectedEdges, useKeyPress, XYPosition,
+    EdgeTypes, Edge, HandleType, getOutgoers,
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -9,18 +9,18 @@ import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import './flow.css'
-import { axiomToGadget, getTermOfHandle, handleIdFromTerm } from '../lib/game/GameLogic';
+import { axiomToGadget, getTermOfHandle } from '../lib/game/GameLogic';
 import { Axiom } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
 import { Term } from '../lib/game/Term';
 import { GadgetProps } from '../lib/game/Primitives';
 import { useIdGenerator } from '../lib/util/IdGeneratorHook';
 import { ControlButtons, CustomControlProps } from './ControlButtons';
-import { getCenter } from 'lib/util/Point';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { getAllTermsOfGadget } from './Gadget';
-import { getGoal, isSelectedAndNotGoal, hasTargetHandle } from '../lib/util/ReactFlow';
+import { getGoal, hasTargetHandle } from '../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/util/CompletionCheckHook';
+import { useCustomDelete } from 'lib/util/CustomDeleteHook';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -40,13 +40,10 @@ export function Diagram(props: DiagramProps) {
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { getNode, getNodes, getEdges, screenToFlowPosition, fitView } = useReactFlow();
     const [generateGadgetId] = useIdGenerator("gadget_")
-    const backspacePressed = useKeyPress("Backspace")
 
-    const getAdjacentEdges = useCallback((node: ReactFlowNode) => {
-        const edges = getEdges()
-        const adjacentEdges = edges.filter(e => e.source === node.id || e.target === node.id)
-        return adjacentEdges
-    }, [getEdges])
+    const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
+        edges.map(e => props.deleteEquation(e.data))
+    }, [])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
         const sourceTerms: Term[] = getAllTermsOfGadget(getNode(connection.source!)!.data)
@@ -76,10 +73,6 @@ export function Diagram(props: DiagramProps) {
         if (target.id === connection.source) return false;
         return !hasCycle(target);
     }, [getNodes, getEdges]);
-
-    function deleteEquationsOfEdges(edges: Edge[]): void {
-        edges.map(e => props.deleteEquation(e.data))
-    }
 
     function addConnection(connection: Connection): void {
         removeEdgesConnectedToHandle(connection.targetHandle!)
@@ -145,92 +138,8 @@ export function Diagram(props: DiagramProps) {
     }, [getEquationFromConnection, getEdges, getNodes]);
 
     const isSatisfied = props.isSatisfied
-    const setProblemSolved = props.setProblemSolved
     const onConnect = useCallback(addConnection, [props, setEdges, getEquationFromConnection, removeEdgesConnectedToHandle]);
     const onEdgesDelete = useCallback(deleteEquationsOfEdges, [props])
-
-    const MIN_DISTANCE = 100
-
-    const getHandles = useCallback((node: ReactFlowNode) => {
-        const terms = getAllTermsOfGadget(node.data)
-        return terms.map(handleIdFromTerm)
-    }, [])
-
-    const getHandlePositions = useCallback((node: ReactFlowNode) => {
-        const handlePositions: XYPosition[] = []
-        return handlePositions
-    }, [])
-
-    const getClosestHandleToPosition = useCallback((position: XYPosition) => {
-        const result: [string, number] = ["", 0]
-        return result
-    }, [])
-
-    const getClosestHandle = useCallback((node: ReactFlowNode) => {
-        const handlePositions = getHandlePositions(node)
-        const getClosestHandles = handlePositions.map(handlePosition => {
-            return getClosestHandleToPosition(handlePosition)
-        })
-        const [closestHandleId, closestDistance] = getClosestHandles.reduce((acc, [handleId, distance]) => {
-            if (distance < acc[1]) {
-                return [handleId, distance];
-            } else {
-                return acc;
-            }
-        }, ["", Infinity]);
-        if (closestDistance < MIN_DISTANCE) {
-            return closestHandleId
-        } else {
-            return null
-        }
-    }, [])
-
-    const getProximityConnection = useCallback((node: ReactFlowNode) => {
-        const connection: Connection | null = {
-            source: node.id,
-            target: "goal_gadget",
-            sourceHandle: "",
-            targetHandle: ""
-        }
-        return connection
-    }, [])
-
-    let info = useRef("node info")
-    let mouseInfo = useRef("mouse info")
-    let handleInfo = useRef("handle info")
-
-    const getHandlePosition = useCallback((handleId: string) => {
-        const handle = document.querySelector(`[data-handleid="${handleId}"]`);
-        if (handle) {
-            const positionOnScreen = getCenter(handle.getBoundingClientRect());
-            return screenToFlowPosition(positionOnScreen);
-        } else {
-            return null
-        }
-    }, []);
-
-    const onNodeDrag = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
-        info.current = JSON.stringify(node.position)
-        mouseInfo.current = JSON.stringify(screenToFlowPosition({ x: event.clientX, y: event.clientY }))
-        const handles = getHandles(node)
-        const handlePositions = handles.map(getHandlePosition)
-        handleInfo.current = JSON.stringify(handlePositions)
-        // const candidateConnection = getProximityConnection(node)
-        // if (candidateConnection) {
-        //     if (isValidConnection(candidateConnection)) {
-        //         // make target handle glow
-        //     }
-        // }
-    }, [])
-
-    const onNodeDragStop = useCallback((event, node: ReactFlowNode) => {
-        const candidateConnection = getProximityConnection(node)
-        if (getClosestHandle(node)) {
-            if (isValidConnection(candidateConnection)) {
-                addConnection(candidateConnection)
-            }
-        }
-    }, [])
 
     const updateEdgeAnimation = useCallback(() => {
         setEdges(edges => edges.map(edge => {
@@ -242,33 +151,15 @@ export function Diagram(props: DiagramProps) {
         }))
     }, [isSatisfied, setEdges])
 
-    const deleteSelectedNodesExceptGoal = useCallback(() => {
-        const nodes = getNodes()
-        const nodesToBeDeleted = nodes.filter(node => isSelectedAndNotGoal(node))
-        const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
-        deleteEquationsOfEdges(edgesToBeDeleted)
-        const edgeIds = edgesToBeDeleted.map(e => e.id)
-        setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
-        setNodes(nodes => nodes.filter(node => !isSelectedAndNotGoal(node)))
-    }, [])
-
     useEffect(() => {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
-
-    useEffect(() => {
-        if (backspacePressed) {
-            deleteSelectedNodesExceptGoal()
-        }
-    }, [backspacePressed, deleteSelectedNodesExceptGoal])
+    useCustomDelete({ isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges, deleteEquationsOfEdges })
 
     return (
         <>
-            <div>{info.current}</div>
-            <div>{mouseInfo.current}</div>
-            <div>{handleInfo.current}</div>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -283,7 +174,6 @@ export function Diagram(props: DiagramProps) {
                 isValidConnection={isValidConnection}
                 deleteKeyCode={null}
                 minZoom={0.1}
-                onNodeDrag={onNodeDrag}
             >
                 <GadgetPalette {...paletteProps} />
                 <ControlButtons {...props.controlProps}></ControlButtons>
