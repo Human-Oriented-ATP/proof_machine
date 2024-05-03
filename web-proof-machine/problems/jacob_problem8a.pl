@@ -8,7 +8,7 @@ g(10,6,2).
 w(A,B) :- r(A,B,C).
 r(A,B,C) :- r(A,C,B).
 r(A,B,C) :- w(A,B), w(A,C).
-w(B,E) :- g(A,B,C), g(D,E,C), w(A,D).
+w(A,D) :- g(A,B,C), g(D,E,C), w(B,E).
 g(A,B,C) :- g(A,C,B).
 w(A,C) :- w(A,B), w(B,C).
 w(A,D) :- r(A,B,C), r(D,E,C), w(B,E).
