@@ -2,11 +2,14 @@ import { Term, getVariableList, getVariableSet } from "lib/game/Term";
 import { Axiom } from "lib/game/Primitives";
 import { InitializationData } from "lib/game/Initialization";
 
-export const leanDir: string = "GadgetGameSolver/GadgetGameSolver"
+export const leanDir: string = "/GadgetGameSolver/GadgetGameSolver/"
 
 const typeclassName: string = "GadgetProof"
 
-const prelude: string = `set_option trace.Meta.synthInstance true
+const prelude: string = `
+set_option synthInstance.checkSynthOrder false
+set_option synthInstance.maxHeartbeats 100000
+set_option trace.Meta.synthInstance true
 
 inductive Term where
 | var (name : String)
@@ -22,7 +25,7 @@ function termToLean(term: Term): string {
     if ('variable' in term) {
         return term.variable;
     } else {
-        return `${term.label} [${term.args.map(termToLean).join(", ")}]`;
+        return `.app "${term.label}" [${term.args.map(termToLean).join(", ")}]`;
     }
 }
 
