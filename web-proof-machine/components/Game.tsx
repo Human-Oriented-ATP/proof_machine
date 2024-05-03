@@ -35,10 +35,12 @@ export function Game(props: GameProps) {
     }, [equations])
 
     function addEquation(newEquation: Equation) {
+        console.log("Adding equation", JSON.stringify(newEquation))
         setEquations(equations => [...equations, newEquation])
     }
 
     function deleteEquation(equationToBeDeleted: Equation) {
+        console.log("Deleting equation", JSON.stringify(equationToBeDeleted))
         setEquations(equations => equations.filter(equation =>
             JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
     }

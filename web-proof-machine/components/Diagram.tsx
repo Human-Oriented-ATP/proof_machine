@@ -21,6 +21,8 @@ import { getAllTermsOfGadget } from './Gadget';
 import { getGoalNode, hasTargetHandle, init } from '../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/util/CompletionCheckHook';
 import { useCustomDelete } from 'lib/util/CustomDeleteHook';
+import { useProximityConnect } from 'lib/util/ProximityConnectHook';
+import { get } from 'http';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -29,7 +31,7 @@ interface DiagramProps {
     axioms: Axiom[]
     addEquation: (equation: Equation) => void
     deleteEquation: (equation: Equation) => void
-    isSatisfied: Map<Equation, boolean>
+    isSatisfied: Map<string, boolean>
     goal: GadgetProps
     controlProps: CustomControlProps
     setProblemSolved: (b: boolean) => void
@@ -47,7 +49,7 @@ export function Diagram(props: DiagramProps) {
 
     const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
         edges.map(e => props.deleteEquation(e.data))
-    }, [])
+    }, [edges, props])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
         const sourceTerms: Term[] = getAllTermsOfGadget(getNode(connection.source!)!.data)
@@ -78,7 +80,16 @@ export function Diagram(props: DiagramProps) {
         return !hasCycle(target);
     }, [getNodes, getEdges]);
 
-    const onConnect = useCallback((connection: Connection): void => {
+    const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
+        console.log("running")
+        setEdges(edges => {
+            const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
+            deleteEquationsOfEdges(edgesConnectedToThisHandle)
+            return edges.filter(e => !hasTargetHandle(e, handleId))
+        })
+    }, [setEdges, props])
+
+    const savelyAddEdge = useCallback((connection: Connection): void => {
         removeEdgesConnectedToHandle(connection.targetHandle!)
         const equation = getEquationFromConnection(connection)
         props.addEquation(equation)
@@ -90,6 +101,7 @@ export function Diagram(props: DiagramProps) {
                 data: equation
             }, edges)
         });
+        console.log("end of function")
     }, [props, setEdges, getEquationFromConnection])
 
     const paletteProps: GadgetPaletteProps = {
@@ -110,39 +122,37 @@ export function Diagram(props: DiagramProps) {
         setNodes((nodes) => nodes.concat(flowNode));
     }
 
-    const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
-        setEdges(edges => {
-            const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
-            deleteEquationsOfEdges(edgesConnectedToThisHandle)
-            return edges.filter(e => !hasTargetHandle(e, handleId))
-        })
-    }, [setEdges, props])
+    // const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
+    //     params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
 
-    const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
-        params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
+    //     if (params.handleType === "target") {
+    //         removeEdgesConnectedToHandle(params.handleId!)
+    //     }
+    // }, [removeEdgesConnectedToHandle]);
 
-        if (params.handleType === "target") {
-            removeEdgesConnectedToHandle(params.handleId!)
-        }
-    }, [removeEdgesConnectedToHandle]);
+    const isInDiagram = useCallback((connection: Connection): boolean => {
+        const equation = JSON.stringify(getEquationFromConnection(connection))
+        return props.isSatisfied.has(equation)
+    }, [edges, getEquationFromConnection])
 
     const isValidConnection = useCallback((connection: Connection) => {
         const [source, target] = getEquationFromConnection(connection)
         const arityOk = sameArity(source, target)
         const colorsOk = colorsMatch(source, target)
         const noCycle = doesNotCreateACycle(connection)
-        return colorsOk && arityOk && noCycle
+        const notYetAConection = !isInDiagram(connection)
+        return colorsOk && arityOk && noCycle && notYetAConection
     }, [getEquationFromConnection, getEdges, getNodes]);
 
     const isSatisfied = props.isSatisfied
 
     const updateEdgeAnimation = useCallback(() => {
         setEdges(edges => edges.map(edge => {
-            const edgeIsSatisfied = isSatisfied.get(edge.data)
+            const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data))
             if (edgeIsSatisfied === undefined) {
                 throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
             }
-            return { ...edge, animated: edgeIsSatisfied ? false : true }
+            return { ...edge, animated: !edgeIsSatisfied }
         }))
     }, [isSatisfied, setEdges])
 
@@ -150,8 +160,10 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
-    useCustomDelete({ isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges, deleteEquationsOfEdges })
+    // useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
+    // useCustomDelete({ isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges, deleteEquationsOfEdges })
+
+    // const [onNodeDrag, onNodeDragStop] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
 
     return (
         <>
@@ -160,14 +172,19 @@ export function Diagram(props: DiagramProps) {
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
+                onConnect={(c) => {
+                    console.log("onConnect")
+                    savelyAddEdge(c)
+                }}
                 edgeTypes={edgeTypes}
                 nodeTypes={nodeTypes}
                 onInit={() => init(rf)}
-                onConnectStart={onConnectStart}
+                // onConnectStart={onConnectStart}
                 isValidConnection={isValidConnection}
                 deleteKeyCode={null}
                 minZoom={0.1}
+            // onNodeDrag={onNodeDrag}
+            // onNodeDragStop={onNodeDragStop}
             >
                 <GadgetPalette {...paletteProps} />
                 <ControlButtons {...props.controlProps}></ControlButtons>

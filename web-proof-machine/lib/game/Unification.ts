@@ -69,13 +69,13 @@ function unifyEquation(currentAssignment: Assignment, equation: Equation): boole
     }
 }
 
-export function unifyEquations(equations: Equation[]): [Assignment, Map<Equation, boolean>] {
+export function unifyEquations(equations: Equation[]): [Assignment, Map<string, boolean>] {
     const equationIsSatisfied = new Map()
     const assignment: Assignment = new DisjointSetWithAssignment()
     for (let i = 0; i < equations.length; i++) {
         const equation = equations[i]
         const unifiedSuccessfully = unifyEquation(assignment, equation)
-        equationIsSatisfied.set(equation, unifiedSuccessfully)
+        equationIsSatisfied.set(JSON.stringify(equation), unifiedSuccessfully)
     }
     return [assignment, equationIsSatisfied]
 }
