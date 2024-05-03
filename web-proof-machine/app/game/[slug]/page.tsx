@@ -2,6 +2,8 @@ import { loadProblemList } from "lib/game/LoadProblems";
 import { Game } from "components/Game";
 import { promises as fs } from "fs"
 import { parseProblem } from "lib/parsing/Semantics";
+import { InitializationData } from "lib/game/Initialization";
+import { initializationDataToLean, leanDir } from "lib/solver/Solver";
 
 export async function generateStaticParams() {
     let problems = await loadProblemList()
@@ -14,7 +16,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
     const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
 
     try {
-        const initData = parseProblem(problemData.trim())
+        const initData: InitializationData = parseProblem(problemData.trim())
+        const leanFileContents = initializationDataToLean(initData)
+        await fs.writeFile(leanDir + params.slug + ".lean", leanFileContents)
         return <Game initData={initData} />
     } catch (e) {
         return <div>
