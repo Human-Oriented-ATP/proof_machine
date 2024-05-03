@@ -2,7 +2,7 @@ import { Term, getVariableList, getVariableSet } from "lib/game/Term";
 import { Axiom } from "lib/game/Primitives";
 import { InitializationData } from "lib/game/Initialization";
 
-export const leanDir: string = ""
+export const leanDir: string = "GadgetGameSolver/GadgetGameSolver"
 
 const typeclassName: string = "GadgetProof"
 

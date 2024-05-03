@@ -18,7 +18,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
     try {
         const initData: InitializationData = parseProblem(problemData.trim())
         const leanFileContents = initializationDataToLean(initData)
-        await fs.writeFile(leanDir + params.slug + ".lean", leanFileContents)
+        await fs.writeFile(process.cwd() + leanDir + params.slug + ".lean", leanFileContents)
         return <Game initData={initData} />
     } catch (e) {
         return <div>
