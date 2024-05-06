@@ -5,6 +5,7 @@ import { Point, getCenterRelativeToParent } from '../lib/util/Point'
 import { GadgetProps, NodeDisplayProps, GadgetId, Focus }
     from '../lib/game/Primitives'
 import { HolePosition, InternalConnection, makeConnections } from '../lib/game/ConnectionsFromTerms'
+import { Term } from 'lib/game/Term'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1]
@@ -123,4 +124,11 @@ export function Gadget({ ...props }: GadgetProps) {
             </div>
         </div>
     )
+}
+export function getAllTermsOfGadget(props: GadgetProps): Term[] {
+    if (props.output) {
+        return props.inputs.concat(props.output);
+    } else {
+        return props.inputs;
+    }
 }
