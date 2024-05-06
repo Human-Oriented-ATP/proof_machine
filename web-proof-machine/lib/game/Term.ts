@@ -1,7 +1,6 @@
 import { hash } from "../util/Hash"
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment"
 import { Axiom } from "./Primitives"
-import { Term } from "./Term"
 
 export type VariableName = string
 export type FunctionName = string
