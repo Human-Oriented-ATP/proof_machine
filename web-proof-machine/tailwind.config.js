@@ -16,7 +16,8 @@ module.exports = {
       'orange': '#ff9f1a',
       'purple': '#c56cf0',
       'cyan': '#7efff5',
-      'pink': '#ffcccc'
+      'pink': '#ffcccc',
+      'yellow-highlight': "#fffa65",
     },
     extend: {
     },
