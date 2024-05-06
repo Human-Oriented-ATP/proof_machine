@@ -47,6 +47,8 @@ export function Diagram(props: DiagramProps) {
     const getNodes = rf.getNodes
     const getEdges = rf.getEdges
 
+    useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
+
     const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
         edges.map(e => props.deleteEquation(e.data))
     }, [edges, props])
@@ -81,13 +83,13 @@ export function Diagram(props: DiagramProps) {
     }, [getNodes, getEdges]);
 
     const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
-        console.log("running")
+        const edges = getEdges()
+        const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
+        deleteEquationsOfEdges(edgesConnectedToThisHandle)
         setEdges(edges => {
-            const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
-            deleteEquationsOfEdges(edgesConnectedToThisHandle)
             return edges.filter(e => !hasTargetHandle(e, handleId))
         })
-    }, [setEdges, props])
+    }, [getEdges, setEdges, props])
 
     const savelyAddEdge = useCallback((connection: Connection): void => {
         removeEdgesConnectedToHandle(connection.targetHandle!)
@@ -101,7 +103,6 @@ export function Diagram(props: DiagramProps) {
                 data: equation
             }, edges)
         });
-        console.log("end of function")
     }, [props, setEdges, getEquationFromConnection])
 
     const paletteProps: GadgetPaletteProps = {
@@ -122,17 +123,18 @@ export function Diagram(props: DiagramProps) {
         setNodes((nodes) => nodes.concat(flowNode));
     }
 
-    // const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
-    //     params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
+    const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
+        params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
 
-    //     if (params.handleType === "target") {
-    //         removeEdgesConnectedToHandle(params.handleId!)
-    //     }
-    // }, [removeEdgesConnectedToHandle]);
+        if (params.handleType === "target") {
+            removeEdgesConnectedToHandle(params.handleId!)
+        }
+    }, [removeEdgesConnectedToHandle]);
+
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
-        const equation = JSON.stringify(getEquationFromConnection(connection))
-        return props.isSatisfied.has(equation)
+        const edges = getEdges()
+        return edges.some(edge => edge.sourceHandle === connection.sourceHandle && edge.targetHandle === connection.targetHandle)
     }, [edges, getEquationFromConnection])
 
     const isValidConnection = useCallback((connection: Connection) => {
@@ -160,10 +162,9 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    // useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
-    // useCustomDelete({ isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges, deleteEquationsOfEdges })
+    useCustomDelete({ isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges, deleteEquationsOfEdges })
 
-    // const [onNodeDrag, onNodeDragStop] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
+    const [onNodeDrag, onNodeDragStop] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
 
     return (
         <>
@@ -179,12 +180,12 @@ export function Diagram(props: DiagramProps) {
                 edgeTypes={edgeTypes}
                 nodeTypes={nodeTypes}
                 onInit={() => init(rf)}
-                // onConnectStart={onConnectStart}
+                onConnectStart={onConnectStart}
                 isValidConnection={isValidConnection}
                 deleteKeyCode={null}
                 minZoom={0.1}
-            // onNodeDrag={onNodeDrag}
-            // onNodeDragStop={onNodeDragStop}
+                onNodeDrag={onNodeDrag}
+                onNodeDragStop={onNodeDragStop}
             >
                 <GadgetPalette {...paletteProps} />
                 <ControlButtons {...props.controlProps}></ControlButtons>
