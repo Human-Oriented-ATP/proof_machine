@@ -147,11 +147,27 @@ export function Diagram(props: DiagramProps) {
 
     const isSatisfied = props.isSatisfied
 
+    const highlightClasses = ["!border-dashed", "!animate-[spin_10s_linear_infinite]", "!border-black", "!bg-white"]
+
     const updateEdgeAnimation = useCallback(() => {
+        function highlightHandle(handleId: string) {
+            const handle = document.querySelector(`[data-handleid="${handleId}"]`);
+            if (handle) {
+                (handle as HTMLElement).classList.add(...highlightClasses)
+            }
+        }
+
+        document.querySelectorAll("[data-handleid]").forEach(handle => {
+            (handle as HTMLElement).classList.remove(...highlightClasses)
+        })
         setEdges(edges => edges.map(edge => {
             const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data))
             if (edgeIsSatisfied === undefined) {
                 throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
+            }
+            if (edgeIsSatisfied === false) {
+                highlightHandle(edge.sourceHandle!)
+                highlightHandle(edge.targetHandle!)
             }
             return { ...edge, animated: !edgeIsSatisfied }
         }))
