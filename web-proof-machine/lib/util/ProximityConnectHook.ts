@@ -62,22 +62,6 @@ export function useProximityConnect(rf: ReactFlowInstance,
         return allHandlesWithPositions
     }, [])
 
-    const getClosestHandleToPosition = useCallback((position: XYPosition, ignoreNode: string): [HandleInfo, number] => {
-        const nodes = rf.getNodes()
-        const nodesWithoutSelf = nodes.filter(node => node.id !== ignoreNode)
-        const allHandlesWithPositions = nodesWithoutSelf.map(getHandlesWithPositions).flat()
-        const closestHandleWithDistance: [HandleInfo, number] = allHandlesWithPositions.reduce(
-            (acc: [HandleInfo, number], { handle, position: handlePosition }) => {
-                const d = distance(position, handlePosition);
-                if (d < acc[1]) {
-                    return [handle, d];
-                } else {
-                    return acc;
-                }
-            }, [{ nodeId: "", handleId: "", isSource: false }, Infinity]);
-        return closestHandleWithDistance
-    }, [])
-
     const [connectingSourceHandle, setConnectingSourceHandle] = useState("")
     const [connectingTargetHandle, setConnectingTargetHandle] = useState("")
 
@@ -167,13 +151,13 @@ export function useProximityConnect(rf: ReactFlowInstance,
     const highlightHandle = useCallback((handleId: string) => {
         const handle = document.querySelector(`[data-handleid="${handleId}"]`);
         if (handle) {
-            (handle as HTMLElement).style.backgroundColor = "red"
+            (handle as HTMLElement).classList.add("!bg-red")
         }
     }, [])
 
     useEffect(() => {
         document.querySelectorAll("[data-handleid]").forEach(handle => {
-            (handle as HTMLElement).style.backgroundColor = "black"
+            (handle as HTMLElement).classList.remove("!bg-red")
         })
         highlightHandle(connectingSourceHandle)
         highlightHandle(connectingTargetHandle)
