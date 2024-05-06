@@ -1,11 +1,11 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../lib/util/Point'
-import { GadgetProps, NodeDisplayProps, GadgetId, Focus }
+import { GadgetProps, NodeDisplayProps, GadgetId, Focus, isInputPosition, outputPosition, isOutputPosition }
     from '../lib/game/Primitives'
 import { HolePosition, InternalConnection, makeConnections } from '../lib/game/ConnectionsFromTerms'
-import { Term } from 'lib/game/Term'
+import { twMerge } from 'tailwind-merge'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1]
@@ -50,6 +50,11 @@ export function Gadget({ ...props }: GadgetProps) {
         resetFocus: () => setFocussedHole("")
     }
 
+    function hasOutputNode(): boolean {
+        const positions = Array.from(props.terms.keys())
+        return positions.some(isOutputPosition)
+    }
+
     useLayoutEffect(() => {
         function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
             ConnectionDrawingData {
@@ -62,35 +67,40 @@ export function Gadget({ ...props }: GadgetProps) {
             return { start, end, fromInput: from_input, toOutput: to_output }
         }
 
-        if (props.output) {
-            const connections = makeConnections(props.inputs, props.output)
+        if (hasOutputNode()) {
+            const inputs = Array.from(props.terms).filter(key => isInputPosition(key[0]))
+            const inputTerms = inputs.map(kv => kv[1])
+            const connections = makeConnections(inputTerms, props.terms.get(outputPosition)!)
             const drawingData = connections.map(calculateInternalConnectionDrawingData)
             setConnectionState({ connections: drawingData })
         }
 
-    }, [props.inputs, props.output, props.id])
+    }, [props.terms, props.id])
 
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []
-        for (let i = 0; i < props.inputs.length; i++) {
-            const term = props.inputs[i]
+        for (const [position, term] of props.terms) {
             const nodeDisplayProps: NodeDisplayProps = {
                 term,
+                position: position,
+                gadgetId: props.id,
                 holeFocus: focus,
-                isInput: true,
                 useDummyHandle: props.isAxiom,
             }
-            buffer.push(<Node {...nodeDisplayProps}></Node>)
+            if (isInputPosition(position)) {
+                buffer.push(<Node {...nodeDisplayProps}></Node>)
+            }
         }
         return buffer
     }
 
     function makeOutputNodeContainer(): JSX.Element {
-        if (props.output) {
+        if (hasOutputNode()) {
             const nodeDisplayProps = {
-                term: props.output,
+                term: props.terms.get(outputPosition)!,
+                position: outputPosition,
+                gadgetId: props.id,
                 holeFocus: focus,
-                isInput: false,
                 useDummyHandle: props.isAxiom,
             }
             return (<div className="flex flex-col justify-center">
@@ -101,34 +111,20 @@ export function Gadget({ ...props }: GadgetProps) {
         }
     }
 
-    const numberOfInputHolesPerNode = props.inputs.map(term => {
-        if ('variable' in term) {
-            return 0
-        } else {
-            return term.args.length
-        }
-    })
-
-    const margin = props.output ? 25 : 0
+    function hasInputNodes(): boolean {
+        return Array.from(props.terms.keys()).some(isInputPosition)
+    }
 
     return (
-        <div className="text-center">
+        <div className="text-center relative">
             {/* <span style={{ color: "grey" }}>{props.id}</span> */}
-            <div className="flex relative" id={props.id}>
-                <div className="flex flex-col items-start"
-                    style={props.inputs.length === 0 ? {} : { marginRight: margin + "px" }}>
+            <div className={twMerge("flex", hasInputNodes() && "space-x-5")} id={props.id}>
+                <div className="flex flex-col items-start">
                     {makeInputNodes()}
                 </div>
                 {makeOutputNodeContainer()}
-                <ConnectionSvg {...connectionState}></ConnectionSvg>
             </div>
+            <ConnectionSvg {...connectionState}></ConnectionSvg>
         </div>
     )
-}
-export function getAllTermsOfGadget(props: GadgetProps): Term[] {
-    if (props.output) {
-        return props.inputs.concat(props.output);
-    } else {
-        return props.inputs;
-    }
 }

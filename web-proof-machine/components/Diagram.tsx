@@ -9,7 +9,7 @@ import { CustomEdge } from './MultiEdge';
 
 import 'reactflow/dist/style.css';
 import './flow.css'
-import { axiomToGadget, getTermOfHandle } from '../lib/game/GameLogic';
+import { axiomToGadget } from '../lib/game/GameLogic';
 import { Axiom } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
 import { Term } from '../lib/game/Term';
@@ -17,12 +17,11 @@ import { GadgetProps } from '../lib/game/Primitives';
 import { useIdGenerator } from '../lib/util/IdGeneratorHook';
 import { ControlButtons, CustomControlProps } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
-import { getAllTermsOfGadget } from './Gadget';
 import { getGoalNode, hasTargetHandle, init } from '../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/util/CompletionCheckHook';
 import { useCustomDelete } from 'lib/util/CustomDeleteHook';
 import { useProximityConnect } from 'lib/util/ProximityConnectHook';
-import { get } from 'http';
+import { getTermOfHandle } from './Node';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -54,8 +53,8 @@ export function Diagram(props: DiagramProps) {
     }, [edges, props])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
-        const sourceTerms: Term[] = getAllTermsOfGadget(getNode(connection.source!)!.data)
-        const targetTerms: Term[] = getAllTermsOfGadget(getNode(connection.target!)!.data)
+        const sourceTerms = getNode(connection.source!)!.data.terms
+        const targetTerms = getNode(connection.target!)!.data.terms
         const sourceTerm: Term = getTermOfHandle(connection.sourceHandle!, sourceTerms)!
         const targetTerm: Term = getTermOfHandle(connection.targetHandle!, targetTerms)!
         const equation: Equation = [sourceTerm, targetTerm]
@@ -174,7 +173,6 @@ export function Diagram(props: DiagramProps) {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={(c) => {
-                    console.log("onConnect")
                     savelyAddEdge(c)
                 }}
                 edgeTypes={edgeTypes}

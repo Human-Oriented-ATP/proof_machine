@@ -1,10 +1,11 @@
 import { Panel } from 'reactflow';
 import { Gadget } from './Gadget'
 import { axiomTermEnumeration } from '../lib/game/GameLogic';
-import { Axiom } from "../lib/game/Primitives";
+import { Axiom, NodePosition, outputPosition } from "../lib/game/Primitives";
 import { GadgetProps } from '../lib/game/Primitives';
 import { AssignmentContext } from '../lib/game/AssignmentContext';
 import { useIdGenerator } from '../lib/util/IdGeneratorHook';
+import { Term } from 'lib/game/Term';
 
 export interface GadgetPaletteProps {
     axioms: Axiom[]
@@ -27,7 +28,12 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
     resetIdGenerator()
 
     function makeAxiomGadget(axiom: Axiom): GadgetProps {
-        return { inputs: axiom.hypotheses, output: axiom.conclusion, id: getAxiomId(), isAxiom: true }
+        let terms = new Map<NodePosition, Term>()
+        axiom.hypotheses.forEach((hypothesis, i) => {
+            terms.set(i, hypothesis)
+        })
+        terms.set(outputPosition, axiom.conclusion)
+        return { terms, id: getAxiomId(), isAxiom: true }
     }
 
     return (

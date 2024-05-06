@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react"
+import { useEffect } from "react"
 import { useKeyPress, Node, Edge } from "reactflow"
 
 interface CustomDeleteProps {
@@ -35,5 +35,5 @@ export function useCustomDelete(props: CustomDeleteProps) {
         if (backspacePressed) {
             deleteDeletableSelectedNodes()
         }
-    }, [backspacePressed, props])
+    }, [backspacePressed])
 }

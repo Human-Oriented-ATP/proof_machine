@@ -1,9 +1,9 @@
-import { NodeDisplayProps } from '../lib/game/Primitives';
+import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../lib/game/Primitives';
 import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
-import { handleIdFromTerm } from '../lib/game/GameLogic';
 import { DummyHandle } from './DummyHandle';
 import { twJoin } from 'tailwind-merge';
+import { Term } from 'lib/game/Term';
 
 function backgroundColorFromColorAbbreviation(abbreviation: string) {
     let bgcolor = "";
@@ -21,9 +21,23 @@ function backgroundColorFromColorAbbreviation(abbreviation: string) {
     return bgcolor
 }
 
+export function getHandleId(position: NodePosition, gadgetId: string): string {
+    return `handle_${JSON.stringify(position)}_of_${gadgetId}`
+}
+
+export function getTermOfHandle(handleId: string, gadgetTerms: Map<NodePosition, Term>) {
+    const position = handleId.split("_")[1]
+    for (const [termPosition, term] of gadgetTerms) {
+        if (JSON.stringify(termPosition) === position) {
+            return term
+        }
+    }
+    throw Error("Term not found for handle " + handleId)
+}
+
 export function Node(props: NodeDisplayProps) {
     function getHandleProps(id: string): HandleProps {
-        if (props.isInput) {
+        if (isInputPosition(props.position)) {
             return { type: "target", position: Position.Left, id }
         } else {
             return { type: "source", position: Position.Right, id }
@@ -32,10 +46,10 @@ export function Node(props: NodeDisplayProps) {
 
     function renderHandle(): JSX.Element {
         if (!props.useDummyHandle) {
-            const handleId: string = handleIdFromTerm(props.term!)
+            const handleId = getHandleId(props.position, props.gadgetId)
             return <Handle {...getHandleProps(handleId)}></Handle>
         } else {
-            const position = props.isInput ? "left" : "right"
+            const position = (isInputPosition(props.position)) ? "left" : "right"
             return <DummyHandle position={position}></DummyHandle>
         }
     }

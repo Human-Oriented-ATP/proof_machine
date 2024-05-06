@@ -1,9 +1,8 @@
-import { getAllTermsOfGadget } from "components/Gadget"
-import { handleIdFromTerm } from "lib/game/GameLogic"
-import { useCallback, useEffect, useRef, useState } from "react"
-import { XYPosition, Node, Connection, useReactFlow, ReactFlowInstance, addEdge } from "reactflow"
+import { useCallback, useEffect, useState } from "react"
+import { XYPosition, Node, Connection, ReactFlowInstance } from "reactflow"
 import { getCenter } from "./Point"
-import { GadgetProps } from "lib/game/Primitives"
+import { GadgetProps, isOutputPosition } from "lib/game/Primitives"
+import { getHandleId } from "components/Node"
 
 const MIN_DISTANCE = 60
 
@@ -24,16 +23,13 @@ export function useProximityConnect(rf: ReactFlowInstance,
     savelyAddEdge: (connection: Connection) => void) {
 
     const getHandles = useCallback((node: Node<GadgetProps>): HandleInfo[] => {
-        const inputTerms = node.data.inputs
-        const inputHandleIds = inputTerms.map(handleIdFromTerm)
-        const inputHandleInfos = inputHandleIds.map(handleId => ({ nodeId: node.id, handleId, isSource: false }))
-        const outputTerm = node.data.output
-        if (outputTerm) {
-            const outputTermId = handleIdFromTerm(outputTerm)
-            const outputHandleInfo = { nodeId: node.id, handleId: outputTermId, isSource: true }
-            return [...inputHandleInfos, outputHandleInfo]
+        const gadgetProps = node.data
+        let handleInfos: HandleInfo[] = []
+        for (const [position, term] of gadgetProps.terms) {
+            const handleId = getHandleId(position, gadgetProps.id)
+            handleInfos.push({ nodeId: node.id, handleId, isSource: isOutputPosition(position) })
         }
-        return inputHandleInfos
+        return handleInfos
     }, [])
 
     const getHandlePosition = useCallback((handleId: string): XYPosition => {
@@ -82,25 +78,6 @@ export function useProximityConnect(rf: ReactFlowInstance,
         return closestHandleWithDistance
     }, [])
 
-    const getCandidateHandle = useCallback((node: Node) => {
-        const handles = getHandles(node)
-        const handlePositions = handles.map(handle => getHandlePosition(handle.handleId))
-        const closestHandleOfOtherNode = handlePositions.map(position => getClosestHandleToPosition(position, node.id))
-        const [candidateHandle, distance]: [HandleInfo, number] = closestHandleOfOtherNode.reduce(
-            (acc: [HandleInfo, number], [handle, distance]) => {
-                if (distance < acc[1]) {
-                    return [handle, distance];
-                } else {
-                    return acc;
-                }
-            }, [{ nodeId: "", handleId: "", isSource: false }, Infinity]);
-        if (distance < MIN_DISTANCE) {
-            return candidateHandle
-        } else {
-            return null
-        }
-    }, [])
-
     const [connectingSourceHandle, setConnectingSourceHandle] = useState("")
     const [connectingTargetHandle, setConnectingTargetHandle] = useState("")
 
@@ -134,7 +111,6 @@ export function useProximityConnect(rf: ReactFlowInstance,
     }
 
     const getCandidateProximityConnections = useCallback((handle: HandleInfo): ConnectionWithDistance[] => {
-        const position = getHandlePosition(handle.handleId)
         const otherHandles = getHandlesWithPositionExcludingNode(handle.nodeId)
 
         const candidateConnections = otherHandles.flatMap(otherHandle => {

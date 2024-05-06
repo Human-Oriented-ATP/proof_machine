@@ -45,7 +45,7 @@ export function Game(props: GameProps) {
 
     const goalNodeProps: GadgetProps = {
         id: "goal_gadget",
-        inputs: [goal],
+        terms: new Map([[0, goal]]),
         isAxiom: false
     }
 

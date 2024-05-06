@@ -1,14 +1,21 @@
 import { useReactFlow, Node, Edge, getIncomers, getConnectedEdges, } from 'reactflow';
 
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
+import { GadgetProps, isInputPosition } from 'lib/game/Primitives';
 
 interface CompletionCheckProps {
     setProblemSolved: (solved: boolean) => void
     edges: Edge[]
     nodes: Node[]
 }
+
 function onlyContainsValidConnections(edges: Edge[]) {
     return edges.every(edge => !edge.animated);
+}
+
+function getNumberOfInputTerms(gadget: GadgetProps) {
+    const inputTerms = Array.from(gadget.terms.keys()).filter(pos => isInputPosition(pos))
+    return inputTerms.length
 }
 
 export function useCompletionCheck(props: CompletionCheckProps) {
@@ -17,7 +24,7 @@ export function useCompletionCheck(props: CompletionCheckProps) {
     useEffect(() => {
         function hasUnconnectedInputHandle(node: Node): boolean {
             const numberOfIncomingEdges = getIncomers(node, props.nodes, props.edges).length
-            const numberOfInputTerms = node.data.inputs.length
+            const numberOfInputTerms = getNumberOfInputTerms(node.data)
             return numberOfInputTerms !== numberOfIncomingEdges
         }
 
@@ -44,5 +51,5 @@ export function useCompletionCheck(props: CompletionCheckProps) {
         }
 
         props.setProblemSolved(isCompleted())
-    }, [getNode])
+    }, [getNode, props.edges, props.nodes, props.setProblemSolved])
 }
