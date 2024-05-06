@@ -19,13 +19,14 @@ function getNumberOfInputTerms(gadget: GadgetProps) {
 }
 
 export function useCompletionCheck(props: CompletionCheckProps) {
-    const { getNode } = useReactFlow();
+    const { getNode, getEdges } = useReactFlow();
 
     useEffect(() => {
         function hasUnconnectedInputHandle(node: Node): boolean {
-            const numberOfIncomingEdges = getIncomers(node, props.nodes, props.edges).length
+            const edges = getEdges()
+            const incomingEdges = edges.filter(edge => edge.target === node.id)
             const numberOfInputTerms = getNumberOfInputTerms(node.data)
-            return numberOfInputTerms !== numberOfIncomingEdges
+            return numberOfInputTerms !== incomingEdges.length
         }
 
         function isCompleted(): boolean {
