@@ -14,13 +14,13 @@ import { Axiom } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
 import { Term } from '../lib/game/Term';
 import { GadgetProps } from '../lib/game/Primitives';
-import { useIdGenerator } from '../lib/util/IdGeneratorHook';
+import { useIdGenerator } from '../lib/hooks/IdGeneratorHook';
 import { ControlButtons, CustomControlProps } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { getGoalNode, hasTargetHandle, init } from '../lib/util/ReactFlow';
-import { useCompletionCheck } from 'lib/util/CompletionCheckHook';
-import { useCustomDelete } from 'lib/util/CustomDeleteHook';
-import { useProximityConnect } from 'lib/util/ProximityConnectHook';
+import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
+import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
+import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getTermOfHandle } from './Node';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }

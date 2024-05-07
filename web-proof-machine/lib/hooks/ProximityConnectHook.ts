@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { XYPosition, Node, Connection, ReactFlowInstance } from "reactflow"
-import { getCenter } from "./Point"
+import { getCenter } from "../util/Point"
 import { GadgetProps, isOutputPosition } from "lib/game/Primitives"
 import { getHandleId } from "components/Node"
 
