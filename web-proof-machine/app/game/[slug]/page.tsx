@@ -15,7 +15,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
     try {
         const initData = parseProblem(problemData.trim())
-        return <Game initData={initData} />
+        return <Game initData={initData} problemId={params.slug} />
     } catch (e) {
         return <div>
             <div>The problem file couldn't be parsed.</div>

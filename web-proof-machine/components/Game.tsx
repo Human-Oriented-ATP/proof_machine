@@ -11,9 +11,12 @@ import { AssignmentContext } from "../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
 import { Help } from "./Help";
 import Popup, { usePopup } from "./Popup";
+import { GameEvent, GameHistory } from "lib/GameHistory";
+import { synchronizeHistory } from "lib/synchronizeHistory";
 
 export interface GameProps {
     initData: InitializationData
+    problemId: string
 }
 
 export function Game(props: GameProps) {
@@ -27,6 +30,8 @@ export function Game(props: GameProps) {
     const helpPopup = usePopup()
     const problemSolvedPopup = usePopup()
 
+    const history = useRef<GameHistory>(new GameHistory("playerId", props.problemId))
+
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
         enumeration.current.updateEnumeration(assignment)
@@ -35,6 +40,8 @@ export function Game(props: GameProps) {
     }, [equations])
 
     function addEquation(newEquation: Equation) {
+        const event: GameEvent = { newEquation: JSON.stringify(newEquation) }
+        history.current.logEvent(event)
         setEquations(equations => [...equations, newEquation])
     }
 
@@ -58,6 +65,15 @@ export function Game(props: GameProps) {
     const controlProps: CustomControlProps = {
         showHelpWindow: helpPopup.open
     }
+
+    useEffect(() => {
+        try {
+            const historyString = JSON.stringify(history.current)
+            synchronizeHistory(historyString)
+        } catch (e) {
+            console.error(e)
+        }
+    }, [equations])
 
     return <div style={{ width: "100vw", height: "100vh" }}>
         <AssignmentContext.Provider value={termEnumeration}>
