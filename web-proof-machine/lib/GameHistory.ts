@@ -1,12 +1,14 @@
 "use client"
 
-export type GameEvent = { newGadget: string }
-    | { newEquation: string }
-    | { removedGadgets: string[] }
-    | { removedEquations: string[] };
+import { GadgetId, NodePosition } from "./game/Primitives";
+
+export type GameEvent = "COMPLETED"
+    | { GadgetAdded: { gadgetId: GadgetId, axiom: number } }
+    | { EquationAdded: { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } }
+    | { GadgetRemoved: { gadgetId: GadgetId } }
+    | { EquationRemoved: { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } };
 
 export class GameHistory {
-    public playerId: string;
     public problemId: string;
 
     public startTime: Date
@@ -15,11 +17,10 @@ export class GameHistory {
 
     public log: GameEvent[]
 
-    constructor(playerId: string, problemId: string) {
+    constructor(problemId: string) {
         this.completed = false;
         this.startTime = new Date();
         this.log = [];
-        this.playerId = playerId;
         this.problemId = problemId;
     }
 
