@@ -7,7 +7,8 @@ interface CustomDeleteProps {
     edges: Edge[]
     setNodes: any
     setEdges: any
-    deleteEquationsOfEdges: (edges: Edge[]) => void
+    onNodesDelete: (nodes: Node[]) => void
+    onEdgesDelete: (edges: Edge[]) => void
 }
 
 export function useCustomDelete(props: CustomDeleteProps) {
@@ -25,8 +26,9 @@ export function useCustomDelete(props: CustomDeleteProps) {
 
         function deleteDeletableSelectedNodes() {
             const nodesToBeDeleted = props.nodes.filter(node => isSelectedAndDeletable(node))
+            props.onNodesDelete(nodesToBeDeleted)
             const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
-            props.deleteEquationsOfEdges(edgesToBeDeleted)
+            props.onEdgesDelete(edgesToBeDeleted)
             const edgeIds = edgesToBeDeleted.map(e => e.id)
             props.setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
             props.setNodes(nodes => nodes.filter(node => !isSelectedAndDeletable(node)))

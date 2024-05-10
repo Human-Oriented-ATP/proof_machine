@@ -2,16 +2,16 @@
 
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../lib/game/TermEnumeration";
 import { InitializationData } from "../lib/game/Initialization";
-import { GadgetProps } from "../lib/game/Primitives";
+import { Axiom, GadgetProps } from "../lib/game/Primitives";
 import { AssignmentContext } from "../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
 import { Help } from "./Help";
 import Popup, { usePopup } from "./Popup";
-import { GameEvent, GameHistory } from "lib/GameHistory";
+import { GameHistory } from "lib/GameHistory";
 import { synchronizeHistory } from "lib/synchronizeHistory";
 
 export interface GameProps {
@@ -30,7 +30,7 @@ export function Game(props: GameProps) {
     const helpPopup = usePopup()
     const problemSolvedPopup = usePopup()
 
-    const history = useRef<GameHistory>(new GameHistory("playerId", props.problemId))
+    const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const [assignment, eqSatisfied] = unifyEquations(equations)
@@ -39,13 +39,21 @@ export function Game(props: GameProps) {
         return [termEnumeration, eqSatisfied]
     }, [equations])
 
+    function addGadget(gadgetId: string, axiom: Axiom) {
+        history.current.logEvent({ GadgetAdded: { gadgetId, axiom } })
+        synchronizeHistory(JSON.stringify(history.current))
+    }
+
+    function removeGadget(gadgetId: string) {
+        history.current.logEvent({ GadgetRemoved: { gadgetId } })
+        synchronizeHistory(JSON.stringify(history.current))
+    }
+
     function addEquation(newEquation: Equation) {
-        const event: GameEvent = { newEquation: JSON.stringify(newEquation) }
-        history.current.logEvent(event)
         setEquations(equations => [...equations, newEquation])
     }
 
-    function deleteEquation(equationToBeDeleted: Equation) {
+    function removeEquation(equationToBeDeleted: Equation) {
         setEquations(equations => equations.filter(equation =>
             JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
     }
@@ -66,6 +74,15 @@ export function Game(props: GameProps) {
         showHelpWindow: helpPopup.open
     }
 
+    const setProblemSolved = useCallback((b: boolean) => {
+        setIsSolved(b)
+        if (b && !history.current.completed) {
+            history.current.logEvent("COMPLETED")
+            history.current.completed = true
+            synchronizeHistory(JSON.stringify(history.current))
+        }
+    }, [])
+
     useEffect(() => {
         try {
             const historyString = JSON.stringify(history.current)
@@ -80,12 +97,14 @@ export function Game(props: GameProps) {
             <ReactFlowProvider>
                 <Diagram
                     axioms={axioms}
+                    addGadget={addGadget}
+                    removeGadget={removeGadget}
                     addEquation={addEquation}
-                    deleteEquation={deleteEquation}
+                    removeEquation={removeEquation}
                     isSatisfied={eqSatisfied}
                     goal={goalNodeProps}
                     controlProps={controlProps}
-                    setProblemSolved={setIsSolved}
+                    setProblemSolved={setProblemSolved}
                 ></Diagram>
             </ReactFlowProvider>
         </AssignmentContext.Provider>

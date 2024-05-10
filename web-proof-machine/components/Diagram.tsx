@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import ReactFlow, {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers,
+    EdgeTypes, Edge, HandleType, getOutgoers
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -28,8 +28,10 @@ const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
 
 interface DiagramProps {
     axioms: Axiom[]
+    addGadget: (gadgetId: string, axiom: Axiom) => void
+    removeGadget: (gadgetId: string) => void
     addEquation: (equation: Equation) => void
-    deleteEquation: (equation: Equation) => void
+    removeEquation: (equation: Equation) => void
     isSatisfied: Map<string, boolean>
     goal: GadgetProps
     controlProps: CustomControlProps
@@ -49,7 +51,7 @@ export function Diagram(props: DiagramProps) {
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
 
     const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
-        edges.map(e => props.deleteEquation(e.data))
+        edges.map(e => props.removeEquation(e.data))
     }, [edges, props])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
@@ -119,6 +121,7 @@ export function Diagram(props: DiagramProps) {
             }),
             data: axiomToGadget(axiom, id)
         }
+        props.addGadget(id, axiom)
         setNodes((nodes) => nodes.concat(flowNode));
     }
 
@@ -177,7 +180,11 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    useCustomDelete({ isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges, deleteEquationsOfEdges })
+    useCustomDelete({
+        isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges,
+        onEdgesDelete: deleteEquationsOfEdges,
+        onNodesDelete: nodes => nodes.map(node => props.removeGadget(node.id))
+    })
 
     const [onNodeDrag, onNodeDragStop] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
 
