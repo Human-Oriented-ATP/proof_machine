@@ -2,7 +2,7 @@
 
 import { Axiom, GadgetId, NodePosition } from "./game/Primitives";
 
-export type GameEvent = "COMPLETED"
+export type GameEvent = { Completed: null }
     | { GadgetAdded: { gadgetId: GadgetId, axiom: Axiom } }
     | { EquationAdded: { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } }
     | { GadgetRemoved: { gadgetId: GadgetId } }

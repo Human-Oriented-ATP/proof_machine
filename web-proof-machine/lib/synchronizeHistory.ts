@@ -37,6 +37,17 @@ export async function synchronizeHistory(historyString: string) {
     }
 }
 
+export async function retrieveHistory(playerId: string, problemId: string) {
+    try {
+        const x = await sql`SELECT * FROM test1 WHERE player_id=${playerId} AND problem_id=${problemId}`
+        return x
+    } catch (error) {
+        console.log("Error retrieving history.")
+        console.log(error)
+    }
+
+}
+
 export async function createTable(x) {
     try {
         await sql`CREATE TABLE test1 (
