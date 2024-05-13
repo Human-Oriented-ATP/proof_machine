@@ -54,7 +54,8 @@ export function Game(props: GameProps) {
         setEquations(equations => [...equations, newEquation])
     }
 
-    function removeEquation(equationToBeDeleted: Equation) {
+    function removeEquation(from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equationToBeDeleted: Equation) {
+        history.current.logEvent({ EquationRemoved: { from, to } })
         setEquations(equations => equations.filter(equation =>
             JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
     }

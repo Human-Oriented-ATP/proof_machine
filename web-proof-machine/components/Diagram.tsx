@@ -31,7 +31,7 @@ interface DiagramProps {
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
     addEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
-    removeEquation: (equation: Equation) => void
+    removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     isSatisfied: Map<string, boolean>
     goal: GadgetProps
     controlProps: CustomControlProps
@@ -50,8 +50,19 @@ export function Diagram(props: DiagramProps) {
 
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
 
+    const getConnectionInfo = useCallback((connection: Connection | Edge): { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } => {
+        const fromGadget = connection.source!
+        const fromNode = getNodePositionFromHandle(connection.sourceHandle!)
+        const toGadget = connection.target!
+        const toNode = getNodePositionFromHandle(connection.targetHandle!)
+        return { from: [fromGadget, fromNode], to: [toGadget, toNode] }
+    }, [])
+
     const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
-        edges.map(e => props.removeEquation(e.data))
+        edges.map(e => {
+            const connectionInfo = getConnectionInfo(e)
+            props.removeEquation(connectionInfo.from, connectionInfo.to, e.data)
+        })
     }, [edges, props])
 
     const getEquationFromConnection = useCallback((connection: Connection) => {
@@ -95,11 +106,8 @@ export function Diagram(props: DiagramProps) {
     const savelyAddEdge = useCallback((connection: Connection): void => {
         removeEdgesConnectedToHandle(connection.targetHandle!)
         const equation = getEquationFromConnection(connection)
-        const fromGadget = connection.source!
-        const fromNode = getNodePositionFromHandle(connection.sourceHandle!)
-        const toGadget = connection.target!
-        const toNode = getNodePositionFromHandle(connection.targetHandle!)
-        props.addEquation([fromGadget, fromNode], [toGadget, toNode], equation)
+        const connectionInfo = getConnectionInfo(connection)
+        props.addEquation(connectionInfo.from, connectionInfo.to, equation)
         setEdges((edges) => {
             return addEdge({
                 ...connection,
