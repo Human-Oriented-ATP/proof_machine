@@ -1,9 +1,12 @@
-y(1,A).
+c(1,A).
 w(2,1).
 y(3,1).
 g(4,2,3).
 r(S,E) :- c(M,N), b(N,E), w(S,N).
 r(S,E) :- c(M,N), o(N,E), y(S,N).
+w(xw(A),A).
+y(xy(A),A).
+b(xb(A),A).
 p(xp(D),D).
 bl(xbl(D),D).
 w(xw(A,B),A,B).
