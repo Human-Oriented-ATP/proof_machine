@@ -3,14 +3,14 @@
 import { ReactFlowProvider } from "reactflow";
 import { Diagram } from "./Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Equation, unifyEquations } from "../lib/game/Unification";
-import { TermEnumerator, getMaximumNumberInGameData } from "../lib/game/TermEnumeration";
-import { InitializationData } from "../lib/game/Initialization";
-import { Axiom, GadgetId, GadgetProps, NodePosition } from "../lib/game/Primitives";
-import { AssignmentContext } from "../lib/game/AssignmentContext";
+import { Equation, unifyEquations } from "../../lib/game/Unification";
+import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
+import { InitializationData } from "../../lib/game/Initialization";
+import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
+import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
-import { Help } from "./Help";
-import Popup, { usePopup } from "./Popup";
+import { GameHelp } from "./GameHelp";
+import Popup, { usePopup } from "../primitive/Popup";
 import { GameHistory } from "lib/GameHistory";
 import { synchronizeHistory } from "lib/synchronizeHistory";
 
@@ -110,7 +110,7 @@ export function Game(props: GameProps) {
                 ></Diagram>
             </ReactFlowProvider>
         </AssignmentContext.Provider>
-        <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><Help /></Popup>
+        <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         <Popup isOpen={problemSolvedPopup.isOpen} close={problemSolvedPopup.close}><div>Problem solved!</div></Popup>
     </div>
 }

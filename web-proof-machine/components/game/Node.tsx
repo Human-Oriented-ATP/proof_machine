@@ -1,7 +1,7 @@
-import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../lib/game/Primitives';
+import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../../lib/game/Primitives';
 import { Handle, HandleProps, Position } from 'reactflow';
 import { Hole } from './Hole';
-import { DummyHandle } from './DummyHandle';
+import { DummyHandle } from '../primitive/DummyHandle';
 import { twJoin } from 'tailwind-merge';
 import { Term } from 'lib/game/Term';
 

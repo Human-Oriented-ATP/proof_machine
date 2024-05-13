@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { XYPosition, Node, Connection, ReactFlowInstance } from "reactflow"
 import { getCenter } from "../util/Point"
 import { GadgetProps, isOutputPosition } from "lib/game/Primitives"
-import { getHandleId } from "components/Node"
+import { getHandleId } from "components/game/Node"
 
 const MIN_DISTANCE = 60
 

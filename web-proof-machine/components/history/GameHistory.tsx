@@ -6,7 +6,7 @@ interface GameEventDisplayProps {
     event: GameEvent
 }
 
-export function GameEventDisplay(props: GameEventDisplayProps): JSX.Element {
+export function GameEvent(props: GameEventDisplayProps): JSX.Element {
     if ("GadgetAdded" in props.event) {
         const id = props.event.GadgetAdded.gadgetId
         const axiom = props.event.GadgetAdded.axiom
@@ -27,7 +27,7 @@ export function GameEventDisplay(props: GameEventDisplayProps): JSX.Element {
     }
 }
 
-export function GameHistoryDisplay(row: QueryResultRow) {
+export function GameHistory(row: QueryResultRow) {
     const startDate = new Date(row.row.start)
     const latestUpdateDate = new Date(row.row.latest)
     return <div className="p-4">
@@ -36,7 +36,7 @@ export function GameHistoryDisplay(row: QueryResultRow) {
             <div>Latest update: {latestUpdateDate.toLocaleString('en-GB', { timeZone: 'UTC' })}</div>
         </div>
         <div className="p-1 font-mono">
-            {row.row.history.map((event: GameEvent) => <div className="p-2"><GameEventDisplay event={event} /></div>)}
+            {row.row.history.map((event: GameEvent) => <div className="p-2"><GameEvent event={event} /></div>)}
         </div>
     </div>
 }

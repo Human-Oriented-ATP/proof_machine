@@ -1,7 +1,7 @@
 "use client"
 
 import { ChangeEvent, useEffect, useState } from "react"
-import ProblemHistoryDisplay from "./ProblemHistoryDisplay"
+import ProblemHistory from "./ProblemHistory"
 import { getPlayerId } from "lib/synchronizeHistory"
 
 export default function HistorySelector({ problems }: { problems: string[] }) {
@@ -27,6 +27,6 @@ export default function HistorySelector({ problems }: { problems: string[] }) {
                 {problems.map((problem, index) => <option key={index} value={problem}>{problem}</option>)}
             </select>
         </div>
-        <ProblemHistoryDisplay playerId={playerId} problemId={problemId} />
+        <ProblemHistory playerId={playerId} problemId={problemId} />
     </div>
 }

@@ -1,6 +1,6 @@
 import { useContext } from 'react'
-import { HoleProps } from '../lib/game/Primitives'
-import { AssignmentContext } from '../lib/game/AssignmentContext'
+import { HoleProps } from '../../lib/game/Primitives'
+import { AssignmentContext } from '../../lib/game/AssignmentContext'
 import { twMerge } from 'tailwind-merge'
 
 export function Hole(props: HoleProps) {

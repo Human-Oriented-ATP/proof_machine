@@ -1,4 +1,4 @@
-import HistorySelector from 'components/HistorySelector';
+import HistorySelector from 'components/history/HistorySelector';
 import { loadProblemList } from 'lib/game/LoadProblems';
 import React from 'react';
 

@@ -1,6 +1,6 @@
-import { DummyHandle } from "./DummyHandle"
+import { DummyHandle } from "../primitive/DummyHandle"
 
-export function Help() {
+export function GameHelp() {
     return <>
         <h2 className="text-lg">Game Help</h2>
         <ul className="text-left leading-10 p-3">

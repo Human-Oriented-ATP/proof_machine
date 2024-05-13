@@ -1,9 +1,9 @@
 import { retrieveHistory } from "lib/synchronizeHistory"
-import { GameHistoryDisplay } from "./GameHistoryDisplay"
+import { GameHistory } from "./GameHistory"
 import { useEffect, useState } from "react"
 import { QueryResult, QueryResultRow } from "@vercel/postgres"
 
-export default function ProblemHistoryDisplay({ problemId, playerId }) {
+export default function ProblemHistory({ problemId, playerId }) {
     const [history, setHistory] = useState<QueryResult<QueryResultRow> | undefined>(undefined)
 
     useEffect(() => {
@@ -16,7 +16,7 @@ export default function ProblemHistoryDisplay({ problemId, playerId }) {
 
     if (history) {
         return <div>
-            {history.rows.map(row => <GameHistoryDisplay row={row} />)}
+            {history.rows.map(row => <GameHistory row={row} />)}
         </div>
     } else {
         return <div>

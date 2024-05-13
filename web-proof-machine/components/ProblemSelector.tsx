@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import Button from "./Button"
+import Button from "./primitive/Button"
 
 interface ProblemSelectionPaneProps {
     problems: string[]
