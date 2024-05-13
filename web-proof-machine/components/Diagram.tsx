@@ -10,7 +10,7 @@ import { CustomEdge } from './MultiEdge';
 import 'reactflow/dist/style.css';
 import './flow.css'
 import { axiomToGadget } from '../lib/game/GameLogic';
-import { Axiom } from "../lib/game/Primitives";
+import { Axiom, GadgetId, NodePosition } from "../lib/game/Primitives";
 import { Equation } from '../lib/game/Unification';
 import { Term } from '../lib/game/Term';
 import { GadgetProps } from '../lib/game/Primitives';
@@ -21,7 +21,7 @@ import { getGoalNode, hasTargetHandle, init } from '../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
-import { getTermOfHandle } from './Node';
+import { getNodePositionFromHandle, getTermOfHandle } from './Node';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -30,7 +30,7 @@ interface DiagramProps {
     axioms: Axiom[]
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
-    addEquation: (equation: Equation) => void
+    addEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     removeEquation: (equation: Equation) => void
     isSatisfied: Map<string, boolean>
     goal: GadgetProps
@@ -95,7 +95,11 @@ export function Diagram(props: DiagramProps) {
     const savelyAddEdge = useCallback((connection: Connection): void => {
         removeEdgesConnectedToHandle(connection.targetHandle!)
         const equation = getEquationFromConnection(connection)
-        props.addEquation(equation)
+        const fromGadget = connection.source!
+        const fromNode = getNodePositionFromHandle(connection.sourceHandle!)
+        const toGadget = connection.target!
+        const toNode = getNodePositionFromHandle(connection.targetHandle!)
+        props.addEquation([fromGadget, fromNode], [toGadget, toNode], equation)
         setEdges((edges) => {
             return addEdge({
                 ...connection,

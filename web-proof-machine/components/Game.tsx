@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../lib/game/TermEnumeration";
 import { InitializationData } from "../lib/game/Initialization";
-import { Axiom, GadgetProps } from "../lib/game/Primitives";
+import { Axiom, GadgetId, GadgetProps, NodePosition } from "../lib/game/Primitives";
 import { AssignmentContext } from "../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
 import { Help } from "./Help";
@@ -49,7 +49,8 @@ export function Game(props: GameProps) {
         synchronizeHistory(JSON.stringify(history.current))
     }
 
-    function addEquation(newEquation: Equation) {
+    function addEquation(from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], newEquation: Equation) {
+        history.current.logEvent({ EquationAdded: { from, to } })
         setEquations(equations => [...equations, newEquation])
     }
 
@@ -77,7 +78,7 @@ export function Game(props: GameProps) {
     const setProblemSolved = useCallback((b: boolean) => {
         setIsSolved(b)
         if (b && !history.current.completed) {
-            history.current.logEvent("COMPLETED")
+            history.current.logEvent({ Completed: null })
             history.current.completed = true
             synchronizeHistory(JSON.stringify(history.current))
         }

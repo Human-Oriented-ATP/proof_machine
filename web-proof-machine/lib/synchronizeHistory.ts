@@ -3,11 +3,12 @@
 import { sql } from "@vercel/postgres";
 import { cookies } from "next/headers";
 
-function getPlayerId(): string {
+export async function getPlayerId(): Promise<string> {
     const playerId = cookies().get('id')
     if (playerId === undefined) {
         const newPlayerId = Math.random().toString(36).substring(2)
-        cookies().set('id', newPlayerId)
+        const MILLISECONDS_IN_A_YEAR = 1000 * 60 * 60 * 24 * 365
+        cookies().set('id', newPlayerId, { expires: new Date(Date.now() + MILLISECONDS_IN_A_YEAR) })
         return newPlayerId
     } else {
         return playerId.value
@@ -18,7 +19,7 @@ export async function synchronizeHistory(historyString: string) {
     "use server"
     try {
         console.log("Synchronizing history.")
-        const playerId = getPlayerId()
+        const playerId = await getPlayerId()
         const history = JSON.parse(historyString)
         const log: string = JSON.stringify(history.log);
         history.lastSynchronized = new Date().toISOString();

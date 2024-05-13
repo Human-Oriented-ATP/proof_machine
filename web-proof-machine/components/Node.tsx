@@ -35,6 +35,11 @@ export function getTermOfHandle(handleId: string, gadgetTerms: Map<NodePosition,
     throw Error("Term not found for handle " + handleId)
 }
 
+export function getNodePositionFromHandle(handleId: string): NodePosition {
+    const position = handleId.split("_")[1]
+    return JSON.parse(position)
+}
+
 export function Node(props: NodeDisplayProps) {
     function getHandleProps(id: string): HandleProps {
         if (isInputPosition(props.position)) {
