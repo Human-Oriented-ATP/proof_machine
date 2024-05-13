@@ -4,9 +4,11 @@ y(3,1).
 g(4,2,3).
 r(S,E) :- c(N,M), b(M,E), w(S,N).
 r(S,E) :- c(N,M), o(M,E), y(S,N).
+g(xg(A,B),A,B).
 w(xw(A),A).
 y(xy(A),A).
 b(xb(A),A).
+o(xo(A),A).
 p(xp(D),D).
 bl(xbl(D),D).
 w(xw(A,B),A,B).
