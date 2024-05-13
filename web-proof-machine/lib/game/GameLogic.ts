@@ -23,3 +23,21 @@ export function axiomTermEnumeration(t: Term): string {
         }
     }
 }
+
+function termToString(t: Term): string {
+    if ("variable" in t) {
+        return t.variable
+    } else {
+        if (t.args.length === 0) { // constant
+            return t.label
+        } else {
+            return t.label + "(" + t.args.map(termToString).join(", ") + ")"
+        }
+    }
+}
+
+export function axiomToString(a: Axiom) {
+    const hypotheses = a.hypotheses.map(termToString).join(", ")
+    const conclustion = termToString(a.conclusion)
+    return hypotheses + " :- " + conclustion
+}
