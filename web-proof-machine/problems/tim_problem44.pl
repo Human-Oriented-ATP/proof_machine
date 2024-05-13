@@ -12,5 +12,5 @@ c(P,M) :- w(P,M,N).
 c(P,N) :- w(P,M,N). 
 c(P,R) :- c(P,Q), c(Q,R).
 r(A,C) :- r(A,B), r(B,C).
-r(4,5).
+:- r(4,5).
 
