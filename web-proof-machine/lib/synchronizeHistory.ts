@@ -40,7 +40,7 @@ export async function synchronizeHistory(historyString: string) {
 
 export async function retrieveHistory(playerId: string, problemId: string) {
     try {
-        const x = await sql`SELECT * FROM test1 WHERE player_id=${playerId} AND problem_id=${problemId}`
+        const x = await sql`SELECT * FROM test1 WHERE player_id=${playerId} AND problem_id=${problemId} ORDER BY latest DESC`
         return x
     } catch (error) {
         console.log("Error retrieving history.")
