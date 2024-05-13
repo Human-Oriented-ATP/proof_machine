@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import Button from "./Button"
-import { createTable } from "lib/synchronizeHistory"
 
 interface ProblemSelectionPaneProps {
     problems: string[]
@@ -28,8 +27,5 @@ interface ProblemSelectorProps {
 }
 
 export default function ProblemSelector(props: ProblemSelectorProps) {
-    return <>
-        <ProblemSelectionPane problems={props.problems}></ProblemSelectionPane>
-        <Button onClick={() => createTable({})}>Create Table</Button>
-    </>
+    return <ProblemSelectionPane problems={props.problems}></ProblemSelectionPane>
 }
