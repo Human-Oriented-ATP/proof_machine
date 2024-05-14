@@ -1,12 +1,12 @@
-type Problems = {
+export type Problems = {
     [key: string]: string[];
 };
 
-interface StudyConfiguration {
+export interface StudyConfiguration {
     problems: Problems
 }
 
-interface GameLevelButtonProps {
+export interface GameLevelButtonProps {
     label: string
     href: string
     isSolved: boolean

@@ -1,4 +1,5 @@
 import { CheckCircledIcon, LockClosedIcon } from "@radix-ui/react-icons"
+import { GameLevelButtonProps } from "lib/study/Types"
 import Link from "next/link"
 import { twJoin } from "tailwind-merge"
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { GameLevelButton } from "components/primitive/Button";
+import { Problems } from "lib/study/Types";
 import { usePathname } from "next/navigation";
 
 function getNextProblem(allProblems: string[], problem: string) {

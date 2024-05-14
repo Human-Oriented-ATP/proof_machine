@@ -3,9 +3,10 @@
 import { getCompletedProblems } from "lib/study/levelCompleted"
 import { useEffect, useState } from "react"
 import { ProblemCategoryGrid, getNextProblemPath } from "./ProblemGrid"
-import Button, { StartButton } from "components/primitive/Button"
+import { StartButton } from "components/primitive/Button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { StudyConfiguration } from "lib/study/Types"
 
 interface StartFirstUnvoledLevelButtonProps {
     allProblems: string[],
