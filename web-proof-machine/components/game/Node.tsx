@@ -5,20 +5,27 @@ import { DummyHandle } from '../primitive/DummyHandle';
 import { twJoin } from 'tailwind-merge';
 import { Term } from 'lib/game/Term';
 
-function backgroundColorFromColorAbbreviation(abbreviation: string) {
-    let bgcolor = "";
+function backgroundColorFromAbbreviation(abbreviation: string) {
     switch (abbreviation) {
-        case "r": bgcolor = "bg-red"; break;
-        case "y": bgcolor = "bg-yellow"; break;
-        case "g": bgcolor = "bg-green"; break;
-        case "b": bgcolor = "bg-blue"; break;
-        case "w": bgcolor = "bg-white"; break;
-        case "bl": bgcolor = "bg-black"; break;
-        case "o": bgcolor = "bg-orange"; break;
-        case "p": bgcolor = "bg-purple"; break;
-        case "c": bgcolor = "bg-cyan"; break;
+        case "r": return "bg-red";
+        case "y": return "bg-yellow";
+        case "g": return "bg-green";
+        case "b": return "bg-blue";
+        case "w": return "bg-white";
+        case "bl": return "bg-black";
+        case "o": return "bg-orange";
+        case "p": return "bg-purple";
+        case "c": return "bg-cyan";
     }
-    return bgcolor
+}
+
+function backgroundFromColorAbbreviation(abbreviation: string) {
+    if (abbreviation.substring(0, 8) === "striped_") {
+        const color = abbreviation.substring(8)
+        return 'bg-striped ' + backgroundColorFromAbbreviation(color)
+    } else {
+        return backgroundColorFromAbbreviation(abbreviation)
+    }
 }
 
 export function getHandleId(position: NodePosition, gadgetId: string): string {
@@ -63,10 +70,10 @@ export function Node(props: NodeDisplayProps) {
         console.error("Term cannot be rendered as node:" + props.term)
         return <></>
     } else {
-        const backgroundColor = backgroundColorFromColorAbbreviation(props.term.label)
+        const background = backgroundFromColorAbbreviation(props.term.label)
         return (
             <div className="flex items-center">
-                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5", backgroundColor)}>
+                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5", background)}>
                     {props.term.args.map(arg => <Hole term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}

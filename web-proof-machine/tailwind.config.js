@@ -27,6 +27,9 @@ module.exports = {
           '0%, 100%': { transform: 'rotate(0deg)' },
           '50%': { transform: 'rotate(360deg)' },
         }
+      },
+      backgroundImage: {
+        "striped": "url('/diagonal-stripes.svg')",
       }
     }
   },
