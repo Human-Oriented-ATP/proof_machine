@@ -41,6 +41,6 @@ export function GameLevelButton(props: GameLevelButtonProps) {
 export function StartButton(props) {
     return <button className="border-2 border-black bg-green rounded-lg p-5 px-10 hover:bg-black hover:text-white text-2xl"
         {...props}>
-        {props.children}
+        Start
     </button>
 }

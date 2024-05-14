@@ -2,34 +2,34 @@
     "problems": {
         "Tutorial": [
             "0trivial",
-            "problem2",
-            "problem5",
-            "problem5",
-            "problem5"
+            "jacob_easyproblem1",
+            "jacob_easyproblem2",
+            "jacob_easyproblem3",
+            "jacob_easyproblem4"
         ],
-        "Easy": [
+        "Beginner": [
             "problem1",
             "problem2",
-            "problem3",
-            "problem4",
-            "problem5",
-            "problem5",
-            "problem5",
-            "problem5",
-            "problem5",
-            "problem5"
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2"
         ],
         "Advanced": [
             "problem1",
             "problem2",
-            "problem3",
-            "problem4",
-            "problem5",
-            "problem5",
-            "problem5",
-            "problem5",
-            "problem5",
-            "jacob_easyproblem1"
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2",
+            "problem2"
         ]
     }
 }

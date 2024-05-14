@@ -1,16 +1,7 @@
 'use client'
 
 import { GameLevelButton } from "components/primitive/Button";
-import { getCompletedProblems } from "lib/study/levelCompleted";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-
-interface ProblemCategoryProps {
-    category: string;
-    problems: string[];
-    completedProblems: string[];
-    allProblems: string[];
-}
 
 function getNextProblem(allProblems: string[], problem: string) {
     const thisProblemIndex = allProblems.indexOf(problem)
@@ -20,13 +11,20 @@ function getNextProblem(allProblems: string[], problem: string) {
     return allProblems[thisProblemIndex + 1]
 }
 
-function getNextProblemPath(allProblems: string[], problem: string) {
+export function getNextProblemPath(allProblems: string[], problem: string) {
     const nextPoblem = getNextProblem(allProblems, problem)
     if (nextPoblem === undefined) {
         return ""
     } else {
         return `?next=${nextPoblem}`
     }
+}
+
+interface ProblemCategoryProps {
+    category: string;
+    problems: string[];
+    completedProblems: string[];
+    allProblems: string[];
 }
 
 function ProblemCategory(props: ProblemCategoryProps) {
@@ -38,11 +36,9 @@ function ProblemCategory(props: ProblemCategoryProps) {
         </div>
         <div className="grid grid-cols-5">
             {props.problems.map((problem, index) => {
-                const nextProblem = getNextProblem(props.allProblems, problem)
-
                 return <div className="p-2">
                     <GameLevelButton
-                        label={index + 1}
+                        label={`${index + 1}`}
                         href={`${pathName}/game/${problem}${getNextProblemPath(props.allProblems, problem)}`}
                         isSolved={props.completedProblems.includes(problem)}
                         isBlocked={false} />
@@ -52,23 +48,19 @@ function ProblemCategory(props: ProblemCategoryProps) {
     </div>
 }
 
-export function ProblemGrid(props: any) {
-    const [completedProblemsString, setCompletedProblems] = useState<string>("")
+interface ProblemCategoryGridProps {
+    problems: Problems;
+    completedProblems: string[];
+    allProblems: string[];
+}
 
-    useEffect(() => {
-        async function loadProblems() {
-            const completedProblems = await getCompletedProblems()
-            setCompletedProblems(completedProblems)
-        }
-        loadProblems()
-    }, [])
-
-    const completedProblems = completedProblemsString.split(",")
-    const allProblems = Object.values(props.problems).flat()
-
+export function ProblemCategoryGrid(props: ProblemCategoryGridProps) {
     return <div className="grid grid-col-1 space-y-12 text-xl justify-center">
         {Object.entries(props.problems).map(([category, problems]) => {
-            return <ProblemCategory category={category} problems={problems} allProblems={allProblems} completedProblems={completedProblems} />
+            return <ProblemCategory category={category}
+                problems={problems}
+                allProblems={props.allProblems}
+                completedProblems={props.completedProblems} />
         })}
     </div>;
 }
