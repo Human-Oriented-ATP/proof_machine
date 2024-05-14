@@ -2,6 +2,7 @@ import { loadProblemList } from "lib/game/LoadProblems";
 import { Game } from "components/game/Game";
 import { promises as fs } from "fs"
 import { parseProblem } from "lib/parsing/Semantics";
+import { Suspense } from "react";
 
 export async function generateStaticParams() {
     let problems = await loadProblemList()
@@ -15,7 +16,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
 
     try {
         const initData = parseProblem(problemData.trim())
-        return <Game initData={initData} problemId={params.slug} />
+        return <Suspense><Game initData={initData} problemId={params.slug} /></Suspense>
     } catch (e) {
         return <div>
             <div>The problem file couldn't be parsed.</div>
