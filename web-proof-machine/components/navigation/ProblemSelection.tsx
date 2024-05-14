@@ -13,7 +13,7 @@ interface StartFirstUnvoledLevelButtonProps {
     completedProblems: string[]
 }
 
-function StartFirstUnvoledLevelButton(props: StartFirstUnvoledLevelButtonProps) {
+function StartFirstUnsolvedLevelButton(props: StartFirstUnvoledLevelButtonProps) {
     const pathName = usePathname()
 
     const firstUncompletedProblem = props.allProblems.find(problem => !props.completedProblems.includes(problem))
@@ -21,7 +21,7 @@ function StartFirstUnvoledLevelButton(props: StartFirstUnvoledLevelButtonProps) 
         return <></>
     } else {
         const nextProblemPath = getNextProblemPath(props.allProblems, firstUncompletedProblem)
-        return <div className="p-12 bg-white">
+        return <div className="p-12">
             <Link href={`${pathName}/game/${firstUncompletedProblem}${nextProblemPath}`}>
                 <StartButton />
             </Link>
@@ -47,6 +47,6 @@ export function ProblemSelection({ config }: { config: StudyConfiguration }) {
         <div className="p-4">
             <ProblemCategoryGrid problems={config.problems} allProblems={allProblems} completedProblems={completedProblems} />
         </div>
-        <StartFirstUnvoledLevelButton allProblems={allProblems} completedProblems={completedProblems} />
+        <StartFirstUnsolvedLevelButton allProblems={allProblems} completedProblems={completedProblems} />
     </>
 }
