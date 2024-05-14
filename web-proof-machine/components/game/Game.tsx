@@ -15,6 +15,7 @@ import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import LevelCompletedPopup from "components/primitive/LevelCompletedPopup";
 import { markLevelCompleted } from "lib/study/levelCompleted";
+import { axiomToString } from "lib/game/GameLogic";
 
 export interface GameProps {
     initData: InitializationData
@@ -42,7 +43,7 @@ export function Game(props: GameProps) {
     }, [equations])
 
     function addGadget(gadgetId: string, axiom: Axiom) {
-        history.current.logEvent({ GadgetAdded: { gadgetId, axiom } })
+        history.current.logEvent({ GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } })
         synchronizeHistory(JSON.stringify(history.current))
     }
 

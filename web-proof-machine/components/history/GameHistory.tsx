@@ -12,7 +12,7 @@ export function GameEvent(props: GameEventDisplayProps): JSX.Element {
     if ("GadgetAdded" in event) {
         const id = event.GadgetAdded.gadgetId
         const axiom = event.GadgetAdded.axiom
-        return <div>{time} +G {id} <span className="text-sm">{axiomToString(axiom)}</span></div>
+        return <div>{time} +G {id} <span className="text-sm">{axiom}</span></div>
     } else if ("EquationAdded" in event) {
         const from = JSON.stringify(event.EquationAdded.from)
         const to = JSON.stringify(event.EquationAdded.to)
