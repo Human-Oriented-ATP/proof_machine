@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import Button, { HighlightedButton } from './Button';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface LevelCompletedPopupProps {
     isOpen: boolean;
     close: () => void;
-    nextLevelHref?: string;
-    mainScreenHref: string;
 }
 
-function LevelCompletedActionButtons({ mainScreenHref, nextLevelHref }: { mainScreenHref: string, nextLevelHref?: string }) {
+function LevelCompletedActionButtons({ nextLevelHref }: { nextLevelHref?: string }) {
+    const router = useRouter()
+
     if (nextLevelHref !== undefined) {
         return <>
             <div className='float-right'>
@@ -18,32 +19,32 @@ function LevelCompletedActionButtons({ mainScreenHref, nextLevelHref }: { mainSc
                 </Link>
             </div>
             <div className='float-right mr-4'>
-                <Link href={mainScreenHref}>
-                    <Button>Main menu</Button>
-                </Link>
+                <Button onClick={() => router.push("../")}>Main menu</Button>
             </div>
         </>
     } else {
         return <div className='float-right'>
-            <Link href={mainScreenHref}>
-                <HighlightedButton>Main menu</HighlightedButton>
-            </Link>
+            <HighlightedButton onClick={() => router.push("../")}>Main menu</HighlightedButton>
         </div>
     }
 }
 
 export default function LevelCompletedPopup(props: LevelCompletedPopupProps) {
+    const searchParams = useSearchParams()
+    const nextProblem = searchParams.get("next")
+    const nextLevelHref = nextProblem == null ? undefined : `../game/${nextProblem}`
+
     return <>
         {props.isOpen && (
             <div className="fixed inset-0 flex items-center justify-center z-10 backdrop-blur-sm bg-white/30">
-                <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg">
+                <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg text-center">
                     <h2 className='text-2xl'>Level completed!</h2>
                     <div className="text-lg p-6">Well done! You were faster than 90% of other players. That is not at all a white lie to keep you playing.</div>
                     <div className="">
                         <div className='float-left'>
                             <Button onClick={props.close}>Show game</Button>
                         </div>
-                        <LevelCompletedActionButtons mainScreenHref={props.mainScreenHref} nextLevelHref={props.nextLevelHref} />
+                        <LevelCompletedActionButtons nextLevelHref={nextLevelHref} />
                     </div>
                 </div>
             </div>

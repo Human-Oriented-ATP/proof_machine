@@ -1,6 +1,7 @@
 'use client'
 
 import { GameLevelButton } from "components/primitive/Button";
+import { usePathname } from "next/navigation";
 
 interface ProblemCategoryProps {
     category: string;
@@ -12,6 +13,8 @@ function isCompleted(problem: string): boolean {
 }
 
 function ProblemCategory(props: ProblemCategoryProps) {
+    const pathName = usePathname()
+
     return <div className="max-w-xl">
         <div>
             {props.category}
@@ -19,7 +22,7 @@ function ProblemCategory(props: ProblemCategoryProps) {
         <div className="grid grid-cols-5">
             {props.problems.map((problem, index) => {
                 return <div className="p-2">
-                    <GameLevelButton label={index + 1} href={"problem"} isSolved={true} isBlocked={true} />
+                    <GameLevelButton label={index + 1} href={`${pathName}/game/${problem}?next=0trivial`} isSolved={false} isBlocked={false} />
                 </div>
             })}
         </div>

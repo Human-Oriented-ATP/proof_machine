@@ -1,6 +1,6 @@
 import { StartButton } from "components/primitive/Button"
 import pilotConfig from "../../study_setup/pilot1-config.json"
-import { ProblemGrid } from "./ProblemGrid"
+import { ProblemGrid } from "../../components/navigation/ProblemGrid"
 
 export function generateStaticParams() {
     return [{ slug: [''] }]

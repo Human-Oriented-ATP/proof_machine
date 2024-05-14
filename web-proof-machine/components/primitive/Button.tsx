@@ -30,7 +30,7 @@ export function GameLevelButton(props: GameLevelButtonProps) {
         </div>
     } else {
         return <div className="relative">
-            <SquareButton>
+            <SquareButton highlightOnHover={false}>
                 <LockClosedIcon className="w-6 h-6 inline" />
             </SquareButton>
         </div>

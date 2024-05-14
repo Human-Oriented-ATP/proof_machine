@@ -13,6 +13,7 @@ import { GameHelp } from "./GameHelp";
 import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
+import LevelCompletedPopup from "components/primitive/LevelCompletedPopup";
 
 export interface GameProps {
     initData: InitializationData
@@ -111,6 +112,6 @@ export function Game(props: GameProps) {
             </ReactFlowProvider>
         </AssignmentContext.Provider>
         <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
-        <SingleButtonPopup isOpen={problemSolvedPopup.isOpen} close={problemSolvedPopup.close}><div>Problem solved!</div></SingleButtonPopup>
+        <LevelCompletedPopup isOpen={problemSolvedPopup.isOpen} close={problemSolvedPopup.close} />
     </div>
 }
