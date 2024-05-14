@@ -39,7 +39,7 @@ export default function LevelCompletedPopup(props: LevelCompletedPopupProps) {
             <div className="fixed inset-0 flex items-center justify-center z-10 backdrop-blur-sm bg-white/30">
                 <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg text-center">
                     <h2 className='text-2xl'>Level completed!</h2>
-                    <div className="text-lg p-6">Well done! You were faster than 90% of other players. That is not at all a white lie to keep you playing.</div>
+                    <div className="text-lg p-6">Well done! You were faster than 90% of players. That is not at all a white lie to keep you playing.</div>
                     <div className="">
                         <div className='float-left'>
                             <Button onClick={props.close}>Show game</Button>

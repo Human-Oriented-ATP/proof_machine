@@ -24,7 +24,8 @@ export function GameLevelButton(props: GameLevelButtonProps) {
     if (!props.isBlocked) {
         return <div className="relative">
             <Link href={props.href}>
-                {props.isSolved ? <CheckCircledIcon className="w-6 h-6 float-right rounded-full bg-green absolute right-0 bottom-0" /> : <></>}
+                {props.isSolved ?
+                    <CheckCircledIcon className="w-6 h-6 float-right rounded-full bg-green absolute right-0 bottom-0 translate-x-1 translate-y-1" /> : <></>}
                 <SquareButton>{props.label}</SquareButton>
             </Link>
         </div>

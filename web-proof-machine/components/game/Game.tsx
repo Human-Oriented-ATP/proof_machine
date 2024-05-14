@@ -14,6 +14,7 @@ import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButt
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import LevelCompletedPopup from "components/primitive/LevelCompletedPopup";
+import { markLevelCompleted } from "lib/study/levelCompleted";
 
 export interface GameProps {
     initData: InitializationData
@@ -69,6 +70,7 @@ export function Game(props: GameProps) {
 
     useEffect(() => {
         if (isSolved) {
+            markLevelCompleted(props.problemId)
             problemSolvedPopup.open()
         }
     }, [isSolved])

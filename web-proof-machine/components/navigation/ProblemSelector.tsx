@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import Button from "../primitive/Button"
+import { resetProgress } from "lib/study/levelCompleted"
 
 interface ProblemSelectionPaneProps {
     problems: string[]
@@ -23,6 +24,7 @@ function ProblemSelectionPane(props: ProblemSelectionPaneProps) {
             <Link href="pilot1">
                 <Button>Preview Pilot 1</Button>
             </Link>
+            <Button onClick={() => resetProgress()}>Reset progress <span className="text-sm">(pilot only)</span></Button>
             <Link href="view">
                 <Button>View Game History</Button>
             </Link>
