@@ -1,4 +1,4 @@
-import { retrieveHistory } from "lib/synchronizeHistory"
+import { retrieveHistory } from "lib/study/synchronizeHistory"
 import { GameHistory } from "./GameHistory"
 import { useEffect, useState } from "react"
 import { QueryResult, QueryResultRow } from "@vercel/postgres"

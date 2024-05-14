@@ -1,5 +1,5 @@
 import { QueryResultRow } from "@vercel/postgres";
-import { GameEvent } from "lib/GameHistory";
+import { GameEvent } from "lib/study/GameHistory";
 import { axiomToString } from "lib/game/GameLogic";
 
 interface GameEventDisplayProps {

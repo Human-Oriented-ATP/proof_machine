@@ -10,9 +10,9 @@ import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primi
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { CustomControlProps } from "./ControlButtons";
 import { GameHelp } from "./GameHelp";
-import Popup, { usePopup } from "../primitive/Popup";
-import { GameHistory } from "lib/GameHistory";
-import { synchronizeHistory } from "lib/synchronizeHistory";
+import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
+import { GameHistory } from "lib/study/GameHistory";
+import { synchronizeHistory } from "lib/study/synchronizeHistory";
 
 export interface GameProps {
     initData: InitializationData
@@ -27,8 +27,8 @@ export function Game(props: GameProps) {
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
     const [isSolved, setIsSolved] = useState(false)
 
-    const helpPopup = usePopup()
-    const problemSolvedPopup = usePopup()
+    const helpPopup = useSingleButtonPopup()
+    const problemSolvedPopup = useSingleButtonPopup()
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
@@ -110,7 +110,7 @@ export function Game(props: GameProps) {
                 ></Diagram>
             </ReactFlowProvider>
         </AssignmentContext.Provider>
-        <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
-        <Popup isOpen={problemSolvedPopup.isOpen} close={problemSolvedPopup.close}><div>Problem solved!</div></Popup>
+        <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
+        <SingleButtonPopup isOpen={problemSolvedPopup.isOpen} close={problemSolvedPopup.close}><div>Problem solved!</div></SingleButtonPopup>
     </div>
 }

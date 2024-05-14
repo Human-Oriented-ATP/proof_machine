@@ -2,7 +2,7 @@
 
 import { ChangeEvent, useEffect, useState } from "react"
 import ProblemHistory from "./ProblemHistory"
-import { getPlayerId } from "lib/synchronizeHistory"
+import { getPlayerId } from "lib/study/synchronizeHistory"
 
 export default function HistorySelector({ problems }: { problems: string[] }) {
     const [playerId, setPlayerId] = useState("")

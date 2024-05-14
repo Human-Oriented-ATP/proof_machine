@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import Button from './Button';
 
-interface PopupProps {
+interface SingleButtonPopupProps {
     isOpen: boolean;
     close: () => void;
     children: React.ReactNode;
 }
 
-const Popup: React.FC<PopupProps> = (props) => {
+const SingleButtonPopup: React.FC<SingleButtonPopupProps> = (props) => {
     return (
         <>
             {props.isOpen && (
@@ -22,7 +22,7 @@ const Popup: React.FC<PopupProps> = (props) => {
     );
 };
 
-export const usePopup = () => {
+export const useSingleButtonPopup = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const open = () => setIsOpen(true);
@@ -31,4 +31,4 @@ export const usePopup = () => {
     return { isOpen, open, close };
 }
 
-export default Popup;
+export default SingleButtonPopup;

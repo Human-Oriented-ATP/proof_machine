@@ -1,0 +1,35 @@
+{
+    "problems": {
+        "Tutorial": [
+            "tim_easyproblem1",
+            "tim-tim_easyproblem2",
+            "problem5",
+            "problem5",
+            "problem5"
+        ],
+        "Easy": [
+            "problem1",
+            "problem2",
+            "problem3",
+            "problem4",
+            "problem5",
+            "problem5",
+            "problem5",
+            "problem5",
+            "problem5",
+            "problem5"
+        ],
+        "Advanced": [
+            "problem1",
+            "problem2",
+            "problem3",
+            "problem4",
+            "problem5",
+            "problem5",
+            "problem5",
+            "problem5",
+            "problem5",
+            "problem5"
+        ]
+    }
+}
