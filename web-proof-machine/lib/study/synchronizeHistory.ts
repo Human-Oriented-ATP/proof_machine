@@ -46,12 +46,11 @@ export async function retrieveHistory(playerId: string, problemId: string) {
         console.log("Error retrieving history.")
         console.log(error)
     }
-
 }
 
 export async function createTable(x) {
     try {
-        await sql`CREATE TABLE test1 (
+        await sql`CREATE TABLE local-testing (
             player_id VARCHAR(255) NOT NULL,
             problem_id VARCHAR(255) NOT NULL,
             start TIMESTAMP NOT NULL,

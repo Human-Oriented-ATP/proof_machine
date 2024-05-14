@@ -15,7 +15,7 @@ export class GameHistory {
     public lastSynchronized: Date
     public completed: boolean
 
-    public log: GameEvent[]
+    public log: [GameEvent, Date][]
 
     constructor(problemId: string) {
         this.completed = false;
@@ -25,6 +25,6 @@ export class GameHistory {
     }
 
     logEvent(event: GameEvent) {
-        this.log.push(event);
+        this.log.push([event, new Date()]);
     }
 }
