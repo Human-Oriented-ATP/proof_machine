@@ -3,6 +3,8 @@
 import Link from "next/link"
 import Button from "../primitive/Button"
 import { resetProgress } from "lib/study/levelCompleted"
+import { create } from "domain"
+import { createTable } from "lib/study/synchronizeHistory"
 
 function ProblemSelectionButton({ problem }: { problem: string }): JSX.Element {
     return <div className="m-1.5 inline-block">
@@ -18,6 +20,7 @@ export default function MainScreen({ problems }: { problems: string[] }) {
 
         <h2 className="text-xl p-4">You might find the following interesting:</h2>
         <div>
+            {/* <Button onClick={() => createTable({})}>Create Table</Button> */}
             <div className="m-1.5 inline-block">
                 <Link href="pilot1">
                     <Button>Preview Pilot 1</Button>

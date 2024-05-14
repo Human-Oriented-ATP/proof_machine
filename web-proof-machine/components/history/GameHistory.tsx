@@ -3,27 +3,29 @@ import { GameEvent } from "lib/study/GameHistory";
 import { axiomToString } from "lib/game/GameLogic";
 
 interface GameEventDisplayProps {
-    event: GameEvent
+    event: [GameEvent, Date]
 }
 
 export function GameEvent(props: GameEventDisplayProps): JSX.Element {
-    if ("GadgetAdded" in props.event) {
-        const id = props.event.GadgetAdded.gadgetId
-        const axiom = props.event.GadgetAdded.axiom
-        return <div>+G {id} <span className="text-sm">{axiomToString(axiom)}</span></div>
-    } else if ("EquationAdded" in props.event) {
-        const from = JSON.stringify(props.event.EquationAdded.from)
-        const to = JSON.stringify(props.event.EquationAdded.to)
-        return <div>+E {from} {to}</div>
-    } else if ("GadgetRemoved" in props.event) {
-        const id = props.event.GadgetRemoved.gadgetId
-        return <div>-G {id}</div>
-    } else if ("EquationRemoved" in props.event) {
-        const from = JSON.stringify(props.event.EquationRemoved.from)
-        const to = JSON.stringify(props.event.EquationRemoved.to)
-        return <div>-E {from} {to}</div>
+    const [event, timestamp] = props.event
+    const time = new Date(timestamp).toLocaleTimeString('de-DE', { timeZone: 'UTC' })
+    if ("GadgetAdded" in event) {
+        const id = event.GadgetAdded.gadgetId
+        const axiom = event.GadgetAdded.axiom
+        return <div>{time} +G {id} <span className="text-sm">{axiomToString(axiom)}</span></div>
+    } else if ("EquationAdded" in event) {
+        const from = JSON.stringify(event.EquationAdded.from)
+        const to = JSON.stringify(event.EquationAdded.to)
+        return <div>{time} +E {from} {to}</div>
+    } else if ("GadgetRemoved" in event) {
+        const id = event.GadgetRemoved.gadgetId
+        return <div>{time} -G {id}</div>
+    } else if ("EquationRemoved" in event) {
+        const from = JSON.stringify(event.EquationRemoved.from)
+        const to = JSON.stringify(event.EquationRemoved.to)
+        return <div>{time} -E {from} {to}</div>
     } else {
-        return <div>Completed</div>
+        return <div>{time} Completed</div>
     }
 }
 
@@ -36,7 +38,7 @@ export function GameHistory(row: QueryResultRow) {
             <div>Latest update: {latestUpdateDate.toLocaleString('en-GB', { timeZone: 'UTC' })}</div>
         </div>
         <div className="p-1 font-mono">
-            {row.row.history.map((event: GameEvent) => <div className="p-2"><GameEvent event={event} /></div>)}
+            {row.row.history.map((event => <div className="p-2"><GameEvent event={event} /></div>))}
         </div>
     </div>
 }

@@ -24,13 +24,13 @@ export async function synchronizeHistory(historyString: string) {
         const log: string = JSON.stringify(history.log);
         history.lastSynchronized = new Date().toISOString();
         console.log(`Inserting: ${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})`)
-        const x = await sql`INSERT INTO test1 (player_id, problem_id, start, latest, history, completed) VALUES 
+        const x = await sql`INSERT INTO local_testing (player_id, problem_id, start, latest, history, completed) VALUES 
             (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
             ON CONFLICT (player_id, problem_id, start) DO UPDATE
             SET latest= ${history.lastSynchronized}, 
                 history= ${log},
                 completed=${history.completed}
-            WHERE test1.completed=false;`
+            WHERE local_testing.completed=false;`
         console.log(x)
     } catch (error) {
         console.log("Error synchronizing history.")
@@ -40,7 +40,7 @@ export async function synchronizeHistory(historyString: string) {
 
 export async function retrieveHistory(playerId: string, problemId: string) {
     try {
-        const x = await sql`SELECT * FROM test1 WHERE player_id=${playerId} AND problem_id=${problemId} ORDER BY latest DESC`
+        const x = await sql`SELECT * FROM local_testing WHERE player_id=${playerId} AND problem_id=${problemId} ORDER BY latest DESC`
         return x
     } catch (error) {
         console.log("Error retrieving history.")
@@ -50,7 +50,7 @@ export async function retrieveHistory(playerId: string, problemId: string) {
 
 export async function createTable(x) {
     try {
-        await sql`CREATE TABLE local-testing (
+        await sql`CREATE TABLE local_testing (
             player_id VARCHAR(255) NOT NULL,
             problem_id VARCHAR(255) NOT NULL,
             start TIMESTAMP NOT NULL,
