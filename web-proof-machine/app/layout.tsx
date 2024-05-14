@@ -12,7 +12,7 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return <html lang="en">
-        <body>
+        <body className="bg-light-gray">
             <noscript>You need to enable JavaScript to run this app.</noscript>
             <div id="root">{children}</div>
         </body>

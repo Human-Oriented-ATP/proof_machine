@@ -39,7 +39,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
     return (
         <Panel position='top-center'>
             <AssignmentContext.Provider value={axiomTermEnumeration}>
-                <div className="gadgetPalette">
+                <div className="gadgetPalette bg-palette-gray">
                     {props.axioms.map(axiom => {
                         // const id = getAxiomId()
                         return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>

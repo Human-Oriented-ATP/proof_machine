@@ -18,6 +18,8 @@ module.exports = {
       'cyan': '#7efff5',
       'pink': '#ffcccc',
       'yellow-highlight': "#fffa65",
+      'light-gray': "#fefefe",
+      'palette-gray': '#dddddd',
     },
     extend: {
       keyframes: {
