@@ -15,7 +15,7 @@ import { Equation } from '../../lib/game/Unification';
 import { Term } from '../../lib/game/Term';
 import { GadgetProps } from '../../lib/game/Primitives';
 import { useIdGenerator } from '../../lib/hooks/IdGeneratorHook';
-import { ControlButtons, CustomControlProps } from './ControlButtons';
+import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { getGoalNode, hasTargetHandle, init } from '../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
