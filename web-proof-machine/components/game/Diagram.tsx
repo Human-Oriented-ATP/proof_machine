@@ -22,7 +22,6 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getNodePositionFromHandle, getTermOfHandle } from './Node';
-import NodeInspector from './NodeInspector';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -268,7 +267,6 @@ export function Diagram(props: DiagramProps) {
                 onNodeDragStop={onNodeDragStop}
                 nodeOrigin={[0.5, 0.5]}
             >
-                {/* <NodeInspector /> */}
                 <ControlButtons {...props.controlProps}></ControlButtons>
             </ReactFlow>
         </>
