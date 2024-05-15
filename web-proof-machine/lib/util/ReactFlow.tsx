@@ -12,14 +12,16 @@ export function getGoalNode(props: GadgetProps): Node {
     return {
         id: props.id,
         type: 'gadgetFlowNode',
-        position: { x: 300, y: 300 },
+        position: { x: 0, y: 0 },
         data: props
     };
 }
 
 export function init(rf: ReactFlowInstance) {
-    const goalNode: (Partial<Node> & { id: string }) = {
-        id: "goal_gadget"
-    }
-    rf.fitView({ nodes: [goalNode] })
+    const rect = document.getElementById("root")?.getBoundingClientRect()!
+    const positionX = rect.width * 4 / 5
+    const positionY = rect.height / 2
+    const rfPosition = rf.screenToFlowPosition({ x: positionX, y: positionY })
+    const currentZoom = rf.getZoom()
+    rf.setViewport({ x: rfPosition.x, y: rfPosition.y, zoom: currentZoom })
 }
