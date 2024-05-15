@@ -1,5 +1,7 @@
 import Lean
 
+def Array.eraseDups [BEq α] : Array α → Array α
+  | ⟨l⟩ => ⟨l.eraseDups⟩
 namespace Prolog
 
 open Lean Elab Meta Parser
@@ -21,10 +23,6 @@ structure ProblemState where
   axioms : Array Axiom
   target : Term
 deriving Repr, Inhabited
-
-
-syntax lower := "a" <|> "b" <|> "c" <|> "d" <|> "e" <|> "f" <|> "g" <|> "h" <|> "i" <|> "j" <|> "k" <|> "l" <|> "m" <|> "n" <|> "o" <|> "p" <|> "q" <|> "r" <|> "s" <|> "t" <|> "u" <|> "v" <|> "w" <|> "x" <|> "y" <|> "z"
-syntax upper := "A" <|> "B" <|> "C" <|> "D" <|> "E" <|> "F" <|> "G" <|> "H" <|> "I" <|> "J" <|> "K" <|> "L" <|> "M" <|> "N" <|> "O" <|> "P" <|> "Q" <|> "R" <|> "S" <|> "T" <|> "U" <|> "V" <|> "W" <|> "X" <|> "Y" <|> "Z"
 
 declare_syntax_cat fol_term
 syntax (name := var) ident : fol_term
@@ -72,5 +70,63 @@ def parsePrologFile (file : System.FilePath) : MetaM ProblemState := do
   let input ← IO.FS.readFile file
   let stx ← IO.ofExcept <| Parser.runParserCategory (← getEnv) `problem_state input
   return parseProblemState ⟨stx⟩
+
+class ProofState (α : Type) where
+
+local instance : ToExpr Expr where
+  toExpr := id
+  toTypeExpr := mkConst ``Expr
+
+partial def Term.toExpr : Term → Expr
+  | .var v => mkApp (mkConst ``Term.var) (ToExpr.toExpr v)
+  | .app label args => mkApp2 (mkConst ``Term.app) (ToExpr.toExpr label) (ToExpr.toExpr (args.map toExpr))
+
+instance : ToExpr Term where
+  toExpr := Term.toExpr
+  toTypeExpr := mkConst ``Term
+
+partial def Term.collectVars : Term → Array String
+  | .var v => #[v]
+  | .app _ args => (args.concatMap collectVars).eraseDups
+
+def Axiom.collectVars : Axiom → Array String
+  | ⟨hyps, conclusion⟩ =>
+    (hyps.push conclusion).concatMap Term.collectVars |>.eraseDups
+
+partial def Axiom.toExpr : Axiom → Expr
+  | «axiom»@⟨hyps, conclusion⟩ =>
+    let vars := «axiom».collectVars
+    let body := mkForalls (hyps.map (`_inst, .app (mkConst ``ProofState) <| Term.toExpr ·)) (.app (mkConst ``ProofState) <| Term.toExpr conclusion) .instImplicit
+    mkForalls (vars.map (.mkSimple ·, mkConst ``Term)) body .implicit
+where
+  mkForalls (domains : Array (Name × Expr)) (target : Expr) (binderInfo : BinderInfo) : Expr :=
+    let (name, type) := domains.back
+    let targetNew := Expr.forallE name type target binderInfo
+    mkForalls domains.pop targetNew binderInfo
+
+instance : ToExpr Axiom where
+  toExpr := Axiom.toExpr
+  toTypeExpr := mkConst ``Axiom
+
+def addAxiom (name : Name) («axiom» : Axiom) : MetaM Unit := do
+  let .ok env := (← getEnv).addDecl <| .axiomDecl {
+    name := name,
+    levelParams := [],
+    type := toExpr «axiom»,
+    isUnsafe := true
+  } | throwError "Failed to update environment."
+  setEnv env
+  addInstance name .local (prio := 1000)
+
+def solveProblemState (problemState : ProblemState) : MetaM Expr := do
+  for (idx, «axiom») in problemState.axioms.mapIdx (·, ·) do
+    addAxiom (.str `axiom (toString idx.val)) «axiom»
+  synthInstance (.app (mkConst ``ProblemState) (toExpr problemState.target))
+
+elab "#solve_gadget_game_puzzle" file:str : command => Command.runTermElabM fun _ ↦ do
+  let problemState ← parsePrologFile file.getString
+  logInfo (repr problemState)
+  let solution ← withoutModifyingEnv <| solveProblemState problemState
+  logInfo solution
 
 end Prolog
