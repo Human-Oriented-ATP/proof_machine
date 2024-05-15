@@ -21,17 +21,19 @@ export async function synchronizeHistory(historyString: string) {
         console.log("Synchronizing history.")
         const playerId = await getPlayerId()
         const history = JSON.parse(historyString)
-        const log: string = JSON.stringify(history.log);
-        history.lastSynchronized = new Date().toISOString();
-        console.log(`Inserting: ${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})`)
-        const x = await sql`INSERT INTO testing_0 (player_id, problem_id, start, latest, history, completed) VALUES 
-            (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
-            ON CONFLICT (player_id, problem_id, start) DO UPDATE
-            SET latest= ${history.lastSynchronized}, 
-                history= ${log},
-                completed=${history.completed}
-            WHERE testing_0.completed=false;`
-        console.log(x)
+        if (history.log.length !== 0) {
+            const log: string = JSON.stringify(history.log);
+            history.lastSynchronized = new Date().toISOString();
+            console.log(`Inserting: ${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})`)
+            const x = await sql`INSERT INTO testing_0 (player_id, problem_id, start, latest, history, completed) VALUES 
+                (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
+                ON CONFLICT (player_id, problem_id, start) DO UPDATE
+                SET latest= ${history.lastSynchronized}, 
+                    history= ${log},
+                    completed=${history.completed}
+                WHERE testing_0.completed=false;`
+            console.log(x)
+        }
     } catch (error) {
         console.log("Error synchronizing history.")
         console.log(error);
