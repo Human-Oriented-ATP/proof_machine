@@ -267,7 +267,7 @@ export function Diagram(props: DiagramProps) {
                 onNodeDragStop={onNodeDragStop}
                 nodeOrigin={[0.5, 0.5]}
             >
-                <ControlButtons {...props.controlProps}></ControlButtons>
+                <ControlButtons {...props.controlProps} rf={rf} ></ControlButtons>
             </ReactFlow>
         </>
     )
