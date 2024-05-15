@@ -52,5 +52,5 @@ export function useCompletionCheck(props: CompletionCheckProps) {
         }
 
         props.setProblemSolved(isCompleted())
-    }, [getNode, props.edges, props.nodes, props.setProblemSolved])
+    }, [getNode, props])
 }

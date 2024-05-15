@@ -22,6 +22,7 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getNodePositionFromHandle, getTermOfHandle } from './Node';
+import NodeInspector from './NodeInspector';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -76,7 +77,6 @@ export function Diagram(props: DiagramProps) {
                 clientX: dragStartInfo.current.position.x,
                 clientY: dragStartInfo.current.position.y,
             }))
-            console.log(prevented)
         }
         dragStartInfo.current = undefined
     }, [numberOfNodes])
@@ -85,7 +85,7 @@ export function Diagram(props: DiagramProps) {
     const getNodes = rf.getNodes
     const getEdges = rf.getEdges
 
-    useCompletionCheck({ setProblemSolved: props.setProblemSolved, edges, nodes })
+    useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } => {
         const fromGadget = connection.source!
@@ -230,7 +230,8 @@ export function Diagram(props: DiagramProps) {
     }, [isSatisfied, setEdges, setNodes])
 
     const deleteNode = useCustomDelete({
-        isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges,
+        isDeletable: (nodeId: string) => nodeId !== "goal_gadget",
+        getNodes, getEdges, setNodes, setEdges,
         onEdgesDelete: deleteEquationsOfEdges,
         onNodesDelete: nodes => nodes.map(node => props.removeGadget(node.id))
     })
@@ -267,6 +268,7 @@ export function Diagram(props: DiagramProps) {
                 onNodeDragStop={onNodeDragStop}
                 nodeOrigin={[0.5, 0.5]}
             >
+                {/* <NodeInspector /> */}
                 <ControlButtons {...props.controlProps}></ControlButtons>
             </ReactFlow>
         </>
