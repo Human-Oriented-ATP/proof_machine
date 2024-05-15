@@ -76,10 +76,6 @@ export function Game(props: GameProps) {
         }
     }, [isSolved])
 
-    const controlProps: CustomControlProps = {
-        showHelpWindow: helpPopup.open
-    }
-
     const setProblemSolved = useCallback((b: boolean) => {
         setIsSolved(b)
         if (b && !history.current.completed) {
@@ -109,7 +105,7 @@ export function Game(props: GameProps) {
                     removeEquation={removeEquation}
                     isSatisfied={eqSatisfied}
                     goal={goalNodeProps}
-                    controlProps={controlProps}
+                    showHelpWindow={helpPopup.open}
                     setProblemSolved={setProblemSolved}
                 ></Diagram>
             </ReactFlowProvider>
