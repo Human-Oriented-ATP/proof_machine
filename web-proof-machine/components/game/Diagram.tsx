@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers
+    EdgeTypes, Edge, HandleType, getOutgoers, useStore
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -38,11 +38,39 @@ interface DiagramProps {
     setProblemSolved: (b: boolean) => void
 }
 
+const nodesLengthSelector = (state) =>
+    Array.from(state.nodeInternals.values()).length || 0;
+
+interface GadgetDragStartInfo {
+    id: string,
+    x: number,
+    y: number
+}
+
 export function Diagram(props: DiagramProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode(props.goal)]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const rf = useReactFlow();
     const [generateGadgetId] = useIdGenerator("gadget_")
+
+    const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
+
+    const numberOfNodes = useStore(nodesLengthSelector)
+
+    useEffect(() => {
+        if (dragStartInfo.current !== undefined) {
+            const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
+            const prevented = nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: dragStartInfo.current.x,
+                clientY: dragStartInfo.current.y,
+            }))
+            console.log(prevented)
+        }
+        dragStartInfo.current = undefined
+    }, [numberOfNodes])
 
     const getNode = rf.getNode
     const getNodes = rf.getNodes
@@ -118,10 +146,6 @@ export function Diagram(props: DiagramProps) {
         });
     }, [props, setEdges, getEquationFromConnection])
 
-    const paletteProps: GadgetPaletteProps = {
-        axioms: props.axioms,
-        makeGadget: makeGadget
-    }
 
     function makeGadget(axiom: Axiom, e: React.MouseEvent): void {
         const id = generateGadgetId()
@@ -129,12 +153,19 @@ export function Diagram(props: DiagramProps) {
             id: id,
             type: 'gadgetFlowNode',
             position: rf.screenToFlowPosition({
-                x: 180, y: e.clientY
+                x: e.clientX - 50, y: e.clientY - 50
             }),
+            dragging: true,
             data: axiomToGadget(axiom, id)
         }
         props.addGadget(id, axiom)
         setNodes((nodes) => nodes.concat(flowNode));
+        dragStartInfo.current = { id, x: e.clientX, y: e.clientY }
+    }
+
+    const paletteProps: GadgetPaletteProps = {
+        axioms: props.axioms,
+        makeGadget: makeGadget
     }
 
     const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
@@ -160,10 +191,9 @@ export function Diagram(props: DiagramProps) {
         return colorsOk && arityOk && noCycle && notYetAConection
     }, [getEquationFromConnection, getEdges, getNodes]);
 
+
     const isSatisfied = props.isSatisfied
-
     const highlightClasses = ["!border-dashed", "!animate-[spin_10s_linear_infinite]", "!border-black", "!bg-white"]
-
     const updateEdgeAnimation = useCallback(() => {
         function highlightHandle(handleId: string) {
             const handle = document.querySelector(`[data-handleid="${handleId}"]`);
@@ -202,6 +232,7 @@ export function Diagram(props: DiagramProps) {
 
     return (
         <>
+            <GadgetPalette {...paletteProps} />
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
@@ -220,7 +251,6 @@ export function Diagram(props: DiagramProps) {
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}
             >
-                <GadgetPalette {...paletteProps} />
                 <ControlButtons {...props.controlProps}></ControlButtons>
             </ReactFlow>
         </>

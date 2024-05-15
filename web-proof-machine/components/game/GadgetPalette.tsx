@@ -18,7 +18,7 @@ interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
 
 export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonProps):
     JSX.Element {
-    return <div className="insertGadgetButton" onClick={makeGadget}>
+    return <div className="insertGadgetButton" onMouseDown={makeGadget}>
         {children}
     </div>
 }
@@ -39,9 +39,8 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
     return (
         <Panel position='top-center'>
             <AssignmentContext.Provider value={axiomTermEnumeration}>
-                <div className="gadgetPalette bg-palette-gray">
+                <div className="gadgetPalette bg-palette-gray/200">
                     {props.axioms.map(axiom => {
-                        // const id = getAxiomId()
                         return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>
                         </InsertGadgetButton>
