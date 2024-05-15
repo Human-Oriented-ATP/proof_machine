@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers, useStore
+    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -43,8 +43,17 @@ const nodesLengthSelector = (state) =>
 
 interface GadgetDragStartInfo {
     id: string,
-    x: number,
-    y: number
+    position: XYPosition
+}
+
+function containsPoint(rect: DOMRect, point: XYPosition): boolean {
+    return rect.left <= point.x && point.x <= rect.right && rect.top <= point.y && point.y <= rect.bottom
+}
+
+function isAbovePalette(position: XYPosition): boolean {
+    const paletteElement = document.getElementById("gadget_palette")!
+    const paletteRect = paletteElement?.getBoundingClientRect()
+    return containsPoint(paletteRect, position)
 }
 
 export function Diagram(props: DiagramProps) {
@@ -64,8 +73,8 @@ export function Diagram(props: DiagramProps) {
                 bubbles: true,
                 cancelable: true,
                 view: window,
-                clientX: dragStartInfo.current.x,
-                clientY: dragStartInfo.current.y,
+                clientX: dragStartInfo.current.position.x,
+                clientY: dragStartInfo.current.position.y,
             }))
             console.log(prevented)
         }
@@ -147,20 +156,18 @@ export function Diagram(props: DiagramProps) {
     }, [props, setEdges, getEquationFromConnection])
 
 
-    function makeGadget(axiom: Axiom, e: React.MouseEvent): void {
+    function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
         const id = generateGadgetId()
         const flowNode: ReactFlowNode = {
             id: id,
             type: 'gadgetFlowNode',
-            position: rf.screenToFlowPosition({
-                x: e.clientX - 50, y: e.clientY - 50
-            }),
+            position: rf.screenToFlowPosition(axiomPosition),
             dragging: true,
             data: axiomToGadget(axiom, id)
         }
         props.addGadget(id, axiom)
         setNodes((nodes) => nodes.concat(flowNode));
-        dragStartInfo.current = { id, x: e.clientX, y: e.clientY }
+        dragStartInfo.current = { id, position: axiomPosition }
     }
 
     const paletteProps: GadgetPaletteProps = {
@@ -222,13 +229,21 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    useCustomDelete({
+    const deleteNode = useCustomDelete({
         isDeletable: (nodeId: string) => nodeId !== "goal_gadget", nodes, edges, setNodes, setEdges,
         onEdgesDelete: deleteEquationsOfEdges,
         onNodesDelete: nodes => nodes.map(node => props.removeGadget(node.id))
     })
 
-    const [onNodeDrag, onNodeDragStop] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
+    const [onNodeDrag, onNodeDragStopProximityConnect] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
+
+    const onNodeDragStop = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
+        if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
+            deleteNode()
+        } else {
+            onNodeDragStopProximityConnect(event, node)
+        }
+    }, [])
 
     return (
         <>
@@ -250,6 +265,7 @@ export function Diagram(props: DiagramProps) {
                 minZoom={0.1}
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}
+                nodeOrigin={[0.5, 0.5]}
             >
                 <ControlButtons {...props.controlProps}></ControlButtons>
             </ReactFlow>

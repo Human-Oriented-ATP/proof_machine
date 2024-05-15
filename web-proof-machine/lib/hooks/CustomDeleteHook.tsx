@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 import { useKeyPress, Node, Edge } from "reactflow"
 
 interface CustomDeleteProps {
@@ -14,7 +14,8 @@ interface CustomDeleteProps {
 export function useCustomDelete(props: CustomDeleteProps) {
     const backspacePressed = useKeyPress("Backspace")
 
-    useEffect(() => {
+
+    const deleteDeletableSelectedNodes = useCallback(() => {
         function isSelectedAndDeletable(node: Node) {
             return node.selected && props.isDeletable(node.id!);
         }
@@ -24,18 +25,20 @@ export function useCustomDelete(props: CustomDeleteProps) {
             return adjacentEdges
         }
 
-        function deleteDeletableSelectedNodes() {
-            const nodesToBeDeleted = props.nodes.filter(node => isSelectedAndDeletable(node))
-            props.onNodesDelete(nodesToBeDeleted)
-            const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
-            props.onEdgesDelete(edgesToBeDeleted)
-            const edgeIds = edgesToBeDeleted.map(e => e.id)
-            props.setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
-            props.setNodes(nodes => nodes.filter(node => !isSelectedAndDeletable(node)))
-        }
+        const nodesToBeDeleted = props.nodes.filter(node => isSelectedAndDeletable(node))
+        props.onNodesDelete(nodesToBeDeleted)
+        const edgesToBeDeleted = nodesToBeDeleted.map(node => getAdjacentEdges(node)).flat()
+        props.onEdgesDelete(edgesToBeDeleted)
+        const edgeIds = edgesToBeDeleted.map(e => e.id)
+        props.setEdges(edges => edges.filter(edge => !edgeIds.includes(edge.id)))
+        props.setNodes(nodes => nodes.filter(node => !isSelectedAndDeletable(node)))
+    }, [])
 
+    useEffect(() => {
         if (backspacePressed) {
             deleteDeletableSelectedNodes()
         }
     }, [backspacePressed])
+
+    return deleteDeletableSelectedNodes
 }

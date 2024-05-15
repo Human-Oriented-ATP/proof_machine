@@ -1,4 +1,4 @@
-import { Panel } from 'reactflow';
+import { Panel, XYPosition } from 'reactflow';
 import { Gadget } from './Gadget'
 import { axiomTermEnumeration } from '../../lib/game/GameLogic';
 import { Axiom, NodePosition, outputPosition } from "../../lib/game/Primitives";
@@ -6,19 +6,31 @@ import { GadgetProps } from '../../lib/game/Primitives';
 import { AssignmentContext } from '../../lib/game/AssignmentContext';
 import { useIdGenerator } from '../../lib/hooks/IdGeneratorHook';
 import { Term } from 'lib/game/Term';
+import { useRef } from 'react';
 
 export interface GadgetPaletteProps {
     axioms: Axiom[]
-    makeGadget: (a: Axiom, e: React.MouseEvent) => void
+    makeGadget: (a: Axiom, axiomPosition: XYPosition) => void
 }
 
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
-    makeGadget: (e: React.MouseEvent) => void
+    makeGadget: (axiomPosition: XYPosition) => void
 }
 
 export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonProps):
     JSX.Element {
-    return <div className="insertGadgetButton" onMouseDown={makeGadget}>
+    const ref = useRef<HTMLDivElement>(null)
+
+    function getPosition() {
+        const domRect = (ref.current as HTMLElement).getBoundingClientRect()
+        return { x: domRect.left + domRect.width / 2, y: domRect.top + domRect.height / 2 }
+    }
+
+    function onMouseDown(e: React.MouseEvent) {
+        makeGadget(getPosition())
+    }
+
+    return <div ref={ref} className="insertGadgetButton" onMouseDown={onMouseDown}>
         {children}
     </div>
 }
@@ -39,9 +51,9 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
     return (
         <Panel position='top-center'>
             <AssignmentContext.Provider value={axiomTermEnumeration}>
-                <div className="gadgetPalette bg-palette-gray/200">
+                <div id="gadget_palette" className="gadgetPalette bg-palette-gray/50">
                     {props.axioms.map(axiom => {
-                        return <InsertGadgetButton makeGadget={e => props.makeGadget(axiom, e)}>
+                        return <InsertGadgetButton makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>
                         </InsertGadgetButton>
                     })}
