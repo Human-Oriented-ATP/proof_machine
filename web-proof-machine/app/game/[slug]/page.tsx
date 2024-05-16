@@ -21,7 +21,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
         </Suspense>
     } catch (e) {
         return <div>
-            <div>The problem file couldn't be parsed.</div>
+            <div>Problem file not found or unable to parse.</div>
             <div>{e.message}</div>
         </div>
     }
