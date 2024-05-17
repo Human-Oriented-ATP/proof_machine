@@ -5,7 +5,6 @@ import { ProblemSelection } from "./ProblemSelection";
 import { setConfiguration } from "lib/study/LevelConfiguration";
 
 export function StudyScreen({ config }: { config: string }) {
-
     useEffect(() => {
         setConfiguration(config)
     }, [])

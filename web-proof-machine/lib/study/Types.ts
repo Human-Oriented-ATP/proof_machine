@@ -1,3 +1,5 @@
+type DisplayNamesAs = "name" | "number"
+
 export type ProblemCategory = {
     name: string;
     problems: string[];
@@ -5,6 +7,7 @@ export type ProblemCategory = {
 
 export interface StudyConfiguration {
     name: string;
+    displayNamesAs: DisplayNamesAs
     categories: ProblemCategory[]
 }
 

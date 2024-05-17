@@ -1,5 +1,6 @@
 {
     "name": "pilot1",
+    "displayNamesAs": "number",
     "categories": [
         {
             "name": "Tutorial",

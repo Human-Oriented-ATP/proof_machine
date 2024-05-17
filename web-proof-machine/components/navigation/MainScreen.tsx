@@ -3,16 +3,18 @@
 import Link from "next/link"
 import Button from "../primitive/Button"
 import { resetProgress } from "lib/study/CompletedProblems"
+import { ProblemSelection } from "./ProblemSelection"
+import { useEffect } from "react"
+import { setConfiguration } from "lib/study/LevelConfiguration"
+import { useRouter } from "next/navigation"
 
-function ProblemSelectionButton({ problem }: { problem: string }): JSX.Element {
-    return <div className="m-1.5 inline-block">
-        <Link href={"game/" + problem}>
-            <Button>{problem}</Button>
-        </Link>
-    </div>
-}
+export default function MainScreen() {
+    const router = useRouter()
 
-export default function MainScreen({ problems }: { problems: string[] }) {
+    useEffect(() => {
+        setConfiguration("all-problems")
+    }, [])
+
     return <div className="w-screen text-center pt-10">
         <h1 className="text-2xl p-4">Welcome to the Gadgets Game!</h1>
 
@@ -25,8 +27,8 @@ export default function MainScreen({ problems }: { problems: string[] }) {
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
-                <Button onClick={() => { resetProgress(); alert("Progress in the pilot has been reset.") }}>
-                    Reset progress <span className="text-sm">(pilot only)</span></Button>
+                <Button onClick={() => { resetProgress(); alert("Progress in the pilot has been reset."); router.refresh() }}>
+                    Reset progress</Button>
             </div>
             <div className="m-1.5 inline-block">
                 <Link href="view">
@@ -37,7 +39,7 @@ export default function MainScreen({ problems }: { problems: string[] }) {
 
         <h2 className="text-xl p-4">Choose the game you want to play:</h2>
         <div>
-            {problems.map(problem => <ProblemSelectionButton problem={problem}></ProblemSelectionButton>)}
+            <ProblemSelection />
         </div>
     </div>
 }
