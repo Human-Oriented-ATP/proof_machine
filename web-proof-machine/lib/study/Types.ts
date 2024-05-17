@@ -8,6 +8,7 @@ export type ProblemCategory = {
 export interface StudyConfiguration {
     name: string;
     displayNamesAs: DisplayNamesAs
+    displayUnlistedProblems: boolean
     categories: ProblemCategory[]
 }
 

@@ -1,6 +1,7 @@
 {
     "name": "",
     "displayNamesAs": "name",
+    "displayUnlistedProblems": true,
     "categories": [
         {
             "name": "Tutorial",

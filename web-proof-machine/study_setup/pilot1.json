@@ -1,6 +1,7 @@
 {
     "name": "pilot1",
     "displayNamesAs": "number",
+    "displayUnlistedProblems": false,
     "categories": [
         {
             "name": "Tutorial",
