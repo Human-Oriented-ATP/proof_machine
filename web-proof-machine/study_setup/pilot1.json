@@ -5,30 +5,26 @@
         {
             "name": "Tutorial",
             "problems": [
-                "jacob_easyproblem1",
-                "jacob_easyproblem2",
-                "jacob_easyproblem3",
-                "jacob_easyproblem4",
-                "tim_easyproblem1",
-                "tim_easyproblem7"
+                "jacob_easy01",
+                "jacob_easy02",
+                "jacob_easy03",
+                "jacob_easy04",
+                "tim_easy01"
             ]
         },
         {
             "name": "Beginner",
             "problems": [
-                "tim_problem11",
-                "tim_problem17",
-                "tim_problem18",
-                "tim_problem19",
-                "tim_easyproblem4",
-                "tim_easyproblem10",
-                "tim_easyproblem3",
-                "tim_problem8",
-                "jacob_easyproblem5",
-                "tim_problem23",
-                "tim_problem24",
-                "tim_problem33",
-                "tim_problem43"
+                "tim11",
+                "tim17",
+                "tim18",
+                "tim19",
+                "tim_easy04",
+                "tim_easy10",
+                "tim_easy03",
+                "tim08",
+                "jacob_easy05",
+                "tim23"
             ]
         }
     ]
