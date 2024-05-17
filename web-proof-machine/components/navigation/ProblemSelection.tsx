@@ -1,12 +1,11 @@
-"use client"
-
-import { getCompletedProblems } from "lib/study/levelCompleted"
-import { useEffect, useState } from "react"
 import { ProblemCategoryGrid, getNextProblemPath } from "./ProblemGrid"
 import { StartButton } from "components/primitive/Button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { getActiveConfiguration } from "lib/study/LevelConfiguration"
 import { StudyConfiguration } from "lib/study/Types"
+import { useEffect, useState } from "react"
+import { getCompletedProblems } from "lib/study/levelCompleted"
 
 interface StartFirstUnvoledLevelButtonProps {
     allProblems: string[],
@@ -29,8 +28,14 @@ function StartFirstUnsolvedLevelButton(props: StartFirstUnvoledLevelButtonProps)
     }
 }
 
-export function ProblemSelection({ config }: { config: StudyConfiguration }) {
+export function ProblemSelection() {
+    const [config, setConfig] = useState<StudyConfiguration | null>(null)
     const [completedProblemsString, setCompletedProblems] = useState<string>("")
+
+    useEffect(() => {
+        const activeConfiguration = getActiveConfiguration()
+        setConfig(activeConfiguration)
+    }, [])
 
     useEffect(() => {
         async function loadProblems() {
@@ -40,13 +45,18 @@ export function ProblemSelection({ config }: { config: StudyConfiguration }) {
         loadProblems()
     }, [])
 
-    const completedProblems = completedProblemsString.split(",")
-    const allProblems = Object.values(config.problems).flat()
+    if (config === null) {
+        return <div>...loading game...</div>
+    } else {
 
-    return <>
-        <div className="p-4">
-            <ProblemCategoryGrid problems={config.problems} allProblems={allProblems} completedProblems={completedProblems} />
-        </div>
-        <StartFirstUnsolvedLevelButton allProblems={allProblems} completedProblems={completedProblems} />
-    </>
+        const completedProblems = completedProblemsString.split(",")
+        const allProblems = Object.values(config.problems).flat()
+
+        return <>
+            <div className="p-4">
+                <ProblemCategoryGrid problems={config.problems} allProblems={allProblems} completedProblems={completedProblems} />
+            </div>
+            <StartFirstUnsolvedLevelButton allProblems={allProblems} completedProblems={completedProblems} />
+        </>
+    }
 }
