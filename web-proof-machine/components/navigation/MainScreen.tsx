@@ -8,11 +8,13 @@ import { useEffect } from "react"
 import { setConfiguration } from "lib/study/LevelConfiguration"
 import { useRouter } from "next/navigation"
 
+const CONFIG_IDENTIFIER = "all-problems"
+
 export default function MainScreen() {
     const router = useRouter()
 
     useEffect(() => {
-        setConfiguration("all-problems")
+        setConfiguration(CONFIG_IDENTIFIER)
     }, [])
 
     return <div className="w-screen text-center pt-10">
@@ -39,7 +41,7 @@ export default function MainScreen() {
 
         <h2 className="text-xl p-4">Choose the game you want to play:</h2>
         <div>
-            <ProblemSelection />
+            <ProblemSelection configIdentifier={CONFIG_IDENTIFIER} />
         </div>
     </div>
 }

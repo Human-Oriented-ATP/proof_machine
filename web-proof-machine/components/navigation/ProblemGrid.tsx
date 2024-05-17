@@ -1,3 +1,5 @@
+"use client"
+
 import { ProblemCategory as ProblemCategoryType } from "lib/study/Types";
 import { ProblemCategory } from "./ProblemCategory";
 import { getActiveConfiguration, getProblemList } from "lib/study/LevelConfiguration";

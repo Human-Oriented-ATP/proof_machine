@@ -1,10 +1,12 @@
 import '../index.css'
-import MainScreen from '../components/navigation/MainScreen'
+import dynamic from 'next/dynamic'
 
 export function generateStaticParams() {
     return [{ slug: [''] }]
 }
 
+const DynamicMainScreen = dynamic(() => import("components/navigation/MainScreen"), { ssr: false })
+
 export default async function Page() {
-    return <MainScreen />
+    return <DynamicMainScreen />
 }

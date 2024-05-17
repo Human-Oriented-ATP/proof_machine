@@ -1,21 +1,14 @@
 import { ProblemCategoryGrid } from "./ProblemGrid"
-import { getActiveConfiguration } from "lib/study/LevelConfiguration"
-import { StudyConfiguration } from "lib/study/Types"
-import { useEffect, useState } from "react"
+import { getConfigFromIdentifier } from "lib/study/LevelConfiguration"
 import { StartFirstUnsolvedLevelButton } from "./StartFirstUnsolvedLevelButton"
 
-export function ProblemSelection() {
-    const [config, setConfig] = useState<StudyConfiguration | null>(null)
+export function ProblemSelection({ configIdentifier }: { configIdentifier: string }) {
 
-    useEffect(() => {
-        const activeConfiguration = getActiveConfiguration()
-        setConfig(activeConfiguration)
-    }, [])
+    const config = getConfigFromIdentifier(configIdentifier)
 
     if (config === null) {
-        return <div>...loading game...</div>
+        return <div>Something went wrong! Configuration not found.</div>
     } else {
-
         return <>
             <div className="p-4">
                 <ProblemCategoryGrid categories={config.categories} />
@@ -23,4 +16,5 @@ export function ProblemSelection() {
             <StartFirstUnsolvedLevelButton />
         </>
     }
+
 }

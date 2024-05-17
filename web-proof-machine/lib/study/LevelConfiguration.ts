@@ -13,9 +13,7 @@ export function getActiveConfigurationIdentifier(): string | null {
     return config
 }
 
-export function getActiveConfiguration(): StudyConfiguration | null {
-    const configIdentifier = getActiveConfigurationIdentifier()
-
+export function getConfigFromIdentifier(configIdentifier: string): StudyConfiguration | null {
     switch (configIdentifier) {
         case "pilot1":
             return pilot1
@@ -23,6 +21,15 @@ export function getActiveConfiguration(): StudyConfiguration | null {
             return allProblems
     }
     return null
+}
+
+export function getActiveConfiguration(): StudyConfiguration | null {
+    const configIdentifier = getActiveConfigurationIdentifier()
+    if (configIdentifier) {
+        return getConfigFromIdentifier(configIdentifier)
+    } else {
+        return null
+    }
 }
 
 export function getProblemList(config: StudyConfiguration): string[] {
