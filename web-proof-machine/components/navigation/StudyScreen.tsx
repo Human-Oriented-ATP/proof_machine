@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { ProblemSelection } from "./ProblemSelection";
 import { setConfiguration } from "lib/study/LevelConfiguration";
 
 export function StudyScreen({ config }: { config: string }) {
-    useEffect(() => {
+    useLayoutEffect(() => {
         setConfiguration(config)
     }, [])
 
