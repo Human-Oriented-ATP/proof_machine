@@ -1,5 +1,3 @@
-"use client"
-
 import { StudyConfiguration } from "./Types";
 
 import pilot1 from "study_setup/pilot1.json"
@@ -17,6 +15,7 @@ export function getActiveConfigurationIdentifier(): string | null {
 
 export function getActiveConfiguration(): StudyConfiguration | null {
     const configIdentifier = getActiveConfigurationIdentifier()
+
     switch (configIdentifier) {
         case "pilot1":
             return pilot1
@@ -24,4 +23,21 @@ export function getActiveConfiguration(): StudyConfiguration | null {
             return allProblems
     }
     return null
+}
+
+export function getProblemList(config: StudyConfiguration): string[] {
+    const categories = config.categories
+    const problemList = categories.flatMap(category => category.problems)
+    return problemList
+}
+
+export function getNextProblem(config: StudyConfiguration, currentProblem: string): string | undefined {
+    const problemList = getProblemList(config)
+    const currentIndex = problemList.indexOf(currentProblem)
+    if (currentIndex === -1) {
+        return undefined
+    } else {
+        const nextProblem = problemList[currentIndex + 1]
+        return nextProblem
+    }
 }

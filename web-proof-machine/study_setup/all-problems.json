@@ -1,85 +1,104 @@
 {
-    "problems": {
-        "Tutorial": [
-            "jacob_easyproblem1",
-            "jacob_easyproblem2",
-            "jacob_easyproblem3",
-            "jacob_easyproblem4",
-            "tim_easyproblem1",
-            "tim_easyproblem7"
-        ],
-        "Beginner": [
-            "tim_problem11",
-            "tim_problem17",
-            "tim_problem18",
-            "tim_problem19",
-            "tim_easyproblem4",
-            "tim_easyproblem10",
-            "tim_easyproblem3",
-            "tim_problem8",
-            "jacob_easyproblem5",
-            "tim_problem23",
-            "tim_problem24",
-            "tim_problem33",
-            "tim_problem43"
-        ],
-        "Intermediate": [
-            "tim_easyproblem8",
-            "tim_problem12",
-            "tim_easyproblem2",
-            "tim_easyproblem5",
-            "problem4",
-            "tim_problem16",
-            "tim_problem20",
-            "problem5",
-            "tim_easyproblem9",
-            "tim_problem10",
-            "jacob_problem5",
-            "tim_problem29",
-            "tim_problem36",
-            "tim_problem40",
-            "tim_problem41",
-            "tim_problem42",
-            "tim_problem44"        
-        ],    
-        "Advanced": [
-            "problem2",
-            "tim_problem14",
-            "tim_easyproblem6",
-            "problem1",
-            "tim_problem7",
-            "jacob_problem2",
-            "jacob_problem12a",
-            "jacob_problem12b",
-            "jacob_problem8",
-            "jacob_problem7a",
-            "jacob_problem8a",
-            "tim_problem39",
-            "jacob_problem9a",
-            "tim_problem22c",
-            "tim_problem25",
-            "tim_problem27",
-            "tim_problem28",
-            "jacob_problem1",
-            "tim_problem32",
-            "tim_problem34",
-            "tim_problem37a"
-        ],
-        "Expert": [
-            "tim_problem6",
-            "jacob_problem3",
-            "jacob_problem4",
-            "jacob_problem6a",
-            "tim_problem21",
-            "tim_problem9",
-            "tim_problem31",
-            "jacob_problem16",
-            "jacob_problem17"
-        ],
-        "Legend": [
-            "fredy_problem1a",
-            "tim_problem30",
-            "tim_problem35"
-        ]
-    }
+    "name": "",
+    "categories": [
+        {
+            "name": "Tutorial",
+            "problems": [
+                "jacob_easyproblem1",
+                "jacob_easyproblem2",
+                "jacob_easyproblem3",
+                "jacob_easyproblem4",
+                "tim_easyproblem1",
+                "tim_easyproblem7"
+            ]
+        },
+        {
+            "name": "Beginner",
+            "problems": [
+                "tim_problem11",
+                "tim_problem17",
+                "tim_problem18",
+                "tim_problem19",
+                "tim_easyproblem4",
+                "tim_easyproblem10",
+                "tim_easyproblem3",
+                "tim_problem8",
+                "jacob_easyproblem5",
+                "tim_problem23",
+                "tim_problem24",
+                "tim_problem33",
+                "tim_problem43"
+            ]
+        },
+        {
+            "name": "Intermediate",
+            "problems": [
+                "tim_easyproblem8",
+                "tim_problem12",
+                "tim_easyproblem2",
+                "tim_easyproblem5",
+                "problem4",
+                "tim_problem16",
+                "tim_problem20",
+                "problem5",
+                "tim_easyproblem9",
+                "tim_problem10",
+                "jacob_problem5",
+                "tim_problem29",
+                "tim_problem36",
+                "tim_problem40",
+                "tim_problem41",
+                "tim_problem42",
+                "tim_problem44"
+            ]
+        },
+        {
+            "name": "Advanced",
+            "problems": [
+                "problem2",
+                "tim_problem14",
+                "tim_easyproblem6",
+                "problem1",
+                "tim_problem7",
+                "jacob_problem2",
+                "jacob_problem12a",
+                "jacob_problem12b",
+                "jacob_problem8",
+                "jacob_problem7a",
+                "jacob_problem8a",
+                "tim_problem39",
+                "jacob_problem9a",
+                "tim_problem22c",
+                "tim_problem25",
+                "tim_problem27",
+                "tim_problem28",
+                "jacob_problem1",
+                "tim_problem32",
+                "tim_problem34",
+                "tim_problem37a"
+            ]
+        },
+        {
+            "name": "Expert",
+            "problems": [
+                "tim_problem6",
+                "jacob_problem3",
+                "jacob_problem4",
+                "jacob_problem6a",
+                "tim_problem21",
+                "tim_problem9",
+                "tim_problem31",
+                "jacob_problem16",
+                "jacob_problem17"
+            ]
+        },
+        {
+            "name": "Legend",
+            "problems": [
+                "fredy_problem1a",
+                "tim_problem30",
+                "tim_problem35"
+            ]
+        }
+    ]
 }

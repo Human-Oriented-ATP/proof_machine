@@ -1,39 +1,13 @@
 import { useState } from 'react';
-import Button, { HighlightedButton } from './Button';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Button from './Button';
+import { LevelCompletedActionButtons } from './LevelCompletedActionButtons';
 
 interface LevelCompletedPopupProps {
     isOpen: boolean;
     close: () => void;
 }
 
-function LevelCompletedActionButtons({ nextLevelHref }: { nextLevelHref?: string }) {
-    const router = useRouter()
-
-    if (nextLevelHref !== undefined) {
-        return <>
-            <div className='float-right'>
-                <Link href={nextLevelHref}>
-                    <HighlightedButton>Next level</HighlightedButton>
-                </Link>
-            </div>
-            <div className='float-right mr-4'>
-                <Button onClick={() => router.push("../")}>Main menu</Button>
-            </div>
-        </>
-    } else {
-        return <div className='float-right'>
-            <HighlightedButton onClick={() => router.push("../")}>Main menu</HighlightedButton>
-        </div>
-    }
-}
-
 export default function LevelCompletedPopup(props: LevelCompletedPopupProps) {
-    const searchParams = useSearchParams()
-    const nextProblem = searchParams.get("next")
-    const nextLevelHref = nextProblem == null ? undefined : `../game/${nextProblem}`
-
     return <>
         {props.isOpen && (
             <div className="fixed inset-0 flex items-center justify-center z-10 backdrop-blur-sm bg-white/30">
@@ -44,7 +18,7 @@ export default function LevelCompletedPopup(props: LevelCompletedPopupProps) {
                         <div className='float-left'>
                             <Button onClick={props.close}>Show game</Button>
                         </div>
-                        <LevelCompletedActionButtons nextLevelHref={nextLevelHref} />
+                        <LevelCompletedActionButtons />
                     </div>
                 </div>
             </div>

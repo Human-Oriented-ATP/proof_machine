@@ -2,9 +2,7 @@
 
 import Link from "next/link"
 import Button from "../primitive/Button"
-import { resetProgress } from "lib/study/levelCompleted"
-import { create } from "domain"
-import { createTable } from "lib/study/synchronizeHistory"
+import { resetProgress } from "lib/study/CompletedProblems"
 
 function ProblemSelectionButton({ problem }: { problem: string }): JSX.Element {
     return <div className="m-1.5 inline-block">

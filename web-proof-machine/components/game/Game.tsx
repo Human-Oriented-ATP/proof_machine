@@ -8,13 +8,12 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermE
 import { InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import { CustomControlProps } from "./ControlButtons";
 import { GameHelp } from "./GameHelp";
 import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import LevelCompletedPopup from "components/primitive/LevelCompletedPopup";
-import { markLevelCompleted } from "lib/study/levelCompleted";
+import { markLevelCompleted } from "lib/study/CompletedProblems";
 import { axiomToString } from "lib/game/GameLogic";
 
 export interface GameProps {

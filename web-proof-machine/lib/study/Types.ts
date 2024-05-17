@@ -1,9 +1,11 @@
-export type Problems = {
-    [key: string]: string[];
+export type ProblemCategory = {
+    name: string;
+    problems: string[];
 };
 
 export interface StudyConfiguration {
-    problems: Problems
+    name: string;
+    categories: ProblemCategory[]
 }
 
 export interface GameLevelButtonProps {
