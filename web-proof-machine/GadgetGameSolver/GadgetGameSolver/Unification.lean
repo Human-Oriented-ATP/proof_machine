@@ -63,6 +63,9 @@ partial def Term.unify (s t : Term) : ExceptT String UnifyM Unit := do
     for (arg, arg') in Array.zip args args' do
       unify arg arg'
 
+def Term.unifiable? (s t : Term) : UnifyM Bool := withoutModifyingCtx do
+  return (← unify s t |>.run).toBool
+
 def Axiom.instantiateFresh (extension : String) («axiom» : Axiom) : Axiom :=
   let freshVarCtx : PersistentHashMap String Term := «axiom».collectVarsDedup.foldl (init := .empty)
     fun ctx v ↦ ctx.insert v (.var <| modify v)
