@@ -82,15 +82,10 @@ partial def Term.toExpr : Term → Expr
   | .app label args => mkApp2 (mkConst ``Term.app) (ToExpr.toExpr label) (ToExpr.toExpr (args.map toExpr))
 
 partial def Term.quote : Term → TSyntax `term
-  | .var v => TSyntax.mk <| .node .none ``Parser.Term.app #[
-      .ident .none "Term.var".toSubstring ``Term.var [Lean.Syntax.Preresolved.decl `Prolog.Term.var [], Lean.Syntax.Preresolved.namespace `Prolog.Term.var],
-      Quote.quote (k := `term) v]
-  | .app label args => TSyntax.mk <| .node .none ``Parser.Term.app #[
-      .ident .none "Term.app".toSubstring ``Term.app [
-        Lean.Syntax.Preresolved.decl `Prolog.Term.app [],
-        Lean.Syntax.Preresolved.namespace `Prolog.Term.app,
-        Lean.Syntax.Preresolved.namespace `Lean.Parser.Term.app
-      ], .node .none `null (#[Quote.quote (k := `term) label, Quote.quote (k := `term) (args.map quote)])]
+  | .var v => Unhygienic.run `(term| Term.var $(Quote.quote v))
+  | .app label args =>
+    let argsStx := args.map quote
+    Unhygienic.run `(term| Term.app $(Quote.quote label) #[$[$argsStx],*])
 
 instance : Quote Term `term where
   quote := Term.quote
