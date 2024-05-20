@@ -81,6 +81,20 @@ partial def Term.toExpr : Term → Expr
   | .var v => mkApp (mkConst ``Term.var) (ToExpr.toExpr v)
   | .app label args => mkApp2 (mkConst ``Term.app) (ToExpr.toExpr label) (ToExpr.toExpr (args.map toExpr))
 
+partial def Term.quote : Term → TSyntax `term
+  | .var v => TSyntax.mk <| .node .none ``Parser.Term.app #[
+      .ident .none "Term.var".toSubstring ``Term.var [Lean.Syntax.Preresolved.decl `Prolog.Term.var [], Lean.Syntax.Preresolved.namespace `Prolog.Term.var],
+      Quote.quote (k := `term) v]
+  | .app label args => TSyntax.mk <| .node .none ``Parser.Term.app #[
+      .ident .none "Term.app".toSubstring ``Term.app [
+        Lean.Syntax.Preresolved.decl `Prolog.Term.app [],
+        Lean.Syntax.Preresolved.namespace `Prolog.Term.app,
+        Lean.Syntax.Preresolved.namespace `Lean.Parser.Term.app
+      ], .node .none `null (#[Quote.quote (k := `term) label, Quote.quote (k := `term) (args.map quote)])]
+
+instance : Quote Term `term where
+  quote := Term.quote
+
 instance : ToExpr Term where
   toExpr := Term.toExpr
   toTypeExpr := mkConst ``Term
@@ -100,23 +114,26 @@ partial def Axiom.toExpr : Axiom → Expr
     mkForalls (vars.map (.mkSimple ·, mkConst ``Term)) body .implicit
 where
   mkForalls (domains : Array (Name × Expr)) (target : Expr) (binderInfo : BinderInfo) : Expr :=
-    let (name, type) := domains.back
-    let targetNew := Expr.forallE name type target binderInfo
-    mkForalls domains.pop targetNew binderInfo
+    if domains.isEmpty then
+      target
+    else
+      let (name, type) := domains.back
+      let targetNew := Expr.forallE name type target binderInfo
+      mkForalls domains.pop targetNew binderInfo
 
 instance : ToExpr Axiom where
   toExpr := Axiom.toExpr
   toTypeExpr := mkConst ``Axiom
 
 def addAxiom (name : Name) («axiom» : Axiom) : MetaM Unit := do
-  let .ok env := (← getEnv).addDecl <| .axiomDecl {
+  let .ok env := (← getEnv).addAndCompile {} <| .axiomDecl {
     name := name,
     levelParams := [],
     type := toExpr «axiom»,
-    isUnsafe := true
+    isUnsafe := false
   } | throwError "Failed to update environment."
   setEnv env
-  addInstance name .local (prio := 1000)
+  addInstance name .global (prio := 1000)
 
 def solveProblemState (problemState : ProblemState) : MetaM Expr := do
   for (idx, «axiom») in problemState.axioms.mapIdx (·, ·) do
@@ -130,3 +147,11 @@ elab "#solve_gadget_game_puzzle" file:str : command => Command.runTermElabM fun 
   logInfo solution
 
 end Prolog
+
+open Prolog in
+elab "test_axiom%" : term => do
+  let file := "../problems/jacob_easyproblem1.pl"
+  let problemState ← parsePrologFile file
+  return (Axiom.toExpr problemState.axioms[2]!)
+
+#check test_axiom%
