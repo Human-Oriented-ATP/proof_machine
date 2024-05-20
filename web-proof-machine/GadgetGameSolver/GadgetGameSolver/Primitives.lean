@@ -33,4 +33,27 @@ def Axiom.collectVarsDedup : Axiom → Array String
   | ⟨hyps, conclusion⟩ =>
     (hyps.push conclusion).concatMap Term.collectVarsDedup |>.toList.eraseDups.toArray
 
+partial def Term.substitute (var : String) (s : Term) : Term → Term
+  | .var v =>
+    if v = var then
+      s
+    else
+      .var v
+  | .app f args => .app f (args.map <| substitute var s)
+
+partial def Term.isEq : Term → Term → Bool
+  | .var v, .var v' => v = v'
+  | .app f args, .app f' args' =>
+    f = f' && args.size = args'.size &&
+    (Array.zip args args' |>.all <| fun (t, t') ↦ Term.isEq t t')
+  | .var _, .app _ _ => false
+  | .app _ _, .var _ => false
+
+partial def Term.containsVar? (var : String) : Term → Bool
+  | .var v =>
+      if v = var then
+        true
+      else false
+  | .app _ args => args.any <| containsVar? var
+
 end GadgetGame
