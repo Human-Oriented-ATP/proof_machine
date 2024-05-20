@@ -5,7 +5,7 @@ namespace GadgetGame
 
 open Lean Meta
 
-abbrev UnifyM := StateT (PersistentHashMap String Term) Id
+abbrev UnifyM := StateM (PersistentHashMap String Term)
 
 def getCtx : UnifyM (PersistentHashMap String Term) := do return (← get)
 
@@ -17,7 +17,7 @@ def withoutModifyingCtx (act : UnifyM α) : UnifyM α := do
   setCtx ctx
   return a
 
-partial def instantiateVars (t : Term) : UnifyM Term := do
+partial def Term.instantiateVars (t : Term) : UnifyM Term := do
   let ctx ← getCtx
   match t with
   | .var v =>
@@ -26,9 +26,15 @@ partial def instantiateVars (t : Term) : UnifyM Term := do
     | .none => return .var v
   | .app f args => .app f <$> args.mapM instantiateVars
 
+def Axiom.instantiateVars («axiom» : Axiom) : UnifyM Axiom := do
+  return {
+    hypotheses := ← «axiom».hypotheses.mapM Term.instantiateVars
+    conclusion := ← «axiom».conclusion.instantiateVars
+  }
+
 def assign (var : String) (t : Term) : ExceptT String UnifyM Unit := do
   let ctx ← getCtx
-  let t ← instantiateVars t
+  let t ← t.instantiateVars
   unless ! t.containsVar? var do
     throw "Occur check failed."
   match ctx.find? var with
@@ -56,5 +62,12 @@ partial def Term.unify (s t : Term) : ExceptT String UnifyM Unit := do
       throw "The number of arguments does not match."
     for (arg, arg') in Array.zip args args' do
       unify arg arg'
+
+def Axiom.instantiateFresh (extension : String) («axiom» : Axiom) : Axiom :=
+  let freshVarCtx : PersistentHashMap String Term := «axiom».collectVarsDedup.foldl (init := .empty)
+    fun ctx v ↦ ctx.insert v (.var <| modify v)
+  «axiom».instantiateVars.run' freshVarCtx
+where
+  modify : String → String := (· ++ "_" ++ extension)
 
 end GadgetGame
