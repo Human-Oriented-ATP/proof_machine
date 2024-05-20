@@ -1,4 +1,4 @@
-namespace Prolog
+namespace GadgetGame
 
 inductive Term where
   | var (name : String)
@@ -18,4 +18,19 @@ structure ProblemState where
   target : Term
 deriving Repr, Inhabited
 
-end Prolog
+partial def Term.collectVars : Term → Array String
+  | .var v => #[v]
+  | .app _ args => args.concatMap collectVars
+
+def Term.collectVarsDedup (t : Term) : Array String :=
+  t.collectVars.toList.eraseDups.toArray
+
+def Axiom.collectVars : Axiom → Array String
+  | ⟨hyps, conclusion⟩ =>
+    (hyps.push conclusion).concatMap Term.collectVars
+
+def Axiom.collectVarsDedup : Axiom → Array String
+  | ⟨hyps, conclusion⟩ =>
+    (hyps.push conclusion).concatMap Term.collectVarsDedup |>.toList.eraseDups.toArray
+
+end GadgetGame

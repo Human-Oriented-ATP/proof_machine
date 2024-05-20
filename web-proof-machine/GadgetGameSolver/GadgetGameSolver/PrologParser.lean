@@ -3,7 +3,7 @@ import GadgetGameSolver.Primitives
 
 def Array.eraseDups [BEq α] : Array α → Array α
   | ⟨l⟩ => ⟨l.eraseDups⟩
-namespace Prolog
+namespace GadgetGame
 
 open Lean Elab Meta Command Parser
 
@@ -54,4 +54,4 @@ def parsePrologFile [Monad M] [MonadLiftT IO M] [MonadEnv M] (file : System.File
   let stx ← IO.ofExcept <| Parser.runParserCategory (← getEnv) `problem_state input
   return parseProblemState ⟨stx⟩
 
-end Prolog
+end GadgetGame

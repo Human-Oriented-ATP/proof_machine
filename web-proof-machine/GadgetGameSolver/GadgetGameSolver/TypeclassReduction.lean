@@ -1,6 +1,6 @@
 import GadgetGameSolver.PrologParser
 
-namespace Prolog
+namespace GadgetGame
 
 class ProofState (α : Term) where
 
@@ -28,17 +28,9 @@ instance : ToExpr Term where
   toExpr := Term.toExpr
   toTypeExpr := mkConst ``Term
 
-partial def Term.collectVars : Term → Array String
-  | .var v => #[v]
-  | .app _ args => (args.concatMap collectVars).eraseDups
-
-def Axiom.collectVars : Axiom → Array String
-  | ⟨hyps, conclusion⟩ =>
-    (hyps.push conclusion).concatMap Term.collectVars |>.eraseDups
-
 partial def Axiom.toExpr : Axiom → Expr
   | «axiom»@⟨hyps, conclusion⟩ =>
-    let vars := «axiom».collectVars
+    let vars := «axiom».collectVarsDedup
     let body := mkForalls (hyps.map (`_inst, .app (mkConst ``ProofState) <| Term.toExpr ·)) (.app (mkConst ``ProofState) <| Term.toExpr conclusion) .instImplicit
     mkForalls (vars.map (.mkSimple ·, mkConst ``Term)) body .implicit
 where
@@ -84,4 +76,4 @@ elab "#solve_gadget_game_puzzle" file:str : command => do
     let solution ← solveProblemState problemState
     logInfo solution
 
-end Prolog
+end GadgetGame
