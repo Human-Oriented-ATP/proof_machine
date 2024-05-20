@@ -4,7 +4,7 @@ def Array.eraseDups [BEq α] : Array α → Array α
   | ⟨l⟩ => ⟨l.eraseDups⟩
 namespace Prolog
 
-open Lean Elab Meta Parser
+open Lean Elab Meta Command Parser
 
 inductive Term where
   | var (name : String)
@@ -66,12 +66,13 @@ def parseProblemState : TSyntax `problem_state → ProblemState
     else panic! "Expected a single goal in the problem state."
   | stx => panic s!"Expected problem state, got {stx}."
 
-def parsePrologFile (file : System.FilePath) : MetaM ProblemState := do
+def parsePrologFile [Monad M] [MonadLiftT IO M] [MonadEnv M] (file : System.FilePath) : M ProblemState := do
   let input ← IO.FS.readFile file
   let stx ← IO.ofExcept <| Parser.runParserCategory (← getEnv) `problem_state input
   return parseProblemState ⟨stx⟩
 
-class ProofState (α : Type) where
+class ProofState (α : Term) where
+
 
 local instance : ToExpr Expr where
   toExpr := id
@@ -120,33 +121,32 @@ instance : ToExpr Axiom where
   toExpr := Axiom.toExpr
   toTypeExpr := mkConst ``Axiom
 
-def addAxiom (name : Name) («axiom» : Axiom) : MetaM Unit := do
-  let .ok env := (← getEnv).addAndCompile {} <| .axiomDecl {
-    name := name,
-    levelParams := [],
-    type := toExpr «axiom»,
-    isUnsafe := false
-  } | throwError "Failed to update environment."
-  setEnv env
-  addInstance name .global (prio := 1000)
+instance : Quote String `ident where
+  quote s := ⟨.ident .none s.toSubstring (.mkSimple s) []⟩
+
+instance : Quote Axiom `command where
+  quote «axiom» :=
+    let vars := «axiom».collectVars.map <| quote (k := `ident)
+    let hypotheses := «axiom».hypotheses.map <| (Unhygienic.run `(Lean.Parser.Term.bracketedBinderF| [ProofState ($(Lean.quote ·))]))
+    Unhygienic.run `(command| instance {$[$vars]* : Term} $[$hypotheses]* : ProofState ($(quote «axiom».conclusion)) where)
+
+def addAxioms (axioms : Array Axiom) : CommandElabM Unit := do
+  for «axiom» in axioms do
+    Command.elabCommand <| quote (k := `command) «axiom»
 
 def solveProblemState (problemState : ProblemState) : MetaM Expr := do
-  for (idx, «axiom») in problemState.axioms.mapIdx (·, ·) do
-    addAxiom (.str `axiom (toString idx.val)) «axiom»
-  synthInstance (.app (mkConst ``ProblemState) (toExpr problemState.target))
+  let ((), σ) ← addAxioms problemState.axioms |>.run { fileName := "", fileMap := ⟨"", #[]⟩, tacticCache? := none, snap? := none }
+    |>.run { env := (← getEnv), maxRecDepth := 100000 }
+  withEnv σ.env do
+    synthInstance <| .app (.const ``ProofState []) (toExpr problemState.target)
 
-elab "#solve_gadget_game_puzzle" file:str : command => Command.runTermElabM fun _ ↦ do
+elab "#solve_gadget_game_puzzle" file:str : command => do
   let problemState ← parsePrologFile file.getString
-  logInfo (repr problemState)
-  let solution ← withoutModifyingEnv <| solveProblemState problemState
-  logInfo solution
+  runTermElabM fun _ ↦ do
+    let solution ← solveProblemState problemState
+    logInfo solution
 
 end Prolog
 
-open Prolog in
-elab "test_axiom%" : term => do
-  let file := "../problems/jacob_easyproblem1.pl"
-  let problemState ← parsePrologFile file
-  return (Axiom.toExpr problemState.axioms[2]!)
-
-#check test_axiom%
+set_option trace.Meta.synthInstance true
+#solve_gadget_game_puzzle "../problems/tim_easyproblem3.pl"
