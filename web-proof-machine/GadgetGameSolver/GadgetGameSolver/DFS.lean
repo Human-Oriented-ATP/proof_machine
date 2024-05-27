@@ -6,26 +6,11 @@ namespace GadgetGame
 
 open Lean
 
-variable [Monad M] [MonadStateOf Location M] [MonadStateOf VarAssignmentCtx M] [MonadBacktrack VarAssignmentCtx M] [MonadFinally M]
+variable [Monad M] [MonadStateOf Location M] [MonadStateOf VarAssignmentCtx M] [MonadBacktrack VarAssignmentCtx M] [MonadFinally M] [MonadReaderOf (List Axiom) M]
 
-def getMatchingAxioms (term : Term) : M (List Axiom) := sorry
-
--- partial def DFS : M (Except String Unit) := do
---   let ⟨.goal term, path⟩ ← getThe Location | return (.error "Expected the current location to be a goal.")
---   let goal ← term.instantiateVars
---   let choices ← getMatches goal
---   match choices with
---   | [] => return (.error "No applicable axioms.")
---   | choice :: choices =>
---     let σ ← getThe VarAssignmentCtx
---     let «axiom» ← choice.instantiateFresh ""
---     let .ok () ← Term.unify goal «axiom».conclusion | unreachable!
---     modifyThe Location <| change (tree := .node (← axiom.conclusion.instantiateVars) («axiom».hypotheses.toList.map .goal))
-
---     (List.range «axiom».hypotheses.size).foldlM (init := pure ()) fun acc idx ↦ do
---       goDownTo idx
---       let resultAtIdx ← DFS
---       return acc >>= (fun () ↦ resultAtIdx)
+def getMatchingAxioms (term : Term) : M (List Axiom) := do
+  let axioms ← readThe (List Axiom)
+  axioms.filterM (term.unifiable? ·.conclusion)
 
 mutual
 
