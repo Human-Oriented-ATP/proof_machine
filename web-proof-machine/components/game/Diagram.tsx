@@ -22,11 +22,14 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getNodePositionFromHandle, getTermOfHandle } from './Node';
+import TutorialOverlay from './TutorialOverlay';
+import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
 
 interface DiagramProps {
+    problemId: string
     axioms: Axiom[]
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
@@ -69,7 +72,7 @@ export function Diagram(props: DiagramProps) {
     useEffect(() => {
         if (dragStartInfo.current !== undefined) {
             const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
-            const prevented = nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
+            nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
                 bubbles: true,
                 cancelable: true,
                 view: window,
@@ -199,17 +202,16 @@ export function Diagram(props: DiagramProps) {
 
 
     const isSatisfied = props.isSatisfied
-    const highlightClasses = ["!border-dashed", "!animate-[spin_10s_linear_infinite]", "!border-black", "!bg-white"]
     const updateEdgeAnimation = useCallback(() => {
         function highlightHandle(handleId: string) {
             const handle = document.querySelector(`[data-handleid="${handleId}"]`);
             if (handle) {
-                (handle as HTMLElement).classList.add(...highlightClasses)
+                (handle as HTMLElement).classList.add(...HANDLE_BROKEN_CLASSES)
             }
         }
 
         document.querySelectorAll("[data-handleid]").forEach(handle => {
-            (handle as HTMLElement).classList.remove(...highlightClasses)
+            (handle as HTMLElement).classList.remove(...HANDLE_BROKEN_CLASSES)
         })
         setEdges(edges => edges.map(edge => {
             const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data))
@@ -248,6 +250,7 @@ export function Diagram(props: DiagramProps) {
     return (
         <>
             <GadgetPalette {...paletteProps} />
+            <TutorialOverlay problemId={props.problemId} />
             <ReactFlow
                 nodes={nodes}
                 edges={edges}

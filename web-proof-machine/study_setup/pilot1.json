@@ -4,6 +4,15 @@
     "displayUnlistedProblems": false,
     "categories": [
         {
+            "name": "Jonas' tutorial",
+            "problems": [
+                "tutorial01",
+                "tutorial02",
+                "tutorial03",
+                "tutorial04"
+            ]
+        },
+        {
             "name": "Tutorial",
             "problems": [
                 "jacob_easy01",
