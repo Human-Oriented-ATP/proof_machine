@@ -5,20 +5,12 @@ namespace GadgetGame
 
 open Lean Meta
 
-abbrev UnifyM := StateM (PersistentHashMap String Term)
+abbrev VarAssignmentCtx := PersistentHashMap String Term
 
-def getCtx : UnifyM (PersistentHashMap String Term) := do return (← get)
+variable [Monad M] [MonadStateOf VarAssignmentCtx M] [MonadFinally M] [MonadBacktrack VarAssignmentCtx M]
 
-def setCtx (ctx : PersistentHashMap String Term) : UnifyM Unit := set ctx
-
-def withoutModifyingCtx (act : UnifyM α) : UnifyM α := do
-  let ctx ← getCtx
-  let a ← act
-  setCtx ctx
-  return a
-
-partial def Term.instantiateVars (t : Term) : UnifyM Term := do
-  let ctx ← getCtx
+partial def Term.instantiateVars (t : Term) : M Term := do
+  let ctx ← getThe VarAssignmentCtx
   match t with
   | .var v =>
     match ctx.find? v with
@@ -26,14 +18,14 @@ partial def Term.instantiateVars (t : Term) : UnifyM Term := do
     | .none => return .var v
   | .app f args => .app f <$> args.mapM instantiateVars
 
-def Axiom.instantiateVars («axiom» : Axiom) : UnifyM Axiom := do
+def Axiom.instantiateVars («axiom» : Axiom) : M Axiom := do
   return {
     hypotheses := ← «axiom».hypotheses.mapM Term.instantiateVars
     conclusion := ← «axiom».conclusion.instantiateVars
   }
 
-def assign (var : String) (t : Term) : ExceptT String UnifyM Unit := do
-  let ctx ← getCtx
+def assign (var : String) (t : Term) : ExceptT String M Unit := do
+  let ctx ← getThe VarAssignmentCtx
   let t ← t.instantiateVars
   unless ! t.containsVar? var do
     throw "Occur check failed."
@@ -45,14 +37,14 @@ def assign (var : String) (t : Term) : ExceptT String UnifyM Unit := do
     let ctx' := ctx.map <| Term.substitute var t
     set <| ctx'.insert var t
 
-partial def Term.unify (s t : Term) : ExceptT String UnifyM Unit := do
+partial def Term.unify (s t : Term) : ExceptT String M Unit := do
   match s, t with
   | .var v, t =>
-    match (← getCtx).find? v with
+    match (← getThe VarAssignmentCtx).find? v with
     | .some s => unify s t
     | none => assign v t
   | s, .var v =>
-    match (← getCtx).find? v with
+    match (← getThe VarAssignmentCtx).find? v with
     | .some t => unify s t
     | none => assign v s
   | .app f args, .app f' args' =>
@@ -63,13 +55,15 @@ partial def Term.unify (s t : Term) : ExceptT String UnifyM Unit := do
     for (arg, arg') in Array.zip args args' do
       unify arg arg'
 
-def Term.unifiable? (s t : Term) : UnifyM Bool := withoutModifyingCtx do
+def Term.unifiable? (s t : Term) : M Bool := withoutModifyingState do
   return (← unify s t |>.run).toBool
 
-def Axiom.instantiateFresh (extension : String) («axiom» : Axiom) : Axiom :=
+def Axiom.instantiateFresh (extension : String) («axiom» : Axiom) : M Axiom := do
   let freshVarCtx : PersistentHashMap String Term := «axiom».collectVarsDedup.foldl (init := .empty)
     fun ctx v ↦ ctx.insert v (.var <| modify v)
-  «axiom».instantiateVars.run' freshVarCtx
+  withoutModifyingState do
+    set freshVarCtx
+    «axiom».instantiateVars
 where
   modify : String → String := (· ++ "_" ++ extension)
 
