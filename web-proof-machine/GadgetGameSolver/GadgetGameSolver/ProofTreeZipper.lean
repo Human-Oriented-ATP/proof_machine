@@ -2,6 +2,18 @@ import GadgetGameSolver.Primitives
 import GadgetGameSolver.Unification
 import Lean
 
+-- TODO: Move
+def modifyWithExcept [Monad M] [MonadStateOf α M] [MonadExceptOf ε M] (mod : α → Except ε α) : M Unit := do
+  match mod (← getThe α) with
+  | .ok a => set a
+  | .error e => throw e
+
+def iterateM [Monad M] (act : M Unit) : (count : Nat) → M Unit
+  | 0 => pure ()
+  | n+1 => do
+    act
+    iterateM act n
+
 namespace GadgetGame
 
 open Lean
@@ -21,33 +33,70 @@ structure Location where
   path : Path
 deriving Inhabited
 
-def goLeft (loc : Location) : Location :=
+namespace Location
+
+def goLeft (loc : Location) : Except String Location :=
   match loc.path with
-  | .root => panic! "Cannot go to the left of the root."
+  | .root => throw "Cannot go to the left of the root."
   | .node (l :: left) up t right =>
-    { tree := l, path := .node left up t (loc.tree :: right) }
-  | .node [] _ _ _ => panic! "Reached left-most end."
+    .ok { tree := l, path := .node left up t (loc.tree :: right) }
+  | .node [] _ _ _ => throw "Reached left-most end."
 
-def goRight (loc : Location) : Location :=
+def goRight (loc : Location) : Except String Location :=
   match loc.path with
-  | .root => panic! "Cannot go to the right of the root."
+  | .root => throw "Cannot go to the right of the root."
   | .node left up t (r :: right) =>
-    { tree := r, path := .node (loc.tree :: left) up t right }
-  | .node _ _ _ [] => panic! "Reached right-most end."
+    .ok { tree := r, path := .node (loc.tree :: left) up t right }
+  | .node _ _ _ [] => throw "Reached right-most end."
 
-def goUp (loc : Location) : Location :=
+def goUp (loc : Location) : Except String Location :=
   match loc.path with
-  | .root => panic! "Cannot go above the root."
-  | .node left up t right => { tree := .node t (left.reverse ++ [loc.tree] ++ right), path := up }
+  | .root => throw "Cannot go above the root."
+  | .node left up t right => .ok { tree := .node t (left.reverse ++ [loc.tree] ++ right), path := up }
 
-def goDown (loc : Location) : Location :=
+def goDown (loc : Location) : Except String Location :=
   match loc.tree with
-  | .goal _ => panic! "Cannot go below a goal node."
+  | .goal _ => throw "Cannot go below a goal node."
   | .node term (tree :: trees) =>
-    { tree := tree, path := .node [] loc.path term trees }
-  | .node _ [] => panic! "Node has no children."
+    .ok { tree := tree, path := .node [] loc.path term trees }
+  | .node _ [] => throw "Node has no children."
 
 def change (loc : Location) (tree : ProofTree) : Location :=
   { tree := tree, path := loc.path }
+
+end Location
+
+
+variable [Monad M] [MonadStateOf Location M] [MonadExceptOf String M]
+
+def goUp : M Unit := modifyWithExcept Location.goUp
+
+def goDown : M Unit := modifyWithExcept Location.goDown
+
+def goRight : M Unit := modifyWithExcept Location.goRight
+
+def goLeft : M Unit := modifyWithExcept Location.goLeft
+
+def goUpBy := iterateM (M := M) goUp
+
+def goDownBy := iterateM (M := M) goDown
+
+def goRightBy := iterateM (M := M) goRight
+
+def goLeftBy := iterateM (M := M) goLeft
+
+def visitChild (idx : Nat) : M Unit := do
+  goDown
+  goRightBy idx
+
+def forEachChild (act : M Unit) : M Unit := do
+  let ⟨.node _ goals, _⟩ ← getThe Location | throw "No children nodes found."
+  for idx in [0:goals.length] do
+    visitChild idx
+    act
+    goUp
+
+def changeCurrentTree (tree : ProofTree) : M Unit := do
+  modify <| Location.change (tree := tree)
 
 end GadgetGame
