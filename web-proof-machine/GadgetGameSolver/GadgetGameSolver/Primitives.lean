@@ -18,6 +18,29 @@ structure ProblemState where
   target : Term
 deriving Repr, Inhabited
 
+partial def Term.toString : Term → String
+  | .var v => v
+  | .app f #[] => f
+  | .app f args => s!"{f}({", ".intercalate (args.toList.map toString)})"
+
+def Axiom.toString («axiom» : Axiom) : String :=
+  if «axiom».hypotheses.isEmpty then
+    s!"{«axiom».conclusion.toString}."
+  else
+    s!"{«axiom».conclusion.toString} :- {", ".intercalate («axiom».hypotheses.toList.map Term.toString)}."
+
+def ProblemState.toString (problemState : ProblemState) : String :=
+  s!"{"\n".intercalate (problemState.axioms.toList.map Axiom.toString)}\n:- {problemState.target.toString}."
+
+instance : ToString Term where
+  toString := Term.toString
+
+instance : ToString Axiom where
+  toString := Axiom.toString
+
+instance : ToString ProblemState where
+  toString := ProblemState.toString
+
 partial def Term.collectVars : Term → Array String
   | .var v => #[v]
   | .app _ args => args.concatMap collectVars
