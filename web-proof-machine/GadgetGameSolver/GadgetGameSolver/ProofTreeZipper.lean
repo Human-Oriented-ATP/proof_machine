@@ -21,7 +21,7 @@ open Lean
 inductive ProofTree where
   | goal (term : Term)
   | node (term : Term) (goals : List ProofTree)
-deriving Inhabited
+deriving Inhabited, Repr
 
 inductive Path where
   | root
