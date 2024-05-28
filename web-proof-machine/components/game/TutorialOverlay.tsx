@@ -4,18 +4,18 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial01",
         <>
             The goal in this game is to build diagrams from gadgets. <br />
-            Start by draggind the gadget from the left into the diagram. <br />
+            Start by dragging the gadget from the left into the diagram. <br />
             Then connect the two gadgets by drawing a line from <span><DummyHandle position="inline" /></span> to <span><DummyHandle position="inline" /></span>.
         </>
     ],
     ["tutorial02",
         <>
-            You can only make connections between nodes (?) of the same color.
+            You can only create connections between cells of the same color.
         </>
     ],
     ["tutorial03",
         <>
-            If you move two gadgets close to each other, they connect automatically. <br />
+            If you move two gadgets close to each other they connect automatically. <br />
         </>
     ],
     ["tutorial04",
