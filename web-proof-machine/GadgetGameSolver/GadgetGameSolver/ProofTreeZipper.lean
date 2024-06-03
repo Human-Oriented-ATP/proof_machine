@@ -23,6 +23,25 @@ inductive ProofTree where
   | node (term : Term) (goals : List ProofTree)
 deriving Inhabited, Repr
 
+abbrev ProofTree.isClosed : ProofTree → Prop
+  | .goal _ => False
+  | .node _ [] => True
+  | .node t (_goal::goals) => _goal.isClosed ∧ (ProofTree.node t goals).isClosed
+
+instance ProofTree.decideIfClosed : DecidablePred ProofTree.isClosed
+  | .goal _ => by
+    rw [isClosed]
+    infer_instance
+  | .node _ [] => inferInstanceAs <| Decidable True
+  | .node t (_goal::goals) => by
+    rw [isClosed]
+    exact instDecidableAnd (dp := decideIfClosed _goal) (dq := decideIfClosed <| .node t goals)
+
+abbrev ClosedProofTree := { tree : ProofTree // tree.isClosed }
+
+instance : Inhabited ClosedProofTree where
+  default := ⟨.node default [], trivial⟩
+
 inductive Path where
   | root
   | node (youngerSiblings : List ProofTree) (parent : Path) (term : Term) (elderSiblings : List ProofTree)

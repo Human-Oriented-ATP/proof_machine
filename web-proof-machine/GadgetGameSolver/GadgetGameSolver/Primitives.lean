@@ -3,7 +3,7 @@ namespace GadgetGame
 inductive Term where
   | var (name : String)
   | app (label : String) (args : Array Term)
-deriving Repr
+deriving Repr, BEq, Hashable
 
 instance : Inhabited Term where
   default := .var ""

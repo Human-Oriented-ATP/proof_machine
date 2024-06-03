@@ -7,8 +7,16 @@ namespace GadgetGame
 
 open Lean
 
+inductive GoalStatus where
+  | ongoing
+  | failed
+  | solved (solution : ClosedProofTree)
+
+abbrev GoalStatusCtx := HashMap Term GoalStatus
+
 structure State where
   assignmentCtx : VarAssignmentCtx := .empty
+  goalStatus : GoalStatusCtx := .empty
   location : Location
   count : Nat := 0
 
@@ -78,13 +86,17 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
 
 end
 
-def runDFS (problemState : ProblemState) : ProofTree :=
+def runDFS (problemState : ProblemState) : ClosedProofTree :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
       |>.run { sort? := false, axioms := problemState.axioms.toList }
-  σ.location.tree
+  let proofTree := σ.location.tree
+  if h : proofTree.isClosed then
+    ⟨proofTree, h⟩
+  else
+    panic! "Invalid proof tree, expected no open goals."
 
-def runDFSOnFile (file : System.FilePath) : MetaM ProofTree :=
+def runDFSOnFile (file : System.FilePath) : MetaM ClosedProofTree :=
   runDFS <$> parsePrologFile file
 
 #eval runDFSOnFile "../problems/tim_easyproblem1.pl"
