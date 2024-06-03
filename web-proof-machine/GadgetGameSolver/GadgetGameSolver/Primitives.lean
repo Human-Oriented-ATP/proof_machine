@@ -45,6 +45,8 @@ partial def Term.collectVars : Term → Array String
   | .var v => #[v]
   | .app _ args => args.concatMap collectVars
 
+abbrev Term.isClosed (t : Term) := t.collectVars = #[]
+
 def Term.collectVarsDedup (t : Term) : Array String :=
   t.collectVars.toList.eraseDups.toArray
 

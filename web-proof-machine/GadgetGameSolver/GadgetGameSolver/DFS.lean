@@ -9,14 +9,14 @@ open Lean
 
 inductive GoalStatus where
   | ongoing
-  | failed
+  -- | failed
   | solved (solution : ClosedProofTree)
 
 abbrev GoalStatusCtx := HashMap Term GoalStatus
 
 structure State where
   assignmentCtx : VarAssignmentCtx := .empty
-  goalStatus : GoalStatusCtx := .empty
+  goalStatusCtx : GoalStatusCtx := .empty
   location : Location
   count : Nat := 0
 
@@ -36,6 +36,14 @@ instance : MonadStateOf VarAssignmentCtx GadgetGameSolverM where
       let (a, ctx) := f σ.assignmentCtx
       (a, { σ with assignmentCtx := ctx })
 
+instance : MonadStateOf GoalStatusCtx GadgetGameSolverM where
+  get := do return (← get).goalStatusCtx
+  set ctx := do modify ({ · with goalStatusCtx := ctx })
+  modifyGet f := do
+    modifyGet fun σ ↦
+      let (a, ctx) := f σ.goalStatusCtx
+      (a, { σ with goalStatusCtx := ctx })
+
 instance : MonadStateOf Location GadgetGameSolverM where
   get := do return (← get).location
   set loc := do modify ({ · with location := loc })
@@ -54,6 +62,10 @@ def getStepCount : GadgetGameSolverM Nat := do
 def incrementStepCount : GadgetGameSolverM Unit := do
   modify (fun σ ↦ { σ with count := σ.count.succ })
 
+def getCurrentGoal : ExceptT String GadgetGameSolverM Term := do
+  let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
+  return goal
+
 def getMatchingAxioms (term : Term) (sort? : Bool) : GadgetGameSolverM (List Axiom) := do
   let axioms := (← read).axioms
   Array.toList <$> Term.filterRelevantAxioms term axioms.toArray sort?
@@ -61,12 +73,18 @@ def getMatchingAxioms (term : Term) (sort? : Bool) : GadgetGameSolverM (List Axi
 mutual
 
 partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := do
-  let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
-  let choices ← getMatchingAxioms goal (← read).sort?
-  applyAxioms choices
+  let goal ← getCurrentGoal
+  match (← getThe GoalStatusCtx).find? (← goal.instantiateVars) with
+  | some (.solved proofTree) =>
+      changeCurrentTree proofTree
+  | some .ongoing => throw "Avoiding working on an open goal."
+  | none =>
+      modifyThe GoalStatusCtx (·.insert (← goal.instantiateVars) .ongoing)
+      let choices ← getMatchingAxioms goal (← read).sort?
+      applyAxioms choices
 
 partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
-  let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
+  let goal ← getCurrentGoal
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify goal «axiom».conclusion
   incrementStepCount
@@ -74,12 +92,18 @@ partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Un
   forEachChild workOnCurrentGoal
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
+  let goal ← getCurrentGoal
   match axioms with
   | [] => throw "Out of choices."
   | choice :: choices =>
     let σ ← saveState
     try
       applyAxiom choice
+      let ⟨proofTree, _⟩ ← getThe Location
+      if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
+        modifyThe GoalStatusCtx <| (·.insert (← goal.instantiateVars) <| .solved ⟨proofTree, h.right⟩)
+      else
+        modifyThe GoalStatusCtx <| (·.erase goal)
     catch e =>
       restoreState σ
       applyAxioms choices
