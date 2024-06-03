@@ -37,26 +37,44 @@ def assign (var : String) (t : Term) : ExceptT String M Unit := do
     let ctx' := ctx.map <| Term.substitute var t
     set <| ctx'.insert var t
 
-partial def Term.unify (s t : Term) : ExceptT String M Unit := do
+partial def Term.unifyCore (s t : Term) : StateT Nat (ExceptT String M) Unit := do
   match s, t with
   | .var v, t =>
     match (← getThe VarAssignmentCtx).find? v with
-    | .some s => unify s t
-    | none => assign v t
+    | .some s => unifyCore s t
+    | none => assign (M := M) v t
   | s, .var v =>
     match (← getThe VarAssignmentCtx).find? v with
-    | .some t => unify s t
-    | none => assign v s
+    | .some t => unifyCore s t
+    | none => assign (M := M) v s
   | .app f args, .app f' args' =>
     unless f = f' do
       throw "Function arguments {f} and {f'} do not match."
     unless args.size = args'.size do
       throw "The number of arguments does not match."
+    modify Nat.succ -- the score is incremented by one every time the function heads match up
     for (arg, arg') in Array.zip args args' do
-      unify arg arg'
+      unifyCore arg arg'
+
+def Term.unify (s t : Term) : ExceptT String M Unit := do
+  Term.unifyCore s t |>.run' 0
+
+def Term.unifyWithScore (s t : Term) : ExceptT String M Nat := do
+  Prod.snd <$> (Term.unifyCore s t |>.run 0)
 
 def Term.unifiable? (s t : Term) : M Bool := withoutModifyingState do
   return (← unify s t |>.run).toBool
+
+def Term.filterRelevantAxioms (t : Term) (axioms : Array Axiom) (sort? : Bool) : M (Array Axiom) := withoutModifyingState do
+  let relevantAxiomsWithScores : Array (Axiom × Nat) ← axioms.filterMapM fun «axiom» ↦ withoutModifyingState do
+    let .ok score ← (Term.unifyWithScore t «axiom».conclusion).run | return none
+    return («axiom», score)
+  let relevantAxiomsSorted :=
+    if sort? then
+      relevantAxiomsWithScores.qsort (·.snd > ·.snd)
+    else
+      relevantAxiomsWithScores
+  return relevantAxiomsSorted.map Prod.fst
 
 def Axiom.instantiateFresh (extension : String) («axiom» : Axiom) : M Axiom := do
   let freshVarCtx : PersistentHashMap String Term := «axiom».collectVarsDedup.foldl (init := .empty)

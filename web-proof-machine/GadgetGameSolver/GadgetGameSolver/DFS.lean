@@ -13,6 +13,7 @@ structure State where
   count : Nat := 0
 
 structure Context where
+  sort? : Bool
   axioms : List Axiom
 
 abbrev GadgetGameSolverM := StateT State <| ReaderM Context
@@ -35,9 +36,6 @@ instance : MonadStateOf Location GadgetGameSolverM where
       let (a, loc) := f σ.location
       (a, { σ with location := loc })
 
-instance : MonadReaderOf (List Axiom) GadgetGameSolverM where
-  read := do return (← read).axioms
-
 instance : MonadBacktrack VarAssignmentCtx GadgetGameSolverM where
   saveState := do return (← getThe VarAssignmentCtx)
   restoreState ctx := do set ctx
@@ -48,15 +46,15 @@ def getStepCount : GadgetGameSolverM Nat := do
 def incrementStepCount : GadgetGameSolverM Unit := do
   modify (fun σ ↦ { σ with count := σ.count.succ })
 
-def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
-  let axioms ← readThe (List Axiom)
-  axioms.filterM (term.unifiable? ·.conclusion)
+def getMatchingAxioms (term : Term) (sort? : Bool) : GadgetGameSolverM (List Axiom) := do
+  let axioms := (← read).axioms
+  Array.toList <$> Term.filterRelevantAxioms term axioms.toArray sort?
 
 mutual
 
 partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := do
   let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
-  let choices ← getMatchingAxioms goal
+  let choices ← getMatchingAxioms goal (← read).sort?
   applyAxioms choices
 
 partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
@@ -71,7 +69,6 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
   match axioms with
   | [] => throw "Out of choices."
   | choice :: choices =>
-    incrementStepCount
     let σ ← saveState
     try
       applyAxiom choice
@@ -84,7 +81,7 @@ end
 def runDFS (problemState : ProblemState) : ProofTree :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
-      |>.run { axioms := problemState.axioms.toList }
+      |>.run { sort? := false, axioms := problemState.axioms.toList }
   σ.location.tree
 
 def runDFSOnFile (file : System.FilePath) : MetaM ProofTree :=
