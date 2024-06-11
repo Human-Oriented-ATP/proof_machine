@@ -24,6 +24,17 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             You can always remove a connection by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
                 <DummyHandle position="inline" /></span>. <br />
         </>
+    ],
+    ["tutorial05",
+        <>
+            Pink nodes acquire a value that depends on the remaining numbers in the cell. <br />
+            Until they are connected to other gadgets with numbers, their value is undetermined.
+        </>
+    ],
+    ["tutorial06",
+        <>
+            Pink nodes always take the same value with the same inputs.
+        </>
     ]
 ])
 
