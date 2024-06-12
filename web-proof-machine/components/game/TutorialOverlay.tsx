@@ -52,12 +52,25 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ],
     ["tutorial06",
         <>
-            Pink nodes always take the same value with the same inputs.
+            Pink nodes always take the same value with the same inputs.<br />
+            Can you see how to solve this problem? Notice what happens when<br />
+            you attach the gadget with a pink node for the second time.<br />
+            Also, try matching the pink node with the number 1: you will get <br />
+            a broken connection.<br />
         </>
     ],
     ["jacob_easy03",
         <>
-            Be careful, pink nodes will take different values when the other numbers are different.
+            Pink nodes must take different values when the other numbers in the cell are different.<br />
+            See what happens here if you try to solve the problem without using the middle gadget,<br />
+            and then what happens if you do use the middle gadget.<br />
+        </>
+    ]
+    ["tim_easy11",
+        <>
+            If you create a new number using a pink node, and then match that number to another pink node,<br />
+            then any empty circles in that cell will be filled automatically to make the numbers consistent<br />
+            for the two occurrences of the pink nodes. (If this is not possible, you will get a broken connection.)<br />
         </>
     ]
 ])
