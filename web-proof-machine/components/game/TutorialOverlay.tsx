@@ -18,18 +18,18 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
         <>
             If you move two gadgets close to each other they connect automatically. <br />
             You'll know when they are close enough because <span><DummyHandle position="inline" /></span> and <span><DummyHandle position="inline" /></span> will turn red. Try it! <br />
+            Some of the circles here contain numbers. Notice what happens when you connect a gadget with empty circles to one with numbers in the circles.<br />
         </>
     ],
     ["tutorial04",
         <>
-            You will have noticed in the previous level that some of the circles contained numbers. <br />
-            The most important rule of the game is that these numbers must match.<br />
-            Try joining the gadget with the blue output cell to the blue "goal". You will see that the empty<br />
+            The most important rule of the game is that any numbers in connected cells must match.<br />
+            Try joining the gadget with the blue output cell to the blue "goal". As before, the empty<br />
             circles automatically fill with numbers in order for a match to occur. Now try joining one of the<br />
-            two small red "input" gadgets to the wrong numbered circle. Because the numbers don't match,<br />
+            two small red "input" gadgets to the wrong-numbered circle. Because the numbers don't match,<br />
             the connection will break and the handles will become grey <span><DummyHandle position="inline" isBrokenConnection={true} /></span>. <br />
-            You can always remove a connection (whether it matches or not) by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
-                <DummyHandle position="inline" /></span>. <br />
+            You can always remove a connection (whether broken or not) by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
+                <DummyHandle position="inline" /></span> at the end of it. <br />
         </>
     ],
     ["jacob_easy01",
