@@ -11,7 +11,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial02",
         <>
             You can create connections between cells only if they have the same color. <br />
-            Try drawing a line between a blue cell and a red cell and see what happens. <br />
+            Try drawing a line from a blue cell to a red cell and see what happens. <br />
         </>
     ],
     ["tutorial03",
@@ -22,8 +22,8 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ],
     ["tutorial04",
         <>
-            So far all the cells you have seen contain empty circles. However, the game gets interesting <br />
-            when the circles contain numbers. The main rule of the game is that these numbers must match.<br />
+            You will have noticed in the previous level that some of the circles contained numbers. <br />
+            The most important rule of the game is that these numbers must match.<br />
             Try joining the gadget with the blue output cell to the blue "goal". You will see that the empty<br />
             circles automatically fill with numbers in order for a match to occur. Now try joining one of the<br />
             two small red "input" gadgets to the wrong numbered circle. Because the numbers don't match,<br />
