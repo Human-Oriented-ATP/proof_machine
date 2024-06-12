@@ -25,6 +25,16 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
                 <DummyHandle position="inline" /></span>. <br />
         </>
     ],
+    ["jacob_easy01",
+        <>
+            Be sure to only connect gadgets where the colours and numbers line up. <br />
+        </>
+    ],
+    ["jacob_easy02",
+        <>
+            Remember, the ordering of the numbers matters as well. <br />
+        </>
+    ],
     ["tutorial05",
         <>
             Pink nodes acquire a value that depends on the remaining numbers in the cell. <br />
@@ -34,6 +44,11 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial06",
         <>
             Pink nodes always take the same value with the same inputs.
+        </>
+    ],
+    ["jacob_easy03",
+        <>
+            Be careful, pink nodes will take different values when the other numbers are different.
         </>
     ]
 ])
