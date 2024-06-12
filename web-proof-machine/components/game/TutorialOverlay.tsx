@@ -10,29 +10,38 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ],
     ["tutorial02",
         <>
-            You can only create connections between cells of the same color.
+            You can create connections between cells only if they have the same color. <br />
+            Try drawing a line between a blue cell and a red cell and see what happens. <br />
         </>
     ],
     ["tutorial03",
         <>
             If you move two gadgets close to each other they connect automatically. <br />
+            You'll know when they are close enough because <span><DummyHandle position="inline" /></span> and <span><DummyHandle position="inline" /></span> will turn red. Try it! <br />
         </>
     ],
     ["tutorial04",
         <>
-            If the numbers don't match the connection breaks and handles become grey <span><DummyHandle position="inline" isBrokenConnection={true} /></span>. <br />
-            You can always remove a connection by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
+            So far all the cells you have seen contain empty circles. However, the game gets interesting <br />
+            when the circles contain numbers. The main rule of the game is that these numbers must match.<br />
+            Try joining the gadget with the blue output cell to the blue "goal". You will see that the empty<br />
+            circles automatically fill with numbers in order for a match to occur. Now try joining one of the<br />
+            two small red "input" gadgets to the wrong numbered circle. Because the numbers don't match,<br />
+            the connection will break and the handles will become grey <span><DummyHandle position="inline" isBrokenConnection={true} /></span>. <br />
+            You can always remove a connection (whether it matches or not) by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
                 <DummyHandle position="inline" /></span>. <br />
         </>
     ],
     ["jacob_easy01",
         <>
-            Be sure to only connect gadgets where the colours and numbers line up. <br />
+            To summarize, gadgets should be connected only when the colours and numbers line up. <br />
+            Have another try at connecting the wrong gadgets before you connect the right one.<br />
         </>
     ],
     ["jacob_easy02",
         <>
-            Remember, the ordering of the numbers matters as well. <br />
+            The ordering of the numbers matters as well. Can you solve this problem?<br />
+            (A problem is considered solved when there are no longer any unattached handles.)<br />
         </>
     ],
     ["tutorial05",
