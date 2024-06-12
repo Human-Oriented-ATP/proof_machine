@@ -66,7 +66,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             See what happens here if you try to solve the problem without using the middle gadget,<br />
             and then what happens if you do use the middle gadget.<br />
         </>
-    ]
+    ],
     ["tim_easy11",
         <>
             If you create a new number using a pink node and match that number to another pink node,<br />
