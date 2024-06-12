@@ -18,7 +18,8 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
         <>
             If you move two gadgets close to each other they connect automatically. <br />
             You'll know when they are close enough because <span><DummyHandle position="inline" /></span> and <span><DummyHandle position="inline" /></span> will turn red. Try it! <br />
-            Some of the circles here contain numbers. Notice what happens when you connect a gadget with empty circles to one with numbers in the circles.<br />
+            Some of the circles here contain numbers. Notice what happens when you connect <br />
+            a gadget with empty circles to one with numbers in the circles.<br />
         </>
     ],
     ["tutorial04",
