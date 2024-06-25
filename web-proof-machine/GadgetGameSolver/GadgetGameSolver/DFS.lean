@@ -86,7 +86,7 @@ partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := do
 partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
-  Term.unify goal «axiom».conclusion
+  Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
   changeCurrentTree <| .node (← axiom.conclusion.instantiateVars) («axiom».hypotheses.toList.map .goal)
   forEachChild workOnCurrentGoal
