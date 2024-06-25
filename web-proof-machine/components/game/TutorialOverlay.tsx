@@ -25,10 +25,8 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial04",
         <>
             The most important rule of the game is that any numbers in connected cells must match.<br />
-            Try joining the gadget with the blue output cell to the blue "goal". As before, the empty<br />
-            circles automatically fill with numbers in order for a match to occur. Now try joining one of the<br />
-            two small red "input" gadgets to the wrong-numbered circle. Because the numbers don't match,<br />
-            the connection will break and the handles will become grey <span><DummyHandle position="inline" isBrokenConnection={true} /></span>. <br />
+            While you solve this level, try matching one of the two small red "input" gadgets to the <br />
+            wrong numbered. The connection will break and you will see a grey handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span>. <br />
             You can always remove a connection (whether broken or not) by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
                 <DummyHandle position="inline" /></span> at the end of it. <br />
         </>
