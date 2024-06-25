@@ -72,14 +72,17 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             If you create a new number using a pink node and match that number to another pink node,<br />
             then any empty circles in the cells will be filled automatically if that is necessary to make the numbers consistent<br />
             for the two occurrences of the pink nodes. (If this is not possible, you will get a broken connection.)<br />
-            <br />
-            While you're here, try scrolling with two fingers on your trackpad. You should find that the entire picture<br />
-            enlarges or contracts (depending on the direction you scroll in). Another useful facility when the problems get <br />
-            bigger and more elaborate is that you can drag the entire picture -- just press and hold the trackpad and then move.<br />
-            If part of the diagram disappears off the edge of the screen, don't worry: it's still there and you can drag it back again!<br />
-            If you click or tap on a gadget, you select it, and it will be highlighted. If you now press the delete key, it will be deleted.<br />
-            If you hold down the shift key, you can select multiple gadgets as though you were preparing a screenshot. Take care when<br />
-            doing this to let go of the trackpad before you let up the shift key.<br />
+        </>
+     ],
+     ["tim_easy12",
+        <>   
+            This problem is slightly harder. While you're solving it, try scrolling with two fingers on your trackpad. You <br />
+            should find that the entire picture enlarges or contracts (depending on the direction you scroll in). Another useful <br />
+            facility when the problems get bigger and more elaborate is that you can drag the entire picture -- just press and <br />
+            hold the trackpad and then move. If part of the diagram disappears off the edge of the screen, don't worry: it's still <br />
+            there and you can drag it back again! If you click or tap on a gadget, you select it, and it will be highlighted. If <br />
+            you now press the delete key, it will be deleted. If you hold down the shift key, you can select multiple gadgets as <br />
+            though you were preparing a screenshot. Take care when doing this to let go of the trackpad before you let up the shift key.<br />
         </>
     ]
 ])
