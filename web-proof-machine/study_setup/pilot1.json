@@ -4,7 +4,7 @@
     "displayUnlistedProblems": false,
     "categories": [
         {
-            "name": "Jonas' tutorial",
+            "name": "Tutorial",
             "problems": [
                 "tutorial01",
                 "tutorial02",
@@ -19,28 +19,18 @@
             ]
         },
         {
-            "name": "Tutorial",
+            "name": "Pilot",
             "problems": [
-                "jacob_easy01",
-                "jacob_easy02",
-                "jacob_easy03",
-                "jacob_easy04",
-                "tim_easy01"
-            ]
-        },
-        {
-            "name": "Beginner",
-            "problems": [
-                "tim11",
-                "tim17",
                 "tim18",
-                "tim19",
-                "tim_easy04",
-                "tim_easy10",
-                "tim_easy03",
-                "tim08",
                 "jacob_easy05",
-                "tim23"
+                "tim16",
+		"tim20",
+		"tim_easy09",
+		"tim29",
+		"tim02",
+		"tim_easy06",
+		"jacob08",
+		"tim25"
             ]
         }
     ]
