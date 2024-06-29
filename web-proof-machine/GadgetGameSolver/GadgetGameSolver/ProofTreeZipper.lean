@@ -23,6 +23,10 @@ inductive ProofTree where
   | node (term : Term) (goals : List ProofTree)
 deriving Inhabited, Repr
 
+def ProofTree.headTerm : ProofTree → Term
+  | .goal term => term
+  | .node term _ => term
+
 abbrev ProofTree.isClosed : ProofTree → Prop
   | .goal _ => False
   | .node _ [] => True
@@ -114,6 +118,17 @@ def forEachChild (act : M Unit) : M Unit := do
     visitChild idx
     act
     goUp
+
+def isRoot : M Bool := do
+  let loc ← getThe Location
+  return loc.path matches .root
+
+partial def goToRoot : M Unit := do
+  if ← isRoot then
+    return ()
+  else
+    goUp
+    goToRoot
 
 def changeCurrentTree (tree : ProofTree) : M Unit := do
   modify <| Location.change (tree := tree)

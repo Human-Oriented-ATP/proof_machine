@@ -1,9 +1,11 @@
+import Lean.Data.Json
+
 namespace GadgetGame
 
 inductive Term where
   | var (name : String)
   | app (label : String) (args : Array Term)
-deriving Repr, BEq, Hashable
+deriving Repr, BEq, Lean.ToJson, Lean.FromJson, Hashable
 
 instance : Inhabited Term where
   default := .var ""
@@ -40,6 +42,10 @@ instance : ToString Axiom where
 
 instance : ToString ProblemState where
   toString := ProblemState.toString
+
+def Term.argsSize : Term → Nat
+  | .var _ => 0
+  | .app _ args => args.size
 
 partial def Term.collectVars : Term → Array String
   | .var v => #[v]
