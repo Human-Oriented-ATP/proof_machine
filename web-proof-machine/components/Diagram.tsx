@@ -42,6 +42,11 @@ interface DiagramProps {
     setProblemSolved: (b: boolean) => void
 }
 
+interface GadgetGraphProps {
+    gadgets: ReactFlowNode<GadgetProps, 'gadgetFlowNode'>[]
+    edges: Edge[]
+}
+
 export function getFlowNodeTerms(props: GadgetProps): Term[] {
     if (props.output) {
         return props.inputs.concat(props.output)
@@ -83,6 +88,20 @@ function sameArity(term1: Term, term2: Term): boolean {
         return term1.args.length === term2.args.length
     }
     return false
+}
+
+export function StaticDiagram(props: GadgetGraphProps) {
+    const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges);
+    const { getNode, getNodes, getEdges } = useReactFlow();
+
+    return <ReactFlow 
+            nodes={nodes} 
+            edges={edges} 
+            onNodesChange={onNodesChange} 
+            onEdgesChange={onEdgesChange} 
+            nodeTypes={nodeTypes} 
+            edgeTypes={edgeTypes} />;
 }
 
 export function Diagram(props: DiagramProps) {
