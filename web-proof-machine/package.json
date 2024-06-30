@@ -2,6 +2,7 @@
     "name": "web-proof-machine",
     "version": "0.1.0",
     "private": true,
+    "type": "module",
     "dependencies": {
         "@leanprover/infoview": "^0.7.2",
         "@radix-ui/react-icons": "^1.3.0",
@@ -35,7 +36,7 @@
         "watch": "rollup --environment NODE_ENV:production --config --watch",
         "watch-dev": "rollup --config --watch",
         "export": "rollup --environment NODE_ENV:production --config",
-        "build-dev": "rollup --config"
+        "export-dev": "rollup --config"
     },
     "eslintConfig": {
         "extends": "next/core-web-vitals"
