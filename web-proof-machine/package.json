@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@leanprover/infoview": "^0.7.2",
         "@radix-ui/react-icons": "^1.3.0",
         "@rollup/plugin-commonjs": "^26.0.1",
         "@rollup/plugin-node-resolve": "^15.2.3",
