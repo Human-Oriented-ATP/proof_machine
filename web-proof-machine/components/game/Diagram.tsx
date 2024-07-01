@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition
+    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition,
+    ReactFlowState
 } from 'reactflow';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -41,7 +42,12 @@ interface DiagramProps {
     setProblemSolved: (b: boolean) => void
 }
 
-const nodesLengthSelector = (state) =>
+interface GadgetGraphProps {
+    gadgets: ReactFlowNode<GadgetProps, 'gadgetFlowNode'>[]
+    edges: Edge[]
+}
+
+const nodesLengthSelector = (state: ReactFlowState) =>
     Array.from(state.nodeInternals.values()).length || 0;
 
 interface GadgetDragStartInfo {
@@ -57,6 +63,20 @@ function isAbovePalette(position: XYPosition): boolean {
     const paletteElement = document.getElementById("gadget_palette")!
     const paletteRect = paletteElement?.getBoundingClientRect()
     return containsPoint(paletteRect, position)
+}
+
+export function StaticDiagram(props: GadgetGraphProps) {
+    const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges);
+    const { getNode, getNodes, getEdges } = useReactFlow();
+
+    return <ReactFlow 
+            nodes={nodes} 
+            edges={edges} 
+            onNodesChange={onNodesChange} 
+            onEdgesChange={onEdgesChange} 
+            nodeTypes={nodeTypes} 
+            edgeTypes={edgeTypes} />;
 }
 
 export function Diagram(props: DiagramProps) {
