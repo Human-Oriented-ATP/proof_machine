@@ -4,6 +4,7 @@ import GadgetGameSolver.ProofTreeZipper
 namespace GadgetGame
 
 abbrev GadgetId := String
+abbrev EdgeId := String
 
 structure GadgetProps where
   id : GadgetId
@@ -17,10 +18,16 @@ structure GadgetPropsWithPosition extends GadgetProps where
   y : Nat
 deriving Lean.ToJson, Lean.FromJson, Repr
 
-structure Edge where
+structure GadgetEdge where
+  id : EdgeId
   source : GadgetId
   target : GadgetId
 deriving Lean.ToJson, Lean.FromJson, Repr
+
+structure GadgetGraphProps where
+  gadgets : Array GadgetPropsWithPosition := #[]
+  edges : Array GadgetEdge := #[]
+deriving Lean.ToJson, Lean.FromJson
 
 structure ProofTree.RenderingParams where
   holeWidth : Nat := 25
@@ -28,12 +35,10 @@ structure ProofTree.RenderingParams where
   gadgetThickness : Nat := 50
 
 
-structure ProofTree.RenderingState where
+structure ProofTree.RenderingState extends GadgetGraphProps where
   location : Array Nat := #[]
   xOffset : Nat := 0
   yOffset : Nat := 0
-  gadgets : Array GadgetPropsWithPosition := #[]
-  edges : Array Edge := #[]
 
 section LensNotation
 
@@ -50,6 +55,9 @@ end LensNotation
 
 def mkGadgetId (loc : Array Nat) : String :=
   s!"gadget_{loc}"
+
+def mkEdgeId (sourceLoc : Array Nat) (childIdx : Nat) : String :=
+  s!"edge_{sourceLoc}_{childIdx}"
 
 def nodeSize (term : Term) : ReaderM ProofTree.RenderingParams Nat := do
   let params ← read
@@ -82,7 +90,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
             location := treeLoc,
             xOffset := state.xOffset + params.gadgetThickness })
       exportToGraph tree
-      modify <| edges %~ (·.push { source := headId, target := mkGadgetId treeLoc })
+      modify <| edges %~ (·.push { id := mkEdgeId state.location idx, source := headId, target := mkGadgetId treeLoc })
 
     let yOffsetNew := max (state.yOffset + (← nodeSize term)) (← get).yOffset
 
@@ -98,8 +106,10 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
 
     modify <| gadgets %~ (·.push gadgetProps)
 
-def ProofTree.getGadgetGraph (proofTree : ProofTree) : (Array GadgetPropsWithPosition) × (Array Edge) :=
+def ProofTree.getGadgetGraph (proofTree : ProofTree) : GadgetGraphProps :=
   let (_, state) := proofTree.exportToGraph |>.run {} |>.run {}
-  (state.gadgets, state.edges)
+  state.toGadgetGraphProps
+
+
 
 end GadgetGame
