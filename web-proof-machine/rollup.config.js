@@ -10,7 +10,7 @@ export default cliArgs => {
     if (tsxName !== undefined)
         // We delete the custom argument so that Rollup does not try to process it and complain.
         delete cliArgs.tsxName;
-    const inputs = [ `components/Diagram.tsx` ]
+    const inputs = [ `components/game/StaticDiagram.tsx` ]
 
         const isProduction = process.env.NODE_ENV && process.env.NODE_ENV === 'production';
     const configForInput = fname => ({
