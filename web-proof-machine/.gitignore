@@ -27,3 +27,6 @@ yarn-error.log*
 next-env.d.ts
 dist
 .vercel
+
+# rollup cache
+.rollup.cache
