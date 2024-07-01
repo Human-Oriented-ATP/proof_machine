@@ -1,5 +1,6 @@
-import Lean.Data.Json
+import Lean
 import GadgetGameSolver.ProofTreeZipper
+import ProofWidgets
 
 namespace GadgetGame
 
@@ -110,6 +111,10 @@ def ProofTree.getGadgetGraph (proofTree : ProofTree) : GadgetGraphProps :=
   let (_, state) := proofTree.exportToGraph |>.run {} |>.run {}
   state.toGadgetGraphProps
 
+open Lean ProofWidgets Server
 
+@[widget_module]
+def GadgetGraph : Component GadgetGraphProps where
+  javascript := include_str ".." / ".." / "js-build" / "StaticDiagram.js"
 
 end GadgetGame
