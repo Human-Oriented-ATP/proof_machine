@@ -42,11 +42,6 @@ interface DiagramProps {
     setProblemSolved: (b: boolean) => void
 }
 
-interface GadgetGraphProps {
-    gadgets: ReactFlowNode<GadgetProps, 'gadgetFlowNode'>[]
-    edges: Edge[]
-}
-
 const nodesLengthSelector = (state: ReactFlowState) =>
     Array.from(state.nodeInternals.values()).length || 0;
 
@@ -63,20 +58,6 @@ function isAbovePalette(position: XYPosition): boolean {
     const paletteElement = document.getElementById("gadget_palette")!
     const paletteRect = paletteElement?.getBoundingClientRect()
     return containsPoint(paletteRect, position)
-}
-
-export function StaticDiagram(props: GadgetGraphProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges);
-    const { getNode, getNodes, getEdges } = useReactFlow();
-
-    return <ReactFlow 
-            nodes={nodes} 
-            edges={edges} 
-            onNodesChange={onNodesChange} 
-            onEdgesChange={onEdgesChange} 
-            nodeTypes={nodeTypes} 
-            edgeTypes={edgeTypes} />;
 }
 
 export function Diagram(props: DiagramProps) {
