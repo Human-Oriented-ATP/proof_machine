@@ -66,3 +66,15 @@ export function makeAxiomWithFreshVariables(axiom: Axiom, prefix: string): Axiom
     const conclusion = makeTermWithFreshVariables(axiom.conclusion, prefix)
     return { hypotheses, conclusion }
 }
+export function colorsMatch(term1: Term, term2: Term): boolean {
+    if ("label" in term1 && "label" in term2) {
+        return term1.label === term2.label;
+    }
+    return false;
+}
+export function sameArity(term1: Term, term2: Term): boolean {
+    if ("args" in term1 && "args" in term2) {
+        return term1.args.length === term2.args.length;
+    }
+    return false;
+}

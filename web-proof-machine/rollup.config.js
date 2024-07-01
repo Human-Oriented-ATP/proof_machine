@@ -1,4 +1,3 @@
-import glob from 'glob';
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
@@ -11,9 +10,7 @@ export default cliArgs => {
     if (tsxName !== undefined)
         // We delete the custom argument so that Rollup does not try to process it and complain.
         delete cliArgs.tsxName;
-    const inputs = tsxName ?
-        [ `components/${tsxName}.tsx` ] :
-        glob.sync('components/**/*.tsx').concat(glob.sync('lib/**/*.tsx'));
+    const inputs = [ `components/Diagram.tsx` ]
 
         const isProduction = process.env.NODE_ENV && process.env.NODE_ENV === 'production';
     const configForInput = fname => ({

@@ -51,7 +51,11 @@ function makeConnectionsForVariable(inputs: Term[], output: Term, v: VariableNam
         ["output", variablePosition])
     const positionsInInputs = positionsInInputsStructured.flat()
     if (positionsInOutput.length === 0) {
-        return toConnections(getAllUniquePairs(positionsInInputs))
+        let connections: InternalConnection[] = []
+        for (let i = 0; i < positionsInInputs.length - 1; i++) {
+            connections.push({ from: positionsInInputs[i], to: positionsInInputs[i + 1] })
+        }
+        return connections
     } else if (positionsInInputs.length === 0) {
         return toConnections(getAllUniquePairs(positionsInOutput))
     } else {

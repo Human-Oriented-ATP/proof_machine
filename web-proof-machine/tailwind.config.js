@@ -16,10 +16,22 @@ module.exports = {
       'orange': '#ff9f1a',
       'purple': '#c56cf0',
       'cyan': '#7efff5',
-      'pink': '#ffcccc'
+      'pink': '#ffcccc',
+      'yellow-highlight': "#fffa65",
+      'light-gray': "#fefefe",
+      'palette-gray': '#dddddd',
     },
     extend: {
-    },
+      keyframes: {
+        rotate: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '50%': { transform: 'rotate(360deg)' },
+        }
+      },
+      backgroundImage: {
+        "striped": "url('/diagonal-stripes.svg')",
+      }
+    }
   },
   plugins: [],
 }

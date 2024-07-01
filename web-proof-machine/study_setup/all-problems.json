@@ -1,0 +1,106 @@
+{
+    "name": "",
+    "displayNamesAs": "name",
+    "displayUnlistedProblems": true,
+    "categories": [
+        {
+            "name": "Tutorial",
+            "problems": [
+                "jacob_easy01",
+                "jacob_easy02",
+                "jacob_easy03",
+                "jacob_easy04",
+                "tim_easy01",
+                "tim_easy07"
+            ]
+        },
+        {
+            "name": "Beginner",
+            "problems": [
+                "tim11",
+                "tim17",
+                "tim18",
+                "tim19",
+                "tim_easy04",
+                "tim_easy10",
+                "tim_easy03",
+                "tim08",
+                "jacob_easy05",
+                "tim23",
+                "tim24",
+                "tim33",
+                "tim43"
+            ]
+        },
+        {
+            "name": "Intermediate",
+            "problems": [
+                "tim_easy08",
+                "tim12",
+                "tim_easy02",
+                "tim_easy05",
+                "tim04",
+                "tim16",
+                "tim20",
+                "tim05",
+                "tim_easy09",
+                "tim10",
+                "jacob05",
+                "tim29",
+                "tim36",
+                "tim40",
+                "tim41",
+                "tim42",
+                "tim44"
+            ]
+        },
+        {
+            "name": "Advanced",
+            "problems": [
+                "tim02",
+                "tim14",
+                "tim_easy06",
+                "tim01",
+                "tim07",
+                "jacob02",
+                "jacob12a",
+                "jacob12b",
+                "jacob08",
+                "jacob07a",
+                "jacob08a",
+                "tim39",
+                "jacob09a",
+                "tim22c",
+                "tim25",
+                "tim27",
+                "tim28",
+                "jacob01",
+                "tim32",
+                "tim34",
+                "tim37a"
+            ]
+        },
+        {
+            "name": "Expert",
+            "problems": [
+                "tim06",
+                "jacob03",
+                "jacob04",
+                "jacob6a",
+                "tim21",
+                "tim09",
+                "tim31",
+                "jacob16",
+                "jacob17"
+            ]
+        },
+        {
+            "name": "Legend",
+            "problems": [
+                "fredy01a",
+                "tim30",
+                "tim35"
+            ]
+        }
+    ]
+}

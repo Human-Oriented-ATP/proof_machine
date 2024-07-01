@@ -1,12 +1,12 @@
 import '../index.css'
-import { loadProblemList } from '../lib/game/LoadProblems'
-import ProblemSelector from '../components/ProblemSelector'
+import dynamic from 'next/dynamic'
 
 export function generateStaticParams() {
     return [{ slug: [''] }]
 }
 
+const DynamicMainScreen = dynamic(() => import("components/navigation/MainScreen"), { ssr: false })
+
 export default async function Page() {
-    const problems = await loadProblemList()
-    return <ProblemSelector problems={problems} />
+    return <DynamicMainScreen />
 }

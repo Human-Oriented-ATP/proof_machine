@@ -15,8 +15,21 @@ export interface AbstractNodeProps {
     term: Term
 }
 
+export type NodePosition = number
+
+export function isOutputPosition(position: NodePosition): boolean {
+    return position === -1
+}
+
+export function isInputPosition(position: NodePosition): boolean {
+    return !isOutputPosition(position)
+}
+
+export const outputPosition: NodePosition = -1
+
 export interface NodeDisplayProps extends AbstractNodeProps {
-    isInput: boolean
+    position: NodePosition
+    gadgetId: GadgetId
     useDummyHandle: boolean
     holeFocus: Focus<string>
 }
@@ -25,8 +38,7 @@ export type GadgetId = string
 
 export interface GadgetProps {
     id: GadgetId
-    inputs: Term[]
-    output?: Term
+    terms: Map<NodePosition, Term>
     isAxiom: boolean
 }
 
