@@ -1,4 +1,4 @@
-import ReactFlow, { useNodesState, useEdgesState, useReactFlow, NodeTypes, EdgeTypes, Node as ReactFlowNode, Edge } from 'reactflow';
+import ReactFlow, { useNodesState, useEdgesState, useReactFlow, NodeTypes, EdgeTypes, Node as ReactFlowNode, Edge, ReactFlowProvider } from 'reactflow';
 import { NodePosition, GadgetId, GadgetProps, outputPosition } from '../../lib/game/Primitives';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { CustomEdge } from './MultiEdge';
@@ -47,16 +47,22 @@ interface GadgetGraphProps {
     edges: GadgetEdge[]
 }
 
-export function StaticDiagram(props: GadgetGraphProps) {
+function StaticDiagramCore(props: GadgetGraphProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets.map(makeGadgetNode));
     const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges.map(makeEdge));
     const { getNode, getNodes, getEdges } = useReactFlow();
 
     return <ReactFlow 
-            nodes={nodes} 
-            edges={edges} 
-            onNodesChange={onNodesChange} 
-            onEdgesChange={onEdgesChange} 
-            nodeTypes={nodeTypes} 
-            edgeTypes={edgeTypes} />;
+        nodes={nodes} 
+        edges={edges} 
+        onNodesChange={onNodesChange} 
+        onEdgesChange={onEdgesChange} 
+        nodeTypes={nodeTypes} 
+        edgeTypes={edgeTypes} />
+}
+
+export default function StaticDiagram(props: GadgetGraphProps) {
+    return <ReactFlowProvider>
+        <StaticDiagramCore {...props} />
+    </ReactFlowProvider>
 }
