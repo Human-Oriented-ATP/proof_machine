@@ -48,8 +48,9 @@ interface GadgetGraphProps {
 }
 
 function StaticDiagramCore(props: GadgetGraphProps) {
+    console.log(props)
     const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets.map(makeGadgetNode));
-    const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges.map(makeEdge));
+    const [edges, setEdges, onEdgesChange] = useEdgesState([]); // useEdgesState(props.edges.map(makeEdge));
     const { getNode, getNodes, getEdges } = useReactFlow();
 
     return <ReactFlow 
@@ -60,6 +61,11 @@ function StaticDiagramCore(props: GadgetGraphProps) {
         nodeTypes={nodeTypes} 
         edgeTypes={edgeTypes} />
 }
+
+// export const demoProps : GadgetGraphProps = {
+//     gadgets: [{id: "test", inputs: [{ label: "g", args: [{ variable: "x" }] }], isAxiom: false, x: 0, y: 0}],
+//     edges: []
+// }
 
 export default function StaticDiagram(props: GadgetGraphProps) {
     return <ReactFlowProvider>
