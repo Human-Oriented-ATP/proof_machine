@@ -28,7 +28,7 @@ deriving Lean.ToJson, Lean.FromJson, Repr
 structure GadgetGraphProps where
   gadgets : Array GadgetPropsWithPosition := #[]
   edges : Array GadgetEdge := #[]
-deriving Lean.ToJson, Lean.FromJson
+deriving Lean.ToJson, Lean.FromJson, Repr
 
 structure ProofTree.RenderingParams where
   holeWidth : Nat := 25
