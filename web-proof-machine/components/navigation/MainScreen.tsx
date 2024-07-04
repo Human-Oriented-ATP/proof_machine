@@ -25,7 +25,7 @@ export default function MainScreen() {
             {/* <Button onClick={() => createTable({})}>Create Table</Button> */}
             <div className="m-1.5 inline-block">
                 <Link href="pilot1">
-                    <Button>Preview Pilot 1</Button>
+                    <Button><span className="text-red">Participate in pilot 1</span></Button>
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
