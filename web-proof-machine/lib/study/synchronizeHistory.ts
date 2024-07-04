@@ -25,14 +25,26 @@ export async function synchronizeHistory(historyString: string) {
             const log: string = JSON.stringify(history.log);
             history.lastSynchronized = new Date().toISOString();
             console.log(`Inserting: ${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})`)
-            const x = await sql`INSERT INTO testing_0 (player_id, problem_id, start, latest, history, completed) VALUES 
-                (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
-                ON CONFLICT (player_id, problem_id, start) DO UPDATE
-                SET latest= ${history.lastSynchronized}, 
-                    history= ${log},
-                    completed=${history.completed}
-                WHERE testing_0.completed=false;`
-            console.log(x)
+            const config = cookies().get('config')!.value
+            if (config === "pilot1") {
+                const result = await sql`INSERT INTO pilot1 (player_id, problem_id, start, latest, history, completed) VALUES 
+                    (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
+                    ON CONFLICT (player_id, problem_id, start) DO UPDATE
+                    SET latest= ${history.lastSynchronized}, 
+                        history= ${log},
+                        completed=${history.completed}
+                    WHERE pilot1.completed=false;`
+                console.log(result)
+            } else {
+                const result = await sql`INSERT INTO testing_0 (player_id, problem_id, start, latest, history, completed) VALUES 
+                    (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
+                    ON CONFLICT (player_id, problem_id, start) DO UPDATE
+                    SET latest= ${history.lastSynchronized}, 
+                        history= ${log},
+                        completed=${history.completed}
+                    WHERE testing_0.completed=false;`
+                console.log(result)
+            }
         }
     } catch (error) {
         console.log("Error synchronizing history.")
