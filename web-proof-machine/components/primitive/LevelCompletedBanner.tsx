@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LevelCompletedActionButtons } from './LevelCompletedActionButtons';
+import { LevelCompletedButtons } from './LevelCompletedButtons';
 
 interface LevelCompletedBannerProps {
     isOpen: boolean;
@@ -13,7 +13,7 @@ export default function LevelCompletedBanner(props: LevelCompletedBannerProps) {
                     <div className='grow m-1'>
                         <h2 className='text-xl'>Level completed!</h2>
                     </div>
-                    <LevelCompletedActionButtons />
+                    <LevelCompletedButtons />
                 </div>
             </div>
         )}

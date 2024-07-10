@@ -1,14 +1,14 @@
 import Button, { HighlightedButton } from './Button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useConfiguration, getNextProblem, useConfigurationIdentifier } from 'lib/study/LevelConfiguration';
+import { useConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
 
 function getProblemFromPathname(pathname: string): string {
     const pathComponents = pathname.split("/")
     return pathComponents[pathComponents.length - 1]
 }
 
-export function LevelCompletedActionButtons() {
+export function LevelCompletedButtons() {
     const router = useRouter();
     const path = usePathname();
 

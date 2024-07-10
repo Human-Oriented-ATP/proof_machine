@@ -30,7 +30,7 @@ export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonP
         makeGadget(getPosition())
     }
 
-    return <div ref={ref} className="insertGadgetButton" onMouseDown={onMouseDown}>
+    return <div ref={ref} className="flex justify-center px-1" onMouseDown={onMouseDown}>
         {children}
     </div>
 }
@@ -51,7 +51,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
     return (
         <Panel position='top-center'>
             <AssignmentContext.Provider value={axiomTermEnumeration}>
-                <div id="gadget_palette" className="gadgetPalette bg-palette-gray/50">
+                <div id="gadget_palette" className="absolute min-w-28 h-screen flex flex-col fixed left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
                     {props.axioms.map(axiom => {
                         return <InsertGadgetButton makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>

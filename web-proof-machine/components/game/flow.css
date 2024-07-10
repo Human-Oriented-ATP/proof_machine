@@ -46,27 +46,6 @@
     margin: 0px;
 }
 
-.gadgetPalette {
-    min-width: 100px;
-    height: 100vh;
-    margin: 0px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    left: 0px;
-    top: 0px;
-    padding-left: 3px;
-    padding-right: 3px;
-    overflow-y: scroll;
-}
-
-.insertGadgetButton {
-    display: flex;
-    justify-content: center;
-    padding-left: 3px;
-    padding-right: 3px;
-}
-
 .react-flow__node {
     border: solid 2px #00000000;
 }
