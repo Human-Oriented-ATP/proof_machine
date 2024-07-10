@@ -1,7 +1,8 @@
 import { GameLevelButton } from "components/primitive/Button";
 import { getCompletedProblems } from "lib/study/CompletedProblems";
-import { getActiveConfiguration } from "lib/study/LevelConfiguration";
+import { useConfiguration } from "lib/study/LevelConfiguration";
 import { ProblemCategory } from "lib/study/Types";
+import { usePathname } from "next/navigation";
 
 interface ProblemCategoryProps {
     category: ProblemCategory;
@@ -11,7 +12,7 @@ export function ProblemCategory(props: ProblemCategoryProps) {
     const completedProblems = getCompletedProblems()
 
     function getButtonLabel(index: number, problem: string): string {
-        const config = getActiveConfiguration()
+        const config = useConfiguration()
         if (config === null) {
             return `${index + 1}`
         } else {
@@ -23,6 +24,8 @@ export function ProblemCategory(props: ProblemCategoryProps) {
         }
     }
 
+    const currentPath = usePathname()
+
     return <div className="max-w-3xl">
         <div>
             {props.category.name}
@@ -32,7 +35,7 @@ export function ProblemCategory(props: ProblemCategoryProps) {
                 return <div className="p-2">
                     <GameLevelButton
                         label={getButtonLabel(index, problem)}
-                        href={`game/${problem}`}
+                        href={`${currentPath}/game/${problem}`}
                         isSolved={completedProblems.includes(problem)}
                         isBlocked={false} />
                 </div>

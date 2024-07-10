@@ -2,29 +2,26 @@ import { StudyConfiguration } from "./Types";
 
 import pilot1 from "study_setup/pilot1.json"
 import allProblems from "study_setup/all-problems.json"
-import { clientSideCookies } from "lib/util/ClientSideCookies";
+import { usePathname } from "next/navigation";
 
-export function setConfiguration(configString: string): void {
-    clientSideCookies.set("config", configString, 365)
-}
-
-export function getActiveConfigurationIdentifier(): string | null {
-    const config = clientSideCookies.get("config")
-    return config
+export function useConfigurationIdentifier(): string {
+    const pathname = usePathname()
+    const segments = pathname.split("/")
+    return segments[1]
 }
 
 export function getConfigFromIdentifier(configIdentifier: string): StudyConfiguration | null {
     switch (configIdentifier) {
         case "pilot1":
             return pilot1
-        case "all-problems":
+        case "internal":
             return allProblems
     }
     return null
 }
 
-export function getActiveConfiguration(): StudyConfiguration | null {
-    const configIdentifier = getActiveConfigurationIdentifier()
+export function useConfiguration(): StudyConfiguration | null {
+    const configIdentifier = useConfigurationIdentifier()
     if (configIdentifier) {
         return getConfigFromIdentifier(configIdentifier)
     } else {

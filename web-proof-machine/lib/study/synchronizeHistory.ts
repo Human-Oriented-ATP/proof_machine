@@ -18,13 +18,11 @@ export async function getPlayerId(): Promise<string> {
 export async function synchronizeHistory(historyString: string) {
     "use server"
     try {
-        console.log("Synchronizing history.")
         const playerId = await getPlayerId()
         const history = JSON.parse(historyString)
         if (history.log.length !== 0) {
             const log: string = JSON.stringify(history.log);
             history.lastSynchronized = new Date().toISOString();
-            console.log(`Inserting: ${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})`)
             const config = cookies().get('config')!.value
             if (config === "pilot1") {
                 const result = await sql`INSERT INTO pilot1 (player_id, problem_id, start, latest, history, completed) VALUES 
@@ -34,7 +32,6 @@ export async function synchronizeHistory(historyString: string) {
                         history= ${log},
                         completed=${history.completed}
                     WHERE pilot1.completed=false;`
-                console.log(result)
             } else {
                 const result = await sql`INSERT INTO testing_0 (player_id, problem_id, start, latest, history, completed) VALUES 
                     (${playerId}, ${history.problemId}, ${history.startTime}, ${history.lastSynchronized}, ${log}, ${history.completed})
@@ -43,7 +40,6 @@ export async function synchronizeHistory(historyString: string) {
                         history= ${log},
                         completed=${history.completed}
                     WHERE testing_0.completed=false;`
-                console.log(result)
             }
         }
     } catch (error) {
@@ -62,7 +58,7 @@ export async function retrieveHistory(playerId: string, problemId: string) {
     }
 }
 
-export async function createTable(x) {
+export async function createTable() {
     try {
         await sql`CREATE TABLE testing_0 (
             player_id VARCHAR(255) NOT NULL,

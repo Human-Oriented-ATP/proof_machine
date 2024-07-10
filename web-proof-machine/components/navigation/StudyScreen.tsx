@@ -1,13 +1,8 @@
 "use client"
 
-import { useEffect } from "react";
 import { ProblemSelection } from "./ProblemSelection";
-import { setConfiguration } from "lib/study/LevelConfiguration";
 
 export default function StudyScreen({ config }: { config: string }) {
-    useEffect(() => {
-        setConfiguration(config)
-    }, [])
 
     return <div className="w-screen text-center pt-10">
         <div>

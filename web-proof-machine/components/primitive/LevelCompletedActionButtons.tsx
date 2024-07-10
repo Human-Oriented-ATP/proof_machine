@@ -1,7 +1,7 @@
 import Button, { HighlightedButton } from './Button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { getActiveConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
+import { useConfiguration, getNextProblem, useConfigurationIdentifier } from 'lib/study/LevelConfiguration';
 
 function getProblemFromPathname(pathname: string): string {
     const pathComponents = pathname.split("/")
@@ -13,7 +13,7 @@ export function LevelCompletedActionButtons() {
     const path = usePathname();
 
     const currentProblem = getProblemFromPathname(path);
-    const config = getActiveConfiguration();
+    const config = useConfiguration();
 
     function getNextLevelHref(): undefined | string {
         if (config) {
@@ -26,11 +26,7 @@ export function LevelCompletedActionButtons() {
     }
 
     function getStudyHomeHref(): string {
-        if (config) {
-            return `../${config.name}`;
-        } else {
-            return "../";
-        }
+        return `../`;
     }
 
     const nextLevelHref = getNextLevelHref();

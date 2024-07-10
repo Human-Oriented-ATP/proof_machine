@@ -1,5 +1,5 @@
 import { CheckCircledIcon, LockClosedIcon } from "@radix-ui/react-icons"
-import { getActiveConfiguration } from "lib/study/LevelConfiguration"
+import { useConfiguration } from "lib/study/LevelConfiguration"
 import { GameLevelButtonProps } from "lib/study/Types"
 import Link from "next/link"
 import { twJoin } from "tailwind-merge"
@@ -21,7 +21,7 @@ export function HighlightedButton(props) {
 export function GameLevelButton(props: GameLevelButtonProps) {
     function AdjustableButton(props) {
         let classNames = "w-36 text-base"
-        const config = getActiveConfiguration()
+        const config = useConfiguration()
         if (config !== null) {
             if (config.displayNamesAs === "number") {
                 classNames = "w-16"

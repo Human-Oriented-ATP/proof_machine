@@ -3,7 +3,6 @@ import { getConfigFromIdentifier } from "lib/study/LevelConfiguration"
 import { StartFirstUnsolvedLevelButton } from "./StartFirstUnsolvedLevelButton"
 
 export function ProblemSelection({ configIdentifier }: { configIdentifier: string }) {
-
     const config = getConfigFromIdentifier(configIdentifier)
 
     if (config === null) {
