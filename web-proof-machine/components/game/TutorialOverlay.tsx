@@ -81,6 +81,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             there and you can drag it back again! If you click or tap on a gadget, you select it, and it will be highlighted. If <br />
             you now press the delete key, it will be deleted. If you hold down the shift key, you can select multiple gadgets as <br />
             though you were preparing a screenshot. Take care when doing this to let go of the trackpad before you let up the shift key.<br />
+            This is the end of the tutorial. Clicking "next level" will take you to the first of the main problems.<br />
         </>
     ]
 ])
