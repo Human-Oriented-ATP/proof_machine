@@ -33,13 +33,13 @@ export function LevelCompletedActionButtons() {
 
     if (nextLevelHref !== undefined) {
         return <>
-            <div className='float-right'>
+            <div className='m-1'>
+                <Button onClick={() => router.push(getStudyHomeHref())}>Main menu</Button>
+            </div>
+            <div className='m-1'>
                 <Link href={nextLevelHref}>
                     <HighlightedButton>Next level</HighlightedButton>
                 </Link>
-            </div>
-            <div className='float-right mr-4'>
-                <Button onClick={() => router.push(getStudyHomeHref())}>Main menu</Button>
             </div>
         </>;
     } else {
