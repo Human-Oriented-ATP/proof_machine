@@ -20,7 +20,7 @@ export default function MainScreen() {
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
-                <Button onClick={() => { resetProgress(); alert("Progress in the pilot has been reset."); router.refresh() }}>
+                <Button onClick={() => { resetProgress(); alert("Progress has been reset."); router.refresh() }}>
                     Reset progress</Button>
             </div>
             <div className="m-1.5 inline-block">
