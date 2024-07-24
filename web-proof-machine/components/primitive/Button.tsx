@@ -12,7 +12,9 @@ export default function Button({ highlightOnHover = true, moreClassnames = "", .
 }
 
 export function HighlightedButton(props) {
-    return <button className="border-2 border-black rounded-lg p-2.5 hover:bg-black hover:text-white bg-green"
+    return <button className="border-2 border-black rounded-lg p-2.5 bg-green 
+                              disabled:bg-palette-gray disabled:opacity-40 disabled:cursor-not-allowed 
+                              enabled:hover:bg-black enabled:hover:text-white"
         {...props}>
         {props.children}
     </button>

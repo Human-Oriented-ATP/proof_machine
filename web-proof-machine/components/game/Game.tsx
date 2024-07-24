@@ -8,12 +8,10 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermE
 import { InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import { GameHelp } from "./GameHelp";
-import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
+import { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
-import LevelCompletedBanner, { useLevelCompletedBanner } from "components/primitive/LevelCompletedBanner";
-import { markLevelCompleted } from "lib/study/CompletedProblems";
+import LevelCompletedBanner from "components/primitive/LevelCompletedBanner";
 import { axiomToString } from "lib/game/GameLogic";
 
 export interface GameProps {
@@ -30,7 +28,6 @@ export function Game(props: GameProps) {
     const [isSolved, setIsSolved] = useState(false)
 
     const helpPopup = useSingleButtonPopup()
-    const levelCompletedBanner = useLevelCompletedBanner()
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
@@ -68,13 +65,6 @@ export function Game(props: GameProps) {
         isAxiom: false
     }
 
-    useEffect(() => {
-        if (isSolved) {
-            markLevelCompleted(props.problemId)
-            levelCompletedBanner.open()
-        }
-    }, [isSolved])
-
     const setProblemSolved = useCallback((b: boolean) => {
         setIsSolved(b)
         if (b && !history.current.completed) {
@@ -93,9 +83,9 @@ export function Game(props: GameProps) {
         }
     }, [equations])
 
-    return <div className='w-screen h-screen flex flex-col'>
-        <LevelCompletedBanner isOpen={levelCompletedBanner.isOpen} />
-        <div className="w-screen h-full">
+    return <div className='h-dvh flex flex-col'>
+        <div><LevelCompletedBanner isSolved={isSolved} /></div>
+        <div className="grow">
             <AssignmentContext.Provider value={termEnumeration}>
                 <ReactFlowProvider>
                     <Diagram
@@ -112,7 +102,6 @@ export function Game(props: GameProps) {
                     ></Diagram>
                 </ReactFlowProvider>
             </AssignmentContext.Provider>
-            <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
         </div>
     </div>
 }

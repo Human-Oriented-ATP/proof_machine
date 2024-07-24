@@ -8,7 +8,7 @@ function getProblemFromPathname(pathname: string): string {
     return pathComponents[pathComponents.length - 1]
 }
 
-export function LevelCompletedButtons() {
+export function LevelCompletedButtons({ levelCompleted }: { levelCompleted: boolean }) {
     const router = useRouter();
     const path = usePathname();
 
@@ -38,7 +38,7 @@ export function LevelCompletedButtons() {
             </div>
             <div className='m-1'>
                 <Link href={nextLevelHref}>
-                    <HighlightedButton>Next level</HighlightedButton>
+                    <HighlightedButton disabled={!levelCompleted} >Next level</HighlightedButton>
                 </Link>
             </div>
         </>;
