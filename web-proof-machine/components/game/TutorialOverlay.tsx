@@ -72,15 +72,23 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             for the two occurrences of the pink nodes. (If this is not possible, you will get a broken connection.)<br />
         </>
      ],
+     ["tim_easy13",
+        <>
+            While you are completing this level, try scrolling with two fingers on your trackpad. You should find<br />
+            that the entire picture enlarges or contracts (depending on the direction you scroll in). Another useful<br />
+            facility when the problems get bigger and more elaborate is that you can drag the entire picture -- just<br />
+            press and hold the trackpad and then move. If part of the diagram disappears off the edge of the screen,<br />
+            don't worry: it's still there and you can drag it back again!<br />
+        </>
+     ], 
      ["tim_easy12",
         <>   
-            This problem is slightly harder. While you're solving it, try scrolling with two fingers on your trackpad. You <br />
-            should find that the entire picture enlarges or contracts (depending on the direction you scroll in). Another useful <br />
-            facility when the problems get bigger and more elaborate is that you can drag the entire picture -- just press and <br />
-            hold the trackpad and then move. If part of the diagram disappears off the edge of the screen, don't worry: it's still <br />
-            there and you can drag it back again! If you click or tap on a gadget, you select it, and it will be highlighted. If <br />
-            you now press the delete key, it will be deleted. If you hold down the shift key, you can select multiple gadgets as <br />
-            though you were preparing a screenshot. Take care when doing this to let go of the trackpad before you let up the shift key.<br />
+            This problem is slightly harder, so you may want to undo certain moves. If you click or tap on a gadget, it will be highlighted.<br />
+            You can then delete it by pressing the delete key. If you hold down the shift key, you can select multiple gadgets as <br />
+            though you were preparing a screenshot, which you can then move or delete. Take care when doing this to let go of the <br />
+            trackpad before you let up the shift key. You can also delete gadgets by dragging them off to the left.<br />
+            <br />
+            Congratulations, this is the end of the tutorial! Clicking "next level" will take you to the first of the main problems.<br />
         </>
     ]
 ])
