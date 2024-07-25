@@ -38,7 +38,10 @@ export function LevelCompletedButtons({ levelCompleted }: { levelCompleted: bool
             </div>
             <div className='m-1'>
                 <Link href={nextLevelHref}>
-                    <HighlightedButton disabled={!levelCompleted} >Next level</HighlightedButton>
+                    <HighlightedButton disabled={!levelCompleted}
+                        title={levelCompleted ? "" : "Connect all gadgets and remove broken connections to continue."}>
+                        Next level
+                    </HighlightedButton>
                 </Link>
             </div>
         </>;
