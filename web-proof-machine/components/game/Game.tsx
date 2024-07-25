@@ -8,11 +8,12 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermE
 import { InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
+import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import LevelCompletedBanner from "components/primitive/LevelCompletedBanner";
 import { axiomToString } from "lib/game/GameLogic";
+import { GameHelp } from "./GameHelp";
 
 export interface GameProps {
     initData: InitializationData
@@ -102,6 +103,7 @@ export function Game(props: GameProps) {
                     ></Diagram>
                 </ReactFlowProvider>
             </AssignmentContext.Provider>
+            <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
         </div>
     </div>
 }
