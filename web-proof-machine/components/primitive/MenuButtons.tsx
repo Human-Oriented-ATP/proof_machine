@@ -2,13 +2,19 @@ import Button, { HighlightedButton } from './Button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
+import { QuestionMarkIcon } from '@radix-ui/react-icons';
 
 function getProblemFromPathname(pathname: string): string {
     const pathComponents = pathname.split("/")
     return pathComponents[pathComponents.length - 1]
 }
 
-export function LevelCompletedButtons({ levelCompleted }: { levelCompleted: boolean }) {
+interface MenuButtonsProps {
+    levelCompleted: boolean;
+    showHelpWindow: () => void;
+}
+
+export function MenuButtons({ levelCompleted, showHelpWindow }: MenuButtonsProps) {
     const router = useRouter();
     const path = usePathname();
 
@@ -34,6 +40,9 @@ export function LevelCompletedButtons({ levelCompleted }: { levelCompleted: bool
     if (nextLevelHref !== undefined) {
         return <>
             <div className='m-1'>
+                <Button onClick={showHelpWindow}>Help</Button>
+            </div>
+            <div className='m-1'>
                 <Button onClick={() => router.push(getStudyHomeHref())}>Main menu</Button>
             </div>
             <div className='m-1'>
@@ -46,7 +55,7 @@ export function LevelCompletedButtons({ levelCompleted }: { levelCompleted: bool
             </div>
         </>;
     } else {
-        return <div className='float-right'>
+        return <div>
             <HighlightedButton onClick={() => router.push(getStudyHomeHref())}>Main menu</HighlightedButton>
         </div>;
     }

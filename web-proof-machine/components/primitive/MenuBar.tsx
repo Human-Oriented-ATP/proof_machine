@@ -1,10 +1,11 @@
-import { LevelCompletedButtons } from './LevelCompletedButtons';
+import { MenuButtons } from './MenuButtons';
 
 interface LevelCompletedBannerProps {
     isSolved: boolean;
+    showHelpWindow: () => void
 }
 
-export default function LevelCompletedBanner(props: LevelCompletedBannerProps) {
+export default function MenuBar(props: LevelCompletedBannerProps) {
     const message = props.isSolved ? "Level completed!" : "";
 
     return <div className="flex items-center justify-center z-10">
@@ -12,7 +13,7 @@ export default function LevelCompletedBanner(props: LevelCompletedBannerProps) {
             <div className='grow m-1'>
                 <h2 className='text-xl'>{message}</h2>
             </div>
-            <LevelCompletedButtons levelCompleted={props.isSolved} />
+            <MenuButtons levelCompleted={props.isSolved} showHelpWindow={props.showHelpWindow} />
         </div>
     </div>
 };

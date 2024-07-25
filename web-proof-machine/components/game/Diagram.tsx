@@ -37,7 +37,6 @@ interface DiagramProps {
     removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     isSatisfied: Map<string, boolean>
     goal: GadgetProps
-    showHelpWindow: () => void
     setProblemSolved: (b: boolean) => void
 }
 
@@ -270,7 +269,7 @@ export function Diagram(props: DiagramProps) {
                 onNodeDragStop={onNodeDragStop}
                 nodeOrigin={[0.5, 0.5]}
             >
-                <ControlButtons showHelpWindow={props.showHelpWindow} rf={rf} ></ControlButtons>
+                <ControlButtons rf={rf} ></ControlButtons>
             </ReactFlow>
         </>
     )

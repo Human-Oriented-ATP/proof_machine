@@ -11,7 +11,7 @@ import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
-import LevelCompletedBanner from "components/primitive/LevelCompletedBanner";
+import MenuBar from "components/primitive/MenuBar";
 import { axiomToString } from "lib/game/GameLogic";
 import { GameHelp } from "./GameHelp";
 
@@ -85,7 +85,7 @@ export function Game(props: GameProps) {
     }, [equations])
 
     return <div className='h-dvh flex flex-col'>
-        <div><LevelCompletedBanner isSolved={isSolved} /></div>
+        <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
             <AssignmentContext.Provider value={termEnumeration}>
                 <ReactFlowProvider>
@@ -98,7 +98,6 @@ export function Game(props: GameProps) {
                         removeEquation={removeEquation}
                         isSatisfied={eqSatisfied}
                         goal={goalNodeProps}
-                        showHelpWindow={helpPopup.open}
                         setProblemSolved={setProblemSolved}
                     ></Diagram>
                 </ReactFlowProvider>
