@@ -9,7 +9,7 @@ export interface DummyHandleProps {
 export function DummyHandle({ position }: DummyHandleProps) {
     if (position === "source") {
         return <div className="react-flow__handle react-flow__handle-right"><CustomHandle type="source" isConnected={false} /></div>
-    } else if (position === "target") {
+    } else {
         return <div className="react-flow__handle react-flow__handle-left"><CustomHandle type="target" isConnected={false} /></div>
     }
 }
