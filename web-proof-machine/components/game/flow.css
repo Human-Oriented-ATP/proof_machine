@@ -1,14 +1,14 @@
 .react-flow__handle {
     top: auto;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     transform: none;
-    border: solid 2px rgb(252, 252, 252);
-    background-color: black;
+    border: none;
+    background-color: transparent;
 }
 
 .react-flow__handle-left {
-    left: -10px;
+    left: -12px;
 }
 
 .react-flow__handle-right {
@@ -32,12 +32,12 @@
     transform: scale(1.2);
 }
 
-.handle-inline {
+/* .handle-inline {
     display: inline-block;
     position: inherit;
     height: 14px;
     width: 14px;
-}
+} */
 
 .react-flow__panel.center {
     top: auto;

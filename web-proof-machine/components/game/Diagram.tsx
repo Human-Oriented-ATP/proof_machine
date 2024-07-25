@@ -206,12 +206,12 @@ export function Diagram(props: DiagramProps) {
         function highlightHandle(handleId: string) {
             const handle = document.querySelector(`[data-handleid="${handleId}"]`);
             if (handle) {
-                (handle as HTMLElement).classList.add(...HANDLE_BROKEN_CLASSES)
+                (handle as HTMLElement).children[0].classList.add(...HANDLE_BROKEN_CLASSES)
             }
         }
 
         document.querySelectorAll("[data-handleid]").forEach(handle => {
-            (handle as HTMLElement).classList.remove(...HANDLE_BROKEN_CLASSES)
+            (handle as HTMLElement).children[0].classList.remove(...HANDLE_BROKEN_CLASSES)
         })
         setEdges(edges => edges.map(edge => {
             const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data))

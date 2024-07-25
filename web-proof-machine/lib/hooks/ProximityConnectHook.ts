@@ -151,13 +151,15 @@ export function useProximityConnect(rf: ReactFlowInstance,
     const highlightHandle = useCallback((handleId: string) => {
         const handle = document.querySelector(`[data-handleid="${handleId}"]`);
         if (handle) {
-            (handle as HTMLElement).classList.add("!bg-red")
+            (handle as HTMLElement).children[0].classList.remove("fill-white");
+            (handle as HTMLElement).children[0].classList.add("fill-green")
         }
     }, [])
 
     useEffect(() => {
         document.querySelectorAll("[data-handleid]").forEach(handle => {
-            (handle as HTMLElement).classList.remove("!bg-red")
+            (handle as HTMLElement).children[0].classList.remove("fill-green");
+            (handle as HTMLElement).children[0].classList.add("fill-white")
         })
         highlightHandle(connectingSourceHandle)
         highlightHandle(connectingTargetHandle)

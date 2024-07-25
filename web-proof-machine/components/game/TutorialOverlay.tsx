@@ -5,7 +5,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
         <>
             The goal in this game is to build diagrams from gadgets. <br />
             Start by dragging the gadget from the left into the diagram. <br />
-            Then connect the two gadgets by drawing a line from <span><DummyHandle position="inline" /></span> to <span><DummyHandle position="inline" /></span>.
+            Then connect the two gadgets by drawing a line from <span><DummyHandle position="source" /></span> to <span><DummyHandle position="target" /></span>.
         </>
     ],
     ["tutorial02",
@@ -17,7 +17,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial03",
         <>
             If you move two gadgets close to each other they connect automatically. <br />
-            You'll know when they are close enough because <span><DummyHandle position="inline" /></span> and <span><DummyHandle position="inline" /></span> will turn red. Try it! <br />
+            You'll know when they are close enough because <span><DummyHandle position="source" /></span> and <span><DummyHandle position="target" /></span> will turn red. Try it! <br />
             Some of the circles here contain numbers. Notice what happens when you connect <br />
             a gadget with empty circles to one with numbers in the circles.<br />
         </>
@@ -26,9 +26,8 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
         <>
             The most important rule of the game is that any numbers in connected cells must match.<br />
             While you solve this level, try matching one of the two small red "input" gadgets to the <br />
-            wrong numbered. The connection will break and you will see a grey handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span>. <br />
-            You can always remove a connection (whether broken or not) by clicking on the handle <span><DummyHandle position="inline" isBrokenConnection={true} /></span> or <span>
-                <DummyHandle position="inline" /></span> at the end of it. <br />
+            wrong numbered. The connection will break and you will see a pulsating handle. <br />
+            You can always remove a connection (whether broken or not) by clicking on the handle <span><DummyHandle position="target" /></span> at the end of it. <br />
         </>
     ],
     ["jacob_easy01",
@@ -71,8 +70,8 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             then any empty circles in the cells will be filled automatically if that is necessary to make the numbers consistent<br />
             for the two occurrences of the pink nodes. (If this is not possible, you will get a broken connection.)<br />
         </>
-     ],
-     ["tim_easy13",
+    ],
+    ["tim_easy13",
         <>
             While you are completing this level, try scrolling with two fingers on your trackpad. You should find<br />
             that the entire picture enlarges or contracts (depending on the direction you scroll in). Another useful<br />
@@ -80,9 +79,9 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             press and hold the trackpad and then move. If part of the diagram disappears off the edge of the screen,<br />
             don't worry: it's still there and you can drag it back again!<br />
         </>
-     ], 
-     ["tim_easy12",
-        <>   
+    ],
+    ["tim_easy12",
+        <>
             This problem is slightly harder, so you may want to undo certain moves. If you click or tap on a gadget, it will be highlighted.<br />
             You can then delete it by pressing the delete key. If you hold down the shift key, you can select multiple gadgets as <br />
             though you were preparing a screenshot, which you can then move or delete. Take care when doing this to let go of the <br />
@@ -96,7 +95,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
 export default function TutorialOverlay({ problemId }: { problemId: string }) {
     if (tutorialTexts.has(problemId)) {
         return <div className="fixed w-full h-full">
-            <div className="absolute left-40 top-12">
+            <div className="absolute left-44 top-12">
                 {tutorialTexts.get(problemId)}
             </div>
         </div>
