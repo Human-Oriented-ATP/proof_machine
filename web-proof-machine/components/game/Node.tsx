@@ -76,7 +76,7 @@ export function Node(props: NodeDisplayProps) {
         return (
             <div className="flex items-center">
                 <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5", background)}>
-                    {props.term.args.map(arg => <Hole term={arg} focus={props.holeFocus}></Hole>)}
+                    {props.term.args.map((arg, idx) => <Hole key={idx} term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}
             </div>

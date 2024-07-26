@@ -33,7 +33,7 @@ export function ProblemCategory(props: ProblemCategoryProps) {
         </div>
         <div className="grid grid-cols-5">
             {props.category.problems.map((problem, index) => {
-                return <div className="p-2">
+                return <div className="p-2" key={problem}>
                     <GameLevelButton
                         label={getButtonLabel(index, problem)}
                         href={`${currentPath}/game/${problem}`}

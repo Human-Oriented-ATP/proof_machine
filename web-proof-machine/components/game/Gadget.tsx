@@ -88,7 +88,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 useDummyHandle: props.isAxiom,
             }
             if (isInputPosition(position)) {
-                buffer.push(<Node {...nodeDisplayProps}></Node>)
+                buffer.push(<Node key={position} {...nodeDisplayProps}></Node>)
             }
         }
         return buffer

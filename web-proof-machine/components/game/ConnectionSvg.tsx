@@ -14,13 +14,13 @@ export interface ConnectionSvgProps {
     connections: ConnectionDrawingData[];
 }
 
-export function connectionPath(props: ConnectionDrawingData, offsetMultiplier: number,
+export function connectionPath(props: ConnectionDrawingData, index: number,
     fixedOffset = CONTROL_POINT_OFFSET): JSX.Element {
     const svg_start_sequence = "M " + pointToString(props.start);
     let offset_start = props.fromInput
         ? fixedOffset
         : -fixedOffset;
-    let offset_start_modified = offset_start + offsetMultiplier * CONTROL_POINT_VARIABLE_OFFSET
+    let offset_start_modified = offset_start + index * CONTROL_POINT_VARIABLE_OFFSET
     let controlPoint1 = addOffsetX(props.start, offset_start_modified);
     let offset_end = props.toOutput
         ? -fixedOffset
@@ -37,7 +37,7 @@ export function connectionPath(props: ConnectionDrawingData, offsetMultiplier: n
     const path_command = svg_start_sequence + " " + svg_curve;
 
     return (
-        <path
+        <path key={index}
             d={path_command}
             strokeWidth="2px"
             fill="transparent"

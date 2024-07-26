@@ -36,7 +36,7 @@ export function ProblemCategoryGrid(props: ProblemCategoryGridProps) {
 
     return <div className="grid grid-col-1 space-y-12 text-xl justify-center">
         {props.categories.map((problemCategory) => {
-            return <ProblemCategory category={problemCategory} />
+            return <ProblemCategory key={problemCategory.name} category={problemCategory} />
         })}
         {getUnlistedProblems()}
     </div>;
