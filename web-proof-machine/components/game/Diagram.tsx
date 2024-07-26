@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition, ReactFlow, useEdges, OnConnectStartParams
+    EdgeTypes, Edge, getOutgoers, useStore, XYPosition, ReactFlow, OnConnectStartParams
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -254,31 +254,29 @@ export function Diagram(props: DiagramProps) {
         nodes.map(node => props.removeGadget(node.id))
     }, [])
 
-    return (
-        <>
-            <GadgetPalette {...paletteProps} />
-            <TutorialOverlay problemId={props.problemId} />
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={(c) => {
-                    savelyAddEdge(c)
-                }}
-                onEdgesDelete={onEdgesDelete}
-                onNodesDelete={onNodesDelete}
-                edgeTypes={edgeTypes}
-                nodeTypes={nodeTypes}
-                onInit={() => init(rf)}
-                onConnectStart={onConnectStart}
-                isValidConnection={isValidConnection}
-                minZoom={0.1}
-                onNodeDrag={onNodeDrag}
-                onNodeDragStop={onNodeDragStop}
-                nodeOrigin={[0.5, 0.5]}
-            />
-            <ControlButtons rf={rf} ></ControlButtons>
-        </>
-    )
+    return <>
+        <GadgetPalette {...paletteProps} />
+        <TutorialOverlay problemId={props.problemId} />
+        <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={(c) => {
+                savelyAddEdge(c)
+            }}
+            onEdgesDelete={onEdgesDelete}
+            onNodesDelete={onNodesDelete}
+            edgeTypes={edgeTypes}
+            nodeTypes={nodeTypes}
+            onInit={() => init(rf)}
+            onConnectStart={onConnectStart}
+            isValidConnection={isValidConnection}
+            minZoom={0.1}
+            onNodeDrag={onNodeDrag}
+            onNodeDragStop={onNodeDragStop}
+            nodeOrigin={[0.5, 0.5]}
+        />
+        <ControlButtons rf={rf} ></ControlButtons>
+    </>
 }
