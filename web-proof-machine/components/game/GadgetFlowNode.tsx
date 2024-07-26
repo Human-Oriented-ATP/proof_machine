@@ -1,11 +1,13 @@
-import { NodeProps as FlowNodeProps } from "reactflow";
+import { Node, NodeProps } from "@xyflow/react";
 import { Gadget } from "./Gadget";
 import { GadgetProps } from "../../lib/game/Primitives";
 
-export function GadgetFlowNode({ ...props }: FlowNodeProps<GadgetProps>) {
+export type GadgetNode = Node<GadgetProps, 'gadgetNode'>
+
+export function GadgetFlowNode({ data }: { data: GadgetProps }) {
     return (
         <div>
-            <Gadget {...props.data}></Gadget>
-        </div>
+            <Gadget {...data}></Gadget>
+        </div >
     );
 }

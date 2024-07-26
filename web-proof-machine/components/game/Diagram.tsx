@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import ReactFlow, {
+import {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition
-} from 'reactflow';
-import { GadgetFlowNode } from './GadgetFlowNode';
+    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition, ReactFlow, useEdges, OnConnectStartParams
+} from '@xyflow/react';
+import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { CustomEdge } from './MultiEdge';
+import { CustomEdge, EdgeWithEquation } from './MultiEdge';
 
-import 'reactflow/dist/style.css';
+import '@xyflow/react/dist/base.css';
 import './flow.css'
 import { axiomToGadget } from '../../lib/game/GameLogic';
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
@@ -25,8 +25,8 @@ import { getNodePositionFromHandle, getTermOfHandle } from './Node';
 import TutorialOverlay from './TutorialOverlay';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 
-const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
-const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
+const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
+const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
 
 interface DiagramProps {
     problemId: string
@@ -41,7 +41,7 @@ interface DiagramProps {
 }
 
 const nodesLengthSelector = (state) =>
-    Array.from(state.nodeInternals.values()).length || 0;
+    Array.from(state.nodeLookup.values()).length || 0;
 
 interface GadgetDragStartInfo {
     id: string,
@@ -59,9 +59,11 @@ function isAbovePalette(position: XYPosition): boolean {
 }
 
 export function Diagram(props: DiagramProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode(props.goal)]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const rf = useReactFlow();
+    const myProps = getGoalNode(props.goal)
+    const myNode = <GadgetFlowNode {...getGoalNode(props.goal)} />
+    const [nodes, setNodes, onNodesChange] = useNodesState([myProps]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
+    const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
     const [generateGadgetId] = useIdGenerator("gadget_")
 
     const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
@@ -96,10 +98,10 @@ export function Diagram(props: DiagramProps) {
         return { from: [fromGadget, fromNode], to: [toGadget, toNode] }
     }, [])
 
-    const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
+    const deleteEquationsOfEdges = useCallback((edges: Edge<{ eq: Equation }>[]): void => {
         edges.map(e => {
             const connectionInfo = getConnectionInfo(e)
-            props.removeEquation(connectionInfo.from, connectionInfo.to, e.data)
+            props.removeEquation(connectionInfo.from, connectionInfo.to, e.data!.eq)
         })
     }, [edges, props])
 
@@ -149,19 +151,18 @@ export function Diagram(props: DiagramProps) {
         setEdges((edges) => {
             return addEdge({
                 ...connection,
+                type: 'edgeWithEquation',
                 animated: true,
-                type: 'multiEdge',
-                data: equation
+                data: { eq: equation }
             }, edges)
         });
     }, [props, setEdges, getEquationFromConnection])
 
-
     function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
         const id = generateGadgetId()
-        const flowNode: ReactFlowNode = {
+        const flowNode = {
             id: id,
-            type: 'gadgetFlowNode',
+            type: 'gadgetNode',
             position: rf.screenToFlowPosition(axiomPosition),
             dragging: true,
             data: axiomToGadget(axiom, id)
@@ -176,14 +177,11 @@ export function Diagram(props: DiagramProps) {
         makeGadget: makeGadget
     }
 
-    const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
-        params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
-
+    const onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void = useCallback((event, params) => {
         if (params.handleType === "target") {
             removeEdgesConnectedToHandle(params.handleId!)
         }
-    }, [removeEdgesConnectedToHandle]);
-
+    }, [removeEdgesConnectedToHandle])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
         const edges = getEdges()
@@ -213,7 +211,7 @@ export function Diagram(props: DiagramProps) {
             (handle as HTMLElement).children[0].classList.remove(...HANDLE_BROKEN_CLASSES)
         })
         setEdges(edges => edges.map(edge => {
-            const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data))
+            const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data!.eq))
             if (edgeIsSatisfied === undefined) {
                 throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
             }
@@ -268,9 +266,8 @@ export function Diagram(props: DiagramProps) {
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}
                 nodeOrigin={[0.5, 0.5]}
-            >
-                <ControlButtons rf={rf} ></ControlButtons>
-            </ReactFlow>
+            />
+            <ControlButtons rf={rf} ></ControlButtons>
         </>
     )
 }

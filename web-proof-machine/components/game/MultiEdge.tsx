@@ -1,7 +1,10 @@
-import { EdgeProps } from 'reactflow';
+import { Edge, EdgeProps } from '@xyflow/react';
 import { ConnectionDrawingData, connectionPath } from './ConnectionSvg';
+import { Equation } from 'lib/game/Unification';
 
-export function CustomEdge({ ...props }: EdgeProps): JSX.Element {
+export type EdgeWithEquation = Edge<{ eq: Equation }, 'edgeWithEquation'>
+
+export function CustomEdge({ ...props }: EdgeProps<EdgeWithEquation>): JSX.Element {
     const data: ConnectionDrawingData = {
         start: { x: props.sourceX - 1, y: props.sourceY },
         end: { x: props.targetX + 9, y: props.targetY },

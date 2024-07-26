@@ -1,4 +1,4 @@
-import { Panel, XYPosition } from 'reactflow';
+import { Panel, XYPosition } from '@xyflow/react';
 import { Gadget } from './Gadget'
 import { axiomTermEnumeration } from '../../lib/game/GameLogic';
 import { Axiom, NodePosition, outputPosition } from "../../lib/game/Primitives";

@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactFlowProvider } from "reactflow";
+import { ReactFlowProvider } from "@xyflow/react";
 import { Diagram } from "./Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";

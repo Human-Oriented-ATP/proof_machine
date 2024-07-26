@@ -1,5 +1,5 @@
 import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../../lib/game/Primitives';
-import { Handle, HandleProps, Position } from 'reactflow';
+import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
 import { DummyHandle } from '../primitive/DummyHandle';
 import { twJoin } from 'tailwind-merge';

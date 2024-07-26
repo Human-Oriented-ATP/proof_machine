@@ -1,12 +1,13 @@
-import { useReactFlow, Node, Edge, getIncomers, getConnectedEdges, } from 'reactflow';
+import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/react';
 
 import { useEffect } from 'react';
 import { GadgetProps, isInputPosition } from 'lib/game/Primitives';
+import { GadgetNode } from 'components/game/GadgetFlowNode';
 
 interface CompletionCheckProps {
     setProblemSolved: (solved: boolean) => void
     edges: Edge[]
-    nodes: Node[]
+    nodes: GadgetNode[]
 }
 
 function onlyContainsValidConnections(edges: Edge[]) {
@@ -19,10 +20,10 @@ function getNumberOfInputTerms(gadget: GadgetProps) {
 }
 
 export function useCompletionCheck(props: CompletionCheckProps) {
-    const { getNode, getEdges } = useReactFlow();
+    const { getNode, getEdges } = useReactFlow<GadgetNode>();
 
     useEffect(() => {
-        function hasUnconnectedInputHandle(node: Node): boolean {
+        function hasUnconnectedInputHandle(node: GadgetNode): boolean {
             const edges = getEdges()
             const incomingEdges = edges.filter(edge => edge.target === node.id)
             const numberOfInputTerms = getNumberOfInputTerms(node.data)
@@ -31,7 +32,7 @@ export function useCompletionCheck(props: CompletionCheckProps) {
 
         function isCompleted(): boolean {
             const goalNode = getNode("goal_gadget")!
-            let observedComponent: Node<any>[] = []
+            let observedComponent: GadgetNode[] = []
             let currentLayer = [goalNode]
             while (true) {
                 for (const node of currentLayer) {

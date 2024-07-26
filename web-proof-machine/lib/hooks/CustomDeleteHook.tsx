@@ -1,6 +1,6 @@
 import { get } from "http"
 import { useCallback, useEffect } from "react"
-import { useKeyPress, Node, Edge } from "reactflow"
+import { useKeyPress, Node, Edge } from "@xyflow/react"
 
 interface CustomDeleteProps {
     isDeletable: (nodeId: string) => boolean

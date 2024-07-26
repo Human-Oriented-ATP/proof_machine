@@ -139,7 +139,6 @@ export class TermEnumerator {
     }
 
     updateEnumeration(termAssignment: Assignment) {
-        console.log("assignment:", termAssignment)
         const termsInAssignment = termAssignment.getAssignedValues()
         const termsWithoutConstants = removeConstants(termsInAssignment)
         const fullyAssignedTerms = termsWithoutConstants.map(term =>

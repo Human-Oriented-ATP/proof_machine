@@ -1,4 +1,4 @@
-import { ControlButton, Controls, ReactFlowInstance } from "reactflow";
+import { ControlButton, Controls, ReactFlowInstance } from "@xyflow/react";
 import { Crosshair1Icon } from '@radix-ui/react-icons'
 
 export interface CustomControlProps {

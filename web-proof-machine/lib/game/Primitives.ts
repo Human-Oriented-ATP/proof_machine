@@ -36,7 +36,7 @@ export interface NodeDisplayProps extends AbstractNodeProps {
 
 export type GadgetId = string
 
-export interface GadgetProps {
+export type GadgetProps = {
     id: GadgetId
     terms: Map<NodePosition, Term>
     isAxiom: boolean
