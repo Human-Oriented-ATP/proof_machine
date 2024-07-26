@@ -11,8 +11,9 @@ interface ProblemCategoryProps {
 export function ProblemCategory(props: ProblemCategoryProps) {
     const completedProblems = getCompletedProblems()
 
+    const config = useConfiguration()
+
     function getButtonLabel(index: number, problem: string): string {
-        const config = useConfiguration()
         if (config === null) {
             return `${index + 1}`
         } else {
