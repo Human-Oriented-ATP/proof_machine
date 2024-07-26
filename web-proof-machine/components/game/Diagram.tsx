@@ -236,6 +236,7 @@ export function Diagram(props: DiagramProps) {
 
     const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
+            props.removeGadget(node.id)
             const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
             deleteEquationsOfEdges(edgesToBeDeleted)
             setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
@@ -247,6 +248,10 @@ export function Diagram(props: DiagramProps) {
 
     const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
         deleteEquationsOfEdges(edges)
+    }, [])
+
+    const onNodesDelete = useCallback((nodes: GadgetNode[]) => {
+        nodes.map(node => props.removeGadget(node.id))
     }, [])
 
     return (
@@ -262,6 +267,7 @@ export function Diagram(props: DiagramProps) {
                     savelyAddEdge(c)
                 }}
                 onEdgesDelete={onEdgesDelete}
+                onNodesDelete={onNodesDelete}
                 edgeTypes={edgeTypes}
                 nodeTypes={nodeTypes}
                 onInit={() => init(rf)}
