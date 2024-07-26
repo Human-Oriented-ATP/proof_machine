@@ -5,7 +5,14 @@ namespace GadgetGame
 inductive Term where
   | var (name : String)
   | app (label : String) (args : Array Term)
-deriving Repr, BEq, Lean.ToJson, Lean.FromJson, Hashable
+deriving Repr, BEq, Hashable
+
+partial def Term.toJson : Term → Lean.Json
+  | .var v => .mkObj [("variable", v)]
+  | .app label args => .mkObj [("label", label), ("args", .arr <| args.map Term.toJson)]
+
+instance : Lean.ToJson Term where
+  toJson := Term.toJson
 
 instance : Inhabited Term where
   default := .var ""

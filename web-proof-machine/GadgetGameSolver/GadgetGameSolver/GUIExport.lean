@@ -12,12 +12,12 @@ structure GadgetProps where
   inputs : Array Term
   output? : Option Term := none
   isAxiom := false
-deriving Lean.ToJson, Lean.FromJson, Repr
+deriving Lean.ToJson, Repr
 
 structure GadgetPropsWithPosition extends GadgetProps where
   x : Nat
   y : Nat
-deriving Lean.ToJson, Lean.FromJson, Repr
+deriving Lean.ToJson, Repr
 
 structure GadgetEdge where
   id : EdgeId
@@ -29,7 +29,7 @@ deriving Lean.ToJson, Lean.FromJson, Repr
 structure GadgetGraphProps where
   gadgets : Array GadgetPropsWithPosition := #[]
   edges : Array GadgetEdge := #[]
-deriving Lean.ToJson, Lean.FromJson, Repr
+deriving Lean.ToJson, Repr
 
 structure ProofTree.RenderingParams where
   holeWidth : Nat := 25
