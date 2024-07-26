@@ -23,6 +23,7 @@ structure GadgetEdge where
   id : EdgeId
   source : GadgetId
   target : GadgetId
+  targetPosition : Nat
 deriving Lean.ToJson, Lean.FromJson, Repr
 
 structure GadgetGraphProps where
@@ -91,7 +92,12 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
             location := treeLoc,
             xOffset := state.xOffset + params.gadgetThickness })
       exportToGraph tree
-      modify <| edges %~ (·.push { id := mkEdgeId state.location idx, source := headId, target := mkGadgetId treeLoc })
+      modify <| edges %~ (·.push {
+        id := mkEdgeId state.location idx,
+        source := headId,
+        target := mkGadgetId treeLoc,
+        targetPosition := idx
+        })
 
     let yOffsetNew := max (state.yOffset + (← nodeSize term)) (← get).yOffset
 
@@ -116,5 +122,19 @@ open Lean ProofWidgets Server
 @[widget_module]
 def GadgetGraph : Component GadgetGraphProps where
   javascript := include_str ".." / ".." / "js-build" / "StaticDiagram.js"
+
+-- open Lean Server Elab Command Json
+-- elab stx:"#gadget" : command => runTermElabM fun _ => do
+--   let props  : GadgetGraphProps := { gadgets := #[{
+--       id := "test_gadget",
+--       inputs := #[.app "x" #[]],
+--       output? := some (.app "f" #[.app "b" #[]]),
+--       x := 0,
+--       y := 0
+--     }] }
+--   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
+--     (return Lean.toJson props) stx
+
+-- #gadget
 
 end GadgetGame

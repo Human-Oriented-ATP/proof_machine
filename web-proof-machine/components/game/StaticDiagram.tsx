@@ -1,8 +1,10 @@
-import ReactFlow, { useNodesState, useEdgesState, useReactFlow, NodeTypes, EdgeTypes, Node as ReactFlowNode, Edge, ReactFlowProvider } from 'reactflow';
+"use client"
+import ReactFlow, { useNodesState, useEdgesState, useReactFlow, NodeTypes, EdgeTypes, Node as ReactFlowNode, Edge, ReactFlowProvider, ReactFlowInstance } from 'reactflow';
 import { NodePosition, GadgetId, GadgetProps, outputPosition } from '../../lib/game/Primitives';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { CustomEdge } from './MultiEdge';
 import { Term } from 'lib/game/Term';
+import { getHandleId } from './Node';
 
 const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
@@ -20,9 +22,10 @@ interface GadgetEdge {
     id: string,
     source: GadgetId,
     target: GadgetId
+    targetPosition: NodePosition
 }
 
-function makeGadgetNode(props: GadgetPropsWithPosition): ReactFlowNode<GadgetProps, 'gadgetFlowNode'> {
+function makeGadgetNode(rf: ReactFlowInstance<any, any>, props: GadgetPropsWithPosition): ReactFlowNode<GadgetProps, 'gadgetFlowNode'> {
     let terms = new Map<NodePosition, Term>()
     props.inputs.forEach((input, i) => {
         terms.set(i, input)
@@ -33,13 +36,20 @@ function makeGadgetNode(props: GadgetPropsWithPosition): ReactFlowNode<GadgetPro
     return {
         id: props.id,
         type: 'gadgetFlowNode',
-        position: { x: props.x, y: props.y },
+        position: rf.screenToFlowPosition({ x: props.x, y: props.y }),
         data: { terms, id: props.id, isAxiom: props.isAxiom }
     }
 }
 
 function makeEdge(props: GadgetEdge): Edge {
-    return { id: props.id, source: props.source, target: props.target, type: 'multiEdge' }
+    return { 
+        id: props.id, 
+        source: props.source, 
+        sourceHandle: getHandleId(outputPosition, props.source),
+        target: props.target,
+        targetHandle: getHandleId(props.targetPosition, props.target),
+        type: 'multiEdge' 
+    }
 }
 
 interface GadgetGraphProps {
@@ -49,9 +59,10 @@ interface GadgetGraphProps {
 
 function StaticDiagramCore(props: GadgetGraphProps) {
     console.log(props)
-    const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets.map(makeGadgetNode));
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]); // useEdgesState(props.edges.map(makeEdge));
-    const { getNode, getNodes, getEdges } = useReactFlow();
+    const rf = useReactFlow()
+    const [nodes, setNodes, onNodesChange] = useNodesState(props.gadgets.map((gadget) => makeGadgetNode(rf, gadget)));
+    const [edges, setEdges, onEdgesChange] = useEdgesState(props.edges.map(makeEdge));
+    
 
     return <ReactFlow 
         nodes={nodes} 
@@ -68,7 +79,11 @@ function StaticDiagramCore(props: GadgetGraphProps) {
 // }
 
 export default function StaticDiagram(props: GadgetGraphProps) {
-    return <ReactFlowProvider>
-        <StaticDiagramCore {...props} />
-    </ReactFlowProvider>
+    return (
+    <div className="w-full h-screen max-w-full mx-auto">
+        <ReactFlowProvider>
+            <StaticDiagramCore {...props} />
+        </ReactFlowProvider>
+    </div>
+    )
 }
