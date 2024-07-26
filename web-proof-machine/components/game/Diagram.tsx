@@ -5,7 +5,7 @@ import {
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { CustomEdge, EdgeWithEquation } from './MultiEdge';
+import { CustomEdge, EdgeWithEquation } from './CustomEdge';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
@@ -19,7 +19,6 @@ import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { getGoalNode, hasTargetHandle, init } from '../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
-import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getNodePositionFromHandle, getTermOfHandle } from './Node';
 import TutorialOverlay from './TutorialOverlay';
@@ -59,11 +58,18 @@ function isAbovePalette(position: XYPosition): boolean {
 }
 
 export function Diagram(props: DiagramProps) {
-    const myProps = getGoalNode(props.goal)
-    const myNode = <GadgetFlowNode {...getGoalNode(props.goal)} />
-    const [nodes, setNodes, onNodesChange] = useNodesState([myProps]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
+    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
+
+    const getNode = rf.getNode
+    const getNodes = rf.getNodes
+    const getEdges = rf.getEdges
+
+    useEffect(() => {
+        setNodes([getGoalNode(props.goal)])
+    }, [])
+
     const [generateGadgetId] = useIdGenerator("gadget_")
 
     const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
@@ -84,11 +90,7 @@ export function Diagram(props: DiagramProps) {
         dragStartInfo.current = undefined
     }, [numberOfNodes])
 
-    const getNode = rf.getNode
-    const getNodes = rf.getNodes
-    const getEdges = rf.getEdges
-
-    useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
+    // useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } => {
         const fromGadget = connection.source!
@@ -160,11 +162,12 @@ export function Diagram(props: DiagramProps) {
 
     function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
         const id = generateGadgetId()
-        const flowNode = {
+        const flowNode: GadgetNode = {
             id: id,
             type: 'gadgetNode',
             position: rf.screenToFlowPosition(axiomPosition),
             dragging: true,
+            deletable: true,
             data: axiomToGadget(axiom, id)
         }
         props.addGadget(id, axiom)
@@ -227,18 +230,11 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    const deleteNode = useCustomDelete({
-        isDeletable: (nodeId: string) => nodeId !== "goal_gadget",
-        getNodes, getEdges, setNodes, setEdges,
-        onEdgesDelete: deleteEquationsOfEdges,
-        onNodesDelete: nodes => nodes.map(node => props.removeGadget(node.id))
-    })
-
     const [onNodeDrag, onNodeDragStopProximityConnect] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
 
-    const onNodeDragStop = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
+    const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
-            deleteNode()
+            setNodes(nodes => nodes.filter(n => n.id !== node.id))
         } else {
             onNodeDragStopProximityConnect(event, node)
         }
@@ -261,7 +257,6 @@ export function Diagram(props: DiagramProps) {
                 onInit={() => init(rf)}
                 onConnectStart={onConnectStart}
                 isValidConnection={isValidConnection}
-                deleteKeyCode={null}
                 minZoom={0.1}
                 onNodeDrag={onNodeDrag}
                 onNodeDragStop={onNodeDragStop}

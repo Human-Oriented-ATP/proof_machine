@@ -9,10 +9,11 @@ export function hasTargetHandle(e: Edge, handleId: string): boolean {
         return false;
     }
 }
-export function getGoalNode(props: GadgetProps) {
+export function getGoalNode(props: GadgetProps): GadgetNode {
     return {
         id: props.id,
         type: 'gadgetNode',
+        deletable: false,
         position: { x: 0, y: 0 },
         data: props
     };
