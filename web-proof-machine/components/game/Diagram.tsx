@@ -58,8 +58,10 @@ function isAbovePalette(position: XYPosition): boolean {
 }
 
 export function Diagram(props: DiagramProps) {
+    const goalNode: GadgetNode = getGoalNode(props.goal)
+
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
-    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>([goalNode]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
 
     const getNode = rf.getNode
@@ -90,7 +92,7 @@ export function Diagram(props: DiagramProps) {
         dragStartInfo.current = undefined
     }, [numberOfNodes])
 
-    // useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
+    useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } => {
         const fromGadget = connection.source!
@@ -234,7 +236,7 @@ export function Diagram(props: DiagramProps) {
 
     const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
-            setNodes(nodes => nodes.filter(n => n.id !== node.id))
+            setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
         } else {
             onNodeDragStopProximityConnect(event, node)
         }
