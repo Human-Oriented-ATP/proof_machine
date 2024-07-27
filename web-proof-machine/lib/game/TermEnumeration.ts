@@ -37,6 +37,10 @@ function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
         .concat(getNumericalConstantsInTerm(axiom.conclusion));
 }
 
+export function getMaximumInTerms(terms: Term[]): number {
+    return 1 + Math.max(...terms.flatMap(getNumericalConstantsInTerm))
+}
+
 export function getNumericalConstantsInProblemState(ps: InitializationData): number[] {
     return ps.axioms.flatMap(getNumericalConstantsInAxiom)
         .concat(getNumericalConstantsInTerm(ps.goal));
