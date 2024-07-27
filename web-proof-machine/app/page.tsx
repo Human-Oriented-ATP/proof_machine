@@ -8,5 +8,5 @@ export function generateStaticParams() {
 const DynamicMainScreen = dynamic(() => import("components/game/StaticDiagram"), { ssr: false })
 
 export default async function Page() {
-    return <div></div>
+    return <DynamicMainScreen />
 }
