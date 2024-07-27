@@ -2,7 +2,6 @@
     "name": "web-proof-machine",
     "version": "0.1.0",
     "private": true,
-    "type": "module",
     "dependencies": {
         "@leanprover/infoview": "^0.7.2",
         "@neondatabase/serverless": "^0.9.4",
