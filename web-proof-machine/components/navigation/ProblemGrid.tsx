@@ -2,7 +2,7 @@
 
 import { ProblemCategory as ProblemCategoryType } from "lib/study/Types";
 import { ProblemCategory } from "./ProblemCategory";
-import { getActiveConfiguration, getProblemList } from "lib/study/LevelConfiguration";
+import { useConfiguration, getProblemList } from "lib/study/LevelConfiguration";
 import { loadProblemList } from "lib/game/LoadProblems";
 import { useEffect, useState } from "react";
 
@@ -20,7 +20,7 @@ export function ProblemCategoryGrid(props: ProblemCategoryGridProps) {
     }, [])
 
     function getUnlistedProblems(): JSX.Element {
-        const config = getActiveConfiguration()
+        const config = useConfiguration()
         if (config === null) {
             return <></>
         } else {

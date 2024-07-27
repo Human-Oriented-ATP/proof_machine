@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import "../index.css"
 
 export const metadata: Metadata = {
-    title: 'Proof Machine',
+    title: 'Gadgets Game',
     description: '',
 }
 

@@ -39,7 +39,6 @@ export function connectionPath(props: ConnectionDrawingData, offsetMultiplier: n
     return (
         <path
             d={path_command}
-            stroke="black"
             strokeWidth="2px"
             fill="transparent"
         />
@@ -54,5 +53,5 @@ export function ConnectionSvg({ ...props }: ConnectionSvgProps) {
         return pathElements;
     }
 
-    return <svg className="absolute top-0 left-0 w-full h-full z-5 pointer-events-none">{drawConnections()}</svg>;
+    return <svg className="absolute top-0 left-0 w-full h-full z-5 pointer-events-none stroke-black">{drawConnections()}</svg>;
 }

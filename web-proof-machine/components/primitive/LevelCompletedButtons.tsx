@@ -1,19 +1,19 @@
 import Button, { HighlightedButton } from './Button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { getActiveConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
+import { useConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
 
 function getProblemFromPathname(pathname: string): string {
     const pathComponents = pathname.split("/")
     return pathComponents[pathComponents.length - 1]
 }
 
-export function LevelCompletedActionButtons() {
+export function LevelCompletedButtons({ levelCompleted }: { levelCompleted: boolean }) {
     const router = useRouter();
     const path = usePathname();
 
     const currentProblem = getProblemFromPathname(path);
-    const config = getActiveConfiguration();
+    const config = useConfiguration();
 
     function getNextLevelHref(): undefined | string {
         if (config) {
@@ -26,24 +26,23 @@ export function LevelCompletedActionButtons() {
     }
 
     function getStudyHomeHref(): string {
-        if (config) {
-            return `../${config.name}`;
-        } else {
-            return "../";
-        }
+        return `../`;
     }
 
     const nextLevelHref = getNextLevelHref();
 
     if (nextLevelHref !== undefined) {
         return <>
-            <div className='float-right'>
-                <Link href={nextLevelHref}>
-                    <HighlightedButton>Next level</HighlightedButton>
-                </Link>
-            </div>
-            <div className='float-right mr-4'>
+            <div className='m-1'>
                 <Button onClick={() => router.push(getStudyHomeHref())}>Main menu</Button>
+            </div>
+            <div className='m-1'>
+                <Link href={nextLevelHref}>
+                    <HighlightedButton disabled={!levelCompleted}
+                        title={levelCompleted ? "" : "Connect all gadgets and remove broken connections to continue."}>
+                        Next level
+                    </HighlightedButton>
+                </Link>
             </div>
         </>;
     } else {

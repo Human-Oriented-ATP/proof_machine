@@ -51,3 +51,5 @@ The colors compatible with the web version are:
 | o | orange | 
 | p | purple | 
 | c | cyan | 
+
+Appending `striped_` will give the cell black stripes and counts as different color. For example, a gadget could be given by `striped_r(A) :- b(A).` 

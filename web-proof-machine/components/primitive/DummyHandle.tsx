@@ -1,23 +1,15 @@
-import { HANDLE_BROKEN_CLASSES } from "lib/Constants"
-import { twJoin } from "tailwind-merge"
+import { CustomHandle } from "components/game/CustomHandle"
 
-export type DummyHandlePosition = "left" | "right" | "inline"
+export type DummyHandlePosition = "target" | "source"
 
 export interface DummyHandleProps {
     position: DummyHandlePosition
-    isBrokenConnection?: boolean
 }
 
-export function DummyHandle({ position, isBrokenConnection }: DummyHandleProps) {
-    if (position === "left") {
-        return <div className="react-flow__handle react-flow__handle-left"></div>
-    } else if (position === "right") {
-        return <div className="react-flow__handle react-flow__handle-right"></div>
+export function DummyHandle({ position }: DummyHandleProps) {
+    if (position === "source") {
+        return <div className="react-flow__handle react-flow__handle-right"><CustomHandle type="source" isConnected={false} /></div>
     } else {
-        if (isBrokenConnection) {
-            return <div className={twJoin("react-flow__handle handle-inline", HANDLE_BROKEN_CLASSES)}></div>
-        } else {
-            return <div className="react-flow__handle handle-inline"></div>
-        }
+        return <div className="react-flow__handle react-flow__handle-left"><CustomHandle type="target" isConnected={false} /></div>
     }
 }

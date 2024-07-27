@@ -8,13 +8,12 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermE
 import { InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import { GameHelp } from "./GameHelp";
 import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
-import LevelCompletedPopup from "components/primitive/LevelCompletedPopup";
-import { markLevelCompleted } from "lib/study/CompletedProblems";
+import LevelCompletedBanner from "components/primitive/LevelCompletedBanner";
 import { axiomToString } from "lib/game/GameLogic";
+import { GameHelp } from "./GameHelp";
 
 export interface GameProps {
     initData: InitializationData
@@ -30,7 +29,6 @@ export function Game(props: GameProps) {
     const [isSolved, setIsSolved] = useState(false)
 
     const helpPopup = useSingleButtonPopup()
-    const problemSolvedPopup = useSingleButtonPopup()
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
@@ -68,13 +66,6 @@ export function Game(props: GameProps) {
         isAxiom: false
     }
 
-    useEffect(() => {
-        if (isSolved) {
-            markLevelCompleted(props.problemId)
-            problemSolvedPopup.open()
-        }
-    }, [isSolved])
-
     const setProblemSolved = useCallback((b: boolean) => {
         setIsSolved(b)
         if (b && !history.current.completed) {
@@ -93,24 +84,26 @@ export function Game(props: GameProps) {
         }
     }, [equations])
 
-    return <div style={{ width: "100vw", height: "100vh" }}>
-        <AssignmentContext.Provider value={termEnumeration}>
-            <ReactFlowProvider>
-                <Diagram
-                    problemId={props.problemId}
-                    axioms={axioms}
-                    addGadget={addGadget}
-                    removeGadget={removeGadget}
-                    addEquation={addEquation}
-                    removeEquation={removeEquation}
-                    isSatisfied={eqSatisfied}
-                    goal={goalNodeProps}
-                    showHelpWindow={helpPopup.open}
-                    setProblemSolved={setProblemSolved}
-                ></Diagram>
-            </ReactFlowProvider>
-        </AssignmentContext.Provider>
-        <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
-        <LevelCompletedPopup isOpen={problemSolvedPopup.isOpen} close={problemSolvedPopup.close} />
+    return <div className='h-dvh flex flex-col'>
+        <div><LevelCompletedBanner isSolved={isSolved} /></div>
+        <div className="grow">
+            <AssignmentContext.Provider value={termEnumeration}>
+                <ReactFlowProvider>
+                    <Diagram
+                        problemId={props.problemId}
+                        axioms={axioms}
+                        addGadget={addGadget}
+                        removeGadget={removeGadget}
+                        addEquation={addEquation}
+                        removeEquation={removeEquation}
+                        isSatisfied={eqSatisfied}
+                        goal={goalNodeProps}
+                        showHelpWindow={helpPopup.open}
+                        setProblemSolved={setProblemSolved}
+                    ></Diagram>
+                </ReactFlowProvider>
+            </AssignmentContext.Provider>
+            <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
+        </div>
     </div>
 }
