@@ -1,14 +1,14 @@
 {"gadgets":
- [{"y": 35,
-   "x": 100,
+ [{"y": 10,
+   "x": 250,
    "output":
    {"label": "r",
     "args": [{"label": "3", "args": []}, {"label": "2", "args": []}]},
    "isAxiom": false,
    "inputs": [],
    "id": "gadget_#[0, 0]"},
-  {"y": 47,
-   "x": 50,
+  {"y": 12,
+   "x": 500,
    "output":
    {"label": "g",
     "args":
@@ -20,24 +20,24 @@
    [{"label": "r",
      "args": [{"label": "3", "args": []}, {"label": "2", "args": []}]}],
    "id": "gadget_#[0]"},
-  {"y": 130,
-   "x": 50,
+  {"y": 35,
+   "x": 500,
    "output":
    {"label": "r",
     "args": [{"label": "2", "args": []}, {"label": "1", "args": []}]},
    "isAxiom": false,
    "inputs": [],
    "id": "gadget_#[1]"},
-  {"y": 200,
-   "x": 50,
+  {"y": 55,
+   "x": 500,
    "output":
    {"label": "r",
     "args": [{"label": "4", "args": []}, {"label": "3", "args": []}]},
    "isAxiom": false,
    "inputs": [],
    "id": "gadget_#[2]"},
-  {"y": 117,
-   "x": 0,
+  {"y": 32,
+   "x": 750,
    "output":
    {"label": "g",
     "args":

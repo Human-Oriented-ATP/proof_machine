@@ -2,6 +2,7 @@ import Lean
 import GadgetGameSolver.Unification
 import GadgetGameSolver.ProofTreeZipper
 import GadgetGameSolver.PrologParser
+import GadgetGameSolver.GUIExport
 
 namespace GadgetGame
 
@@ -123,6 +124,10 @@ def runDFS (problemState : ProblemState) : ClosedProofTree :=
 def runDFSOnFile (file : System.FilePath) : MetaM ClosedProofTree :=
   runDFS <$> parsePrologFile file
 
-#eval runDFSOnFile "../problems/tim_easyproblem1.pl"
+#eval show MetaM _ from do
+  let tree ← runDFSOnFile "../problems/tim_easy01.pl"
+  let graph := tree.val.getGadgetGraph
+  let out := toJson graph
+  IO.FS.writeFile "../public/demo_diagram_props.json" out.pretty
 
 end GadgetGame
