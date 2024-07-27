@@ -32,15 +32,15 @@ structure GadgetGraphProps where
 deriving Lean.ToJson, Repr
 
 structure ProofTree.RenderingParams where
-  holeWidth : Nat := 25
-  nodePadding : Nat := 10
-  gadgetThickness : Nat := 50
+  holeWidth : Nat := 5
+  nodePadding : Nat := 5
+  gadgetThickness : Nat := 250
 
 
 structure ProofTree.RenderingState extends GadgetGraphProps where
   location : Array Nat := #[]
-  xOffset : Nat := 0
-  yOffset : Nat := 0
+  xOffset : Nat
+  yOffset : Nat
 
 section LensNotation
 
@@ -90,7 +90,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
       let treeLoc := state.location.push idx
       modify ({ · with
             location := treeLoc,
-            xOffset := state.xOffset + params.gadgetThickness })
+            xOffset := state.xOffset - params.gadgetThickness })
       exportToGraph tree
       modify <| edges %~ (·.push {
         id := mkEdgeId state.location idx,
@@ -114,7 +114,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     modify <| gadgets %~ (·.push gadgetProps)
 
 def ProofTree.getGadgetGraph (proofTree : ProofTree) : GadgetGraphProps :=
-  let (_, state) := proofTree.exportToGraph |>.run {} |>.run {}
+  let (_, state) := proofTree.exportToGraph |>.run { xOffset := proofTree.depth * RenderingParams.gadgetThickness {}, yOffset := 0 } |>.run {}
   state.toGadgetGraphProps
 
 open Lean ProofWidgets Server
