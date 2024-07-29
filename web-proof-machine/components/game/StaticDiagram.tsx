@@ -109,11 +109,11 @@ function StaticDiagramCore(props: GadgetGraphProps) {
 
 const demoProps: GadgetGraphProps = demoDiagramProps
 
-export default function StaticDiagram() {
+export default function StaticDiagram(props: GadgetGraphProps) {
     return (
     <div className="w-full h-screen max-w-full mx-auto">
         <ReactFlowProvider>
-            <StaticDiagramCore {...demoProps} />
+            <StaticDiagramCore {...props} />
         </ReactFlowProvider>
     </div>
     )
