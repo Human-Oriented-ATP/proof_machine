@@ -1,11 +1,10 @@
-"use client"
 import ReactFlow, { useNodesState, useEdgesState, useReactFlow, NodeTypes, EdgeTypes, Node as ReactFlowNode, Edge, ReactFlowProvider, ReactFlowInstance } from 'reactflow';
 import { NodePosition, GadgetId, GadgetProps, outputPosition, Axiom } from '../../lib/game/Primitives';
 import { GadgetFlowNode } from './GadgetFlowNode';
 import { CustomEdge } from './MultiEdge';
 import { Term } from 'lib/game/Term';
 import { getHandleId } from './Node';
-import demoDiagramProps from "public/demo_diagram_props.json"
+// import demoDiagramProps from "public/demo_diagram_props.json"
 import { Equation, unifyEquations } from 'lib/game/Unification';
 import { getMaximumInTerms, TermEnumerator } from 'lib/game/TermEnumeration';
 import { AssignmentContext } from 'lib/game/AssignmentContext';
@@ -107,7 +106,7 @@ function StaticDiagramCore(props: GadgetGraphProps) {
     )
 }
 
-const demoProps: GadgetGraphProps = demoDiagramProps
+// const demoProps: GadgetGraphProps = demoDiagramProps
 
 export default function StaticDiagram(props: GadgetGraphProps) {
     return (

@@ -1,6 +1,7 @@
 {
     "name": "web-proof-machine",
     "version": "0.1.0",
+    "type": "module",
     "private": true,
     "dependencies": {
         "@leanprover/infoview": "^0.7.2",
