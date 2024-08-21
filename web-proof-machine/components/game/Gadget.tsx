@@ -45,7 +45,7 @@ export function Gadget({ ...props }: GadgetProps) {
     const [focussedHole, setFocussedHole] = useState("")
 
     const focus: Focus<string> = {
-        isFocussed: hole => hole === focussedHole,
+        isFocussed: hole => hole === focussedHole && props.displayHoleFocus,
         focus: hole => setFocussedHole(hole),
         resetFocus: () => setFocussedHole("")
     }

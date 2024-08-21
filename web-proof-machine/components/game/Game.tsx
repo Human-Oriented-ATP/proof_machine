@@ -63,7 +63,8 @@ export function Game(props: GameProps) {
     const goalNodeProps: GadgetProps = {
         id: "goal_gadget",
         terms: new Map([[0, goal]]),
-        isAxiom: false
+        isAxiom: false,
+        displayHoleFocus: true
     }
 
     const setProblemSolved = useCallback((b: boolean) => {

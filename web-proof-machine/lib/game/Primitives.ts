@@ -40,6 +40,7 @@ export type GadgetProps = {
     id: GadgetId
     terms: Map<NodePosition, Term>
     isAxiom: boolean
+    displayHoleFocus: boolean
 }
 
 export interface Axiom {

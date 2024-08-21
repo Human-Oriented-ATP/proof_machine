@@ -9,7 +9,7 @@ export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
         terms.set(i, hypothesis)
     })
     terms.set(outputPosition, axiomWithFreshVariables.conclusion)
-    return { terms, id, isAxiom: false }
+    return { terms, id, isAxiom: false, displayHoleFocus: true }
 }
 
 export function axiomTermEnumeration(t: Term): string {

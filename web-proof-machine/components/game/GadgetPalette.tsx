@@ -45,7 +45,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
             terms.set(i, hypothesis)
         })
         terms.set(outputPosition, axiom.conclusion)
-        return { terms, id: getAxiomId(), isAxiom: true }
+        return { terms, id: getAxiomId(), isAxiom: true, displayHoleFocus: true }
     }
 
     return (

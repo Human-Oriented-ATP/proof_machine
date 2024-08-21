@@ -182,11 +182,29 @@ export function Diagram(props: DiagramProps) {
         makeGadget: makeGadget
     }
 
+    const disableHoleFocus = useCallback(() => {
+        setNodes(nodes => nodes.map(node => {
+            return { ...node, data: { ...node.data, displayHoleFocus: false } }
+        }))
+    }, [])
+
     const onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void = useCallback((event, params) => {
         if (params.handleType === "target") {
             removeEdgesConnectedToHandle(params.handleId!)
         }
+        disableHoleFocus()
     }, [removeEdgesConnectedToHandle])
+
+    const enableHoleFocus = useCallback(() => {
+        setNodes(nodes => nodes.map(node => {
+            return { ...node, data: { ...node.data, displayHoleFocus: true } }
+        }))
+    }, [])
+
+    const onConnect = useCallback((connection: Connection) => {
+        savelyAddEdge(connection)
+        enableHoleFocus()
+    }, [])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
         const edges = getEdges()
@@ -262,9 +280,7 @@ export function Diagram(props: DiagramProps) {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onConnect={(c) => {
-                savelyAddEdge(c)
-            }}
+            onConnect={onConnect}
             onEdgesDelete={onEdgesDelete}
             onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}
