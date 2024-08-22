@@ -3,12 +3,13 @@ import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
-import { InitializationData } from "../../lib/game/Initialization";
+import { InitialDiagramNode, InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
+import { parseTerm } from "lib/parsing/Semantics";
 
 export interface GameProps {
     initData: InitializationData
@@ -16,9 +17,17 @@ export interface GameProps {
     setProblemSolved: () => void
 }
 
+// This is the function needed
+function getInitialEquations(initData: InitializationData): Equation[] {
+    return []
+}
+
 export function Game(props: GameProps) {
     const enumerationOffset = getMaximumNumberInGameData(props.initData)
-    const [equations, setEquations] = useState<Equation[]>([])
+
+    // temporary solution: Manually add edge
+    const [equations, setEquations] = useState<Equation[]>([[parseTerm('r(1,2)'), parseTerm('r(1,2)')]])
+
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))

@@ -16,12 +16,13 @@ import { Term } from '../../../lib/game/Term';
 import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
-import { getGoalNode, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
+import { hasTargetHandle, init } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
-import { getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
+import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagramNode, InitializationData } from 'lib/game/Initialization';
+import { InitialDiagram, InitialDiagramEdge, InitialDiagramNode, InitializationData } from 'lib/game/Initialization';
+import { parseTerm } from 'lib/parsing/Semantics';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
@@ -77,12 +78,40 @@ function initializeNode(node: InitialDiagramNode): GadgetNode {
     }
 }
 
+function getInitialConnections(edge: InitialDiagramEdge): Connection {
+    const sourceGadget = edge.from[0]
+    const targetGadget = edge.to[0]
+    const sourceNode = edge.from[1]
+    const targetNode = edge.to[1]
+    return {
+        source: sourceGadget,
+        sourceHandle: getHandleId(sourceNode, sourceGadget),
+        target: targetGadget,
+        targetHandle: getHandleId(targetNode, targetGadget)
+    }
+}
+
+// Draft for testing
+function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
+    return [{
+        id: 'initialEdge',
+        source: initialDiagram.edges[0].from[0],
+        sourceHandle: getHandleId(initialDiagram.edges[0].from[1], initialDiagram.edges[0].from[0]),
+        target: initialDiagram.edges[0].to[0],
+        targetHandle: getHandleId(initialDiagram.edges[0].to[1], initialDiagram.edges[0].to[0]),
+        type: 'edgeWithEquation',
+        animated: true,
+        data: { eq: [parseTerm('r(1,2)'), parseTerm('r(1,2)')] }
+    }]
+}
+
 export function Diagram(props: DiagramProps) {
     const initialNodes: GadgetNode[] = props.initData.initialDiagram.nodes.map(initializeNode)
+    const initialEdges: EdgeWithEquation[] = getInitialEdges(props.initData.initialDiagram)
 
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
     const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>(initialEdges);
 
     const getNode = rf.getNode
     const getNodes = rf.getNodes
@@ -235,7 +264,6 @@ export function Diagram(props: DiagramProps) {
         const notYetAConection = !isInDiagram(connection)
         return colorsOk && arityOk && noCycle && notYetAConection
     }, [getEquationFromConnection, getEdges, getNodes]);
-
 
     const isSatisfied = props.isSatisfied
     const updateEdgeAnimation = useCallback(() => {

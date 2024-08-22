@@ -21,8 +21,8 @@ const initialDiagram: InitialDiagram = {
         terms: parseAxiom('r(1,2).')
     }],
     edges: [{
-        from: ["goal_gadget", 0],
-        to: ["gadget2", -1]
+        from: ["gadget2", -1],
+        to: ["goal_gadget", 0],
     }]
 }
 
