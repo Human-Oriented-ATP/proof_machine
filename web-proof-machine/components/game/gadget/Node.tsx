@@ -2,7 +2,7 @@ import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } fro
 import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
 import { DummyHandle } from '../../primitive/DummyHandle';
-import { twJoin } from 'tailwind-merge';
+import { twJoin, twMerge } from 'tailwind-merge';
 import { Term } from 'lib/game/Term';
 import { Connector } from './Connector';
 
@@ -75,7 +75,7 @@ export function Node(props: NodeDisplayProps) {
         const background = backgroundFromColorAbbreviation(props.term.label)
         return (
             <div className="flex items-center">
-                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5", background)}>
+                <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", background, props.isGoalNode && "outline outline-offset-2 outline-2")}>
                     {props.term.args.map((arg, idx) => <Hole key={idx} term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}

@@ -86,6 +86,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 gadgetId: props.id,
                 holeFocus: focus,
                 useDummyHandle: props.isAxiom,
+                isGoalNode: props.id === "goal_gadget",
             }
             if (isInputPosition(position)) {
                 buffer.push(<Node key={position} {...nodeDisplayProps}></Node>)
@@ -102,6 +103,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 gadgetId: props.id,
                 holeFocus: focus,
                 useDummyHandle: props.isAxiom,
+                isGoalNode: false
             }
             return (<div className="flex flex-col justify-center">
                 <Node {...nodeDisplayProps}></Node>
