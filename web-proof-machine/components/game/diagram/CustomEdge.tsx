@@ -1,5 +1,5 @@
 import { Edge, EdgeProps } from '@xyflow/react';
-import { ConnectionDrawingData, connectionPath } from './ConnectionSvg';
+import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
 import { Equation } from 'lib/game/Unification';
 
 export type EdgeWithEquation = Edge<{ eq: Equation }, 'edgeWithEquation'>

@@ -1,4 +1,4 @@
-import { Connector } from "components/game/Connector"
+import { Connector } from "components/game/gadget/Connector"
 
 export type DummyHandlePosition = "target" | "source"
 

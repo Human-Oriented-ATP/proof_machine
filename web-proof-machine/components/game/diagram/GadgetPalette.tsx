@@ -1,10 +1,10 @@
 import { Panel, XYPosition } from '@xyflow/react';
-import { Gadget } from './Gadget'
-import { axiomTermEnumeration } from '../../lib/game/GameLogic';
-import { Axiom, NodePosition, outputPosition } from "../../lib/game/Primitives";
-import { GadgetProps } from '../../lib/game/Primitives';
-import { AssignmentContext } from '../../lib/game/AssignmentContext';
-import { useIdGenerator } from '../../lib/hooks/IdGeneratorHook';
+import { Gadget } from '../gadget/Gadget'
+import { axiomTermEnumeration } from '../../../lib/game/GameLogic';
+import { Axiom, NodePosition, outputPosition } from "../../../lib/game/Primitives";
+import { GadgetProps } from '../../../lib/game/Primitives';
+import { AssignmentContext } from '../../../lib/game/AssignmentContext';
+import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
 

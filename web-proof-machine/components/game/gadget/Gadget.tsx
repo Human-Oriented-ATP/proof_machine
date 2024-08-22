@@ -1,10 +1,10 @@
 import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
-import { Point, getCenterRelativeToParent } from '../../lib/util/Point'
+import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
 import { GadgetProps, NodeDisplayProps, GadgetId, Focus, isInputPosition, outputPosition, isOutputPosition }
-    from '../../lib/game/Primitives'
-import { HolePosition, InternalConnection, makeConnections } from '../../lib/game/ConnectionsFromTerms'
+    from '../../../lib/game/Primitives'
+import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/ConnectionsFromTerms'
 import { twMerge } from 'tailwind-merge'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {

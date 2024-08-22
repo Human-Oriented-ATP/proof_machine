@@ -9,19 +9,19 @@ import { CustomEdge, EdgeWithEquation } from './CustomEdge';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
-import { axiomToGadget } from '../../lib/game/GameLogic';
-import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
-import { Equation } from '../../lib/game/Unification';
-import { Term } from '../../lib/game/Term';
-import { GadgetProps } from '../../lib/game/Primitives';
-import { useIdGenerator } from '../../lib/hooks/IdGeneratorHook';
+import { axiomToGadget } from '../../../lib/game/GameLogic';
+import { Axiom, GadgetId, NodePosition } from "../../../lib/game/Primitives";
+import { Equation } from '../../../lib/game/Unification';
+import { Term } from '../../../lib/game/Term';
+import { GadgetProps } from '../../../lib/game/Primitives';
+import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
-import { getGoalNode, hasTargetHandle, init } from '../../lib/util/ReactFlow';
+import { getGoalNode, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
-import { getNodePositionFromHandle, getTermOfHandle } from './Node';
-import TutorialOverlay from './TutorialOverlay';
+import { getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
+import TutorialOverlay from '../TutorialOverlay';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
@@ -36,7 +36,7 @@ interface DiagramProps {
     removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     isSatisfied: Map<string, boolean>
     goal: GadgetProps
-    setProblemSolved: (b: boolean) => void
+    setProblemSolved: () => void
 }
 
 const nodesLengthSelector = (state) =>

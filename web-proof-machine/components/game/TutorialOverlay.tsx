@@ -1,4 +1,4 @@
-import { Connector } from "./Connector"
+import { Connector } from "./gadget/Connector"
 
 const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial01",

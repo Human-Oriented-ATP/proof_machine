@@ -1,4 +1,4 @@
-import { Connector } from "./Connector"
+import { Connector } from "./gadget/Connector"
 
 export function GameHelp() {
     return <>

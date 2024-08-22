@@ -1,6 +1,6 @@
 import { Node, NodeProps } from "@xyflow/react";
-import { Gadget } from "./Gadget";
-import { GadgetProps } from "../../lib/game/Primitives";
+import { Gadget } from "../gadget/Gadget";
+import { GadgetProps } from "../../../lib/game/Primitives";
 
 export type GadgetNode = Node<GadgetProps, 'gadgetNode'>
 

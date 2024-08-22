@@ -1,23 +1,19 @@
-"use client"
-
 import { ReactFlowProvider } from "@xyflow/react";
-import { Diagram } from "./Diagram";
+import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
 import { InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import Popup, { usePopup } from "../primitive/Popup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
-import MenuBar from "components/navigation/MenuBar";
 import { axiomToString } from "lib/game/GameLogic";
-import { GameHelp } from "./GameHelp";
 
 export interface GameProps {
     initData: InitializationData
     problemId: string
+    setProblemSolved: () => void
 }
 
 export function Game(props: GameProps) {
@@ -26,9 +22,6 @@ export function Game(props: GameProps) {
     const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
-    const [isSolved, setIsSolved] = useState(false)
-
-    const helpPopup = usePopup()
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
@@ -67,8 +60,8 @@ export function Game(props: GameProps) {
         displayHoleFocus: true
     }
 
-    const setProblemSolved = useCallback((b: boolean) => {
-        setIsSolved(b)
+    const setProblemSolvedAndWriteToHistory = useCallback((b: boolean) => {
+        props.setProblemSolved()
         if (b && !history.current.completed) {
             history.current.logEvent({ Completed: null })
             history.current.completed = true
@@ -85,25 +78,19 @@ export function Game(props: GameProps) {
         }
     }, [equations])
 
-    return <div className='h-dvh flex flex-col'>
-        <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
-        <div className="grow">
-            <AssignmentContext.Provider value={termEnumeration}>
-                <ReactFlowProvider>
-                    <Diagram
-                        problemId={props.problemId}
-                        axioms={axioms}
-                        addGadget={addGadget}
-                        removeGadget={removeGadget}
-                        addEquation={addEquation}
-                        removeEquation={removeEquation}
-                        isSatisfied={eqSatisfied}
-                        goal={goalNodeProps}
-                        setProblemSolved={setProblemSolved}
-                    ></Diagram>
-                </ReactFlowProvider>
-            </AssignmentContext.Provider>
-            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
-        </div>
-    </div>
+    return <AssignmentContext.Provider value={termEnumeration}>
+        <ReactFlowProvider>
+            <Diagram
+                problemId={props.problemId}
+                axioms={axioms}
+                addGadget={addGadget}
+                removeGadget={removeGadget}
+                addEquation={addEquation}
+                removeEquation={removeEquation}
+                isSatisfied={eqSatisfied}
+                goal={goalNodeProps}
+                setProblemSolved={setProblemSolvedAndWriteToHistory}
+            ></Diagram>
+        </ReactFlowProvider>
+    </AssignmentContext.Provider>
 }

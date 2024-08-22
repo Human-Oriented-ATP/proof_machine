@@ -2,10 +2,10 @@ import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/rea
 
 import { useEffect } from 'react';
 import { GadgetProps, isInputPosition } from 'lib/game/Primitives';
-import { GadgetNode } from 'components/game/GadgetFlowNode';
+import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 
 interface CompletionCheckProps {
-    setProblemSolved: (solved: boolean) => void
+    setProblemSolved: () => void
     edges: Edge[]
     nodes: GadgetNode[]
 }
@@ -52,6 +52,8 @@ export function useCompletionCheck(props: CompletionCheckProps) {
             return onlyContainsValidConnections(edgesInComponent)
         }
 
-        props.setProblemSolved(isCompleted())
+        if (isCompleted()) {
+            props.setProblemSolved()
+        }
     }, [getNode, props])
 }

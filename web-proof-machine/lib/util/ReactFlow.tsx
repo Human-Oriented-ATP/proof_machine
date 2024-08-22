@@ -1,6 +1,6 @@
 import { Node, Edge, ReactFlowInstance, NodeProps } from '@xyflow/react';
 import { GadgetProps } from '../game/Primitives';
-import { GadgetNode } from 'components/game/GadgetFlowNode';
+import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 
 export function hasTargetHandle(e: Edge, handleId: string): boolean {
     if (e.targetHandle) {
