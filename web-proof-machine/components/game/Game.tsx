@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
 import { InitializationData } from "../../lib/game/Initialization";
-import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
+import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
@@ -17,9 +17,7 @@ export interface GameProps {
 }
 
 export function Game(props: GameProps) {
-    const { axioms, goal } = props.initData
-
-    const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
+    const enumerationOffset = getMaximumNumberInGameData(props.initData)
     const [equations, setEquations] = useState<Equation[]>([])
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
@@ -53,13 +51,6 @@ export function Game(props: GameProps) {
             JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
     }
 
-    const goalNodeProps: GadgetProps = {
-        id: "goal_gadget",
-        terms: new Map([[0, goal]]),
-        isAxiom: false,
-        displayHoleFocus: true
-    }
-
     const setProblemSolvedAndWriteToHistory = useCallback(() => {
         props.setProblemSolved()
         if (!history.current.completed) {
@@ -81,13 +72,12 @@ export function Game(props: GameProps) {
     return <AssignmentContext.Provider value={termEnumeration}>
         <ReactFlowProvider>
             <Diagram
-                axioms={axioms}
+                initData={props.initData}
                 addGadget={addGadget}
                 removeGadget={removeGadget}
                 addEquation={addEquation}
                 removeEquation={removeEquation}
                 isSatisfied={eqSatisfied}
-                goal={goalNodeProps}
                 setProblemSolved={setProblemSolvedAndWriteToHistory}
             ></Diagram>
         </ReactFlowProvider>

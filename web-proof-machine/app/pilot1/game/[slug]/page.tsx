@@ -3,6 +3,7 @@ import { promises as fs } from "fs"
 import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { GameScreen } from "components/game/GameScreen";
+import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
 
 export async function generateStaticParams() {
     let problems = await loadProblemList()
@@ -15,7 +16,8 @@ export default async function Page({ params }: { params: { slug: string } }) {
     const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
 
     try {
-        const initData = parseProblem(problemData.trim())
+        const problemFileData = parseProblem(problemData.trim())
+        const initData = makeInitializationDataFromProblemFileData(problemFileData)
         return <Suspense>
             <GameScreen initData={initData} problemId={params.slug} />
         </Suspense>

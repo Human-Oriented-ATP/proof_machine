@@ -37,13 +37,21 @@ function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
         .concat(getNumericalConstantsInTerm(axiom.conclusion));
 }
 
-export function getNumericalConstantsInProblemState(ps: InitializationData): number[] {
-    return ps.axioms.flatMap(getNumericalConstantsInAxiom)
-        .concat(getNumericalConstantsInTerm(ps.goal));
+export function getNumericalConstantsInInitializationData(initData: InitializationData): number[] {
+    const axiomsInInitialDiagram = initData.initialDiagram.nodes.flatMap(node => node.terms);
+    const numericalConstantsInInitialDiagram = axiomsInInitialDiagram.flatMap(terms => {
+        if ("hypotheses" in terms) {
+            return getNumericalConstantsInAxiom(terms)
+        } else {
+            return getNumericalConstantsInTerm(terms)
+        }
+    })
+    const numericalConstantsInAxioms = initData.axioms.flatMap(getNumericalConstantsInAxiom)
+    return numericalConstantsInAxioms.concat(numericalConstantsInInitialDiagram);
 }
 
 export function getMaximumNumberInGameData(data: InitializationData): number {
-    return 1 + Math.max(...getNumericalConstantsInProblemState(data))
+    return 1 + Math.max(...getNumericalConstantsInInitializationData(data))
 }
 
 function renameVariablesToEmptyString(t: Term): Term {

@@ -10,10 +10,9 @@ import { CustomEdge, EdgeWithEquation } from './CustomEdge';
 import '@xyflow/react/dist/base.css';
 import './flow.css'
 import { axiomToGadget } from '../../../lib/game/GameLogic';
-import { Axiom, GadgetId, NodePosition } from "../../../lib/game/Primitives";
+import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../../lib/game/Primitives";
 import { Equation } from '../../../lib/game/Unification';
 import { Term } from '../../../lib/game/Term';
-import { GadgetProps } from '../../../lib/game/Primitives';
 import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
@@ -21,20 +20,19 @@ import { getGoalNode, hasTargetHandle, init } from '../../../lib/util/ReactFlow'
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
-import TutorialOverlay from '../TutorialOverlay';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
+import { InitialDiagramNode, InitializationData } from 'lib/game/Initialization';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
 
 interface DiagramProps {
-    axioms: Axiom[]
+    initData: InitializationData
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
     addEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     isSatisfied: Map<string, boolean>
-    goal: GadgetProps
     setProblemSolved: () => void
 }
 
@@ -56,20 +54,39 @@ function isAbovePalette(position: XYPosition): boolean {
     return containsPoint(paletteRect, position)
 }
 
+function getGadgetProps(node: InitialDiagramNode): GadgetProps {
+    if ("hypotheses" in node.terms) {
+        return axiomToGadget(node.terms, node.id)
+    } else {
+        return {
+            id: node.id,
+            terms: new Map([[0, node.terms]]),
+            isAxiom: false,
+            displayHoleFocus: true
+        }
+    }
+}
+
+function initializeNode(node: InitialDiagramNode): GadgetNode {
+    return {
+        id: node.id,
+        type: 'gadgetNode',
+        position: node.position,
+        deletable: node.id !== "goal_gadget",
+        data: getGadgetProps(node)
+    }
+}
+
 export function Diagram(props: DiagramProps) {
-    const goalNode: GadgetNode = getGoalNode(props.goal)
+    const initialNodes: GadgetNode[] = props.initData.initialDiagram.nodes.map(initializeNode)
 
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
-    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>([goalNode]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
 
     const getNode = rf.getNode
     const getNodes = rf.getNodes
     const getEdges = rf.getEdges
-
-    useEffect(() => {
-        setNodes([getGoalNode(props.goal)])
-    }, [])
 
     const [generateGadgetId] = useIdGenerator("gadget_")
 
@@ -177,7 +194,7 @@ export function Diagram(props: DiagramProps) {
     }
 
     const paletteProps: GadgetPaletteProps = {
-        axioms: props.axioms,
+        axioms: props.initData.axioms,
         makeGadget: makeGadget
     }
 
