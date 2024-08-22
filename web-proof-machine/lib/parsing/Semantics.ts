@@ -83,7 +83,7 @@ export function parseStatement(text: string): Statement {
 
 export function parseAxiom(text: string): Axiom {
     const stmt = parseStatement(text)
-    if ('axioms' in stmt) {
+    if (!("goal" in stmt)) {
         return stmt as Axiom;
     }
     else {
