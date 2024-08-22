@@ -47,7 +47,35 @@ export class PrologParser extends CstParser {
 
 export const parser: PrologParser = new PrologParser()
 
-export function parse(text: string): CstNode {
+export function parseTermCst(text: string): CstNode {
+    parser.input = tokenize(text)
+    const cst = parser.compoundTerm()
+
+    parser.errors.map(console.log)
+
+    if (parser.errors.length > 0) {
+        const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
+        throw new Error(msg)
+    }
+
+    return cst
+}
+
+export function parseStatementCst(text: string): CstNode {
+    parser.input = tokenize(text)
+    const cst = parser.statement()
+
+    parser.errors.map(console.log)
+
+    if (parser.errors.length > 0) {
+        const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
+        throw new Error(msg)
+    }
+
+    return cst
+}
+
+export function parseProblemCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.problem()
 

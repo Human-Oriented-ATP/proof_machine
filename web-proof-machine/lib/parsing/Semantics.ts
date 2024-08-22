@@ -1,7 +1,8 @@
-import { parse, parser } from "./Parser"
+import { parseTermCst, parseStatementCst, parseProblemCst, parser } from "./Parser"
 import { Term } from "../game/Term"
 import { Statement, makeProblemFileDataFromStatements, ProblemFileData } from "../game/Initialization"
 import { ArgumentNode, CompoundTermNode, ProblemNode, StatementNode } from "./Nodes"
+import { Axiom } from "lib/game/Primitives"
 
 const BaseVisitor = parser.getBaseCstVisitorConstructor()
 
@@ -68,8 +69,30 @@ class PrologAstBuilderVisitor extends BaseVisitor {
 
 const astBuilder = new PrologAstBuilderVisitor()
 
+export function parseTerm(text: string): Term {
+    const cst = parseTermCst(text)
+    const ast = astBuilder.visit(cst)
+    return ast
+}
+
+export function parseStatement(text: string): Statement {
+    const cst = parseStatementCst(text)
+    const ast = astBuilder.visit(cst)
+    return ast
+}
+
+export function parseAxiom(text: string): Axiom {
+    const stmt = parseStatement(text)
+    if ('axioms' in stmt) {
+        return stmt as Axiom;
+    }
+    else {
+        throw new Error("Expected an axiom, got a goal.")
+    }
+}
+
 export function parseProblem(text: string): ProblemFileData {
-    const cst = parse(text)
+    const cst = parseProblemCst(text)
     const ast = astBuilder.visit(cst)
     return ast
 }
