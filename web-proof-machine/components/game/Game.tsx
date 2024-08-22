@@ -60,9 +60,9 @@ export function Game(props: GameProps) {
         displayHoleFocus: true
     }
 
-    const setProblemSolvedAndWriteToHistory = useCallback((b: boolean) => {
+    const setProblemSolvedAndWriteToHistory = useCallback(() => {
         props.setProblemSolved()
-        if (b && !history.current.completed) {
+        if (!history.current.completed) {
             history.current.logEvent({ Completed: null })
             history.current.completed = true
             synchronizeHistory(JSON.stringify(history.current))
