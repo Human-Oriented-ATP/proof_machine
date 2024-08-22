@@ -2,6 +2,7 @@ import { loadProblemList } from "lib/game/LoadProblems";
 import { Suspense } from "react";
 import { GameScreen } from "components/game/GameScreen";
 import { InitialDiagram, InitializationData } from "lib/game/Initialization";
+import { parseAxiom, parseTerm } from "lib/parsing/Semantics";
 
 export async function generateStaticParams() {
     let problems = await loadProblemList()
@@ -9,14 +10,20 @@ export async function generateStaticParams() {
     return slugs
 }
 
-// want to be able to write parseTerm('r(1)')
 const initialDiagram: InitialDiagram = {
     nodes: [{
         id: "goal_gadget",
         position: { x: 0, y: 0 },
-        terms: { label: "r", args: [{ label: '1', args: [] }] },
+        terms: parseTerm('r(1,2)'),
+    }, {
+        id: "gadget2",
+        position: { x: -100, y: -10 },
+        terms: parseAxiom('r(1,2).')
     }],
-    edges: []
+    edges: [{
+        from: ["goal_gadget", 0],
+        to: ["gadget2", -1]
+    }]
 }
 
 const initData: InitializationData = {
