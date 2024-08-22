@@ -8,10 +8,10 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermE
 import { InitializationData } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
+import Popup, { usePopup } from "../primitive/Popup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
-import MenuBar from "components/primitive/MenuBar";
+import MenuBar from "components/navigation/MenuBar";
 import { axiomToString } from "lib/game/GameLogic";
 import { GameHelp } from "./GameHelp";
 
@@ -28,7 +28,7 @@ export function Game(props: GameProps) {
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
     const [isSolved, setIsSolved] = useState(false)
 
-    const helpPopup = useSingleButtonPopup()
+    const helpPopup = usePopup()
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
@@ -103,7 +103,7 @@ export function Game(props: GameProps) {
                     ></Diagram>
                 </ReactFlowProvider>
             </AssignmentContext.Provider>
-            <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
+            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         </div>
     </div>
 }

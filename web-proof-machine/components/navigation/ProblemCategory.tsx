@@ -1,4 +1,4 @@
-import { GameLevelButton } from "components/primitive/Button";
+import { GameLevelButton } from "components/primitive/buttons/GameLevel";
 import { getCompletedProblems } from "lib/study/CompletedProblems";
 import { useConfiguration } from "lib/study/LevelConfiguration";
 import { ProblemCategory } from "lib/study/Types";

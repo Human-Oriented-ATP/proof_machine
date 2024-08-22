@@ -1,4 +1,5 @@
-import Button, { HighlightedButton } from './Button';
+import Button from '../primitive/buttons/Default';
+import { HighlightedButton } from "../primitive/buttons/Highlighted";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
