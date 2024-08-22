@@ -4,7 +4,7 @@ import { Hole } from './Hole';
 import { DummyHandle } from '../primitive/DummyHandle';
 import { twJoin } from 'tailwind-merge';
 import { Term } from 'lib/game/Term';
-import { CustomHandle } from './CustomHandle';
+import { Connector } from './Connector';
 
 function backgroundColorFromAbbreviation(abbreviation: string) {
     switch (abbreviation) {
@@ -61,7 +61,7 @@ export function Node(props: NodeDisplayProps) {
         if (!props.useDummyHandle) {
             const handleId = getHandleId(props.position, props.gadgetId)
             const handleProps = getHandleProps(handleId)
-            return <Handle {...handleProps}><CustomHandle type={handleProps.type} isConnected={false} /></Handle>
+            return <Handle {...handleProps}><Connector type={handleProps.type} isConnected={false} /></Handle>
         } else {
             const position = (isInputPosition(props.position)) ? "target" : "source"
             return <DummyHandle position={position}></DummyHandle>

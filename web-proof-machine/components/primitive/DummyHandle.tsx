@@ -1,4 +1,4 @@
-import { CustomHandle } from "components/game/CustomHandle"
+import { Connector } from "components/game/Connector"
 
 export type DummyHandlePosition = "target" | "source"
 
@@ -8,8 +8,8 @@ export interface DummyHandleProps {
 
 export function DummyHandle({ position }: DummyHandleProps) {
     if (position === "source") {
-        return <div className="react-flow__handle react-flow__handle-right"><CustomHandle type="source" isConnected={false} /></div>
+        return <div className="react-flow__handle react-flow__handle-right"><Connector type="source" isConnected={false} /></div>
     } else {
-        return <div className="react-flow__handle react-flow__handle-left"><CustomHandle type="target" isConnected={false} /></div>
+        return <div className="react-flow__handle react-flow__handle-left"><Connector type="target" isConnected={false} /></div>
     }
 }
