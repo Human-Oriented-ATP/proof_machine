@@ -91,18 +91,46 @@ function getInitialConnections(edge: InitialDiagramEdge): Connection {
     }
 }
 
-// Draft for testing
-function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
-    return [{
-        id: 'initialEdge',
-        source: initialDiagram.edges[0].from[0],
-        sourceHandle: getHandleId(initialDiagram.edges[0].from[1], initialDiagram.edges[0].from[0]),
-        target: initialDiagram.edges[0].to[0],
-        targetHandle: getHandleId(initialDiagram.edges[0].to[1], initialDiagram.edges[0].to[0]),
+export function getEquationFromEdge(initialDiagram: InitialDiagram, edge: InitialDiagramEdge): Equation | null {
+    const sourceNode = initialDiagram.nodes.find(node => node.id === edge.from[0])
+    const targetNode = initialDiagram.nodes.find(node => node.id === edge.to[0])
+    if (!sourceNode || !targetNode) {
+        return null
+    }
+    if (!('conclusion' in sourceNode.terms)) {
+        return null // excludes the case where the source node is the goal itself
+    }
+    const sourceTerm = sourceNode.terms.conclusion
+    const targetTerm = ("conclusion" in targetNode.terms) ? 
+        targetNode.terms.hypotheses[edge.to[1]] : 
+        ("goal" in targetNode.terms && edge.to[1] == 0) ? targetNode.terms : null
+    if (!sourceTerm || !targetTerm) {
+        return null
+    }
+    return [sourceTerm, targetTerm]
+}
+
+function getInitialEdge(initialDiagram: InitialDiagram, edge: InitialDiagramEdge, label: string): EdgeWithEquation | null {
+    const equation = getEquationFromEdge(initialDiagram, edge)
+    if (equation === null) {
+        return null
+    }
+    return {
+        id: label,
+        source: edge.from[0],
+        sourceHandle: getHandleId(edge.from[1], edge.from[0]),
+        target: edge.to[0],
+        targetHandle: getHandleId(edge.to[1], edge.to[0]),
         type: 'edgeWithEquation',
         animated: true,
-        data: { eq: [parseTerm('r(1,2)'), parseTerm('r(1,2)')] }
-    }]
+        data: { eq: equation }
+    }
+}
+
+function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
+    return initialDiagram.edges
+    .map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
+    .filter(edge => edge !== null) as EdgeWithEquation[]
 }
 
 export function Diagram(props: DiagramProps) {
