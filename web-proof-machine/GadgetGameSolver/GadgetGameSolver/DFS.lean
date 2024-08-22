@@ -124,10 +124,13 @@ def runDFS (problemState : ProblemState) : ClosedProofTree :=
 def runDFSOnFile (file : System.FilePath) : MetaM ClosedProofTree :=
   runDFS <$> parsePrologFile file
 
-#eval show MetaM _ from do
-  let tree ← runDFSOnFile "../problems/tim_easy01.pl"
-  let graph := tree.val.getGadgetGraph
-  let out := toJson graph
-  IO.FS.writeFile "../public/demo_diagram_props.json" out.pretty
+open Lean Elab Meta Term Elab Command in
+elab stx:"#gadget_display" name:str : command => runTermElabM fun _ => do
+  let tree ← runDFSOnFile s!"../problems/{name.getString}.pl"
+  let props := tree.val.getGadgetGraph
+  Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
+    (return Lean.toJson props) stx
+
+#gadget_display "tim_easy01"
 
 end GadgetGame
