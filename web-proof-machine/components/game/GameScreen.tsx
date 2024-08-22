@@ -6,6 +6,7 @@ import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
 import { GameHelp } from "./GameHelp";
 import { Game } from "./Game";
+import TutorialOverlay from "./TutorialOverlay";
 
 interface GameScreenProps {
     initData: InitializationData
@@ -24,6 +25,7 @@ export function GameScreen(props: GameScreenProps) {
     return <div className='h-dvh flex flex-col'>
         <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
+            <TutorialOverlay problemId={props.problemId} />
             <Game {...props} setProblemSolved={setProblemSolved} />
             <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         </div>

@@ -81,7 +81,6 @@ export function Game(props: GameProps) {
     return <AssignmentContext.Provider value={termEnumeration}>
         <ReactFlowProvider>
             <Diagram
-                problemId={props.problemId}
                 axioms={axioms}
                 addGadget={addGadget}
                 removeGadget={removeGadget}

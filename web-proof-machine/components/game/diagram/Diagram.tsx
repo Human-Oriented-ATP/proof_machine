@@ -28,7 +28,6 @@ const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
 
 interface DiagramProps {
-    problemId: string
     axioms: Axiom[]
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
@@ -274,7 +273,6 @@ export function Diagram(props: DiagramProps) {
 
     return <>
         <GadgetPalette {...paletteProps} />
-        <TutorialOverlay problemId={props.problemId} />
         <ReactFlow
             nodes={nodes}
             edges={edges}
