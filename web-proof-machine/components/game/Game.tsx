@@ -12,7 +12,7 @@ import { axiomToString } from "lib/game/GameLogic";
 
 export interface GameProps {
     initData: InitializationData
-    problemId: string
+    problemId?: string
     setProblemSolved: () => void
 }
 
