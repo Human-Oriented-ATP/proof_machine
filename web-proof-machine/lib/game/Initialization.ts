@@ -3,7 +3,7 @@ import { Term } from "./Term";
 
 export type Goal = Term
 
-export interface InitialDiagramNode {
+export interface InitialDiagramGadget {
     id: GadgetId
     terms: Axiom | Goal
     position: { x: number, y: number }
@@ -15,7 +15,7 @@ export interface InitialDiagramEdge {
 }
 
 export interface InitialDiagram {
-    nodes: InitialDiagramNode[]
+    nodes: InitialDiagramGadget[]
     edges: InitialDiagramEdge[]
 }
 
@@ -43,7 +43,7 @@ export function makeProblemFileDataFromStatements(statements: Statement[]): Prob
 }
 
 export function makeInitializationDataFromProblemFileData(problemFileData: ProblemFileData): InitializationData {
-    const goalNode: InitialDiagramNode = {
+    const goalNode: InitialDiagramGadget = {
         id: "goal_gadget",
         terms: problemFileData.goal,
         position: { x: 0, y: 0 }

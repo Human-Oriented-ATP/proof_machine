@@ -21,7 +21,7 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagram, InitialDiagramEdge, InitialDiagramNode, InitializationData } from 'lib/game/Initialization';
+import { InitialDiagram, InitialDiagramEdge, InitialDiagramGadget, InitializationData } from 'lib/game/Initialization';
 import { parseTerm } from 'lib/parsing/Semantics';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
@@ -55,7 +55,7 @@ function isAbovePalette(position: XYPosition): boolean {
     return containsPoint(paletteRect, position)
 }
 
-function getGadgetProps(node: InitialDiagramNode): GadgetProps {
+function getGadgetProps(node: InitialDiagramGadget): GadgetProps {
     if ("hypotheses" in node.terms) {
         return axiomToGadget(node.terms, node.id)
     } else {
@@ -68,7 +68,7 @@ function getGadgetProps(node: InitialDiagramNode): GadgetProps {
     }
 }
 
-function initializeNode(node: InitialDiagramNode): GadgetNode {
+function initializeNode(node: InitialDiagramGadget): GadgetNode {
     return {
         id: node.id,
         type: 'gadgetNode',
