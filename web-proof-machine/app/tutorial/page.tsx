@@ -1,7 +1,7 @@
 import { loadProblemList } from "lib/game/LoadProblems";
 import { Suspense } from "react";
 import { GameScreen } from "components/game/GameScreen";
-import { InitialDiagram, InitializationData } from "lib/game/Initialization";
+import { InitialDiagram, InitialDiagramGadget, InitializationData } from "lib/game/Initialization";
 import { parseAxiom, parseTerm } from "lib/parsing/Semantics";
 
 export async function generateStaticParams() {
@@ -10,17 +10,19 @@ export async function generateStaticParams() {
     return slugs
 }
 
+const goalGadget: InitialDiagramGadget = {
+    position: { x: 0, y: 0 },
+    statement: { goal: parseTerm('r(1,2)') },
+}
+
+const gadget2: InitialDiagramGadget = {
+    position: { x: -100, y: -10 },
+    statement: { axiom: parseAxiom('r(1,2).') }
+}
+
 const initialDiagram: InitialDiagram = {
-    nodes: [{
-        id: "goal_gadget",
-        position: { x: 0, y: 0 },
-        terms: parseTerm('r(1,2)'),
-    }, {
-        id: "gadget2",
-        position: { x: -100, y: -10 },
-        terms: parseAxiom('r(1,2).')
-    }],
-    edges: [{
+    gadgets: new Map([["goal_gadget", goalGadget], ["gadget2", gadget2]]),
+    connections: [{
         from: ["gadget2", -1],
         to: ["goal_gadget", 0],
     }]

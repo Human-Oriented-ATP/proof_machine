@@ -1,6 +1,6 @@
 import { parseTermCst, parseStatementCst, parseProblemCst, parser } from "./Parser"
 import { Term } from "../game/Term"
-import { Statement, makeProblemFileDataFromStatements, ProblemFileData } from "../game/Initialization"
+import { Statement, makeProblemFileDataFromStatements, ProblemFileData, isAxiom } from "../game/Initialization"
 import { ArgumentNode, CompoundTermNode, ProblemNode, StatementNode } from "./Nodes"
 import { Axiom } from "lib/game/Primitives"
 
@@ -38,12 +38,9 @@ class PrologAstBuilderVisitor extends BaseVisitor {
             const conclusion = this.visit(node.conclusion)
             if (node.hypotheses) {
                 const hypotheses = node.hypotheses.map((hyp) => this.visit(hyp))
-                return {
-                    conclusion: conclusion,
-                    hypotheses: hypotheses
-                }
+                return { axiom: { conclusion, hypotheses } }
             } else {
-                return { conclusion: conclusion, hypotheses: [] }
+                return { axiom: { conclusion: conclusion, hypotheses: [] } }
             }
         } else {
             if (node.hypotheses) {
@@ -83,8 +80,8 @@ export function parseStatement(text: string): Statement {
 
 export function parseAxiom(text: string): Axiom {
     const stmt = parseStatement(text)
-    if (!("goal" in stmt)) {
-        return stmt as Axiom;
+    if (isAxiom(stmt)) {
+        return stmt.axiom;
     }
     else {
         throw new Error("Expected an axiom, got a goal.")

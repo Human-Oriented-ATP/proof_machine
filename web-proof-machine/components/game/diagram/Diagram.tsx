@@ -21,8 +21,7 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagram, InitialDiagramEdge, InitialDiagramGadget, InitializationData } from 'lib/game/Initialization';
-import { parseTerm } from 'lib/parsing/Semantics';
+import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, getEquationFromInitialConnection, isAxiom } from 'lib/game/Initialization';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
@@ -55,30 +54,30 @@ function isAbovePalette(position: XYPosition): boolean {
     return containsPoint(paletteRect, position)
 }
 
-function getGadgetProps(node: InitialDiagramGadget): GadgetProps {
-    if ("hypotheses" in node.terms) {
-        return axiomToGadget(node.terms, node.id)
+function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
+    if (isAxiom(gadget.statement)) {
+        return axiomToGadget(gadget.statement.axiom, id)
     } else {
         return {
-            id: node.id,
-            terms: new Map([[0, node.terms]]),
+            id,
+            terms: new Map([[0, gadget.statement.goal]]),
             isAxiom: false,
             displayHoleFocus: true
         }
     }
 }
 
-function initializeNode(node: InitialDiagramGadget): GadgetNode {
+function getGadgetNode(id: GadgetId, gadget: InitialDiagramGadget): GadgetNode {
     return {
-        id: node.id,
+        id,
         type: 'gadgetNode',
-        position: node.position,
-        deletable: node.id !== "goal_gadget",
-        data: getGadgetProps(node)
+        position: gadget.position,
+        deletable: id !== "goal_gadget",
+        data: getGadgetProps(id, gadget)
     }
 }
 
-function getInitialConnections(edge: InitialDiagramEdge): Connection {
+function getInitialConnections(edge: InitialDiagramConnection): Connection {
     const sourceGadget = edge.from[0]
     const targetGadget = edge.to[0]
     const sourceNode = edge.from[1]
@@ -91,36 +90,15 @@ function getInitialConnections(edge: InitialDiagramEdge): Connection {
     }
 }
 
-export function getEquationFromEdge(initialDiagram: InitialDiagram, edge: InitialDiagramEdge): Equation | null {
-    const sourceNode = initialDiagram.nodes.find(node => node.id === edge.from[0])
-    const targetNode = initialDiagram.nodes.find(node => node.id === edge.to[0])
-    if (!sourceNode || !targetNode) {
-        return null
-    }
-    if (!('conclusion' in sourceNode.terms)) {
-        return null // excludes the case where the source node is the goal itself
-    }
-    const sourceTerm = sourceNode.terms.conclusion
-    const targetTerm = ("conclusion" in targetNode.terms) ? 
-        targetNode.terms.hypotheses[edge.to[1]] : 
-        ("goal" in targetNode.terms && edge.to[1] == 0) ? targetNode.terms : null
-    if (!sourceTerm || !targetTerm) {
-        return null
-    }
-    return [sourceTerm, targetTerm]
-}
 
-function getInitialEdge(initialDiagram: InitialDiagram, edge: InitialDiagramEdge, label: string): EdgeWithEquation | null {
-    const equation = getEquationFromEdge(initialDiagram, edge)
-    if (equation === null) {
-        return null
-    }
+function getInitialEdge(initialDiagram: InitialDiagram, connection: InitialDiagramConnection, label: string): EdgeWithEquation {
+    const equation = getEquationFromInitialConnection(connection, initialDiagram)
     return {
         id: label,
-        source: edge.from[0],
-        sourceHandle: getHandleId(edge.from[1], edge.from[0]),
-        target: edge.to[0],
-        targetHandle: getHandleId(edge.to[1], edge.to[0]),
+        source: connection.from[0],
+        sourceHandle: getHandleId(connection.from[1], connection.from[0]),
+        target: connection.to[0],
+        targetHandle: getHandleId(connection.to[1], connection.to[0]),
         type: 'edgeWithEquation',
         animated: true,
         data: { eq: equation }
@@ -128,13 +106,14 @@ function getInitialEdge(initialDiagram: InitialDiagram, edge: InitialDiagramEdge
 }
 
 function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
-    return initialDiagram.edges
-    .map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
-    .filter(edge => edge !== null) as EdgeWithEquation[]
+    return initialDiagram.connections
+        .map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
+        .filter(edge => edge !== null) as EdgeWithEquation[]
 }
 
 export function Diagram(props: DiagramProps) {
-    const initialNodes: GadgetNode[] = props.initData.initialDiagram.nodes.map(initializeNode)
+    const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
+    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
     const initialEdges: EdgeWithEquation[] = getInitialEdges(props.initData.initialDiagram)
 
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();

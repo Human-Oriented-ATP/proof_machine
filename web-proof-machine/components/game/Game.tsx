@@ -1,15 +1,14 @@
 import { ReactFlowProvider } from "@xyflow/react";
-import { Diagram, getEquationFromEdge } from "./diagram/Diagram";
+import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
-import { InitialDiagramGadget, InitializationData } from "../../lib/game/Initialization";
+import { InitialDiagramGadget, InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
-import { parseTerm } from "lib/parsing/Semantics";
 
 export interface GameProps {
     initData: InitializationData
@@ -18,9 +17,8 @@ export interface GameProps {
 }
 
 function getInitialEquations(initData: InitializationData): Equation[] {
-    return initData.initialDiagram.edges
-    .map(edge => getEquationFromEdge(initData.initialDiagram, edge))
-    .filter(equation => equation !== null) as Equation[]
+    return initData.initialDiagram.connections.map(connection =>
+        getEquationFromInitialConnection(connection, initData.initialDiagram))
 }
 
 export function Game(props: GameProps) {

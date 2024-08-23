@@ -1,6 +1,6 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Axiom } from "./Primitives";
-import { InitializationData } from "./Initialization";
+import { InitializationData, isGoal } from "./Initialization";
 import { Term, Assignment, getVariableSet, hashTerm, substitute, termHasVariable } from "./Term";
 
 function isConstant(t: Term) {
@@ -38,12 +38,13 @@ function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
 }
 
 export function getNumericalConstantsInInitializationData(initData: InitializationData): number[] {
-    const axiomsInInitialDiagram = initData.initialDiagram.nodes.flatMap(node => node.terms);
-    const numericalConstantsInInitialDiagram = axiomsInInitialDiagram.flatMap(terms => {
-        if ("hypotheses" in terms) {
-            return getNumericalConstantsInAxiom(terms)
+    const initialDiagramGadgets = Array.from(initData.initialDiagram.gadgets.values())
+    const initialDiagramStatements = initialDiagramGadgets.map(gadget => gadget.statement)
+    const numericalConstantsInInitialDiagram = initialDiagramStatements.flatMap(statement => {
+        if (isGoal(statement)) {
+            return getNumericalConstantsInTerm(statement.goal)
         } else {
-            return getNumericalConstantsInTerm(terms)
+            return getNumericalConstantsInAxiom(statement.axiom)
         }
     })
     const numericalConstantsInAxioms = initData.axioms.flatMap(getNumericalConstantsInAxiom)
