@@ -20,7 +20,12 @@ instance : Inhabited Term where
 structure Axiom where
   hypotheses : Array Term
   conclusion : Term
-deriving Repr, Inhabited
+deriving Repr, Lean.ToJson, Inhabited
+
+inductive Statement where
+  | axiom : Axiom → Statement
+  | goal : Term → Statement
+deriving Repr, Lean.ToJson
 
 structure ProblemState where
   axioms : Array Axiom

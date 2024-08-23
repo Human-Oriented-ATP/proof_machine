@@ -126,7 +126,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     modify <| gadgets %~ (·.push gadgetProps)
 
 def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
-  let (_, state) := proofTree.exportToGraph |>.run { xOffset := proofTree.depth * RenderingParams.gadgetThickness {}, yOffset := 0 } |>.run {}
+  let (_, state) := proofTree.exportToGraph |>.run { xOffset := 0, yOffset := 0 } |>.run {}
   state.toInitialDiagram
 
 open Lean ProofWidgets Server
