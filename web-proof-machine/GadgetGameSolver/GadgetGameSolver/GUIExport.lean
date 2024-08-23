@@ -7,28 +7,37 @@ namespace GadgetGame
 abbrev GadgetId := String
 abbrev EdgeId := String
 
-structure GadgetProps where
-  id : GadgetId
-  inputs : Array Term
-  output? : Option Term := none
-  isAxiom := false
-deriving Lean.ToJson, Repr
-
-structure GadgetPropsWithPosition extends GadgetProps where
+structure Position where
   x : Nat
   y : Nat
-deriving Lean.ToJson, Repr
+deriving Repr, Lean.ToJson
 
-structure GadgetEdge where
-  id : EdgeId
+structure InitialDiagramGadget where
+  id : GadgetId
+  statement : Statement
+  position : Position
+deriving Repr, Lean.ToJson
+
+structure InitialDiagramConnection where
   source : GadgetId
   target : GadgetId
   targetPosition : Nat
-deriving Lean.ToJson, Lean.FromJson, Repr
+deriving Repr
 
-structure GadgetGraphProps where
-  gadgets : Array GadgetPropsWithPosition := #[]
-  edges : Array GadgetEdge := #[]
+instance : Lean.ToJson InitialDiagramConnection where
+  toJson c := .mkObj [
+    ("from", .arr #[c.source, (-1 : Int)]),
+    ("to", .arr #[c.target, c.targetPosition])
+  ]
+
+structure InitialDiagram where
+  gadgets : Array InitialDiagramGadget := #[]
+  connections : Array InitialDiagramConnection := #[]
+deriving Lean.ToJson, Repr
+
+structure InitializationData where
+  initialDiagram : InitialDiagram
+  axioms : Array Axiom
 deriving Lean.ToJson, Repr
 
 structure ProofTree.RenderingParams where
@@ -36,8 +45,7 @@ structure ProofTree.RenderingParams where
   nodePadding : Nat := 5
   gadgetThickness : Nat := 250
 
-
-structure ProofTree.RenderingState extends GadgetGraphProps where
+structure ProofTree.RenderingState extends InitialDiagram where
   location : Array Nat := #[]
   xOffset : Nat
   yOffset : Nat
@@ -71,12 +79,13 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
   | .goal term => do
     let state ← get
     let nodeHeight ← nodeSize term
-    let gadgetProps : GadgetPropsWithPosition := {
+    let gadgetProps : InitialDiagramGadget := {
       id := mkGadgetId state.location,
-      inputs := #[term],
-      output? := none
-      x := state.xOffset,
-      y := state.yOffset + nodeHeight / 2
+      statement := .goal term,
+      position := {
+        x := state.xOffset,
+        y := state.yOffset + nodeHeight / 2
+      }
     }
     set { state with
           yOffset := state.yOffset + nodeHeight,
@@ -92,8 +101,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
             location := treeLoc,
             xOffset := state.xOffset - params.gadgetThickness })
       exportToGraph tree
-      modify <| edges %~ (·.push {
-        id := mkEdgeId state.location idx,
+      modify <| connections %~ (·.push {
         source := headId,
         target := mkGadgetId treeLoc,
         targetPosition := idx
@@ -103,25 +111,34 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
 
     modify ({· with location := state.location, xOffset := state.xOffset, yOffset := yOffsetNew })
 
-    let gadgetProps : GadgetPropsWithPosition := {
+    let gadgetProps : InitialDiagramGadget := {
       id := s!"gadget_{state.location}",
-      inputs := goals.toArray.map ProofTree.headTerm,
-      output? := some term,
-      x := state.xOffset,
-      y := (state.yOffset + yOffsetNew) / 2
+      statement := .axiom {
+        hypotheses := goals.toArray.map ProofTree.headTerm,
+        conclusion := term
+      },
+      position := {
+        x := state.xOffset,
+        y := (state.yOffset + yOffsetNew) / 2
+      }
     }
 
     modify <| gadgets %~ (·.push gadgetProps)
 
-def ProofTree.getGadgetGraph (proofTree : ProofTree) : GadgetGraphProps :=
+def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
   let (_, state) := proofTree.exportToGraph |>.run { xOffset := proofTree.depth * RenderingParams.gadgetThickness {}, yOffset := 0 } |>.run {}
-  state.toGadgetGraphProps
+  state.toInitialDiagram
 
 open Lean ProofWidgets Server
+
+-- TODO: Needs updating
+/-
 
 @[widget_module]
 def GadgetGraph : Component GadgetGraphProps where
   javascript := include_str ".." / ".." / "js-build" / "StaticDiagram.js"
+
+-/
 
 -- open Lean Server Elab Command Json
 -- elab stx:"#gadget" : command => runTermElabM fun _ => do
