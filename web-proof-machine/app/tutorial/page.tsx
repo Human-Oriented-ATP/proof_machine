@@ -16,15 +16,28 @@ const goalGadget: InitialDiagramGadget = {
 }
 
 const gadget2: InitialDiagramGadget = {
-    position: { x: -100, y: -10 },
-    statement: { axiom: parseAxiom('r(1,2).') }
+    position: { x: -300, y: -50 },
+    statement: { axiom: parseAxiom('r(1,A).') }
+}
+
+const gadget3: InitialDiagramGadget = {
+    position: { x: -300, y: 100 },
+    statement: { axiom: parseAxiom('r(A,2).') }
+}
+
+const gadget4: InitialDiagramGadget = {
+    position: { x: -150, y: 0 },
+    statement: { axiom: parseAxiom('r(A,C) :- r(A,B), r(B,C).') }
 }
 
 const initialDiagram: InitialDiagram = {
-    gadgets: new Map([["goal_gadget", goalGadget], ["gadget2", gadget2]]),
+    gadgets: new Map([["goal_gadget", goalGadget], ["gadget2", gadget2], ["gadget3", gadget3], ["gadget4", gadget4]]),
     connections: [{
         from: ["gadget2", -1],
-        to: ["goal_gadget", 0],
+        to: ["gadget4", 0],
+    }, {
+        from: ["gadget3", -1],
+        to: ["gadget4", 1],
     }]
 }
 
