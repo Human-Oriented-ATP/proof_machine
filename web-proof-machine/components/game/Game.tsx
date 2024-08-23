@@ -1,5 +1,5 @@
 import { ReactFlowProvider } from "@xyflow/react";
-import { Diagram } from "./diagram/Diagram";
+import { Diagram, getEquationFromEdge } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
@@ -17,16 +17,16 @@ export interface GameProps {
     setProblemSolved: () => void
 }
 
-// This is the function needed
 function getInitialEquations(initData: InitializationData): Equation[] {
-    return []
+    return initData.initialDiagram.edges
+    .map(edge => getEquationFromEdge(initData.initialDiagram, edge))
+    .filter(equation => equation !== null) as Equation[]
 }
 
 export function Game(props: GameProps) {
     const enumerationOffset = getMaximumNumberInGameData(props.initData)
 
-    // temporary solution: Manually add edge
-    const [equations, setEquations] = useState<Equation[]>([[parseTerm('r(1,2)'), parseTerm('r(1,2)')]])
+    const [equations, setEquations] = useState<Equation[]>(getInitialEquations(props.initData))
 
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
