@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import Button from "../primitive/Button"
+import Button from "../primitive/buttons/Default"
 import { resetProgress } from "lib/study/CompletedProblems"
 import { ProblemSelection } from "./ProblemSelection"
 import { useRouter } from "next/navigation"

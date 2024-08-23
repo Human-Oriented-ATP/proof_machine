@@ -1,5 +1,6 @@
-import { Node, Edge, ReactFlowInstance } from 'reactflow';
+import { Node, Edge, ReactFlowInstance, NodeProps } from '@xyflow/react';
 import { GadgetProps } from '../game/Primitives';
+import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 
 export function hasTargetHandle(e: Edge, handleId: string): boolean {
     if (e.targetHandle) {
@@ -8,10 +9,11 @@ export function hasTargetHandle(e: Edge, handleId: string): boolean {
         return false;
     }
 }
-export function getGoalNode(props: GadgetProps): Node {
+export function getGoalNode(props: GadgetProps): GadgetNode {
     return {
         id: props.id,
-        type: 'gadgetFlowNode',
+        type: 'gadgetNode',
+        deletable: false,
         position: { x: 0, y: 0 },
         data: props
     };

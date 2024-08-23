@@ -1,10 +1,10 @@
-import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../../lib/game/Primitives';
-import { Handle, HandleProps, Position } from 'reactflow';
+import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../../../lib/game/Primitives';
+import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
-import { DummyHandle } from '../primitive/DummyHandle';
-import { twJoin } from 'tailwind-merge';
+import { DummyHandle } from '../../primitive/DummyHandle';
+import { twJoin, twMerge } from 'tailwind-merge';
 import { Term } from 'lib/game/Term';
-import { CustomHandle } from './CustomHandle';
+import { Connector } from './Connector';
 
 function backgroundColorFromAbbreviation(abbreviation: string) {
     switch (abbreviation) {
@@ -61,7 +61,7 @@ export function Node(props: NodeDisplayProps) {
         if (!props.useDummyHandle) {
             const handleId = getHandleId(props.position, props.gadgetId)
             const handleProps = getHandleProps(handleId)
-            return <Handle {...handleProps}><CustomHandle type={handleProps.type} isConnected={false} /></Handle>
+            return <Handle {...handleProps}><Connector type={handleProps.type} isConnected={false} /></Handle>
         } else {
             const position = (isInputPosition(props.position)) ? "target" : "source"
             return <DummyHandle position={position}></DummyHandle>
@@ -75,8 +75,8 @@ export function Node(props: NodeDisplayProps) {
         const background = backgroundFromColorAbbreviation(props.term.label)
         return (
             <div className="flex items-center">
-                <div className={twJoin("m-1 border-black border-2 rounded-lg p-0.5", background)}>
-                    {props.term.args.map(arg => <Hole term={arg} focus={props.holeFocus}></Hole>)}
+                <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", background, props.isGoalNode && "outline outline-offset-2 outline-2")}>
+                    {props.term.args.map((arg, idx) => <Hole key={idx} term={arg} focus={props.holeFocus}></Hole>)}
                 </div>
                 {renderHandle()}
             </div>

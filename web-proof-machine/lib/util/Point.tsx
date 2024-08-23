@@ -1,4 +1,4 @@
-import { XYPosition } from 'reactflow';
+import { XYPosition } from '@xyflow/react';
 
 export interface Point {
     x: number

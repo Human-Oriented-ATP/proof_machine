@@ -1,6 +1,6 @@
 import { ProblemCategoryGrid } from "./ProblemGrid"
 import { getConfigFromIdentifier } from "lib/study/LevelConfiguration"
-import { StartFirstUnsolvedLevelButton } from "./StartFirstUnsolvedLevelButton"
+import { StartFirstUnsolvedLevelButton } from "../primitive/buttons/StartFirstUnsolvedLevel"
 
 export function ProblemSelection({ configIdentifier }: { configIdentifier: string }) {
     const config = getConfigFromIdentifier(configIdentifier)

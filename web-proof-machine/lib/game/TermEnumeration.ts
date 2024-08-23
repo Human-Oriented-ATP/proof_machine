@@ -1,6 +1,6 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Axiom } from "./Primitives";
-import { InitializationData } from "./Initialization";
+import { InitializationData, isGoal } from "./Initialization";
 import { Term, Assignment, getVariableSet, hashTerm, substitute, termHasVariable } from "./Term";
 
 function isConstant(t: Term) {
@@ -37,17 +37,22 @@ function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
         .concat(getNumericalConstantsInTerm(axiom.conclusion));
 }
 
-export function getMaximumInTerms(terms: Term[]): number {
-    return 1 + Math.max(...terms.flatMap(getNumericalConstantsInTerm))
-}
-
-export function getNumericalConstantsInProblemState(ps: InitializationData): number[] {
-    return ps.axioms.flatMap(getNumericalConstantsInAxiom)
-        .concat(getNumericalConstantsInTerm(ps.goal));
+export function getNumericalConstantsInInitializationData(initData: InitializationData): number[] {
+    const initialDiagramGadgets = Array.from(initData.initialDiagram.gadgets.values())
+    const initialDiagramStatements = initialDiagramGadgets.map(gadget => gadget.statement)
+    const numericalConstantsInInitialDiagram = initialDiagramStatements.flatMap(statement => {
+        if (isGoal(statement)) {
+            return getNumericalConstantsInTerm(statement.goal)
+        } else {
+            return getNumericalConstantsInAxiom(statement.axiom)
+        }
+    })
+    const numericalConstantsInAxioms = initData.axioms.flatMap(getNumericalConstantsInAxiom)
+    return numericalConstantsInAxioms.concat(numericalConstantsInInitialDiagram);
 }
 
 export function getMaximumNumberInGameData(data: InitializationData): number {
-    return 1 + Math.max(...getNumericalConstantsInProblemState(data))
+    return 1 + Math.max(...getNumericalConstantsInInitializationData(data))
 }
 
 function renameVariablesToEmptyString(t: Term): Term {
@@ -143,7 +148,6 @@ export class TermEnumerator {
     }
 
     updateEnumeration(termAssignment: Assignment) {
-        console.log("assignment:", termAssignment)
         const termsInAssignment = termAssignment.getAssignedValues()
         const termsWithoutConstants = removeConstants(termsInAssignment)
         const fullyAssignedTerms = termsWithoutConstants.map(term =>

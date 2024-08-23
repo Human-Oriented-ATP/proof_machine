@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
-import { XYPosition, Node, Connection, ReactFlowInstance } from "reactflow"
+import { XYPosition, Node, Connection, ReactFlowInstance } from "@xyflow/react"
 import { getCenter } from "../util/Point"
 import { GadgetProps, isOutputPosition } from "lib/game/Primitives"
-import { getHandleId } from "components/game/Node"
+import { getHandleId } from "components/game/gadget/Node"
+import { GadgetNode } from "components/game/diagram/GadgetFlowNode"
 
 const MIN_DISTANCE = 60
 
@@ -42,7 +43,7 @@ export function useProximityConnect(rf: ReactFlowInstance,
         }
     }, []);
 
-    const getHandlesWithPositions = useCallback((node: Node): HandleWithPosition[] => {
+    const getHandlesWithPositions = useCallback((node: GadgetNode): HandleWithPosition[] => {
         const handles = getHandles(node)
         const handlesWithPositions = handles.flatMap(handle => {
             const position = getHandlePosition(handle.handleId)
@@ -118,7 +119,7 @@ export function useProximityConnect(rf: ReactFlowInstance,
         return connectionsWithDistances
     }, [])
 
-    const getProximityConnection = useCallback((node: Node) => {
+    const getProximityConnection = useCallback((node: GadgetNode) => {
         const handles = getHandles(node)
         const allCandidateConnections = handles.flatMap(handle => getCandidateProximityConnections(handle))
         const minimalDistanceConnection = allCandidateConnections.reduce(
@@ -137,7 +138,7 @@ export function useProximityConnect(rf: ReactFlowInstance,
         }
     }, [])
 
-    const onNodeDrag = useCallback((event: React.MouseEvent, node: Node) => {
+    const onNodeDrag = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         const proximityConnection = getProximityConnection(node)
         if (proximityConnection) {
             setConnectingSourceHandle(proximityConnection.source.handleId)
@@ -165,7 +166,7 @@ export function useProximityConnect(rf: ReactFlowInstance,
         highlightHandle(connectingTargetHandle)
     }, [connectingSourceHandle, connectingTargetHandle])
 
-    const onNodeDragStop = useCallback((event: React.MouseEvent, node: Node) => {
+    const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         const proximityConnection = getProximityConnection(node)
         if (proximityConnection) {
             savelyAddEdge(connectionFromConnectionInfo(proximityConnection))

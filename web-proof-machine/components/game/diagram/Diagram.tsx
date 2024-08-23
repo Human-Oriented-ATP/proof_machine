@@ -1,49 +1,43 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import ReactFlow, {
+import {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, HandleType, getOutgoers, useStore, XYPosition,
-    ReactFlowState
-} from 'reactflow';
-import { GadgetFlowNode } from './GadgetFlowNode';
+    EdgeTypes, Edge, getOutgoers, useStore, XYPosition, ReactFlow, OnConnectStartParams
+} from '@xyflow/react';
+import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { CustomEdge } from './MultiEdge';
+import { CustomEdge, EdgeWithEquation } from './CustomEdge';
 
-import 'reactflow/dist/style.css';
+import '@xyflow/react/dist/base.css';
 import './flow.css'
-import { axiomToGadget } from '../../lib/game/GameLogic';
-import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
-import { Equation } from '../../lib/game/Unification';
-import { Term } from '../../lib/game/Term';
-import { GadgetProps } from '../../lib/game/Primitives';
-import { useIdGenerator } from '../../lib/hooks/IdGeneratorHook';
+import { axiomToGadget } from '../../../lib/game/GameLogic';
+import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../../lib/game/Primitives";
+import { Equation } from '../../../lib/game/Unification';
+import { Term } from '../../../lib/game/Term';
+import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
-import { getGoalNode, hasTargetHandle, init } from '../../lib/util/ReactFlow';
+import { hasTargetHandle, init } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
-import { useCustomDelete } from 'lib/hooks/CustomDeleteHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
-import { getNodePositionFromHandle, getTermOfHandle } from './Node';
-import TutorialOverlay from './TutorialOverlay';
+import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
+import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, getEquationFromInitialConnection, isAxiom } from 'lib/game/Initialization';
 
-const nodeTypes: NodeTypes = { 'gadgetFlowNode': GadgetFlowNode }
-const edgeTypes: EdgeTypes = { 'multiEdge': CustomEdge }
+const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
+const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
 
 interface DiagramProps {
-    problemId: string
-    axioms: Axiom[]
+    initData: InitializationData
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
     addEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
     isSatisfied: Map<string, boolean>
-    goal: GadgetProps
-    showHelpWindow: () => void
-    setProblemSolved: (b: boolean) => void
+    setProblemSolved: () => void
 }
 
-const nodesLengthSelector = (state: ReactFlowState) =>
-    Array.from(state.nodeInternals.values()).length || 0;
+const nodesLengthSelector = (state) =>
+    Array.from(state.nodeLookup.values()).length || 0;
 
 interface GadgetDragStartInfo {
     id: string,
@@ -60,10 +54,60 @@ function isAbovePalette(position: XYPosition): boolean {
     return containsPoint(paletteRect, position)
 }
 
+function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
+    if (isAxiom(gadget.statement)) {
+        return axiomToGadget(gadget.statement.axiom, id)
+    } else {
+        return {
+            id,
+            terms: new Map([[0, gadget.statement.goal]]),
+            isAxiom: false,
+            displayHoleFocus: true
+        }
+    }
+}
+
+function getGadgetNode(id: GadgetId, gadget: InitialDiagramGadget): GadgetNode {
+    return {
+        id,
+        type: 'gadgetNode',
+        position: gadget.position,
+        deletable: id !== "goal_gadget",
+        data: getGadgetProps(id, gadget)
+    }
+}
+
+function getInitialEdge(initialDiagram: InitialDiagram, connection: InitialDiagramConnection, label: string): EdgeWithEquation {
+    const equation = getEquationFromInitialConnection(connection, initialDiagram)
+    return {
+        id: label,
+        source: connection.from[0],
+        sourceHandle: getHandleId(connection.from[1], connection.from[0]),
+        target: connection.to[0],
+        targetHandle: getHandleId(connection.to[1], connection.to[0]),
+        type: 'edgeWithEquation',
+        animated: true,
+        data: { eq: equation }
+    }
+}
+
+function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
+    return initialDiagram.connections.map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
+}
+
 export function Diagram(props: DiagramProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState([getGoalNode(props.goal)]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-    const rf = useReactFlow();
+    const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
+    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
+    const initialEdges: EdgeWithEquation[] = getInitialEdges(props.initData.initialDiagram)
+
+    const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
+    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>(initialNodes);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>(initialEdges);
+
+    const getNode = rf.getNode
+    const getNodes = rf.getNodes
+    const getEdges = rf.getEdges
+
     const [generateGadgetId] = useIdGenerator("gadget_")
 
     const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
@@ -84,10 +128,6 @@ export function Diagram(props: DiagramProps) {
         dragStartInfo.current = undefined
     }, [numberOfNodes])
 
-    const getNode = rf.getNode
-    const getNodes = rf.getNodes
-    const getEdges = rf.getEdges
-
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } => {
@@ -98,10 +138,10 @@ export function Diagram(props: DiagramProps) {
         return { from: [fromGadget, fromNode], to: [toGadget, toNode] }
     }, [])
 
-    const deleteEquationsOfEdges = useCallback((edges: Edge[]): void => {
+    const deleteEquationsOfEdges = useCallback((edges: Edge<{ eq: Equation }>[]): void => {
         edges.map(e => {
             const connectionInfo = getConnectionInfo(e)
-            props.removeEquation(connectionInfo.from, connectionInfo.to, e.data)
+            props.removeEquation(connectionInfo.from, connectionInfo.to, e.data!.eq)
         })
     }, [edges, props])
 
@@ -151,21 +191,21 @@ export function Diagram(props: DiagramProps) {
         setEdges((edges) => {
             return addEdge({
                 ...connection,
+                type: 'edgeWithEquation',
                 animated: true,
-                type: 'multiEdge',
-                data: equation
+                data: { eq: equation }
             }, edges)
         });
     }, [props, setEdges, getEquationFromConnection])
 
-
     function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
         const id = generateGadgetId()
-        const flowNode: ReactFlowNode = {
+        const flowNode: GadgetNode = {
             id: id,
-            type: 'gadgetFlowNode',
+            type: 'gadgetNode',
             position: rf.screenToFlowPosition(axiomPosition),
             dragging: true,
+            deletable: true,
             data: axiomToGadget(axiom, id)
         }
         props.addGadget(id, axiom)
@@ -174,18 +214,33 @@ export function Diagram(props: DiagramProps) {
     }
 
     const paletteProps: GadgetPaletteProps = {
-        axioms: props.axioms,
+        axioms: props.initData.axioms,
         makeGadget: makeGadget
     }
 
-    const onConnectStart = useCallback((event: React.MouseEvent | React.TouchEvent,
-        params: { nodeId: string | null; handleId: string | null; handleType: HandleType | null; }) => {
+    const disableHoleFocus = useCallback(() => {
+        setNodes(nodes => nodes.map(node => {
+            return { ...node, data: { ...node.data, displayHoleFocus: false } }
+        }))
+    }, [])
 
+    const onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void = useCallback((event, params) => {
         if (params.handleType === "target") {
             removeEdgesConnectedToHandle(params.handleId!)
         }
-    }, [removeEdgesConnectedToHandle]);
+        disableHoleFocus()
+    }, [removeEdgesConnectedToHandle])
 
+    const enableHoleFocus = useCallback(() => {
+        setNodes(nodes => nodes.map(node => {
+            return { ...node, data: { ...node.data, displayHoleFocus: true } }
+        }))
+    }, [])
+
+    const onConnect = useCallback((connection: Connection) => {
+        savelyAddEdge(connection)
+        enableHoleFocus()
+    }, [])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
         const edges = getEdges()
@@ -201,7 +256,6 @@ export function Diagram(props: DiagramProps) {
         return colorsOk && arityOk && noCycle && notYetAConection
     }, [getEquationFromConnection, getEdges, getNodes]);
 
-
     const isSatisfied = props.isSatisfied
     const updateEdgeAnimation = useCallback(() => {
         function highlightHandle(handleId: string) {
@@ -215,7 +269,7 @@ export function Diagram(props: DiagramProps) {
             (handle as HTMLElement).children[0].classList.remove(...HANDLE_BROKEN_CLASSES)
         })
         setEdges(edges => edges.map(edge => {
-            const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data))
+            const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data!.eq))
             if (edgeIsSatisfied === undefined) {
                 throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
             }
@@ -231,48 +285,48 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    const deleteNode = useCustomDelete({
-        isDeletable: (nodeId: string) => nodeId !== "goal_gadget",
-        getNodes, getEdges, setNodes, setEdges,
-        onEdgesDelete: deleteEquationsOfEdges,
-        onNodesDelete: nodes => nodes.map(node => props.removeGadget(node.id))
-    })
-
     const [onNodeDrag, onNodeDragStopProximityConnect] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
 
-    const onNodeDragStop = useCallback((event: React.MouseEvent, node: ReactFlowNode) => {
+    const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
-            deleteNode()
+            props.removeGadget(node.id)
+            const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
+            deleteEquationsOfEdges(edgesToBeDeleted)
+            setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
+            setEdges(edges => edges.filter(e => node.id !== e.source && node.id !== e.target))
         } else {
             onNodeDragStopProximityConnect(event, node)
         }
     }, [])
 
-    return (
-        <>
-            <GadgetPalette {...paletteProps} />
-            <TutorialOverlay problemId={props.problemId} />
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={(c) => {
-                    savelyAddEdge(c)
-                }}
-                edgeTypes={edgeTypes}
-                nodeTypes={nodeTypes}
-                onInit={() => init(rf)}
-                onConnectStart={onConnectStart}
-                isValidConnection={isValidConnection}
-                deleteKeyCode={null}
-                minZoom={0.1}
-                onNodeDrag={onNodeDrag}
-                onNodeDragStop={onNodeDragStop}
-                nodeOrigin={[0.5, 0.5]}
-            >
-                <ControlButtons showHelpWindow={props.showHelpWindow} rf={rf} ></ControlButtons>
-            </ReactFlow>
-        </>
-    )
+    const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
+        deleteEquationsOfEdges(edges)
+    }, [])
+
+    const onNodesDelete = useCallback((nodes: GadgetNode[]) => {
+        nodes.map(node => props.removeGadget(node.id))
+    }, [])
+
+    return <>
+        <GadgetPalette {...paletteProps} />
+        <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onEdgesDelete={onEdgesDelete}
+            onNodesDelete={onNodesDelete}
+            edgeTypes={edgeTypes}
+            nodeTypes={nodeTypes}
+            onInit={() => init(rf)}
+            onConnectStart={onConnectStart}
+            isValidConnection={isValidConnection}
+            minZoom={0.1}
+            onNodeDrag={onNodeDrag}
+            onNodeDragStop={onNodeDragStop}
+            nodeOrigin={[0.5, 0.5]}
+        />
+        <ControlButtons rf={rf} ></ControlButtons>
+    </>
 }

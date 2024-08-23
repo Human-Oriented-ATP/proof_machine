@@ -1,7 +1,8 @@
-import { parse, parser } from "./Parser"
+import { parseTermCst, parseStatementCst, parseProblemCst, parser } from "./Parser"
 import { Term } from "../game/Term"
-import { Statement, InitializationData, makeInitializationDataFromStatements } from "../game/Initialization"
+import { Statement, makeProblemFileDataFromStatements, ProblemFileData, isAxiom } from "../game/Initialization"
 import { ArgumentNode, CompoundTermNode, ProblemNode, StatementNode } from "./Nodes"
+import { Axiom } from "lib/game/Primitives"
 
 const BaseVisitor = parser.getBaseCstVisitorConstructor()
 
@@ -37,12 +38,9 @@ class PrologAstBuilderVisitor extends BaseVisitor {
             const conclusion = this.visit(node.conclusion)
             if (node.hypotheses) {
                 const hypotheses = node.hypotheses.map((hyp) => this.visit(hyp))
-                return {
-                    conclusion: conclusion,
-                    hypotheses: hypotheses
-                }
+                return { axiom: { conclusion, hypotheses } }
             } else {
-                return { conclusion: conclusion, hypotheses: [] }
+                return { axiom: { conclusion: conclusion, hypotheses: [] } }
             }
         } else {
             if (node.hypotheses) {
@@ -59,17 +57,39 @@ class PrologAstBuilderVisitor extends BaseVisitor {
         }
     }
 
-    problem(node: ProblemNode): InitializationData {
+    problem(node: ProblemNode): ProblemFileData {
         const stmts = node.statements.map(stmt => this.visit(stmt))
-        return makeInitializationDataFromStatements(stmts);
+        return makeProblemFileDataFromStatements(stmts);
     }
 
 }
 
 const astBuilder = new PrologAstBuilderVisitor()
 
-export function parseProblem(text: string): InitializationData {
-    const cst = parse(text)
+export function parseTerm(text: string): Term {
+    const cst = parseTermCst(text)
+    const ast = astBuilder.visit(cst)
+    return ast
+}
+
+export function parseStatement(text: string): Statement {
+    const cst = parseStatementCst(text)
+    const ast = astBuilder.visit(cst)
+    return ast
+}
+
+export function parseAxiom(text: string): Axiom {
+    const stmt = parseStatement(text)
+    if (isAxiom(stmt)) {
+        return stmt.axiom;
+    }
+    else {
+        throw new Error("Expected an axiom, got a goal.")
+    }
+}
+
+export function parseProblem(text: string): ProblemFileData {
+    const cst = parseProblemCst(text)
     const ast = astBuilder.visit(cst)
     return ast
 }

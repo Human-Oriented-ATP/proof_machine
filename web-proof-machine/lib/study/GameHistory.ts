@@ -9,7 +9,7 @@ export type GameEvent = { Completed: null }
     | { EquationRemoved: { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } };
 
 export class GameHistory {
-    public problemId: string;
+    public problemId: string | undefined;
 
     public startTime: Date
     public lastSynchronized: Date
@@ -17,7 +17,7 @@ export class GameHistory {
 
     public log: [GameEvent, Date][]
 
-    constructor(problemId: string) {
+    constructor(problemId?: string) {
         this.completed = false;
         this.startTime = new Date();
         this.log = [];

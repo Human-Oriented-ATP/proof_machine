@@ -1,4 +1,4 @@
-import { CustomHandle } from "./CustomHandle"
+import { Connector } from "./gadget/Connector"
 
 export function GameHelp() {
     return <>
@@ -6,8 +6,8 @@ export function GameHelp() {
         <ul className="text-left leading-10 p-3">
             <li>Press shift to select multiple gadgets</li>
             <li>Press the delete key to remove selected gadgets</li>
-            <li>Click on a handle <CustomHandle type="source" isInline={true} /> to draw a connection line</li>
-            <li>To remove a line, click on the handle <CustomHandle type="target" isInline={true} /> that it leads to</li>
+            <li>Click on a handle <Connector type="source" isInline={true} /> to draw a connection line</li>
+            <li>To remove a line, click on the handle <Connector type="target" isInline={true} /> that it leads to</li>
         </ul>
     </>
 }

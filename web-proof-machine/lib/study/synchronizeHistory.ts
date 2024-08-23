@@ -20,7 +20,7 @@ export async function synchronizeHistory(historyString: string) {
     try {
         const playerId = await getPlayerId()
         const history = JSON.parse(historyString)
-        if (history.log.length !== 0) {
+        if (history.log.length !== 0 && history.problemId !== undefined) {
             const log: string = JSON.stringify(history.log);
             history.lastSynchronized = new Date().toISOString();
             const config = cookies().get('config')!.value

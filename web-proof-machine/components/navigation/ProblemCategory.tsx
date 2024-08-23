@@ -1,4 +1,4 @@
-import { GameLevelButton } from "components/primitive/Button";
+import { GameLevelButton } from "components/primitive/buttons/GameLevel";
 import { getCompletedProblems } from "lib/study/CompletedProblems";
 import { useConfiguration } from "lib/study/LevelConfiguration";
 import { ProblemCategory } from "lib/study/Types";
@@ -11,8 +11,9 @@ interface ProblemCategoryProps {
 export function ProblemCategory(props: ProblemCategoryProps) {
     const completedProblems = getCompletedProblems()
 
+    const config = useConfiguration()
+
     function getButtonLabel(index: number, problem: string): string {
-        const config = useConfiguration()
         if (config === null) {
             return `${index + 1}`
         } else {
@@ -32,7 +33,7 @@ export function ProblemCategory(props: ProblemCategoryProps) {
         </div>
         <div className="grid grid-cols-5">
             {props.category.problems.map((problem, index) => {
-                return <div className="p-2">
+                return <div className="p-2" key={problem}>
                     <GameLevelButton
                         label={getButtonLabel(index, problem)}
                         href={`${currentPath}/game/${problem}`}

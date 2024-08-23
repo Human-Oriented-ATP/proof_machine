@@ -1,11 +1,11 @@
-import { CustomHandle } from "./CustomHandle"
+import { Connector } from "./gadget/Connector"
 
 const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial01",
         <>
             The goal in this game is to build diagrams from gadgets. <br />
             Start by dragging the gadget from the left into the diagram. <br />
-            Then connect the two gadgets by drawing a line from <span><CustomHandle type="source" isInline={true} /></span> to <span><CustomHandle type="target" isInline={true} /></span>.
+            Then connect the two gadgets by drawing a line from <span><Connector type="source" isInline={true} /></span> to <span><Connector type="target" isInline={true} /></span>.
         </>
     ],
     ["tutorial02",
@@ -17,7 +17,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial03",
         <>
             If you move two gadgets close to each other they connect automatically. <br />
-            You'll know when they are close enough because <span><CustomHandle type="source" isInline={true} /></span> and <span><CustomHandle type="target" isInline={true} /></span> will turn green. Try it! <br />
+            You'll know when they are close enough because <span><Connector type="source" isInline={true} /></span> and <span><Connector type="target" isInline={true} /></span> will turn green. Try it! <br />
             Some of the circles here contain numbers. Notice what happens when you connect <br />
             a gadget with empty circles to one with numbers in the circles.<br />
         </>
@@ -27,7 +27,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
             The most important rule of the game is that any numbers in connected cells must match.<br />
             While you solve this level, try matching one of the two small red "input" gadgets to the <br />
             wrong numbered. The connection will break and you will see a pulsating handle. <br />
-            You can always remove a connection (whether broken or not) by clicking on the handle <span><CustomHandle type="target" isInline={true} /></span> at the end of it. <br />
+            You can always remove a connection (whether broken or not) by clicking on the handle <span><Connector type="target" isInline={true} /></span> at the end of it. <br />
         </>
     ],
     ["jacob_easy01",

@@ -32,14 +32,16 @@ export interface NodeDisplayProps extends AbstractNodeProps {
     gadgetId: GadgetId
     useDummyHandle: boolean
     holeFocus: Focus<string>
+    isGoalNode: boolean
 }
 
 export type GadgetId = string
 
-export interface GadgetProps {
+export type GadgetProps = {
     id: GadgetId
     terms: Map<NodePosition, Term>
     isAxiom: boolean
+    displayHoleFocus: boolean
 }
 
 export interface Axiom {

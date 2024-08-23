@@ -1,10 +1,10 @@
 import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
-import { Point, getCenterRelativeToParent } from '../../lib/util/Point'
+import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
 import { GadgetProps, NodeDisplayProps, GadgetId, Focus, isInputPosition, outputPosition, isOutputPosition }
-    from '../../lib/game/Primitives'
-import { HolePosition, InternalConnection, makeConnections } from '../../lib/game/ConnectionsFromTerms'
+    from '../../../lib/game/Primitives'
+import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/ConnectionsFromTerms'
 import { twMerge } from 'tailwind-merge'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
@@ -45,7 +45,7 @@ export function Gadget({ ...props }: GadgetProps) {
     const [focussedHole, setFocussedHole] = useState("")
 
     const focus: Focus<string> = {
-        isFocussed: hole => hole === focussedHole,
+        isFocussed: hole => hole === focussedHole && props.displayHoleFocus,
         focus: hole => setFocussedHole(hole),
         resetFocus: () => setFocussedHole("")
     }
@@ -86,9 +86,10 @@ export function Gadget({ ...props }: GadgetProps) {
                 gadgetId: props.id,
                 holeFocus: focus,
                 useDummyHandle: props.isAxiom,
+                isGoalNode: props.id === "goal_gadget",
             }
             if (isInputPosition(position)) {
-                buffer.push(<Node {...nodeDisplayProps}></Node>)
+                buffer.push(<Node key={position} {...nodeDisplayProps}></Node>)
             }
         }
         return buffer
@@ -102,6 +103,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 gadgetId: props.id,
                 holeFocus: focus,
                 useDummyHandle: props.isAxiom,
+                isGoalNode: false
             }
             return (<div className="flex flex-col justify-center">
                 <Node {...nodeDisplayProps}></Node>

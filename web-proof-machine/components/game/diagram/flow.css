@@ -1,0 +1,35 @@
+.react-flow__handle {
+    top: auto;
+    width: 24px;
+    height: 20px;
+    transform: none;
+    background-color: transparent;
+}
+
+.react-flow__handle-left {
+    left: -12px;
+}
+
+.react-flow__handle-right {
+    right: -10px;
+}
+
+.react-flow__panel.center {
+    top: auto;
+    left: auto;
+    transform: auto;
+    margin: 0px;
+}
+
+.react-flow__node {
+    border: solid 2px #00000000;
+}
+
+.react-flow__node.selectable:focus {
+    box-shadow: 0px 0px 10px gray;
+    border-radius: 15px
+}
+
+.react-flow__handle.valid svg {
+    fill: theme('colors.green');
+}

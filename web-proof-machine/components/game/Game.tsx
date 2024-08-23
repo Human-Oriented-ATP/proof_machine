@@ -1,34 +1,32 @@
-"use client"
-
-import { ReactFlowProvider } from "reactflow";
-import { Diagram } from "./Diagram";
+import { ReactFlowProvider } from "@xyflow/react";
+import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
-import { InitializationData } from "../../lib/game/Initialization";
-import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../lib/game/Primitives";
+import { InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
+import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import SingleButtonPopup, { useSingleButtonPopup } from "../primitive/SingleButtonPopup";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
-import LevelCompletedBanner from "components/primitive/LevelCompletedBanner";
 import { axiomToString } from "lib/game/GameLogic";
-import { GameHelp } from "./GameHelp";
 
 export interface GameProps {
     initData: InitializationData
-    problemId: string
+    problemId?: string
+    setProblemSolved: () => void
+}
+
+function getInitialEquations(initData: InitializationData): Equation[] {
+    return initData.initialDiagram.connections.map(connection =>
+        getEquationFromInitialConnection(connection, initData.initialDiagram))
 }
 
 export function Game(props: GameProps) {
-    const { axioms, goal } = props.initData
+    const enumerationOffset = getMaximumNumberInGameData(props.initData)
 
-    const enumerationOffset = getMaximumNumberInGameData({ axioms, goal })
-    const [equations, setEquations] = useState<Equation[]>([])
+    const [equations, setEquations] = useState<Equation[]>(getInitialEquations(props.initData))
+
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
-    const [isSolved, setIsSolved] = useState(false)
-
-    const helpPopup = useSingleButtonPopup()
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
@@ -60,15 +58,9 @@ export function Game(props: GameProps) {
             JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
     }
 
-    const goalNodeProps: GadgetProps = {
-        id: "goal_gadget",
-        terms: new Map([[0, goal]]),
-        isAxiom: false
-    }
-
-    const setProblemSolved = useCallback((b: boolean) => {
-        setIsSolved(b)
-        if (b && !history.current.completed) {
+    const setProblemSolvedAndWriteToHistory = useCallback(() => {
+        props.setProblemSolved()
+        if (!history.current.completed) {
             history.current.logEvent({ Completed: null })
             history.current.completed = true
             synchronizeHistory(JSON.stringify(history.current))
@@ -84,26 +76,17 @@ export function Game(props: GameProps) {
         }
     }, [equations])
 
-    return <div className='h-dvh flex flex-col'>
-        <div><LevelCompletedBanner isSolved={isSolved} /></div>
-        <div className="grow">
-            <AssignmentContext.Provider value={termEnumeration}>
-                <ReactFlowProvider>
-                    <Diagram
-                        problemId={props.problemId}
-                        axioms={axioms}
-                        addGadget={addGadget}
-                        removeGadget={removeGadget}
-                        addEquation={addEquation}
-                        removeEquation={removeEquation}
-                        isSatisfied={eqSatisfied}
-                        goal={goalNodeProps}
-                        showHelpWindow={helpPopup.open}
-                        setProblemSolved={setProblemSolved}
-                    ></Diagram>
-                </ReactFlowProvider>
-            </AssignmentContext.Provider>
-            <SingleButtonPopup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></SingleButtonPopup>
-        </div>
-    </div>
+    return <AssignmentContext.Provider value={termEnumeration}>
+        <ReactFlowProvider>
+            <Diagram
+                initData={props.initData}
+                addGadget={addGadget}
+                removeGadget={removeGadget}
+                addEquation={addEquation}
+                removeEquation={removeEquation}
+                isSatisfied={eqSatisfied}
+                setProblemSolved={setProblemSolvedAndWriteToHistory}
+            ></Diagram>
+        </ReactFlowProvider>
+    </AssignmentContext.Provider>
 }
