@@ -92,9 +92,7 @@ function getInitialEdge(initialDiagram: InitialDiagram, connection: InitialDiagr
 }
 
 function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
-    return initialDiagram.connections
-        .map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
-        .filter(edge => edge !== null) as EdgeWithEquation[]
+    return initialDiagram.connections.map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
 }
 
 export function Diagram(props: DiagramProps) {
