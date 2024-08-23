@@ -54,14 +54,15 @@ export function getVariableSet(t: Term): Set<VariableName> {
     return new Set(getVariableList(t))
 }
 
+export function makeTermWithFreshVariables(t: Term, prefix: string): Term {
+    const assignment: Assignment = new DisjointSetWithAssignment()
+    getVariableSet(t).forEach(variable =>
+        assignment.assign(variable, { variable: prefix + "_" + variable })
+    )
+    return substitute(t, assignment)
+}
+
 export function makeAxiomWithFreshVariables(axiom: Axiom, prefix: string): Axiom {
-    function makeTermWithFreshVariables(t: Term, prefix: string): Term {
-        const assignment: Assignment = new DisjointSetWithAssignment()
-        getVariableSet(t).forEach(variable =>
-            assignment.assign(variable, { variable: prefix + "_" + variable })
-        )
-        return substitute(t, assignment)
-    }
     const hypotheses = axiom.hypotheses.map(h => makeTermWithFreshVariables(h, prefix))
     const conclusion = makeTermWithFreshVariables(axiom.conclusion, prefix)
     return { hypotheses, conclusion }

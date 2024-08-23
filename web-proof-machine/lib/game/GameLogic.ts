@@ -1,9 +1,9 @@
 import { Axiom, NodePosition, outputPosition } from "./Primitives";
 import { GadgetId, GadgetProps } from "./Primitives";
-import { Term, makeAxiomWithFreshVariables } from "./Term";
+import { Term, makeAxiomWithFreshVariables as makeFreshVariables } from "./Term";
 
 export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
-    const axiomWithFreshVariables = makeAxiomWithFreshVariables(axiom, id)
+    const axiomWithFreshVariables = makeFreshVariables(axiom, id)
     let terms = new Map<NodePosition, Term>()
     axiomWithFreshVariables.hypotheses.forEach((hypothesis, i) => {
         terms.set(i, hypothesis)

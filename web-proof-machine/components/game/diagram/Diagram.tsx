@@ -77,20 +77,6 @@ function getGadgetNode(id: GadgetId, gadget: InitialDiagramGadget): GadgetNode {
     }
 }
 
-function getInitialConnections(edge: InitialDiagramConnection): Connection {
-    const sourceGadget = edge.from[0]
-    const targetGadget = edge.to[0]
-    const sourceNode = edge.from[1]
-    const targetNode = edge.to[1]
-    return {
-        source: sourceGadget,
-        sourceHandle: getHandleId(sourceNode, sourceGadget),
-        target: targetGadget,
-        targetHandle: getHandleId(targetNode, targetGadget)
-    }
-}
-
-
 function getInitialEdge(initialDiagram: InitialDiagram, connection: InitialDiagramConnection, label: string): EdgeWithEquation {
     const equation = getEquationFromInitialConnection(connection, initialDiagram)
     return {

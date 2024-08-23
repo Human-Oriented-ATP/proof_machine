@@ -1,5 +1,5 @@
 import { Axiom, GadgetId, NodePosition } from "./Primitives";
-import { Term } from "./Term";
+import { Term, makeTermWithFreshVariables } from "./Term";
 import { Equation } from "./Unification";
 
 export type Statement = { axiom: Axiom } | { goal: Term }
@@ -72,7 +72,7 @@ export function getEquationFromInitialConnection(connection: InitialDiagramConne
         }
         const sourceTerm = sourceNode.statement.axiom.conclusion
         const targetTerm = isGoal(targetNode.statement) ? targetNode.statement.goal : targetNode.statement.axiom.hypotheses[connection.to[1]]
-        return [sourceTerm, targetTerm]
+        return [makeTermWithFreshVariables(sourceTerm, connection.from[0]!), makeTermWithFreshVariables(sourceTerm, connection.from[0]!)]
     } catch (error) {
         throw new Error(`Invalid connection in initial diagram: possibly gadget ${connection.from} or ${connection.to} is missing in the diagram.`)
     }

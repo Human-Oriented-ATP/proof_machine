@@ -3,7 +3,7 @@ import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
-import { InitialDiagramGadget, InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
+import { InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { GameHistory } from "lib/study/GameHistory";
