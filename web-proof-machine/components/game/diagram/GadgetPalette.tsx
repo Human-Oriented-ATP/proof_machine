@@ -1,7 +1,7 @@
 import { Panel, XYPosition } from '@xyflow/react';
 import { Gadget } from '../gadget/Gadget'
 import { axiomTermEnumeration } from '../../../lib/game/GameLogic';
-import { Axiom, NodePosition, outputPosition } from "../../../lib/game/Primitives";
+import { Axiom, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { GadgetProps } from '../../../lib/game/Primitives';
 import { AssignmentContext } from '../../../lib/game/AssignmentContext';
 import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
@@ -44,7 +44,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
         axiom.hypotheses.forEach((hypothesis, i) => {
             terms.set(i, hypothesis)
         })
-        terms.set(outputPosition, axiom.conclusion)
+        terms.set(OUTPUT_POSITION, axiom.conclusion)
         return { terms, id: getAxiomId(), isAxiom: true, displayHoleFocus: true }
     }
 

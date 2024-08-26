@@ -26,8 +26,8 @@ function getInitialEquations(initData: InitializationData): Map<EquationId, Equa
     return equations
 }
 
-export function getEquationId(from: [GadgetId, NodePosition], to: [GadgetId, NodePosition]): EquationId {
-    return `equation-${from[0]}-${from[1]}-${to[0]}-${to[1]}`
+export function getEquationId(from: GadgetId, to: [GadgetId, NodePosition]): EquationId {
+    return `equation-${from}-to-${to[0]}_${to[1]}`
 }
 
 export function Game(props: GameProps) {
@@ -56,14 +56,14 @@ export function Game(props: GameProps) {
         synchronizeHistory(JSON.stringify(history.current))
     }
 
-    const addEquation = useCallback((from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], newEquation: Equation) => {
+    const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
         history.current.logEvent({ EquationAdded: { from, to } })
         const newEquations = new Map(equations)
         newEquations.set(getEquationId(from, to), newEquation)
         setEquations(equations => (new Map(equations)).set(getEquationId(from, to), newEquation))
     }, [equations])
 
-    const removeEquation = useCallback((from: [GadgetId, NodePosition], to: [GadgetId, NodePosition]) => {
+    const removeEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition]) => {
         history.current.logEvent({ EquationRemoved: { from, to } })
         setEquations(equations => {
             const newEquations = new Map(equations)

@@ -33,10 +33,10 @@ const gadget4: InitialDiagramGadget = {
 const initialDiagram: InitialDiagram = {
     gadgets: new Map([["goal_gadget", goalGadget], ["gadget2", gadget2], ["gadget3", gadget3], ["gadget4", gadget4]]),
     connections: [{
-        from: ["gadget2", -1],
+        from: "gadget2",
         to: ["gadget4", 0],
     }, {
-        from: ["gadget3", -1],
+        from: "gadget3",
         to: ["gadget4", 1],
     }]
 }

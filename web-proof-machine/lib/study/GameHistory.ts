@@ -4,9 +4,9 @@ import { Axiom, GadgetId, NodePosition } from "../game/Primitives";
 
 export type GameEvent = { Completed: null }
     | { GadgetAdded: { gadgetId: GadgetId, axiom: string } }
-    | { EquationAdded: { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } }
+    | { EquationAdded: { from: GadgetId, to: [GadgetId, NodePosition] } }
     | { GadgetRemoved: { gadgetId: GadgetId } }
-    | { EquationRemoved: { from: [GadgetId, NodePosition], to: [GadgetId, NodePosition] } };
+    | { EquationRemoved: { from: GadgetId, to: [GadgetId, NodePosition] } };
 
 export class GameHistory {
     public problemId: string | undefined;
