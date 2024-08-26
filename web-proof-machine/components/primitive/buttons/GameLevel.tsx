@@ -8,7 +8,7 @@ import Button from "./Default";
 
 export function GameLevelButton(props: GameLevelButtonProps) {
     function AdjustableButton(props) {
-        let classNames = "w-36 text-base";
+        let classNames = "w-28 text-sm md:w-36 md:text-base";
         const config = useConfiguration();
         if (config !== null) {
             if (config.displayNamesAs === "number") {
