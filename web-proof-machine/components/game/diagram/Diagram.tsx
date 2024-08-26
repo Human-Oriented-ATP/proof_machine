@@ -11,7 +11,7 @@ import '@xyflow/react/dist/base.css';
 import './flow.css'
 import { axiomToGadget } from '../../../lib/game/GameLogic';
 import { Axiom, GadgetId, GadgetProps, NodePosition } from "../../../lib/game/Primitives";
-import { Equation } from '../../../lib/game/Unification';
+import { Equation, EquationId } from '../../../lib/game/Unification';
 import { Term } from '../../../lib/game/Term';
 import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { ControlButtons } from './ControlButtons';
@@ -22,6 +22,7 @@ import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, getEquationFromInitialConnection, isAxiom } from 'lib/game/Initialization';
+import { getEquationId } from '../Game';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
@@ -31,8 +32,8 @@ interface DiagramProps {
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
     addEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
-    removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equation: Equation) => void
-    isSatisfied: Map<string, boolean>
+    removeEquation: (from: [GadgetId, NodePosition], to: [GadgetId, NodePosition]) => void
+    isSatisfied: Map<EquationId, boolean>
     setProblemSolved: () => void
 }
 
@@ -77,27 +78,27 @@ function getGadgetNode(id: GadgetId, gadget: InitialDiagramGadget): GadgetNode {
     }
 }
 
-function getInitialEdge(initialDiagram: InitialDiagram, connection: InitialDiagramConnection, label: string): EdgeWithEquation {
-    const equation = getEquationFromInitialConnection(connection, initialDiagram)
-    return {
-        id: label,
-        source: connection.from[0],
-        sourceHandle: getHandleId(connection.from[1], connection.from[0]),
-        target: connection.to[0],
-        targetHandle: getHandleId(connection.to[1], connection.to[0]),
-        type: 'edgeWithEquation',
-        animated: true,
-        data: { eq: equation }
-    }
-}
-
-function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
-    return initialDiagram.connections.map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
-}
-
 export function Diagram(props: DiagramProps) {
     const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
     const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
+
+    const getInitialEdge = useCallback((initialDiagram: InitialDiagram, connection: InitialDiagramConnection, label: string): EdgeWithEquation => {
+        return {
+            id: label,
+            source: connection.from[0],
+            sourceHandle: getHandleId(connection.from[1], connection.from[0]),
+            target: connection.to[0],
+            targetHandle: getHandleId(connection.to[1], connection.to[0]),
+            type: 'edgeWithEquation',
+            animated: true,
+            data: { eq: getEquationId(connection.from, connection.to) }
+        }
+    }, [])
+
+    const getInitialEdges = useCallback((initialDiagram: InitialDiagram): EdgeWithEquation[] => {
+        return initialDiagram.connections.map((edge, idx) => getInitialEdge(initialDiagram, edge, `edge_${idx}`))
+    }, [])
+
     const initialEdges: EdgeWithEquation[] = getInitialEdges(props.initData.initialDiagram)
 
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
@@ -138,10 +139,10 @@ export function Diagram(props: DiagramProps) {
         return { from: [fromGadget, fromNode], to: [toGadget, toNode] }
     }, [])
 
-    const deleteEquationsOfEdges = useCallback((edges: Edge<{ eq: Equation }>[]): void => {
+    const deleteEquationsOfEdges = useCallback((edges: Edge<{ eq: EquationId }>[]): void => {
         edges.map(e => {
             const connectionInfo = getConnectionInfo(e)
-            props.removeEquation(connectionInfo.from, connectionInfo.to, e.data!.eq)
+            props.removeEquation(connectionInfo.from, connectionInfo.to)
         })
     }, [edges, props])
 
@@ -193,7 +194,7 @@ export function Diagram(props: DiagramProps) {
                 ...connection,
                 type: 'edgeWithEquation',
                 animated: true,
-                data: { eq: equation }
+                data: { eq: getEquationId(connectionInfo.from, connectionInfo.to) }
             }, edges)
         });
     }, [props, setEdges, getEquationFromConnection])
@@ -269,9 +270,9 @@ export function Diagram(props: DiagramProps) {
             (handle as HTMLElement).children[0].classList.remove(...HANDLE_BROKEN_CLASSES)
         })
         setEdges(edges => edges.map(edge => {
-            const edgeIsSatisfied = isSatisfied.get(JSON.stringify(edge.data!.eq))
+            const edgeIsSatisfied = isSatisfied.get(edge.data!.eq)
             if (edgeIsSatisfied === undefined) {
-                throw new Error("Something went wrong! There is an edge in the diagram without a corresponding equation")
+                throw new Error("There is an edge in the diagram without a corresponding equation")
             }
             if (edgeIsSatisfied === false) {
                 highlightHandle(edge.sourceHandle!)

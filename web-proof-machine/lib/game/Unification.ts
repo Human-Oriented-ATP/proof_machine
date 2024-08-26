@@ -1,7 +1,13 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Term, Assignment, VariableName, termHasVariable } from "./Term";
 
+export type EquationId = string
 export type Equation = [Term, Term]
+
+export interface UnificationResult {
+    assignment: Assignment
+    equationIsSatisfied: Map<EquationId, boolean>
+}
 
 function unifyVariable(currentAssignment: Assignment, v: VariableName, term: Term): boolean {
     if (currentAssignment.isAssigned(v)) {
@@ -69,13 +75,12 @@ function unifyEquation(currentAssignment: Assignment, equation: Equation): boole
     }
 }
 
-export function unifyEquations(equations: Equation[]): [Assignment, Map<string, boolean>] {
+export function unifyEquations(equations: Map<EquationId, Equation>): UnificationResult {
     const equationIsSatisfied = new Map()
     const assignment: Assignment = new DisjointSetWithAssignment()
-    for (let i = 0; i < equations.length; i++) {
-        const equation = equations[i]
+    equations.forEach((equation, key) => {
         const unifiedSuccessfully = unifyEquation(assignment, equation)
-        equationIsSatisfied.set(JSON.stringify(equation), unifiedSuccessfully)
-    }
-    return [assignment, equationIsSatisfied]
+        equationIsSatisfied.set(key, unifiedSuccessfully)
+    })
+    return { assignment, equationIsSatisfied }
 }

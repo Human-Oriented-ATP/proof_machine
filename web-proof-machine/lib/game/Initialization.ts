@@ -72,7 +72,7 @@ export function getEquationFromInitialConnection(connection: InitialDiagramConne
         }
         const sourceTerm = sourceNode.statement.axiom.conclusion
         const targetTerm = isGoal(targetNode.statement) ? targetNode.statement.goal : targetNode.statement.axiom.hypotheses[connection.to[1]]
-        return [makeTermWithFreshVariables(sourceTerm, connection.from[0]!), makeTermWithFreshVariables(sourceTerm, connection.from[0]!)]
+        return [makeTermWithFreshVariables(sourceTerm, connection.from[0]!), makeTermWithFreshVariables(targetTerm, connection.to[0]!)]
     } catch (error) {
         throw new Error(`Invalid connection in initial diagram: possibly gadget ${connection.from} or ${connection.to} is missing in the diagram.`)
     }
