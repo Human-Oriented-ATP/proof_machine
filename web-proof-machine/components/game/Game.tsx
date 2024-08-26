@@ -14,6 +14,7 @@ export interface GameProps {
     initData: InitializationData
     problemId?: string
     setProblemSolved: () => void
+    proximityConnectEnabled: boolean
 }
 
 function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
@@ -100,6 +101,7 @@ export function Game(props: GameProps) {
                 removeEquation={removeEquation}
                 isSatisfied={eqSatisfied}
                 setProblemSolved={setProblemSolvedAndWriteToHistory}
+                proximityConnectEnabled={props.proximityConnectEnabled}
             ></Diagram>
         </ReactFlowProvider>
     </AssignmentContext.Provider>

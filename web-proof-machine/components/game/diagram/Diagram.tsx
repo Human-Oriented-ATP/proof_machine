@@ -35,6 +35,7 @@ interface DiagramProps {
     removeEquation: (from: GadgetId, to: [GadgetId, NodePosition]) => void
     isSatisfied: Map<EquationId, boolean>
     setProblemSolved: () => void
+    proximityConnectEnabled: boolean
 }
 
 const nodesLengthSelector = (state) =>
@@ -285,7 +286,9 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    const [onNodeDrag, onNodeDragStopProximityConnect] = useProximityConnect(rf, isValidConnection, savelyAddEdge)
+    const [onNodeDrag, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
+        useProximityConnect(rf, isValidConnection, savelyAddEdge)
+        : [(e, n) => void 0, (e, n) => void 0]
 
     const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
