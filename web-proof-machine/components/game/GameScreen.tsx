@@ -6,7 +6,7 @@ import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
 import { GameHelp } from "./GameHelp";
 import { Game } from "./Game";
-import TutorialOverlay from "./TutorialOverlay";
+import TutorialOverlay from "../tutorial/TutorialOverlay";
 
 interface GameScreenProps {
     initData: InitializationData
