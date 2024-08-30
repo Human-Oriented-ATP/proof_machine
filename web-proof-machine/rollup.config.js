@@ -19,7 +19,7 @@ export default cliArgs => {
     input: fname,
     output: {
         dir: './js-build',
-        format: 'cjs',
+        format: 'esm',
         // Hax: apparently setting `global` makes some CommonJS modules work ¯\_(ツ)_/¯
         intro: 'const global = window;',
         sourcemap: isProduction ? false : 'inline',

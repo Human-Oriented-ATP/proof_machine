@@ -1,10 +1,8 @@
-'use strict';
-
 const global = window;
 
-var jsxRuntime = require('react/jsx-runtime');
-var require$$0 = require('react');
-require('react-dom');
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
+import require$$0, { createContext, memo, useState, useContext, forwardRef, useCallback, useMemo, useRef, useEffect, useLayoutEffect, createElement } from 'react';
+import 'react-dom';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -6433,7 +6431,7 @@ const createStoreImpl = (createState) => {
     return () => listeners.delete(listener);
   };
   const destroy = () => {
-    if ((undefined ? undefined.MODE : void 0) !== "production") {
+    if ((import.meta.env ? import.meta.env.MODE : void 0) !== "production") {
       console.warn(
         "[DEPRECATED] The `destroy` method will be unsupported in a future version. Instead use unsubscribe function returned by subscribe. Everything will be garbage-collected if store is garbage-collected."
       );
@@ -6505,7 +6503,7 @@ function shallow$1(objA, objB) {
   return true;
 }
 
-const StoreContext = require$$0.createContext(null);
+const StoreContext = createContext(null);
 const Provider$1 = StoreContext.Provider;
 
 const zustandErrorMessage = errorMessages['error001']();
@@ -6522,18 +6520,18 @@ const zustandErrorMessage = errorMessages['error001']();
  *
  */
 function useStore(selector, equalityFn) {
-    const store = require$$0.useContext(StoreContext);
+    const store = useContext(StoreContext);
     if (store === null) {
         throw new Error(zustandErrorMessage);
     }
     return useStoreWithEqualityFn(store, selector, equalityFn);
 }
 function useStoreApi() {
-    const store = require$$0.useContext(StoreContext);
+    const store = useContext(StoreContext);
     if (store === null) {
         throw new Error(zustandErrorMessage);
     }
-    return require$$0.useMemo(() => ({
+    return useMemo(() => ({
         getState: store.getState,
         setState: store.setState,
         subscribe: store.subscribe,
@@ -6558,24 +6556,24 @@ const ARIA_LIVE_MESSAGE = 'react-flow__aria-live';
 const selector$p = (s) => s.ariaLiveMessage;
 function AriaLiveMessage({ rfId }) {
     const ariaLiveMessage = useStore(selector$p);
-    return (jsxRuntime.jsx("div", { id: `${ARIA_LIVE_MESSAGE}-${rfId}`, "aria-live": "assertive", "aria-atomic": "true", style: ariaLiveStyle, children: ariaLiveMessage }));
+    return (jsx("div", { id: `${ARIA_LIVE_MESSAGE}-${rfId}`, "aria-live": "assertive", "aria-atomic": "true", style: ariaLiveStyle, children: ariaLiveMessage }));
 }
 function A11yDescriptions({ rfId, disableKeyboardA11y }) {
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsxs("div", { id: `${ARIA_NODE_DESC_KEY}-${rfId}`, style: style, children: ["Press enter or space to select a node.", !disableKeyboardA11y && 'You can then use the arrow keys to move the node around.', " Press delete to remove it and escape to cancel.", ' '] }), jsxRuntime.jsx("div", { id: `${ARIA_EDGE_DESC_KEY}-${rfId}`, style: style, children: "Press enter or space to select an edge. You can then press delete to remove it or escape to cancel." }), !disableKeyboardA11y && jsxRuntime.jsx(AriaLiveMessage, { rfId: rfId })] }));
+    return (jsxs(Fragment, { children: [jsxs("div", { id: `${ARIA_NODE_DESC_KEY}-${rfId}`, style: style, children: ["Press enter or space to select a node.", !disableKeyboardA11y && 'You can then use the arrow keys to move the node around.', " Press delete to remove it and escape to cancel.", ' '] }), jsx("div", { id: `${ARIA_EDGE_DESC_KEY}-${rfId}`, style: style, children: "Press enter or space to select an edge. You can then press delete to remove it or escape to cancel." }), !disableKeyboardA11y && jsx(AriaLiveMessage, { rfId: rfId })] }));
 }
 
 const selector$o = (s) => (s.userSelectionActive ? 'none' : 'all');
 function Panel({ position = 'top-left', children, className, style, ...rest }) {
     const pointerEvents = useStore(selector$o);
     const positionClasses = `${position}`.split('-');
-    return (jsxRuntime.jsx("div", { className: cc(['react-flow__panel', className, ...positionClasses]), style: { ...style, pointerEvents }, ...rest, children: children }));
+    return (jsx("div", { className: cc(['react-flow__panel', className, ...positionClasses]), style: { ...style, pointerEvents }, ...rest, children: children }));
 }
 
 function Attribution({ proOptions, position = 'bottom-right' }) {
     if (proOptions?.hideAttribution) {
         return null;
     }
-    return (jsxRuntime.jsx(Panel, { position: position, className: "react-flow__attribution", "data-message": "Please only hide this attribution when you are subscribed to React Flow Pro: https://pro.reactflow.dev", children: jsxRuntime.jsx("a", { href: "https://reactflow.dev", target: "_blank", rel: "noopener noreferrer", "aria-label": "React Flow attribution", children: "React Flow" }) }));
+    return (jsx(Panel, { position: position, className: "react-flow__attribution", "data-message": "Please only hide this attribution when you are subscribed to React Flow Pro: https://pro.reactflow.dev", children: jsx("a", { href: "https://reactflow.dev", target: "_blank", rel: "noopener noreferrer", "aria-label": "React Flow attribution", children: "React Flow" }) }));
 }
 
 const selector$n = (s) => {
@@ -6601,7 +6599,7 @@ function areEqual(a, b) {
 function SelectionListenerInner({ onSelectionChange }) {
     const store = useStoreApi();
     const { selectedNodes, selectedEdges } = useStore(selector$n, areEqual);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         const params = { nodes: selectedNodes, edges: selectedEdges };
         onSelectionChange?.(params);
         store.getState().onSelectionChangeHandlers.forEach((fn) => fn(params));
@@ -6612,7 +6610,7 @@ const changeSelector = (s) => !!s.onSelectionChangeHandlers;
 function SelectionListener({ onSelectionChange }) {
     const storeHasSelectionChangeHandlers = useStore(changeSelector);
     if (onSelectionChange || storeHasSelectionChangeHandlers) {
-        return jsxRuntime.jsx(SelectionListenerInner, { onSelectionChange: onSelectionChange });
+        return jsx(SelectionListenerInner, { onSelectionChange: onSelectionChange });
     }
     return null;
 }
@@ -6712,7 +6710,7 @@ const initPrevValues = {
 function StoreUpdater(props) {
     const { setNodes, setEdges, setMinZoom, setMaxZoom, setTranslateExtent, setNodeExtent, reset, setDefaultNodesAndEdges, setPaneClickDistance, } = useStore(selector$m, shallow$1);
     const store = useStoreApi();
-    require$$0.useEffect(() => {
+    useEffect(() => {
         setDefaultNodesAndEdges(props.defaultNodes, props.defaultEdges);
         return () => {
             // when we reset the store we also need to reset the previous fields
@@ -6720,8 +6718,8 @@ function StoreUpdater(props) {
             reset();
         };
     }, []);
-    const previousFields = require$$0.useRef(initPrevValues);
-    require$$0.useEffect(() => {
+    const previousFields = useRef(initPrevValues);
+    useEffect(() => {
         for (const fieldName of fieldsToTrack) {
             const fieldValue = props[fieldName];
             const previousFieldValue = previousFields.current[fieldName];
@@ -6773,8 +6771,8 @@ function getMediaQuery() {
  * @param colorMode - The color mode to use ('dark', 'light' or 'system')
  */
 function useColorModeClass(colorMode) {
-    const [colorModeClass, setColorModeClass] = require$$0.useState(colorMode === 'system' ? null : colorMode);
-    require$$0.useEffect(() => {
+    const [colorModeClass, setColorModeClass] = useState(colorMode === 'system' ? null : colorMode);
+    useEffect(() => {
         if (colorMode !== 'system') {
             setColorModeClass(colorMode);
             return;
@@ -6805,18 +6803,18 @@ function useKeyPress(
 // an array means different possibilites. Explainer: ['a', 'd+s'] here the
 // user can use the single key 'a' or the combination 'd' + 's'
 keyCode = null, options = { target: defaultDoc, actInsideInputWithModifier: true }) {
-    const [keyPressed, setKeyPressed] = require$$0.useState(false);
+    const [keyPressed, setKeyPressed] = useState(false);
     // we need to remember if a modifier key is pressed in order to track it
-    const modifierPressed = require$$0.useRef(false);
+    const modifierPressed = useRef(false);
     // we need to remember the pressed keys in order to support combinations
-    const pressedKeys = require$$0.useRef(new Set([]));
+    const pressedKeys = useRef(new Set([]));
     // keyCodes = array with single keys [['a']] or key combinations [['a', 's']]
     // keysToWatch = array with all keys flattened ['a', 'd', 'ShiftLeft']
     // used to check if we store event.code or event.key. When the code is in the list of keysToWatch
     // we use the code otherwise the key. Explainer: When you press the left "command" key, the code is "MetaLeft"
     // and the key is "Meta". We want users to be able to pass keys and codes so we assume that the key is meant when
     // we can't find it in the list of keysToWatch.
-    const [keyCodes, keysToWatch] = require$$0.useMemo(() => {
+    const [keyCodes, keysToWatch] = useMemo(() => {
         if (keyCode !== null) {
             const keyCodeArr = Array.isArray(keyCode) ? keyCode : [keyCode];
             const keys = keyCodeArr.filter((kc) => typeof kc === 'string').map((kc) => kc.split('+'));
@@ -6825,7 +6823,7 @@ keyCode = null, options = { target: defaultDoc, actInsideInputWithModifier: true
         }
         return [[], []];
     }, [keyCode]);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         const target = options?.target || defaultDoc;
         if (keyCode !== null) {
             const downHandler = (event) => {
@@ -6903,7 +6901,7 @@ function useKeyOrCode(eventCode, keysToWatch) {
  */
 const useViewportHelper = () => {
     const store = useStoreApi();
-    return require$$0.useMemo(() => {
+    return useMemo(() => {
         return {
             zoomIn: (options) => {
                 const { panZoom } = store.getState();
@@ -7207,11 +7205,11 @@ const isEdge = (element) => isEdgeBase(element);
 // eslint-disable-next-line @typescript-eslint/ban-types
 function fixedForwardRef(render) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return require$$0.forwardRef(render);
+    return forwardRef(render);
 }
 
 // we need this hook to prevent a warning when using react-flow in SSR
-const useIsomorphicLayoutEffect = require$$0.useLayoutEffect ;
+const useIsomorphicLayoutEffect = useLayoutEffect ;
 
 /**
  * This hook returns a queue that can be used to batch updates.
@@ -7225,11 +7223,11 @@ function useQueue(runQueue) {
     // Because we're using a ref above, we need some way to let React know when to
     // actually process the queue. We flip this bit of state to `true` any time we
     // mutate the queue and then flip it back to `false` after flushing the queue.
-    const [shouldFlush, setShouldFlush] = require$$0.useState(false);
+    const [shouldFlush, setShouldFlush] = useState(false);
     // A reference of all the batched updates to process before the next render. We
     // want a reference here so multiple synchronous calls to `setNodes` etc can be
     // batched together.
-    const [queue] = require$$0.useState(() => createQueue(() => setShouldFlush(true)));
+    const [queue] = useState(() => createQueue(() => setShouldFlush(true)));
     // Layout effects are guaranteed to run before the next render which means we
     // shouldn't run into any issues with stale state or weird issues that come from
     // rendering things one frame later than expected (we used to use `setTimeout`).
@@ -7267,7 +7265,7 @@ function createQueue(cb) {
     };
 }
 
-const BatchContext = require$$0.createContext(null);
+const BatchContext = createContext(null);
 /**
  * This is a context provider that holds and processes the node and edge update queues
  * that are needed to handle setNodes, addNodes, setEdges and addEdges.
@@ -7276,7 +7274,7 @@ const BatchContext = require$$0.createContext(null);
  */
 function BatchProvider({ children, }) {
     const store = useStoreApi();
-    const nodeQueueHandler = require$$0.useCallback((queueItems) => {
+    const nodeQueueHandler = useCallback((queueItems) => {
         const { nodes = [], setNodes, hasDefaultNodes, onNodesChange, nodeLookup } = store.getState();
         // This is essentially an `Array.reduce` in imperative clothing. Processing
         // this queue is a relatively hot path so we'd like to avoid the overhead of
@@ -7296,7 +7294,7 @@ function BatchProvider({ children, }) {
         }
     }, []);
     const nodeQueue = useQueue(nodeQueueHandler);
-    const edgeQueueHandler = require$$0.useCallback((queueItems) => {
+    const edgeQueueHandler = useCallback((queueItems) => {
         const { edges = [], setEdges, hasDefaultEdges, onEdgesChange, edgeLookup } = store.getState();
         let next = edges;
         for (const payload of queueItems) {
@@ -7313,11 +7311,11 @@ function BatchProvider({ children, }) {
         }
     }, []);
     const edgeQueue = useQueue(edgeQueueHandler);
-    const value = require$$0.useMemo(() => ({ nodeQueue, edgeQueue }), []);
-    return jsxRuntime.jsx(BatchContext.Provider, { value: value, children: children });
+    const value = useMemo(() => ({ nodeQueue, edgeQueue }), []);
+    return jsx(BatchContext.Provider, { value: value, children: children });
 }
 function useBatchContext() {
-    const batchContext = require$$0.useContext(BatchContext);
+    const batchContext = useContext(BatchContext);
     if (!batchContext) {
         throw new Error('useBatchContext must be used within a BatchProvider');
     }
@@ -7336,7 +7334,7 @@ function useReactFlow() {
     const store = useStoreApi();
     const batchContext = useBatchContext();
     const viewportInitialized = useStore(selector$l);
-    const generalHelper = require$$0.useMemo(() => {
+    const generalHelper = useMemo(() => {
         const getInternalNode = (id) => store.getState().nodeLookup.get(id);
         const setNodes = (payload) => {
             batchContext.nodeQueue.push(payload);
@@ -7479,7 +7477,7 @@ function useReactFlow() {
             },
         };
     }, []);
-    return require$$0.useMemo(() => {
+    return useMemo(() => {
         return {
             ...generalHelper,
             ...viewportHelper,
@@ -7501,14 +7499,14 @@ function useGlobalKeyHandler({ deleteKeyCode, multiSelectionKeyCode, }) {
     const { deleteElements } = useReactFlow();
     const deleteKeyPressed = useKeyPress(deleteKeyCode, deleteKeyOptions);
     const multiSelectionKeyPressed = useKeyPress(multiSelectionKeyCode, { target: win$1 });
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (deleteKeyPressed) {
             const { edges, nodes } = store.getState();
             deleteElements({ nodes: nodes.filter(selected), edges: edges.filter(selected) });
             store.setState({ nodesSelectionActive: false });
         }
     }, [deleteKeyPressed]);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         store.setState({ multiSelectionActive: multiSelectionKeyPressed });
     }, [multiSelectionKeyPressed]);
 }
@@ -7520,7 +7518,7 @@ function useGlobalKeyHandler({ deleteKeyCode, multiSelectionKeyCode, }) {
  */
 function useResizeHandler(domNode) {
     const store = useStoreApi();
-    require$$0.useEffect(() => {
+    useEffect(() => {
         const updateDimensions = () => {
             if (!domNode.current) {
                 return false;
@@ -7560,12 +7558,12 @@ const selector$k = (s) => ({
 });
 function ZoomPane({ onPaneContextMenu, zoomOnScroll = true, zoomOnPinch = true, panOnScroll = false, panOnScrollSpeed = 0.5, panOnScrollMode = PanOnScrollMode.Free, zoomOnDoubleClick = true, panOnDrag = true, defaultViewport, translateExtent, minZoom, maxZoom, zoomActivationKeyCode, preventScrolling = true, children, noWheelClassName, noPanClassName, onViewportChange, isControlledViewport, paneClickDistance, }) {
     const store = useStoreApi();
-    const zoomPane = require$$0.useRef(null);
+    const zoomPane = useRef(null);
     const { userSelectionActive, lib } = useStore(selector$k, shallow$1);
     const zoomActivationKeyPressed = useKeyPress(zoomActivationKeyCode);
-    const panZoom = require$$0.useRef();
+    const panZoom = useRef();
     useResizeHandler(zoomPane);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (zoomPane.current) {
             panZoom.current = XYPanZoom({
                 domNode: zoomPane.current,
@@ -7608,7 +7606,7 @@ function ZoomPane({ onPaneContextMenu, zoomOnScroll = true, zoomOnPinch = true, 
             };
         }
     }, []);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         panZoom.current?.update({
             onPaneContextMenu,
             zoomOnScroll,
@@ -7641,7 +7639,7 @@ function ZoomPane({ onPaneContextMenu, zoomOnScroll = true, zoomOnPinch = true, 
         noWheelClassName,
         lib,
     ]);
-    return (jsxRuntime.jsx("div", { className: "react-flow__renderer", ref: zoomPane, style: containerStyle, children: children }));
+    return (jsx("div", { className: "react-flow__renderer", ref: zoomPane, style: containerStyle, children: children }));
 }
 
 const selector$j = (s) => ({
@@ -7654,7 +7652,7 @@ function UserSelection() {
     if (!isActive) {
         return null;
     }
-    return (jsxRuntime.jsx("div", { className: "react-flow__selection react-flow__container", style: {
+    return (jsx("div", { className: "react-flow__selection react-flow__container", style: {
             width: userSelectionRect.width,
             height: userSelectionRect.height,
             transform: `translate(${userSelectionRect.x}px, ${userSelectionRect.y}px)`,
@@ -7675,17 +7673,17 @@ const selector$i = (s) => ({
     dragging: s.paneDragging,
 });
 function Pane({ isSelecting, selectionKeyPressed, selectionMode = SelectionMode.Full, panOnDrag, selectionOnDrag, onSelectionStart, onSelectionEnd, onPaneClick, onPaneContextMenu, onPaneScroll, onPaneMouseEnter, onPaneMouseMove, onPaneMouseLeave, children, }) {
-    const container = require$$0.useRef(null);
+    const container = useRef(null);
     const store = useStoreApi();
-    const prevSelectedNodesCount = require$$0.useRef(0);
-    const prevSelectedEdgesCount = require$$0.useRef(0);
-    const containerBounds = require$$0.useRef();
-    const edgeIdLookup = require$$0.useRef(new Map());
+    const prevSelectedNodesCount = useRef(0);
+    const prevSelectedEdgesCount = useRef(0);
+    const containerBounds = useRef();
+    const edgeIdLookup = useRef(new Map());
     const { userSelectionActive, elementsSelectable, dragging } = useStore(selector$i, shallow$1);
     const hasActiveSelection = elementsSelectable && (isSelecting || userSelectionActive);
     // Used to prevent click events when the user lets go of the selectionKey during a selection
-    const selectionInProgress = require$$0.useRef(false);
-    const selectionStarted = require$$0.useRef(false);
+    const selectionInProgress = useRef(false);
+    const selectionStarted = useRef(false);
     const resetUserSelection = () => {
         store.setState({ userSelectionActive: false, userSelectionRect: null });
         prevSelectedNodesCount.current = 0;
@@ -7808,7 +7806,7 @@ function Pane({ isSelecting, selectionKeyPressed, selectionMode = SelectionMode.
         }
         selectionStarted.current = false;
     };
-    return (jsxRuntime.jsxs("div", { className: cc(['react-flow__pane', { draggable: panOnDrag, dragging, selection: isSelecting }]), onClick: hasActiveSelection ? undefined : wrapHandler(onClick, container), onContextMenu: wrapHandler(onContextMenu, container), onWheel: wrapHandler(onWheel, container), onPointerEnter: hasActiveSelection ? undefined : onPaneMouseEnter, onPointerDown: hasActiveSelection ? onPointerDown : onPaneMouseMove, onPointerMove: hasActiveSelection ? onPointerMove : onPaneMouseMove, onPointerUp: hasActiveSelection ? onPointerUp : undefined, onPointerLeave: onPaneMouseLeave, ref: container, style: containerStyle, children: [children, jsxRuntime.jsx(UserSelection, {})] }));
+    return (jsxs("div", { className: cc(['react-flow__pane', { draggable: panOnDrag, dragging, selection: isSelecting }]), onClick: hasActiveSelection ? undefined : wrapHandler(onClick, container), onContextMenu: wrapHandler(onContextMenu, container), onWheel: wrapHandler(onWheel, container), onPointerEnter: hasActiveSelection ? undefined : onPaneMouseEnter, onPointerDown: hasActiveSelection ? onPointerDown : onPaneMouseMove, onPointerMove: hasActiveSelection ? onPointerMove : onPaneMouseMove, onPointerUp: hasActiveSelection ? onPointerUp : undefined, onPointerLeave: onPaneMouseLeave, ref: container, style: containerStyle, children: [children, jsx(UserSelection, {})] }));
 }
 
 // this handler is called by
@@ -7839,9 +7837,9 @@ function handleNodeClick({ id, store, unselect = false, nodeRef, }) {
  */
 function useDrag({ nodeRef, disabled = false, noDragClassName, handleSelector, nodeId, isSelectable, nodeClickDistance, }) {
     const store = useStoreApi();
-    const [dragging, setDragging] = require$$0.useState(false);
-    const xyDrag = require$$0.useRef();
-    require$$0.useEffect(() => {
+    const [dragging, setDragging] = useState(false);
+    const xyDrag = useRef();
+    useEffect(() => {
         xyDrag.current = XYDrag({
             getStoreItems: () => store.getState(),
             onNodeMouseDown: (id) => {
@@ -7859,7 +7857,7 @@ function useDrag({ nodeRef, disabled = false, noDragClassName, handleSelector, n
             },
         });
     }, []);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (disabled) {
             xyDrag.current?.destroy();
         }
@@ -7889,7 +7887,7 @@ const selectedAndDraggable = (nodesDraggable) => (n) => n.selected && (n.draggab
  */
 function useMoveSelectedNodes() {
     const store = useStoreApi();
-    const moveSelectedNodes = require$$0.useCallback((params) => {
+    const moveSelectedNodes = useCallback((params) => {
         const { nodeExtent, snapToGrid, snapGrid, nodesDraggable, onError, updateNodePositions, nodeLookup, nodeOrigin } = store.getState();
         const nodeUpdates = new Map();
         const isSelected = selectedAndDraggable(nodesDraggable);
@@ -7927,11 +7925,11 @@ function useMoveSelectedNodes() {
     return moveSelectedNodes;
 }
 
-const NodeIdContext = require$$0.createContext(null);
+const NodeIdContext = createContext(null);
 const Provider = NodeIdContext.Provider;
 NodeIdContext.Consumer;
 const useNodeId = () => {
-    const nodeId = require$$0.useContext(NodeIdContext);
+    const nodeId = useContext(NodeIdContext);
     return nodeId;
 };
 
@@ -8049,7 +8047,7 @@ function HandleComponent({ type = 'source', position = Position.Top, isValidConn
         onClickConnectEnd?.(event);
         store.setState({ connectionClickStartHandle: null });
     };
-    return (jsxRuntime.jsx("div", { "data-handleid": handleId, "data-nodeid": nodeId, "data-handlepos": position, "data-id": `${rfId}-${nodeId}-${handleId}-${type}`, className: cc([
+    return (jsx("div", { "data-handleid": handleId, "data-nodeid": nodeId, "data-handlepos": position, "data-id": `${rfId}-${nodeId}-${handleId}-${type}`, className: cc([
             'react-flow__handle',
             `react-flow__handle-${position}`,
             'nodrag',
@@ -8076,14 +8074,14 @@ function HandleComponent({ type = 'source', position = Position.Top, isValidConn
 /**
  * The Handle component is a UI element that is used to connect nodes.
  */
-const Handle = require$$0.memo(fixedForwardRef(HandleComponent));
+const Handle = memo(fixedForwardRef(HandleComponent));
 
 function InputNode({ data, isConnectable, sourcePosition = Position.Bottom }) {
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [data?.label, jsxRuntime.jsx(Handle, { type: "source", position: sourcePosition, isConnectable: isConnectable })] }));
+    return (jsxs(Fragment, { children: [data?.label, jsx(Handle, { type: "source", position: sourcePosition, isConnectable: isConnectable })] }));
 }
 
 function DefaultNode({ data, isConnectable, targetPosition = Position.Top, sourcePosition = Position.Bottom, }) {
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Handle, { type: "target", position: targetPosition, isConnectable: isConnectable }), data?.label, jsxRuntime.jsx(Handle, { type: "source", position: sourcePosition, isConnectable: isConnectable })] }));
+    return (jsxs(Fragment, { children: [jsx(Handle, { type: "target", position: targetPosition, isConnectable: isConnectable }), data?.label, jsx(Handle, { type: "source", position: sourcePosition, isConnectable: isConnectable })] }));
 }
 
 function GroupNode() {
@@ -8091,7 +8089,7 @@ function GroupNode() {
 }
 
 function OutputNode({ data, isConnectable, targetPosition = Position.Top }) {
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(Handle, { type: "target", position: targetPosition, isConnectable: isConnectable }), data?.label] }));
+    return (jsxs(Fragment, { children: [jsx(Handle, { type: "target", position: targetPosition, isConnectable: isConnectable }), data?.label] }));
 }
 
 const arrowKeyDiffs = {
@@ -8134,8 +8132,8 @@ function NodesSelection({ onSelectionContextMenu, noPanClassName, disableKeyboar
     const store = useStoreApi();
     const { width, height, transformString, userSelectionActive } = useStore(selector$g, shallow$1);
     const moveSelectedNodes = useMoveSelectedNodes();
-    const nodeRef = require$$0.useRef(null);
-    require$$0.useEffect(() => {
+    const nodeRef = useRef(null);
+    useEffect(() => {
         if (!disableKeyboardA11y) {
             nodeRef.current?.focus({
                 preventScroll: true,
@@ -8162,9 +8160,9 @@ function NodesSelection({ onSelectionContextMenu, noPanClassName, disableKeyboar
             });
         }
     };
-    return (jsxRuntime.jsx("div", { className: cc(['react-flow__nodesselection', 'react-flow__container', noPanClassName]), style: {
+    return (jsx("div", { className: cc(['react-flow__nodesselection', 'react-flow__container', noPanClassName]), style: {
             transform: transformString,
-        }, children: jsxRuntime.jsx("div", { ref: nodeRef, className: "react-flow__nodesselection-rect", onContextMenu: onContextMenu, tabIndex: disableKeyboardA11y ? undefined : -1, onKeyDown: disableKeyboardA11y ? undefined : onKeyDown, style: {
+        }, children: jsx("div", { ref: nodeRef, className: "react-flow__nodesselection-rect", onContextMenu: onContextMenu, tabIndex: disableKeyboardA11y ? undefined : -1, onKeyDown: disableKeyboardA11y ? undefined : onKeyDown, style: {
                 width,
                 height,
             } }) }));
@@ -8183,10 +8181,10 @@ function FlowRendererComponent({ children, onPaneClick, onPaneMouseEnter, onPane
     const _selectionOnDrag = selectionOnDrag && panOnDrag !== true;
     const isSelecting = selectionKeyPressed || userSelectionActive || _selectionOnDrag;
     useGlobalKeyHandler({ deleteKeyCode, multiSelectionKeyCode });
-    return (jsxRuntime.jsx(ZoomPane, { onPaneContextMenu: onPaneContextMenu, elementsSelectable: elementsSelectable, zoomOnScroll: zoomOnScroll, zoomOnPinch: zoomOnPinch, panOnScroll: panOnScroll, panOnScrollSpeed: panOnScrollSpeed, panOnScrollMode: panOnScrollMode, zoomOnDoubleClick: zoomOnDoubleClick, panOnDrag: !selectionKeyPressed && panOnDrag, defaultViewport: defaultViewport, translateExtent: translateExtent, minZoom: minZoom, maxZoom: maxZoom, zoomActivationKeyCode: zoomActivationKeyCode, preventScrolling: preventScrolling, noWheelClassName: noWheelClassName, noPanClassName: noPanClassName, onViewportChange: onViewportChange, isControlledViewport: isControlledViewport, paneClickDistance: paneClickDistance, children: jsxRuntime.jsxs(Pane, { onSelectionStart: onSelectionStart, onSelectionEnd: onSelectionEnd, onPaneClick: onPaneClick, onPaneMouseEnter: onPaneMouseEnter, onPaneMouseMove: onPaneMouseMove, onPaneMouseLeave: onPaneMouseLeave, onPaneContextMenu: onPaneContextMenu, onPaneScroll: onPaneScroll, panOnDrag: panOnDrag, isSelecting: !!isSelecting, selectionMode: selectionMode, selectionKeyPressed: selectionKeyPressed, selectionOnDrag: _selectionOnDrag, children: [children, nodesSelectionActive && (jsxRuntime.jsx(NodesSelection, { onSelectionContextMenu: onSelectionContextMenu, noPanClassName: noPanClassName, disableKeyboardA11y: disableKeyboardA11y }))] }) }));
+    return (jsx(ZoomPane, { onPaneContextMenu: onPaneContextMenu, elementsSelectable: elementsSelectable, zoomOnScroll: zoomOnScroll, zoomOnPinch: zoomOnPinch, panOnScroll: panOnScroll, panOnScrollSpeed: panOnScrollSpeed, panOnScrollMode: panOnScrollMode, zoomOnDoubleClick: zoomOnDoubleClick, panOnDrag: !selectionKeyPressed && panOnDrag, defaultViewport: defaultViewport, translateExtent: translateExtent, minZoom: minZoom, maxZoom: maxZoom, zoomActivationKeyCode: zoomActivationKeyCode, preventScrolling: preventScrolling, noWheelClassName: noWheelClassName, noPanClassName: noPanClassName, onViewportChange: onViewportChange, isControlledViewport: isControlledViewport, paneClickDistance: paneClickDistance, children: jsxs(Pane, { onSelectionStart: onSelectionStart, onSelectionEnd: onSelectionEnd, onPaneClick: onPaneClick, onPaneMouseEnter: onPaneMouseEnter, onPaneMouseMove: onPaneMouseMove, onPaneMouseLeave: onPaneMouseLeave, onPaneContextMenu: onPaneContextMenu, onPaneScroll: onPaneScroll, panOnDrag: panOnDrag, isSelecting: !!isSelecting, selectionMode: selectionMode, selectionKeyPressed: selectionKeyPressed, selectionOnDrag: _selectionOnDrag, children: [children, nodesSelectionActive && (jsx(NodesSelection, { onSelectionContextMenu: onSelectionContextMenu, noPanClassName: noPanClassName, disableKeyboardA11y: disableKeyboardA11y }))] }) }));
 }
 FlowRendererComponent.displayName = 'FlowRenderer';
-const FlowRenderer = require$$0.memo(FlowRendererComponent);
+const FlowRenderer = memo(FlowRendererComponent);
 
 const selector$e = (onlyRenderVisible) => (s) => {
     return onlyRenderVisible
@@ -8201,14 +8199,14 @@ const selector$e = (onlyRenderVisible) => (s) => {
  * @returns array with visible node ids
  */
 function useVisibleNodeIds(onlyRenderVisible) {
-    const nodeIds = useStore(require$$0.useCallback(selector$e(onlyRenderVisible), [onlyRenderVisible]), shallow$1);
+    const nodeIds = useStore(useCallback(selector$e(onlyRenderVisible), [onlyRenderVisible]), shallow$1);
     return nodeIds;
 }
 
 const selector$d = (s) => s.updateNodeInternals;
 function useResizeObserver() {
     const updateNodeInternals = useStore(selector$d);
-    const [resizeObserver] = require$$0.useState(() => {
+    const [resizeObserver] = useState(() => {
         if (typeof ResizeObserver === 'undefined') {
             return null;
         }
@@ -8225,7 +8223,7 @@ function useResizeObserver() {
             updateNodeInternals(updates);
         });
     });
-    require$$0.useEffect(() => {
+    useEffect(() => {
         return () => {
             resizeObserver?.disconnect();
         };
@@ -8241,13 +8239,13 @@ function useResizeObserver() {
  */
 function useNodeObserver({ node, nodeType, hasDimensions, resizeObserver, }) {
     const store = useStoreApi();
-    const nodeRef = require$$0.useRef(null);
-    const observedNode = require$$0.useRef(null);
-    const prevSourcePosition = require$$0.useRef(node.sourcePosition);
-    const prevTargetPosition = require$$0.useRef(node.targetPosition);
-    const prevType = require$$0.useRef(nodeType);
+    const nodeRef = useRef(null);
+    const observedNode = useRef(null);
+    const prevSourcePosition = useRef(node.sourcePosition);
+    const prevTargetPosition = useRef(node.targetPosition);
+    const prevType = useRef(nodeType);
     const isInitialized = hasDimensions && !!node.internals.handleBounds;
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (nodeRef.current && !node.hidden && (!isInitialized || observedNode.current !== nodeRef.current)) {
             if (observedNode.current) {
                 resizeObserver?.unobserve(observedNode.current);
@@ -8256,7 +8254,7 @@ function useNodeObserver({ node, nodeType, hasDimensions, resizeObserver, }) {
             observedNode.current = nodeRef.current;
         }
     }, [isInitialized, node.hidden]);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         return () => {
             if (observedNode.current) {
                 resizeObserver?.unobserve(observedNode.current);
@@ -8264,7 +8262,7 @@ function useNodeObserver({ node, nodeType, hasDimensions, resizeObserver, }) {
             }
         };
     }, []);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (nodeRef.current) {
             // when the user programmatically changes the source or handle position, we need to update the internals
             // to make sure the edges are updated correctly
@@ -8383,7 +8381,7 @@ function NodeWrapper({ id, onClick, onMouseEnter, onMouseMove, onMouseLeave, onC
             });
         }
     };
-    return (jsxRuntime.jsx("div", { className: cc([
+    return (jsx("div", { className: cc([
             'react-flow__node',
             `react-flow__node-${nodeType}`,
             {
@@ -8405,7 +8403,7 @@ function NodeWrapper({ id, onClick, onMouseEnter, onMouseMove, onMouseLeave, onC
             visibility: hasDimensions ? 'visible' : 'hidden',
             ...node.style,
             ...inlineDimensions,
-        }, "data-id": id, "data-testid": `rf__node-${id}`, onMouseEnter: onMouseEnterHandler, onMouseMove: onMouseMoveHandler, onMouseLeave: onMouseLeaveHandler, onContextMenu: onContextMenuHandler, onClick: onSelectNodeHandler, onDoubleClick: onDoubleClickHandler, onKeyDown: isFocusable ? onKeyDown : undefined, tabIndex: isFocusable ? 0 : undefined, role: isFocusable ? 'button' : undefined, "aria-describedby": disableKeyboardA11y ? undefined : `${ARIA_NODE_DESC_KEY}-${rfId}`, "aria-label": node.ariaLabel, children: jsxRuntime.jsx(Provider, { value: id, children: jsxRuntime.jsx(NodeComponent, { id: id, data: node.data, type: nodeType, positionAbsoluteX: clampedPosition.x, positionAbsoluteY: clampedPosition.y, selected: node.selected, selectable: isSelectable, draggable: isDraggable, deletable: node.deletable ?? true, isConnectable: isConnectable, sourcePosition: node.sourcePosition, targetPosition: node.targetPosition, dragging: dragging, dragHandle: node.dragHandle, zIndex: internals.z, parentId: node.parentId, ...nodeDimensions }) }) }));
+        }, "data-id": id, "data-testid": `rf__node-${id}`, onMouseEnter: onMouseEnterHandler, onMouseMove: onMouseMoveHandler, onMouseLeave: onMouseLeaveHandler, onContextMenu: onContextMenuHandler, onClick: onSelectNodeHandler, onDoubleClick: onDoubleClickHandler, onKeyDown: isFocusable ? onKeyDown : undefined, tabIndex: isFocusable ? 0 : undefined, role: isFocusable ? 'button' : undefined, "aria-describedby": disableKeyboardA11y ? undefined : `${ARIA_NODE_DESC_KEY}-${rfId}`, "aria-label": node.ariaLabel, children: jsx(Provider, { value: id, children: jsx(NodeComponent, { id: id, data: node.data, type: nodeType, positionAbsoluteX: clampedPosition.x, positionAbsoluteY: clampedPosition.y, selected: node.selected, selectable: isSelectable, draggable: isDraggable, deletable: node.deletable ?? true, isConnectable: isConnectable, sourcePosition: node.sourcePosition, targetPosition: node.targetPosition, dragging: dragging, dragHandle: node.dragHandle, zIndex: internals.z, parentId: node.parentId, ...nodeDimensions }) }) }));
 }
 
 const selector$c = (s) => ({
@@ -8419,7 +8417,7 @@ function NodeRendererComponent(props) {
     const { nodesDraggable, nodesConnectable, nodesFocusable, elementsSelectable, onError } = useStore(selector$c, shallow$1);
     const nodeIds = useVisibleNodeIds(props.onlyRenderVisibleElements);
     const resizeObserver = useResizeObserver();
-    return (jsxRuntime.jsx("div", { className: "react-flow__nodes", style: containerStyle, children: nodeIds.map((nodeId) => {
+    return (jsx("div", { className: "react-flow__nodes", style: containerStyle, children: nodeIds.map((nodeId) => {
             return (
             // The split of responsibilities between NodeRenderer and
             // NodeComponentWrapper may appear weird. However, it’s designed to
@@ -8444,11 +8442,11 @@ function NodeRendererComponent(props) {
             //   moved into `NodeComponentWrapper`. This ensures they are
             //   memorized – so if `NodeRenderer` *has* to rerender, it only
             //   needs to regenerate the list of nodes, nothing else.
-            jsxRuntime.jsx(NodeWrapper, { id: nodeId, nodeTypes: props.nodeTypes, nodeExtent: props.nodeExtent, onClick: props.onNodeClick, onMouseEnter: props.onNodeMouseEnter, onMouseMove: props.onNodeMouseMove, onMouseLeave: props.onNodeMouseLeave, onContextMenu: props.onNodeContextMenu, onDoubleClick: props.onNodeDoubleClick, noDragClassName: props.noDragClassName, noPanClassName: props.noPanClassName, rfId: props.rfId, disableKeyboardA11y: props.disableKeyboardA11y, resizeObserver: resizeObserver, nodesDraggable: nodesDraggable, nodesConnectable: nodesConnectable, nodesFocusable: nodesFocusable, elementsSelectable: elementsSelectable, nodeClickDistance: props.nodeClickDistance, onError: onError }, nodeId));
+            jsx(NodeWrapper, { id: nodeId, nodeTypes: props.nodeTypes, nodeExtent: props.nodeExtent, onClick: props.onNodeClick, onMouseEnter: props.onNodeMouseEnter, onMouseMove: props.onNodeMouseMove, onMouseLeave: props.onNodeMouseLeave, onContextMenu: props.onNodeContextMenu, onDoubleClick: props.onNodeDoubleClick, noDragClassName: props.noDragClassName, noPanClassName: props.noPanClassName, rfId: props.rfId, disableKeyboardA11y: props.disableKeyboardA11y, resizeObserver: resizeObserver, nodesDraggable: nodesDraggable, nodesConnectable: nodesConnectable, nodesFocusable: nodesFocusable, elementsSelectable: elementsSelectable, nodeClickDistance: props.nodeClickDistance, onError: onError }, nodeId));
         }) }));
 }
 NodeRendererComponent.displayName = 'NodeRenderer';
-const NodeRenderer = require$$0.memo(NodeRendererComponent);
+const NodeRenderer = memo(NodeRendererComponent);
 
 /**
  * Hook for getting the visible edge ids from the store.
@@ -8458,7 +8456,7 @@ const NodeRenderer = require$$0.memo(NodeRendererComponent);
  * @returns array with visible edge ids
  */
 function useVisibleEdgeIds(onlyRenderVisible) {
-    const edgeIds = useStore(require$$0.useCallback((s) => {
+    const edgeIds = useStore(useCallback((s) => {
         if (!onlyRenderVisible) {
             return s.edges.map((edge) => edge.id);
         }
@@ -8486,13 +8484,13 @@ function useVisibleEdgeIds(onlyRenderVisible) {
 }
 
 const ArrowSymbol = ({ color = 'none', strokeWidth = 1 }) => {
-    return (jsxRuntime.jsx("polyline", { style: {
+    return (jsx("polyline", { style: {
             stroke: color,
             strokeWidth,
         }, strokeLinecap: "round", strokeLinejoin: "round", fill: "none", points: "-5,-4 0,0 -5,4" }));
 };
 const ArrowClosedSymbol = ({ color = 'none', strokeWidth = 1 }) => {
-    return (jsxRuntime.jsx("polyline", { style: {
+    return (jsx("polyline", { style: {
             stroke: color,
             fill: color,
             strokeWidth,
@@ -8504,7 +8502,7 @@ const MarkerSymbols = {
 };
 function useMarkerSymbol(type) {
     const store = useStoreApi();
-    const symbol = require$$0.useMemo(() => {
+    const symbol = useMemo(() => {
         const symbolExists = Object.prototype.hasOwnProperty.call(MarkerSymbols, type);
         if (!symbolExists) {
             store.getState().onError?.('009', errorMessages['error009'](type));
@@ -8520,7 +8518,7 @@ const Marker = ({ id, type, color, width = 12.5, height = 12.5, markerUnits = 's
     if (!Symbol) {
         return null;
     }
-    return (jsxRuntime.jsx("marker", { className: "react-flow__arrowhead", id: id, markerWidth: `${width}`, markerHeight: `${height}`, viewBox: "-10 -10 20 20", markerUnits: markerUnits, orient: orient, refX: "0", refY: "0", children: jsxRuntime.jsx(Symbol, { color: color, strokeWidth: strokeWidth }) }));
+    return (jsx("marker", { className: "react-flow__arrowhead", id: id, markerWidth: `${width}`, markerHeight: `${height}`, viewBox: "-10 -10 20 20", markerUnits: markerUnits, orient: orient, refX: "0", refY: "0", children: jsx(Symbol, { color: color, strokeWidth: strokeWidth }) }));
 };
 // when you have multiple flows on a page and you hide the first one, the other ones have no markers anymore
 // when they do have markers with the same ids. To prevent this the user can pass a unique id to the react flow wrapper
@@ -8528,7 +8526,7 @@ const Marker = ({ id, type, color, width = 12.5, height = 12.5, markerUnits = 's
 const MarkerDefinitions = ({ defaultColor, rfId }) => {
     const edges = useStore((s) => s.edges);
     const defaultEdgeOptions = useStore((s) => s.defaultEdgeOptions);
-    const markers = require$$0.useMemo(() => {
+    const markers = useMemo(() => {
         const markers = createMarkerIds(edges, {
             id: rfId,
             defaultColor,
@@ -8540,16 +8538,16 @@ const MarkerDefinitions = ({ defaultColor, rfId }) => {
     if (!markers.length) {
         return null;
     }
-    return (jsxRuntime.jsx("svg", { className: "react-flow__marker", children: jsxRuntime.jsx("defs", { children: markers.map((marker) => (jsxRuntime.jsx(Marker, { id: marker.id, type: marker.type, color: marker.color, width: marker.width, height: marker.height, markerUnits: marker.markerUnits, strokeWidth: marker.strokeWidth, orient: marker.orient }, marker.id))) }) }));
+    return (jsx("svg", { className: "react-flow__marker", children: jsx("defs", { children: markers.map((marker) => (jsx(Marker, { id: marker.id, type: marker.type, color: marker.color, width: marker.width, height: marker.height, markerUnits: marker.markerUnits, strokeWidth: marker.strokeWidth, orient: marker.orient }, marker.id))) }) }));
 };
 MarkerDefinitions.displayName = 'MarkerDefinitions';
-var MarkerDefinitions$1 = require$$0.memo(MarkerDefinitions);
+var MarkerDefinitions$1 = memo(MarkerDefinitions);
 
 function EdgeTextComponent({ x, y, label, labelStyle = {}, labelShowBg = true, labelBgStyle = {}, labelBgPadding = [2, 4], labelBgBorderRadius = 2, children, className, ...rest }) {
-    const [edgeTextBbox, setEdgeTextBbox] = require$$0.useState({ x: 1, y: 0, width: 0, height: 0 });
+    const [edgeTextBbox, setEdgeTextBbox] = useState({ x: 1, y: 0, width: 0, height: 0 });
     const edgeTextClasses = cc(['react-flow__edge-textwrapper', className]);
-    const edgeTextRef = require$$0.useRef(null);
-    require$$0.useEffect(() => {
+    const edgeTextRef = useRef(null);
+    useEffect(() => {
         if (edgeTextRef.current) {
             const textBbox = edgeTextRef.current.getBBox();
             setEdgeTextBbox({
@@ -8563,13 +8561,13 @@ function EdgeTextComponent({ x, y, label, labelStyle = {}, labelShowBg = true, l
     if (typeof label === 'undefined' || !label) {
         return null;
     }
-    return (jsxRuntime.jsxs("g", { transform: `translate(${x - edgeTextBbox.width / 2} ${y - edgeTextBbox.height / 2})`, className: edgeTextClasses, visibility: edgeTextBbox.width ? 'visible' : 'hidden', ...rest, children: [labelShowBg && (jsxRuntime.jsx("rect", { width: edgeTextBbox.width + 2 * labelBgPadding[0], x: -labelBgPadding[0], y: -labelBgPadding[1], height: edgeTextBbox.height + 2 * labelBgPadding[1], className: "react-flow__edge-textbg", style: labelBgStyle, rx: labelBgBorderRadius, ry: labelBgBorderRadius })), jsxRuntime.jsx("text", { className: "react-flow__edge-text", y: edgeTextBbox.height / 2, dy: "0.3em", ref: edgeTextRef, style: labelStyle, children: label }), children] }));
+    return (jsxs("g", { transform: `translate(${x - edgeTextBbox.width / 2} ${y - edgeTextBbox.height / 2})`, className: edgeTextClasses, visibility: edgeTextBbox.width ? 'visible' : 'hidden', ...rest, children: [labelShowBg && (jsx("rect", { width: edgeTextBbox.width + 2 * labelBgPadding[0], x: -labelBgPadding[0], y: -labelBgPadding[1], height: edgeTextBbox.height + 2 * labelBgPadding[1], className: "react-flow__edge-textbg", style: labelBgStyle, rx: labelBgBorderRadius, ry: labelBgBorderRadius })), jsx("text", { className: "react-flow__edge-text", y: edgeTextBbox.height / 2, dy: "0.3em", ref: edgeTextRef, style: labelStyle, children: label }), children] }));
 }
 EdgeTextComponent.displayName = 'EdgeText';
-const EdgeText = require$$0.memo(EdgeTextComponent);
+const EdgeText = memo(EdgeTextComponent);
 
 function BaseEdge({ id, path, labelX, labelY, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, className, interactionWidth = 20, }) {
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx("path", { id: id, style: style, d: path, fill: "none", className: cc(['react-flow__edge-path', className]), markerEnd: markerEnd, markerStart: markerStart }), interactionWidth && (jsxRuntime.jsx("path", { d: path, fill: "none", strokeOpacity: 0, strokeWidth: interactionWidth, className: "react-flow__edge-interaction" })), label && isNumeric(labelX) && isNumeric(labelY) ? (jsxRuntime.jsx(EdgeText, { x: labelX, y: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius })) : null] }));
+    return (jsxs(Fragment, { children: [jsx("path", { id: id, style: style, d: path, fill: "none", className: cc(['react-flow__edge-path', className]), markerEnd: markerEnd, markerStart: markerStart }), interactionWidth && (jsx("path", { d: path, fill: "none", strokeOpacity: 0, strokeWidth: interactionWidth, className: "react-flow__edge-interaction" })), label && isNumeric(labelX) && isNumeric(labelY) ? (jsx(EdgeText, { x: labelX, y: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius })) : null] }));
 }
 
 function getControl({ pos, x1, y1, x2, y2 }) {
@@ -8613,7 +8611,7 @@ function getSimpleBezierPath({ sourceX, sourceY, sourcePosition = Position.Botto
 }
 function createSimpleBezierEdge(params) {
     // eslint-disable-next-line react/display-name
-    return require$$0.memo(({ id, sourceX, sourceY, targetX, targetY, sourcePosition = Position.Bottom, targetPosition = Position.Top, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, interactionWidth, }) => {
+    return memo(({ id, sourceX, sourceY, targetX, targetY, sourcePosition = Position.Bottom, targetPosition = Position.Top, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, interactionWidth, }) => {
         const [path, labelX, labelY] = getSimpleBezierPath({
             sourceX,
             sourceY,
@@ -8623,7 +8621,7 @@ function createSimpleBezierEdge(params) {
             targetPosition,
         });
         const _id = params.isInternal ? undefined : id;
-        return (jsxRuntime.jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
+        return (jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
     });
 }
 const SimpleBezierEdge = createSimpleBezierEdge({ isInternal: false });
@@ -8633,7 +8631,7 @@ SimpleBezierEdgeInternal.displayName = 'SimpleBezierEdgeInternal';
 
 function createSmoothStepEdge(params) {
     // eslint-disable-next-line react/display-name
-    return require$$0.memo(({ id, sourceX, sourceY, targetX, targetY, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, sourcePosition = Position.Bottom, targetPosition = Position.Top, markerEnd, markerStart, pathOptions, interactionWidth, }) => {
+    return memo(({ id, sourceX, sourceY, targetX, targetY, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, sourcePosition = Position.Bottom, targetPosition = Position.Top, markerEnd, markerStart, pathOptions, interactionWidth, }) => {
         const [path, labelX, labelY] = getSmoothStepPath({
             sourceX,
             sourceY,
@@ -8645,7 +8643,7 @@ function createSmoothStepEdge(params) {
             offset: pathOptions?.offset,
         });
         const _id = params.isInternal ? undefined : id;
-        return (jsxRuntime.jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
+        return (jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
     });
 }
 const SmoothStepEdge = createSmoothStepEdge({ isInternal: false });
@@ -8655,9 +8653,9 @@ SmoothStepEdgeInternal.displayName = 'SmoothStepEdgeInternal';
 
 function createStepEdge(params) {
     // eslint-disable-next-line react/display-name
-    return require$$0.memo(({ id, ...props }) => {
+    return memo(({ id, ...props }) => {
         const _id = params.isInternal ? undefined : id;
-        return (jsxRuntime.jsx(SmoothStepEdge, { ...props, id: _id, pathOptions: require$$0.useMemo(() => ({ borderRadius: 0, offset: props.pathOptions?.offset }), [props.pathOptions?.offset]) }));
+        return (jsx(SmoothStepEdge, { ...props, id: _id, pathOptions: useMemo(() => ({ borderRadius: 0, offset: props.pathOptions?.offset }), [props.pathOptions?.offset]) }));
     });
 }
 const StepEdge = createStepEdge({ isInternal: false });
@@ -8667,10 +8665,10 @@ StepEdgeInternal.displayName = 'StepEdgeInternal';
 
 function createStraightEdge(params) {
     // eslint-disable-next-line react/display-name
-    return require$$0.memo(({ id, sourceX, sourceY, targetX, targetY, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, interactionWidth, }) => {
+    return memo(({ id, sourceX, sourceY, targetX, targetY, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, interactionWidth, }) => {
         const [path, labelX, labelY] = getStraightPath({ sourceX, sourceY, targetX, targetY });
         const _id = params.isInternal ? undefined : id;
-        return (jsxRuntime.jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
+        return (jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
     });
 }
 const StraightEdge = createStraightEdge({ isInternal: false });
@@ -8680,7 +8678,7 @@ StraightEdgeInternal.displayName = 'StraightEdgeInternal';
 
 function createBezierEdge(params) {
     // eslint-disable-next-line react/display-name
-    return require$$0.memo(({ id, sourceX, sourceY, targetX, targetY, sourcePosition = Position.Bottom, targetPosition = Position.Top, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, pathOptions, interactionWidth, }) => {
+    return memo(({ id, sourceX, sourceY, targetX, targetY, sourcePosition = Position.Bottom, targetPosition = Position.Top, label, labelStyle, labelShowBg, labelBgStyle, labelBgPadding, labelBgBorderRadius, style, markerEnd, markerStart, pathOptions, interactionWidth, }) => {
         const [path, labelX, labelY] = getBezierPath({
             sourceX,
             sourceY,
@@ -8691,7 +8689,7 @@ function createBezierEdge(params) {
             curvature: pathOptions?.curvature,
         });
         const _id = params.isInternal ? undefined : id;
-        return (jsxRuntime.jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
+        return (jsx(BaseEdge, { id: _id, path: path, labelX: labelX, labelY: labelY, label: label, labelStyle: labelStyle, labelShowBg: labelShowBg, labelBgStyle: labelBgStyle, labelBgPadding: labelBgPadding, labelBgBorderRadius: labelBgBorderRadius, style: style, markerEnd: markerEnd, markerStart: markerStart, interactionWidth: interactionWidth }));
     });
 }
 const BezierEdge = createBezierEdge({ isInternal: false });
@@ -8731,7 +8729,7 @@ const shiftY = (y, shift, position) => {
 };
 const EdgeUpdaterClassName = 'react-flow__edgeupdater';
 function EdgeAnchor({ position, centerX, centerY, radius = 10, onMouseDown, onMouseEnter, onMouseOut, type, }) {
-    return (jsxRuntime.jsx("circle", { onMouseDown: onMouseDown, onMouseEnter: onMouseEnter, onMouseOut: onMouseOut, className: cc([EdgeUpdaterClassName, `${EdgeUpdaterClassName}-${type}`]), cx: shiftX(centerX, radius, position), cy: shiftY(centerY, radius, position), r: radius, stroke: "transparent", fill: "transparent" }));
+    return (jsx("circle", { onMouseDown: onMouseDown, onMouseEnter: onMouseEnter, onMouseOut: onMouseOut, className: cc([EdgeUpdaterClassName, `${EdgeUpdaterClassName}-${type}`]), cx: shiftX(centerX, radius, position), cy: shiftY(centerY, radius, position), r: radius, stroke: "transparent", fill: "transparent" }));
 }
 
 function EdgeUpdateAnchors({ isReconnectable, reconnectRadius, edge, targetHandleId, sourceHandleId, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, onReconnect, onReconnectStart, onReconnectEnd, setReconnecting, setUpdateHover, }) {
@@ -8781,7 +8779,7 @@ function EdgeUpdateAnchors({ isReconnectable, reconnectRadius, edge, targetHandl
     const onReconnectTargetMouseDown = (event) => handleEdgeUpdater(event, false);
     const onReconnectMouseEnter = () => setUpdateHover(true);
     const onReconnectMouseOut = () => setUpdateHover(false);
-    return (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [(isReconnectable === 'source' || isReconnectable === true) && (jsxRuntime.jsx(EdgeAnchor, { position: sourcePosition, centerX: sourceX, centerY: sourceY, radius: reconnectRadius, onMouseDown: onReconnectSourceMouseDown, onMouseEnter: onReconnectMouseEnter, onMouseOut: onReconnectMouseOut, type: "source" })), (isReconnectable === 'target' || isReconnectable === true) && (jsxRuntime.jsx(EdgeAnchor, { position: targetPosition, centerX: targetX, centerY: targetY, radius: reconnectRadius, onMouseDown: onReconnectTargetMouseDown, onMouseEnter: onReconnectMouseEnter, onMouseOut: onReconnectMouseOut, type: "target" }))] }));
+    return (jsxs(Fragment, { children: [(isReconnectable === 'source' || isReconnectable === true) && (jsx(EdgeAnchor, { position: sourcePosition, centerX: sourceX, centerY: sourceY, radius: reconnectRadius, onMouseDown: onReconnectSourceMouseDown, onMouseEnter: onReconnectMouseEnter, onMouseOut: onReconnectMouseOut, type: "source" })), (isReconnectable === 'target' || isReconnectable === true) && (jsx(EdgeAnchor, { position: targetPosition, centerX: targetX, centerY: targetY, radius: reconnectRadius, onMouseDown: onReconnectTargetMouseDown, onMouseEnter: onReconnectMouseEnter, onMouseOut: onReconnectMouseOut, type: "target" }))] }));
 }
 
 function EdgeWrapper({ id, edgesFocusable, edgesReconnectable, elementsSelectable, onClick, onDoubleClick, onContextMenu, onMouseEnter, onMouseMove, onMouseLeave, reconnectRadius, onReconnect, onReconnectStart, onReconnectEnd, rfId, edgeTypes, noPanClassName, onError, disableKeyboardA11y, }) {
@@ -8799,11 +8797,11 @@ function EdgeWrapper({ id, edgesFocusable, edgesReconnectable, elementsSelectabl
     const isReconnectable = typeof onReconnect !== 'undefined' &&
         (edge.reconnectable || (edgesReconnectable && typeof edge.reconnectable === 'undefined'));
     const isSelectable = !!(edge.selectable || (elementsSelectable && typeof edge.selectable === 'undefined'));
-    const edgeRef = require$$0.useRef(null);
-    const [updateHover, setUpdateHover] = require$$0.useState(false);
-    const [reconnecting, setReconnecting] = require$$0.useState(false);
+    const edgeRef = useRef(null);
+    const [updateHover, setUpdateHover] = useState(false);
+    const [reconnecting, setReconnecting] = useState(false);
     const store = useStoreApi();
-    const { zIndex, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition } = useStore(require$$0.useCallback((store) => {
+    const { zIndex, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition } = useStore(useCallback((store) => {
         const sourceNode = store.nodeLookup.get(edge.source);
         const targetNode = store.nodeLookup.get(edge.target);
         if (!sourceNode || !targetNode) {
@@ -8833,8 +8831,8 @@ function EdgeWrapper({ id, edgesFocusable, edgesReconnectable, elementsSelectabl
             ...(edgePosition || nullPosition),
         };
     }, [edge.source, edge.target, edge.sourceHandle, edge.targetHandle, edge.selected, edge.zIndex]), shallow$1);
-    const markerStartUrl = require$$0.useMemo(() => (edge.markerStart ? `url('#${getMarkerId(edge.markerStart, rfId)}')` : undefined), [edge.markerStart, rfId]);
-    const markerEndUrl = require$$0.useMemo(() => (edge.markerEnd ? `url('#${getMarkerId(edge.markerEnd, rfId)}')` : undefined), [edge.markerEnd, rfId]);
+    const markerStartUrl = useMemo(() => (edge.markerStart ? `url('#${getMarkerId(edge.markerStart, rfId)}')` : undefined), [edge.markerStart, rfId]);
+    const markerEndUrl = useMemo(() => (edge.markerEnd ? `url('#${getMarkerId(edge.markerEnd, rfId)}')` : undefined), [edge.markerEnd, rfId]);
     if (edge.hidden || sourceX === null || sourceY === null || targetX === null || targetY === null) {
         return null;
     }
@@ -8892,7 +8890,7 @@ function EdgeWrapper({ id, edgesFocusable, edgesReconnectable, elementsSelectabl
             }
         }
     };
-    return (jsxRuntime.jsx("svg", { style: { zIndex }, children: jsxRuntime.jsxs("g", { className: cc([
+    return (jsx("svg", { style: { zIndex }, children: jsxs("g", { className: cc([
                 'react-flow__edge',
                 `react-flow__edge-${edgeType}`,
                 edge.className,
@@ -8904,7 +8902,7 @@ function EdgeWrapper({ id, edgesFocusable, edgesReconnectable, elementsSelectabl
                     updating: updateHover,
                     selectable: isSelectable,
                 },
-            ]), onClick: onEdgeClick, onDoubleClick: onEdgeDoubleClick, onContextMenu: onEdgeContextMenu, onMouseEnter: onEdgeMouseEnter, onMouseMove: onEdgeMouseMove, onMouseLeave: onEdgeMouseLeave, onKeyDown: isFocusable ? onKeyDown : undefined, tabIndex: isFocusable ? 0 : undefined, role: isFocusable ? 'button' : 'img', "data-id": id, "data-testid": `rf__edge-${id}`, "aria-label": edge.ariaLabel === null ? undefined : edge.ariaLabel || `Edge from ${edge.source} to ${edge.target}`, "aria-describedby": isFocusable ? `${ARIA_EDGE_DESC_KEY}-${rfId}` : undefined, ref: edgeRef, children: [!reconnecting && (jsxRuntime.jsx(EdgeComponent, { id: id, source: edge.source, target: edge.target, type: edge.type, selected: edge.selected, animated: edge.animated, selectable: isSelectable, deletable: edge.deletable ?? true, label: edge.label, labelStyle: edge.labelStyle, labelShowBg: edge.labelShowBg, labelBgStyle: edge.labelBgStyle, labelBgPadding: edge.labelBgPadding, labelBgBorderRadius: edge.labelBgBorderRadius, sourceX: sourceX, sourceY: sourceY, targetX: targetX, targetY: targetY, sourcePosition: sourcePosition, targetPosition: targetPosition, data: edge.data, style: edge.style, sourceHandleId: edge.sourceHandle, targetHandleId: edge.targetHandle, markerStart: markerStartUrl, markerEnd: markerEndUrl, pathOptions: 'pathOptions' in edge ? edge.pathOptions : undefined, interactionWidth: edge.interactionWidth })), isReconnectable && (jsxRuntime.jsx(EdgeUpdateAnchors, { edge: edge, isReconnectable: isReconnectable, reconnectRadius: reconnectRadius, onReconnect: onReconnect, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, sourceX: sourceX, sourceY: sourceY, targetX: targetX, targetY: targetY, sourcePosition: sourcePosition, targetPosition: targetPosition, setUpdateHover: setUpdateHover, setReconnecting: setReconnecting, sourceHandleId: edge.sourceHandle, targetHandleId: edge.targetHandle }))] }) }));
+            ]), onClick: onEdgeClick, onDoubleClick: onEdgeDoubleClick, onContextMenu: onEdgeContextMenu, onMouseEnter: onEdgeMouseEnter, onMouseMove: onEdgeMouseMove, onMouseLeave: onEdgeMouseLeave, onKeyDown: isFocusable ? onKeyDown : undefined, tabIndex: isFocusable ? 0 : undefined, role: isFocusable ? 'button' : 'img', "data-id": id, "data-testid": `rf__edge-${id}`, "aria-label": edge.ariaLabel === null ? undefined : edge.ariaLabel || `Edge from ${edge.source} to ${edge.target}`, "aria-describedby": isFocusable ? `${ARIA_EDGE_DESC_KEY}-${rfId}` : undefined, ref: edgeRef, children: [!reconnecting && (jsx(EdgeComponent, { id: id, source: edge.source, target: edge.target, type: edge.type, selected: edge.selected, animated: edge.animated, selectable: isSelectable, deletable: edge.deletable ?? true, label: edge.label, labelStyle: edge.labelStyle, labelShowBg: edge.labelShowBg, labelBgStyle: edge.labelBgStyle, labelBgPadding: edge.labelBgPadding, labelBgBorderRadius: edge.labelBgBorderRadius, sourceX: sourceX, sourceY: sourceY, targetX: targetX, targetY: targetY, sourcePosition: sourcePosition, targetPosition: targetPosition, data: edge.data, style: edge.style, sourceHandleId: edge.sourceHandle, targetHandleId: edge.targetHandle, markerStart: markerStartUrl, markerEnd: markerEndUrl, pathOptions: 'pathOptions' in edge ? edge.pathOptions : undefined, interactionWidth: edge.interactionWidth })), isReconnectable && (jsx(EdgeUpdateAnchors, { edge: edge, isReconnectable: isReconnectable, reconnectRadius: reconnectRadius, onReconnect: onReconnect, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, sourceX: sourceX, sourceY: sourceY, targetX: targetX, targetY: targetY, sourcePosition: sourcePosition, targetPosition: targetPosition, setUpdateHover: setUpdateHover, setReconnecting: setReconnecting, sourceHandleId: edge.sourceHandle, targetHandleId: edge.targetHandle }))] }) }));
 }
 
 const selector$b = (s) => ({
@@ -8919,17 +8917,17 @@ const selector$b = (s) => ({
 function EdgeRendererComponent({ defaultMarkerColor, onlyRenderVisibleElements, rfId, edgeTypes, noPanClassName, onReconnect, onEdgeContextMenu, onEdgeMouseEnter, onEdgeMouseMove, onEdgeMouseLeave, onEdgeClick, reconnectRadius, onEdgeDoubleClick, onReconnectStart, onReconnectEnd, disableKeyboardA11y, }) {
     const { edgesFocusable, edgesReconnectable, elementsSelectable, onError } = useStore(selector$b, shallow$1);
     const edgeIds = useVisibleEdgeIds(onlyRenderVisibleElements);
-    return (jsxRuntime.jsxs("div", { className: "react-flow__edges", children: [jsxRuntime.jsx(MarkerDefinitions$1, { defaultColor: defaultMarkerColor, rfId: rfId }), edgeIds.map((id) => {
-                return (jsxRuntime.jsx(EdgeWrapper, { id: id, edgesFocusable: edgesFocusable, edgesReconnectable: edgesReconnectable, elementsSelectable: elementsSelectable, noPanClassName: noPanClassName, onReconnect: onReconnect, onContextMenu: onEdgeContextMenu, onMouseEnter: onEdgeMouseEnter, onMouseMove: onEdgeMouseMove, onMouseLeave: onEdgeMouseLeave, onClick: onEdgeClick, reconnectRadius: reconnectRadius, onDoubleClick: onEdgeDoubleClick, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, rfId: rfId, onError: onError, edgeTypes: edgeTypes, disableKeyboardA11y: disableKeyboardA11y }, id));
+    return (jsxs("div", { className: "react-flow__edges", children: [jsx(MarkerDefinitions$1, { defaultColor: defaultMarkerColor, rfId: rfId }), edgeIds.map((id) => {
+                return (jsx(EdgeWrapper, { id: id, edgesFocusable: edgesFocusable, edgesReconnectable: edgesReconnectable, elementsSelectable: elementsSelectable, noPanClassName: noPanClassName, onReconnect: onReconnect, onContextMenu: onEdgeContextMenu, onMouseEnter: onEdgeMouseEnter, onMouseMove: onEdgeMouseMove, onMouseLeave: onEdgeMouseLeave, onClick: onEdgeClick, reconnectRadius: reconnectRadius, onDoubleClick: onEdgeDoubleClick, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, rfId: rfId, onError: onError, edgeTypes: edgeTypes, disableKeyboardA11y: disableKeyboardA11y }, id));
             })] }));
 }
 EdgeRendererComponent.displayName = 'EdgeRenderer';
-const EdgeRenderer = require$$0.memo(EdgeRendererComponent);
+const EdgeRenderer = memo(EdgeRendererComponent);
 
 const selector$a = (s) => `translate(${s.transform[0]}px,${s.transform[1]}px) scale(${s.transform[2]})`;
 function Viewport({ children }) {
     const transform = useStore(selector$a);
-    return (jsxRuntime.jsx("div", { className: "react-flow__viewport xyflow__viewport react-flow__container", style: { transform }, children: children }));
+    return (jsx("div", { className: "react-flow__viewport xyflow__viewport react-flow__container", style: { transform }, children: children }));
 }
 
 /**
@@ -8939,8 +8937,8 @@ function Viewport({ children }) {
  */
 function useOnInitHandler(onInit) {
     const rfInstance = useReactFlow();
-    const isInitialized = require$$0.useRef(false);
-    require$$0.useEffect(() => {
+    const isInitialized = useRef(false);
+    useEffect(() => {
         if (!isInitialized.current && rfInstance.viewportInitialized && onInit) {
             setTimeout(() => onInit(rfInstance), 1);
             isInitialized.current = true;
@@ -8958,7 +8956,7 @@ const selector$9 = (state) => state.panZoom?.syncViewport;
 function useViewportSync(viewport) {
     const syncViewport = useStore(selector$9);
     const store = useStoreApi();
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (viewport) {
             syncViewport?.(viewport);
             store.setState({ transform: [viewport.x, viewport.y, viewport.zoom] });
@@ -8995,7 +8993,7 @@ function ConnectionLineWrapper({ containerStyle, style, type, component }) {
     if (!renderConnection) {
         return null;
     }
-    return (jsxRuntime.jsx("svg", { style: containerStyle, width: width, height: height, className: "react-flow__connectionline react-flow__container", children: jsxRuntime.jsx("g", { className: cc(['react-flow__connection', getConnectionStatus(isValid)]), children: jsxRuntime.jsx(ConnectionLine, { style: style, type: type, CustomComponent: component, isValid: isValid }) }) }));
+    return (jsx("svg", { style: containerStyle, width: width, height: height, className: "react-flow__connectionline react-flow__container", children: jsx("g", { className: cc(['react-flow__connection', getConnectionStatus(isValid)]), children: jsx(ConnectionLine, { style: style, type: type, CustomComponent: component, isValid: isValid }) }) }));
 }
 const ConnectionLine = ({ style, type = ConnectionLineType.Bezier, CustomComponent, isValid }) => {
     const { inProgress, from, fromNode, fromHandle, fromPosition, to, toNode, toHandle, toPosition } = useConnection();
@@ -9003,7 +9001,7 @@ const ConnectionLine = ({ style, type = ConnectionLineType.Bezier, CustomCompone
         return;
     }
     if (CustomComponent) {
-        return (jsxRuntime.jsx(CustomComponent, { connectionLineType: type, connectionLineStyle: style, fromNode: fromNode, fromHandle: fromHandle, fromX: from.x, fromY: from.y, toX: to.x, toY: to.y, fromPosition: fromPosition, toPosition: toPosition, connectionStatus: getConnectionStatus(isValid), toNode: toNode, toHandle: toHandle }));
+        return (jsx(CustomComponent, { connectionLineType: type, connectionLineStyle: style, fromNode: fromNode, fromHandle: fromHandle, fromX: from.x, fromY: from.y, toX: to.x, toY: to.y, fromPosition: fromPosition, toPosition: toPosition, connectionStatus: getConnectionStatus(isValid), toNode: toNode, toHandle: toHandle }));
     }
     let path = '';
     const pathParams = {
@@ -9033,23 +9031,23 @@ const ConnectionLine = ({ style, type = ConnectionLineType.Bezier, CustomCompone
         default:
             [path] = getStraightPath(pathParams);
     }
-    return jsxRuntime.jsx("path", { d: path, fill: "none", className: "react-flow__connection-path", style: style });
+    return jsx("path", { d: path, fill: "none", className: "react-flow__connection-path", style: style });
 };
 ConnectionLine.displayName = 'ConnectionLine';
 
 const emptyTypes = {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function useNodeOrEdgeTypesWarning(nodeOrEdgeTypes = emptyTypes) {
-    require$$0.useRef(nodeOrEdgeTypes);
+    useRef(nodeOrEdgeTypes);
     useStoreApi();
-    require$$0.useEffect(() => {
+    useEffect(() => {
     }, [nodeOrEdgeTypes]);
 }
 
 function useStylesLoadedWarning() {
     useStoreApi();
-    require$$0.useRef(false);
-    require$$0.useEffect(() => {
+    useRef(false);
+    useEffect(() => {
     }, []);
 }
 
@@ -9059,10 +9057,10 @@ function GraphViewComponent({ nodeTypes, edgeTypes, onInit, onNodeClick, onEdgeC
     useStylesLoadedWarning();
     useOnInitHandler(onInit);
     useViewportSync(viewport);
-    return (jsxRuntime.jsx(FlowRenderer, { onPaneClick: onPaneClick, onPaneMouseEnter: onPaneMouseEnter, onPaneMouseMove: onPaneMouseMove, onPaneMouseLeave: onPaneMouseLeave, onPaneContextMenu: onPaneContextMenu, onPaneScroll: onPaneScroll, paneClickDistance: paneClickDistance, deleteKeyCode: deleteKeyCode, selectionKeyCode: selectionKeyCode, selectionOnDrag: selectionOnDrag, selectionMode: selectionMode, onSelectionStart: onSelectionStart, onSelectionEnd: onSelectionEnd, multiSelectionKeyCode: multiSelectionKeyCode, panActivationKeyCode: panActivationKeyCode, zoomActivationKeyCode: zoomActivationKeyCode, elementsSelectable: elementsSelectable, zoomOnScroll: zoomOnScroll, zoomOnPinch: zoomOnPinch, zoomOnDoubleClick: zoomOnDoubleClick, panOnScroll: panOnScroll, panOnScrollSpeed: panOnScrollSpeed, panOnScrollMode: panOnScrollMode, panOnDrag: panOnDrag, defaultViewport: defaultViewport, translateExtent: translateExtent, minZoom: minZoom, maxZoom: maxZoom, onSelectionContextMenu: onSelectionContextMenu, preventScrolling: preventScrolling, noDragClassName: noDragClassName, noWheelClassName: noWheelClassName, noPanClassName: noPanClassName, disableKeyboardA11y: disableKeyboardA11y, onViewportChange: onViewportChange, isControlledViewport: !!viewport, children: jsxRuntime.jsxs(Viewport, { children: [jsxRuntime.jsx(EdgeRenderer, { edgeTypes: edgeTypes, onEdgeClick: onEdgeClick, onEdgeDoubleClick: onEdgeDoubleClick, onReconnect: onReconnect, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, onlyRenderVisibleElements: onlyRenderVisibleElements, onEdgeContextMenu: onEdgeContextMenu, onEdgeMouseEnter: onEdgeMouseEnter, onEdgeMouseMove: onEdgeMouseMove, onEdgeMouseLeave: onEdgeMouseLeave, reconnectRadius: reconnectRadius, defaultMarkerColor: defaultMarkerColor, noPanClassName: noPanClassName, disableKeyboardA11y: disableKeyboardA11y, rfId: rfId }), jsxRuntime.jsx(ConnectionLineWrapper, { style: connectionLineStyle, type: connectionLineType, component: connectionLineComponent, containerStyle: connectionLineContainerStyle }), jsxRuntime.jsx("div", { className: "react-flow__edgelabel-renderer" }), jsxRuntime.jsx(NodeRenderer, { nodeTypes: nodeTypes, onNodeClick: onNodeClick, onNodeDoubleClick: onNodeDoubleClick, onNodeMouseEnter: onNodeMouseEnter, onNodeMouseMove: onNodeMouseMove, onNodeMouseLeave: onNodeMouseLeave, onNodeContextMenu: onNodeContextMenu, nodeClickDistance: nodeClickDistance, onlyRenderVisibleElements: onlyRenderVisibleElements, noPanClassName: noPanClassName, noDragClassName: noDragClassName, disableKeyboardA11y: disableKeyboardA11y, nodeExtent: nodeExtent, rfId: rfId }), jsxRuntime.jsx("div", { className: "react-flow__viewport-portal" })] }) }));
+    return (jsx(FlowRenderer, { onPaneClick: onPaneClick, onPaneMouseEnter: onPaneMouseEnter, onPaneMouseMove: onPaneMouseMove, onPaneMouseLeave: onPaneMouseLeave, onPaneContextMenu: onPaneContextMenu, onPaneScroll: onPaneScroll, paneClickDistance: paneClickDistance, deleteKeyCode: deleteKeyCode, selectionKeyCode: selectionKeyCode, selectionOnDrag: selectionOnDrag, selectionMode: selectionMode, onSelectionStart: onSelectionStart, onSelectionEnd: onSelectionEnd, multiSelectionKeyCode: multiSelectionKeyCode, panActivationKeyCode: panActivationKeyCode, zoomActivationKeyCode: zoomActivationKeyCode, elementsSelectable: elementsSelectable, zoomOnScroll: zoomOnScroll, zoomOnPinch: zoomOnPinch, zoomOnDoubleClick: zoomOnDoubleClick, panOnScroll: panOnScroll, panOnScrollSpeed: panOnScrollSpeed, panOnScrollMode: panOnScrollMode, panOnDrag: panOnDrag, defaultViewport: defaultViewport, translateExtent: translateExtent, minZoom: minZoom, maxZoom: maxZoom, onSelectionContextMenu: onSelectionContextMenu, preventScrolling: preventScrolling, noDragClassName: noDragClassName, noWheelClassName: noWheelClassName, noPanClassName: noPanClassName, disableKeyboardA11y: disableKeyboardA11y, onViewportChange: onViewportChange, isControlledViewport: !!viewport, children: jsxs(Viewport, { children: [jsx(EdgeRenderer, { edgeTypes: edgeTypes, onEdgeClick: onEdgeClick, onEdgeDoubleClick: onEdgeDoubleClick, onReconnect: onReconnect, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, onlyRenderVisibleElements: onlyRenderVisibleElements, onEdgeContextMenu: onEdgeContextMenu, onEdgeMouseEnter: onEdgeMouseEnter, onEdgeMouseMove: onEdgeMouseMove, onEdgeMouseLeave: onEdgeMouseLeave, reconnectRadius: reconnectRadius, defaultMarkerColor: defaultMarkerColor, noPanClassName: noPanClassName, disableKeyboardA11y: disableKeyboardA11y, rfId: rfId }), jsx(ConnectionLineWrapper, { style: connectionLineStyle, type: connectionLineType, component: connectionLineComponent, containerStyle: connectionLineContainerStyle }), jsx("div", { className: "react-flow__edgelabel-renderer" }), jsx(NodeRenderer, { nodeTypes: nodeTypes, onNodeClick: onNodeClick, onNodeDoubleClick: onNodeDoubleClick, onNodeMouseEnter: onNodeMouseEnter, onNodeMouseMove: onNodeMouseMove, onNodeMouseLeave: onNodeMouseLeave, onNodeContextMenu: onNodeContextMenu, nodeClickDistance: nodeClickDistance, onlyRenderVisibleElements: onlyRenderVisibleElements, noPanClassName: noPanClassName, noDragClassName: noDragClassName, disableKeyboardA11y: disableKeyboardA11y, nodeExtent: nodeExtent, rfId: rfId }), jsx("div", { className: "react-flow__viewport-portal" })] }) }));
 }
 GraphViewComponent.displayName = 'GraphView';
-const GraphView = require$$0.memo(GraphViewComponent);
+const GraphView = memo(GraphViewComponent);
 
 const getInitialState = ({ nodes, edges, defaultNodes, defaultEdges, width, height, fitView, nodeOrigin, } = {}) => {
     const nodeLookup = new Map();
@@ -9385,7 +9383,7 @@ const createStore = ({ nodes, edges, defaultNodes, defaultEdges, width, height, 
 }), Object.is);
 
 function ReactFlowProvider({ initialNodes: nodes, initialEdges: edges, defaultNodes, defaultEdges, initialWidth: width, initialHeight: height, fitView, nodeOrigin, children, }) {
-    const [store] = require$$0.useState(() => createStore({
+    const [store] = useState(() => createStore({
         nodes,
         edges,
         defaultNodes,
@@ -9395,17 +9393,17 @@ function ReactFlowProvider({ initialNodes: nodes, initialEdges: edges, defaultNo
         fitView,
         nodeOrigin,
     }));
-    return (jsxRuntime.jsx(Provider$1, { value: store, children: jsxRuntime.jsx(BatchProvider, { children: children }) }));
+    return (jsx(Provider$1, { value: store, children: jsx(BatchProvider, { children: children }) }));
 }
 
 function Wrapper({ children, nodes, edges, defaultNodes, defaultEdges, width, height, fitView, nodeOrigin, }) {
-    const isWrapped = require$$0.useContext(StoreContext);
+    const isWrapped = useContext(StoreContext);
     if (isWrapped) {
         // we need to wrap it with a fragment because it's not allowed for children to be a ReactNode
         // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18051
-        return jsxRuntime.jsx(jsxRuntime.Fragment, { children: children });
+        return jsx(Fragment, { children: children });
     }
-    return (jsxRuntime.jsx(ReactFlowProvider, { initialNodes: nodes, initialEdges: edges, defaultNodes: defaultNodes, defaultEdges: defaultEdges, initialWidth: width, initialHeight: height, fitView: fitView, nodeOrigin: nodeOrigin, children: children }));
+    return (jsx(ReactFlowProvider, { initialNodes: nodes, initialEdges: edges, defaultNodes: defaultNodes, defaultEdges: defaultEdges, initialWidth: width, initialHeight: height, fitView: fitView, nodeOrigin: nodeOrigin, children: children }));
 }
 
 const wrapperStyle = {
@@ -9418,7 +9416,7 @@ const wrapperStyle = {
 function ReactFlow({ nodes, edges, defaultNodes, defaultEdges, className, nodeTypes, edgeTypes, onNodeClick, onEdgeClick, onInit, onMove, onMoveStart, onMoveEnd, onConnect, onConnectStart, onConnectEnd, onClickConnectStart, onClickConnectEnd, onNodeMouseEnter, onNodeMouseMove, onNodeMouseLeave, onNodeContextMenu, onNodeDoubleClick, onNodeDragStart, onNodeDrag, onNodeDragStop, onNodesDelete, onEdgesDelete, onDelete, onSelectionChange, onSelectionDragStart, onSelectionDrag, onSelectionDragStop, onSelectionContextMenu, onSelectionStart, onSelectionEnd, onBeforeDelete, connectionMode, connectionLineType = ConnectionLineType.Bezier, connectionLineStyle, connectionLineComponent, connectionLineContainerStyle, deleteKeyCode = 'Backspace', selectionKeyCode = 'Shift', selectionOnDrag = false, selectionMode = SelectionMode.Full, panActivationKeyCode = 'Space', multiSelectionKeyCode = isMacOs() ? 'Meta' : 'Control', zoomActivationKeyCode = isMacOs() ? 'Meta' : 'Control', snapToGrid, snapGrid, onlyRenderVisibleElements = false, selectNodesOnDrag, nodesDraggable, nodesConnectable, nodesFocusable, nodeOrigin = defaultNodeOrigin, edgesFocusable, edgesReconnectable, elementsSelectable = true, defaultViewport: defaultViewport$1 = defaultViewport, minZoom = 0.5, maxZoom = 2, translateExtent = infiniteExtent, preventScrolling = true, nodeExtent, defaultMarkerColor = '#b1b1b7', zoomOnScroll = true, zoomOnPinch = true, panOnScroll = false, panOnScrollSpeed = 0.5, panOnScrollMode = PanOnScrollMode.Free, zoomOnDoubleClick = true, panOnDrag = true, onPaneClick, onPaneMouseEnter, onPaneMouseMove, onPaneMouseLeave, onPaneScroll, onPaneContextMenu, paneClickDistance = 0, nodeClickDistance = 0, children, onReconnect, onReconnectStart, onReconnectEnd, onEdgeContextMenu, onEdgeDoubleClick, onEdgeMouseEnter, onEdgeMouseMove, onEdgeMouseLeave, reconnectRadius = 10, onNodesChange, onEdgesChange, noDragClassName = 'nodrag', noWheelClassName = 'nowheel', noPanClassName = 'nopan', fitView, fitViewOptions, connectOnClick, attributionPosition, proOptions, defaultEdgeOptions, elevateNodesOnSelect, elevateEdgesOnSelect, disableKeyboardA11y = false, autoPanOnConnect, autoPanOnNodeDrag, autoPanSpeed, connectionRadius, isValidConnection, onError, style, id, nodeDragThreshold, viewport, onViewportChange, width, height, colorMode = 'light', debug, ...rest }, ref) {
     const rfId = id || '1';
     const colorModeClassName = useColorModeClass(colorMode);
-    return (jsxRuntime.jsx("div", { ...rest, style: { ...style, ...wrapperStyle }, ref: ref, className: cc(['react-flow', className, colorModeClassName]), "data-testid": "rf__wrapper", id: id, children: jsxRuntime.jsxs(Wrapper, { nodes: nodes, edges: edges, width: width, height: height, fitView: fitView, nodeOrigin: nodeOrigin, children: [jsxRuntime.jsx(GraphView, { onInit: onInit, onNodeClick: onNodeClick, onEdgeClick: onEdgeClick, onNodeMouseEnter: onNodeMouseEnter, onNodeMouseMove: onNodeMouseMove, onNodeMouseLeave: onNodeMouseLeave, onNodeContextMenu: onNodeContextMenu, onNodeDoubleClick: onNodeDoubleClick, nodeTypes: nodeTypes, edgeTypes: edgeTypes, connectionLineType: connectionLineType, connectionLineStyle: connectionLineStyle, connectionLineComponent: connectionLineComponent, connectionLineContainerStyle: connectionLineContainerStyle, selectionKeyCode: selectionKeyCode, selectionOnDrag: selectionOnDrag, selectionMode: selectionMode, deleteKeyCode: deleteKeyCode, multiSelectionKeyCode: multiSelectionKeyCode, panActivationKeyCode: panActivationKeyCode, zoomActivationKeyCode: zoomActivationKeyCode, onlyRenderVisibleElements: onlyRenderVisibleElements, defaultViewport: defaultViewport$1, translateExtent: translateExtent, minZoom: minZoom, maxZoom: maxZoom, preventScrolling: preventScrolling, zoomOnScroll: zoomOnScroll, zoomOnPinch: zoomOnPinch, zoomOnDoubleClick: zoomOnDoubleClick, panOnScroll: panOnScroll, panOnScrollSpeed: panOnScrollSpeed, panOnScrollMode: panOnScrollMode, panOnDrag: panOnDrag, onPaneClick: onPaneClick, onPaneMouseEnter: onPaneMouseEnter, onPaneMouseMove: onPaneMouseMove, onPaneMouseLeave: onPaneMouseLeave, onPaneScroll: onPaneScroll, onPaneContextMenu: onPaneContextMenu, paneClickDistance: paneClickDistance, nodeClickDistance: nodeClickDistance, onSelectionContextMenu: onSelectionContextMenu, onSelectionStart: onSelectionStart, onSelectionEnd: onSelectionEnd, onReconnect: onReconnect, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, onEdgeContextMenu: onEdgeContextMenu, onEdgeDoubleClick: onEdgeDoubleClick, onEdgeMouseEnter: onEdgeMouseEnter, onEdgeMouseMove: onEdgeMouseMove, onEdgeMouseLeave: onEdgeMouseLeave, reconnectRadius: reconnectRadius, defaultMarkerColor: defaultMarkerColor, noDragClassName: noDragClassName, noWheelClassName: noWheelClassName, noPanClassName: noPanClassName, rfId: rfId, disableKeyboardA11y: disableKeyboardA11y, nodeExtent: nodeExtent, viewport: viewport, onViewportChange: onViewportChange }), jsxRuntime.jsx(StoreUpdater, { nodes: nodes, edges: edges, defaultNodes: defaultNodes, defaultEdges: defaultEdges, onConnect: onConnect, onConnectStart: onConnectStart, onConnectEnd: onConnectEnd, onClickConnectStart: onClickConnectStart, onClickConnectEnd: onClickConnectEnd, nodesDraggable: nodesDraggable, nodesConnectable: nodesConnectable, nodesFocusable: nodesFocusable, edgesFocusable: edgesFocusable, edgesReconnectable: edgesReconnectable, elementsSelectable: elementsSelectable, elevateNodesOnSelect: elevateNodesOnSelect, elevateEdgesOnSelect: elevateEdgesOnSelect, minZoom: minZoom, maxZoom: maxZoom, nodeExtent: nodeExtent, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, snapToGrid: snapToGrid, snapGrid: snapGrid, connectionMode: connectionMode, translateExtent: translateExtent, connectOnClick: connectOnClick, defaultEdgeOptions: defaultEdgeOptions, fitView: fitView, fitViewOptions: fitViewOptions, onNodesDelete: onNodesDelete, onEdgesDelete: onEdgesDelete, onDelete: onDelete, onNodeDragStart: onNodeDragStart, onNodeDrag: onNodeDrag, onNodeDragStop: onNodeDragStop, onSelectionDrag: onSelectionDrag, onSelectionDragStart: onSelectionDragStart, onSelectionDragStop: onSelectionDragStop, onMove: onMove, onMoveStart: onMoveStart, onMoveEnd: onMoveEnd, noPanClassName: noPanClassName, nodeOrigin: nodeOrigin, rfId: rfId, autoPanOnConnect: autoPanOnConnect, autoPanOnNodeDrag: autoPanOnNodeDrag, autoPanSpeed: autoPanSpeed, onError: onError, connectionRadius: connectionRadius, isValidConnection: isValidConnection, selectNodesOnDrag: selectNodesOnDrag, nodeDragThreshold: nodeDragThreshold, onBeforeDelete: onBeforeDelete, paneClickDistance: paneClickDistance, debug: debug }), jsxRuntime.jsx(SelectionListener, { onSelectionChange: onSelectionChange }), children, jsxRuntime.jsx(Attribution, { proOptions: proOptions, position: attributionPosition }), jsxRuntime.jsx(A11yDescriptions, { rfId: rfId, disableKeyboardA11y: disableKeyboardA11y })] }) }));
+    return (jsx("div", { ...rest, style: { ...style, ...wrapperStyle }, ref: ref, className: cc(['react-flow', className, colorModeClassName]), "data-testid": "rf__wrapper", id: id, children: jsxs(Wrapper, { nodes: nodes, edges: edges, width: width, height: height, fitView: fitView, nodeOrigin: nodeOrigin, children: [jsx(GraphView, { onInit: onInit, onNodeClick: onNodeClick, onEdgeClick: onEdgeClick, onNodeMouseEnter: onNodeMouseEnter, onNodeMouseMove: onNodeMouseMove, onNodeMouseLeave: onNodeMouseLeave, onNodeContextMenu: onNodeContextMenu, onNodeDoubleClick: onNodeDoubleClick, nodeTypes: nodeTypes, edgeTypes: edgeTypes, connectionLineType: connectionLineType, connectionLineStyle: connectionLineStyle, connectionLineComponent: connectionLineComponent, connectionLineContainerStyle: connectionLineContainerStyle, selectionKeyCode: selectionKeyCode, selectionOnDrag: selectionOnDrag, selectionMode: selectionMode, deleteKeyCode: deleteKeyCode, multiSelectionKeyCode: multiSelectionKeyCode, panActivationKeyCode: panActivationKeyCode, zoomActivationKeyCode: zoomActivationKeyCode, onlyRenderVisibleElements: onlyRenderVisibleElements, defaultViewport: defaultViewport$1, translateExtent: translateExtent, minZoom: minZoom, maxZoom: maxZoom, preventScrolling: preventScrolling, zoomOnScroll: zoomOnScroll, zoomOnPinch: zoomOnPinch, zoomOnDoubleClick: zoomOnDoubleClick, panOnScroll: panOnScroll, panOnScrollSpeed: panOnScrollSpeed, panOnScrollMode: panOnScrollMode, panOnDrag: panOnDrag, onPaneClick: onPaneClick, onPaneMouseEnter: onPaneMouseEnter, onPaneMouseMove: onPaneMouseMove, onPaneMouseLeave: onPaneMouseLeave, onPaneScroll: onPaneScroll, onPaneContextMenu: onPaneContextMenu, paneClickDistance: paneClickDistance, nodeClickDistance: nodeClickDistance, onSelectionContextMenu: onSelectionContextMenu, onSelectionStart: onSelectionStart, onSelectionEnd: onSelectionEnd, onReconnect: onReconnect, onReconnectStart: onReconnectStart, onReconnectEnd: onReconnectEnd, onEdgeContextMenu: onEdgeContextMenu, onEdgeDoubleClick: onEdgeDoubleClick, onEdgeMouseEnter: onEdgeMouseEnter, onEdgeMouseMove: onEdgeMouseMove, onEdgeMouseLeave: onEdgeMouseLeave, reconnectRadius: reconnectRadius, defaultMarkerColor: defaultMarkerColor, noDragClassName: noDragClassName, noWheelClassName: noWheelClassName, noPanClassName: noPanClassName, rfId: rfId, disableKeyboardA11y: disableKeyboardA11y, nodeExtent: nodeExtent, viewport: viewport, onViewportChange: onViewportChange }), jsx(StoreUpdater, { nodes: nodes, edges: edges, defaultNodes: defaultNodes, defaultEdges: defaultEdges, onConnect: onConnect, onConnectStart: onConnectStart, onConnectEnd: onConnectEnd, onClickConnectStart: onClickConnectStart, onClickConnectEnd: onClickConnectEnd, nodesDraggable: nodesDraggable, nodesConnectable: nodesConnectable, nodesFocusable: nodesFocusable, edgesFocusable: edgesFocusable, edgesReconnectable: edgesReconnectable, elementsSelectable: elementsSelectable, elevateNodesOnSelect: elevateNodesOnSelect, elevateEdgesOnSelect: elevateEdgesOnSelect, minZoom: minZoom, maxZoom: maxZoom, nodeExtent: nodeExtent, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, snapToGrid: snapToGrid, snapGrid: snapGrid, connectionMode: connectionMode, translateExtent: translateExtent, connectOnClick: connectOnClick, defaultEdgeOptions: defaultEdgeOptions, fitView: fitView, fitViewOptions: fitViewOptions, onNodesDelete: onNodesDelete, onEdgesDelete: onEdgesDelete, onDelete: onDelete, onNodeDragStart: onNodeDragStart, onNodeDrag: onNodeDrag, onNodeDragStop: onNodeDragStop, onSelectionDrag: onSelectionDrag, onSelectionDragStart: onSelectionDragStart, onSelectionDragStop: onSelectionDragStop, onMove: onMove, onMoveStart: onMoveStart, onMoveEnd: onMoveEnd, noPanClassName: noPanClassName, nodeOrigin: nodeOrigin, rfId: rfId, autoPanOnConnect: autoPanOnConnect, autoPanOnNodeDrag: autoPanOnNodeDrag, autoPanSpeed: autoPanSpeed, onError: onError, connectionRadius: connectionRadius, isValidConnection: isValidConnection, selectNodesOnDrag: selectNodesOnDrag, nodeDragThreshold: nodeDragThreshold, onBeforeDelete: onBeforeDelete, paneClickDistance: paneClickDistance, debug: debug }), jsx(SelectionListener, { onSelectionChange: onSelectionChange }), children, jsx(Attribution, { proOptions: proOptions, position: attributionPosition }), jsx(A11yDescriptions, { rfId: rfId, disableKeyboardA11y: disableKeyboardA11y })] }) }));
 }
 var index = fixedForwardRef(ReactFlow);
 
@@ -9430,8 +9428,8 @@ var index = fixedForwardRef(ReactFlow);
  * @returns an array [nodes, setNodes, onNodesChange]
  */
 function useNodesState(initialNodes) {
-    const [nodes, setNodes] = require$$0.useState(initialNodes);
-    const onNodesChange = require$$0.useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+    const [nodes, setNodes] = useState(initialNodes);
+    const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
     return [nodes, setNodes, onNodesChange];
 }
 /**
@@ -9442,16 +9440,16 @@ function useNodesState(initialNodes) {
  * @returns an array [edges, setEdges, onEdgesChange]
  */
 function useEdgesState(initialEdges) {
-    const [edges, setEdges] = require$$0.useState(initialEdges);
-    const onEdgesChange = require$$0.useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+    const [edges, setEdges] = useState(initialEdges);
+    const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
     return [edges, setEdges, onEdgesChange];
 }
 
 function LinePattern({ dimensions, lineWidth, variant, className }) {
-    return (jsxRuntime.jsx("path", { strokeWidth: lineWidth, d: `M${dimensions[0] / 2} 0 V${dimensions[1]} M0 ${dimensions[1] / 2} H${dimensions[0]}`, className: cc(['react-flow__background-pattern', variant, className]) }));
+    return (jsx("path", { strokeWidth: lineWidth, d: `M${dimensions[0] / 2} 0 V${dimensions[1]} M0 ${dimensions[1] / 2} H${dimensions[0]}`, className: cc(['react-flow__background-pattern', variant, className]) }));
 }
 function DotPattern({ radius, className }) {
-    return (jsxRuntime.jsx("circle", { cx: radius, cy: radius, r: radius, className: cc(['react-flow__background-pattern', 'dots', className]) }));
+    return (jsx("circle", { cx: radius, cy: radius, r: radius, className: cc(['react-flow__background-pattern', 'dots', className]) }));
 }
 
 var BackgroundVariant;
@@ -9472,7 +9470,7 @@ function BackgroundComponent({ id, variant = BackgroundVariant.Dots,
 gap = 20, 
 // only used for lines and cross
 size, lineWidth = 1, offset = 2, color, bgColor, style, className, patternClassName, }) {
-    const ref = require$$0.useRef(null);
+    const ref = useRef(null);
     const { transform, patternId } = useStore(selector$3, shallow$1);
     const patternSize = size || defaultSize[variant];
     const isDots = variant === BackgroundVariant.Dots;
@@ -9485,38 +9483,38 @@ size, lineWidth = 1, offset = 2, color, bgColor, style, className, patternClassN
         ? [scaledSize / offset, scaledSize / offset]
         : [patternDimensions[0] / offset, patternDimensions[1] / offset];
     const _patternId = `${patternId}${id ? id : ''}`;
-    return (jsxRuntime.jsxs("svg", { className: cc(['react-flow__background', className]), style: {
+    return (jsxs("svg", { className: cc(['react-flow__background', className]), style: {
             ...style,
             ...containerStyle,
             '--xy-background-color-props': bgColor,
             '--xy-background-pattern-color-props': color,
-        }, ref: ref, "data-testid": "rf__background", children: [jsxRuntime.jsx("pattern", { id: _patternId, x: transform[0] % scaledGap[0], y: transform[1] % scaledGap[1], width: scaledGap[0], height: scaledGap[1], patternUnits: "userSpaceOnUse", patternTransform: `translate(-${patternOffset[0]},-${patternOffset[1]})`, children: isDots ? (jsxRuntime.jsx(DotPattern, { radius: scaledSize / offset, className: patternClassName })) : (jsxRuntime.jsx(LinePattern, { dimensions: patternDimensions, lineWidth: lineWidth, variant: variant, className: patternClassName })) }), jsxRuntime.jsx("rect", { x: "0", y: "0", width: "100%", height: "100%", fill: `url(#${_patternId})` })] }));
+        }, ref: ref, "data-testid": "rf__background", children: [jsx("pattern", { id: _patternId, x: transform[0] % scaledGap[0], y: transform[1] % scaledGap[1], width: scaledGap[0], height: scaledGap[1], patternUnits: "userSpaceOnUse", patternTransform: `translate(-${patternOffset[0]},-${patternOffset[1]})`, children: isDots ? (jsx(DotPattern, { radius: scaledSize / offset, className: patternClassName })) : (jsx(LinePattern, { dimensions: patternDimensions, lineWidth: lineWidth, variant: variant, className: patternClassName })) }), jsx("rect", { x: "0", y: "0", width: "100%", height: "100%", fill: `url(#${_patternId})` })] }));
 }
 BackgroundComponent.displayName = 'Background';
-require$$0.memo(BackgroundComponent);
+memo(BackgroundComponent);
 
 function PlusIcon$1() {
-    return (jsxRuntime.jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 32", children: jsxRuntime.jsx("path", { d: "M32 18.133H18.133V32h-4.266V18.133H0v-4.266h13.867V0h4.266v13.867H32z" }) }));
+    return (jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 32", children: jsx("path", { d: "M32 18.133H18.133V32h-4.266V18.133H0v-4.266h13.867V0h4.266v13.867H32z" }) }));
 }
 
 function MinusIcon$1() {
-    return (jsxRuntime.jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 5", children: jsxRuntime.jsx("path", { d: "M0 0h32v4.2H0z" }) }));
+    return (jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 5", children: jsx("path", { d: "M0 0h32v4.2H0z" }) }));
 }
 
 function FitViewIcon() {
-    return (jsxRuntime.jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 30", children: jsxRuntime.jsx("path", { d: "M3.692 4.63c0-.53.4-.938.939-.938h5.215V0H4.708C2.13 0 0 2.054 0 4.63v5.216h3.692V4.631zM27.354 0h-5.2v3.692h5.17c.53 0 .984.4.984.939v5.215H32V4.631A4.624 4.624 0 0027.354 0zm.954 24.83c0 .532-.4.94-.939.94h-5.215v3.768h5.215c2.577 0 4.631-2.13 4.631-4.707v-5.139h-3.692v5.139zm-23.677.94c-.531 0-.939-.4-.939-.94v-5.138H0v5.139c0 2.577 2.13 4.707 4.708 4.707h5.138V25.77H4.631z" }) }));
+    return (jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 32 30", children: jsx("path", { d: "M3.692 4.63c0-.53.4-.938.939-.938h5.215V0H4.708C2.13 0 0 2.054 0 4.63v5.216h3.692V4.631zM27.354 0h-5.2v3.692h5.17c.53 0 .984.4.984.939v5.215H32V4.631A4.624 4.624 0 0027.354 0zm.954 24.83c0 .532-.4.94-.939.94h-5.215v3.768h5.215c2.577 0 4.631-2.13 4.631-4.707v-5.139h-3.692v5.139zm-23.677.94c-.531 0-.939-.4-.939-.94v-5.138H0v5.139c0 2.577 2.13 4.707 4.708 4.707h5.138V25.77H4.631z" }) }));
 }
 
 function LockIcon() {
-    return (jsxRuntime.jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 25 32", children: jsxRuntime.jsx("path", { d: "M21.333 10.667H19.81V7.619C19.81 3.429 16.38 0 12.19 0 8 0 4.571 3.429 4.571 7.619v3.048H3.048A3.056 3.056 0 000 13.714v15.238A3.056 3.056 0 003.048 32h18.285a3.056 3.056 0 003.048-3.048V13.714a3.056 3.056 0 00-3.048-3.047zM12.19 24.533a3.056 3.056 0 01-3.047-3.047 3.056 3.056 0 013.047-3.048 3.056 3.056 0 013.048 3.048 3.056 3.056 0 01-3.048 3.047zm4.724-13.866H7.467V7.619c0-2.59 2.133-4.724 4.723-4.724 2.591 0 4.724 2.133 4.724 4.724v3.048z" }) }));
+    return (jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 25 32", children: jsx("path", { d: "M21.333 10.667H19.81V7.619C19.81 3.429 16.38 0 12.19 0 8 0 4.571 3.429 4.571 7.619v3.048H3.048A3.056 3.056 0 000 13.714v15.238A3.056 3.056 0 003.048 32h18.285a3.056 3.056 0 003.048-3.048V13.714a3.056 3.056 0 00-3.048-3.047zM12.19 24.533a3.056 3.056 0 01-3.047-3.047 3.056 3.056 0 013.047-3.048 3.056 3.056 0 013.048 3.048 3.056 3.056 0 01-3.048 3.047zm4.724-13.866H7.467V7.619c0-2.59 2.133-4.724 4.723-4.724 2.591 0 4.724 2.133 4.724 4.724v3.048z" }) }));
 }
 
 function UnlockIcon() {
-    return (jsxRuntime.jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 25 32", children: jsxRuntime.jsx("path", { d: "M21.333 10.667H19.81V7.619C19.81 3.429 16.38 0 12.19 0c-4.114 1.828-1.37 2.133.305 2.438 1.676.305 4.42 2.59 4.42 5.181v3.048H3.047A3.056 3.056 0 000 13.714v15.238A3.056 3.056 0 003.048 32h18.285a3.056 3.056 0 003.048-3.048V13.714a3.056 3.056 0 00-3.048-3.047zM12.19 24.533a3.056 3.056 0 01-3.047-3.047 3.056 3.056 0 013.047-3.048 3.056 3.056 0 013.048 3.048 3.056 3.056 0 01-3.048 3.047z" }) }));
+    return (jsx("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 25 32", children: jsx("path", { d: "M21.333 10.667H19.81V7.619C19.81 3.429 16.38 0 12.19 0c-4.114 1.828-1.37 2.133.305 2.438 1.676.305 4.42 2.59 4.42 5.181v3.048H3.047A3.056 3.056 0 000 13.714v15.238A3.056 3.056 0 003.048 32h18.285a3.056 3.056 0 003.048-3.048V13.714a3.056 3.056 0 00-3.048-3.047zM12.19 24.533a3.056 3.056 0 01-3.047-3.047 3.056 3.056 0 013.047-3.048 3.056 3.056 0 013.048 3.048 3.056 3.056 0 01-3.048 3.047z" }) }));
 }
 
 function ControlButton({ children, className, ...rest }) {
-    return (jsxRuntime.jsx("button", { type: "button", className: cc(['react-flow__controls-button', className]), ...rest, children: children }));
+    return (jsx("button", { type: "button", className: cc(['react-flow__controls-button', className]), ...rest, children: children }));
 }
 
 const selector$2 = (s) => ({
@@ -9549,21 +9547,21 @@ function ControlsComponent({ style, showZoom = true, showFitView = true, showInt
         onInteractiveChange?.(!isInteractive);
     };
     const orientationClass = orientation === 'horizontal' ? 'horizontal' : 'vertical';
-    return (jsxRuntime.jsxs(Panel, { className: cc(['react-flow__controls', orientationClass, className]), position: position, style: style, "data-testid": "rf__controls", "aria-label": ariaLabel, children: [showZoom && (jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(ControlButton, { onClick: onZoomInHandler, className: "react-flow__controls-zoomin", title: "zoom in", "aria-label": "zoom in", disabled: maxZoomReached, children: jsxRuntime.jsx(PlusIcon$1, {}) }), jsxRuntime.jsx(ControlButton, { onClick: onZoomOutHandler, className: "react-flow__controls-zoomout", title: "zoom out", "aria-label": "zoom out", disabled: minZoomReached, children: jsxRuntime.jsx(MinusIcon$1, {}) })] })), showFitView && (jsxRuntime.jsx(ControlButton, { className: "react-flow__controls-fitview", onClick: onFitViewHandler, title: "fit view", "aria-label": "fit view", children: jsxRuntime.jsx(FitViewIcon, {}) })), showInteractive && (jsxRuntime.jsx(ControlButton, { className: "react-flow__controls-interactive", onClick: onToggleInteractivity, title: "toggle interactivity", "aria-label": "toggle interactivity", children: isInteractive ? jsxRuntime.jsx(UnlockIcon, {}) : jsxRuntime.jsx(LockIcon, {}) })), children] }));
+    return (jsxs(Panel, { className: cc(['react-flow__controls', orientationClass, className]), position: position, style: style, "data-testid": "rf__controls", "aria-label": ariaLabel, children: [showZoom && (jsxs(Fragment, { children: [jsx(ControlButton, { onClick: onZoomInHandler, className: "react-flow__controls-zoomin", title: "zoom in", "aria-label": "zoom in", disabled: maxZoomReached, children: jsx(PlusIcon$1, {}) }), jsx(ControlButton, { onClick: onZoomOutHandler, className: "react-flow__controls-zoomout", title: "zoom out", "aria-label": "zoom out", disabled: minZoomReached, children: jsx(MinusIcon$1, {}) })] })), showFitView && (jsx(ControlButton, { className: "react-flow__controls-fitview", onClick: onFitViewHandler, title: "fit view", "aria-label": "fit view", children: jsx(FitViewIcon, {}) })), showInteractive && (jsx(ControlButton, { className: "react-flow__controls-interactive", onClick: onToggleInteractivity, title: "toggle interactivity", "aria-label": "toggle interactivity", children: isInteractive ? jsx(UnlockIcon, {}) : jsx(LockIcon, {}) })), children] }));
 }
 ControlsComponent.displayName = 'Controls';
-const Controls = require$$0.memo(ControlsComponent);
+const Controls = memo(ControlsComponent);
 
 function MiniMapNodeComponent({ id, x, y, width, height, style, color, strokeColor, strokeWidth, className, borderRadius, shapeRendering, selected, onClick, }) {
     const { background, backgroundColor } = style || {};
     const fill = (color || background || backgroundColor);
-    return (jsxRuntime.jsx("rect", { className: cc(['react-flow__minimap-node', { selected }, className]), x: x, y: y, rx: borderRadius, ry: borderRadius, width: width, height: height, style: {
+    return (jsx("rect", { className: cc(['react-flow__minimap-node', { selected }, className]), x: x, y: y, rx: borderRadius, ry: borderRadius, width: width, height: height, style: {
             fill,
             stroke: strokeColor,
             strokeWidth,
         }, shapeRendering: shapeRendering, onClick: onClick ? (event) => onClick(event, id) : undefined }));
 }
-const MiniMapNode = require$$0.memo(MiniMapNodeComponent);
+const MiniMapNode = memo(MiniMapNodeComponent);
 
 const selectorNodeIds = (s) => s.nodes.map((node) => node.id);
 const getAttrFunction = (func) => func instanceof Function ? func : () => func;
@@ -9576,13 +9574,13 @@ nodeComponent: NodeComponent = MiniMapNode, onClick, }) {
     const nodeStrokeColorFunc = getAttrFunction(nodeStrokeColor);
     const nodeClassNameFunc = getAttrFunction(nodeClassName);
     const shapeRendering = !!window.chrome ? 'crispEdges' : 'geometricPrecision';
-    return (jsxRuntime.jsx(jsxRuntime.Fragment, { children: nodeIds.map((nodeId) => (
+    return (jsx(Fragment, { children: nodeIds.map((nodeId) => (
         // The split of responsibilities between MiniMapNodes and
         // NodeComponentWrapper may appear weird. However, it’s designed to
         // minimize the cost of updates when individual nodes change.
         //
         // For more details, see a similar commit in `NodeRenderer/index.tsx`.
-        jsxRuntime.jsx(NodeComponentWrapper, { id: nodeId, nodeColorFunc: nodeColorFunc, nodeStrokeColorFunc: nodeStrokeColorFunc, nodeClassNameFunc: nodeClassNameFunc, nodeBorderRadius: nodeBorderRadius, nodeStrokeWidth: nodeStrokeWidth, NodeComponent: NodeComponent, onClick: onClick, shapeRendering: shapeRendering }, nodeId))) }));
+        jsx(NodeComponentWrapper, { id: nodeId, nodeColorFunc: nodeColorFunc, nodeStrokeColorFunc: nodeStrokeColorFunc, nodeClassNameFunc: nodeClassNameFunc, nodeBorderRadius: nodeBorderRadius, nodeStrokeWidth: nodeStrokeWidth, NodeComponent: NodeComponent, onClick: onClick, shapeRendering: shapeRendering }, nodeId))) }));
 }
 function NodeComponentWrapperInner({ id, nodeColorFunc, nodeStrokeColorFunc, nodeClassNameFunc, nodeBorderRadius, nodeStrokeWidth, shapeRendering, NodeComponent, onClick, }) {
     const { node, x, y } = useStore((s) => {
@@ -9598,10 +9596,10 @@ function NodeComponentWrapperInner({ id, nodeColorFunc, nodeStrokeColorFunc, nod
         return null;
     }
     const { width, height } = getNodeDimensions(node);
-    return (jsxRuntime.jsx(NodeComponent, { x: x, y: y, width: width, height: height, style: node.style, selected: !!node.selected, className: nodeClassNameFunc(node), color: nodeColorFunc(node), borderRadius: nodeBorderRadius, strokeColor: nodeStrokeColorFunc(node), strokeWidth: nodeStrokeWidth, shapeRendering: shapeRendering, onClick: onClick, id: node.id }));
+    return (jsx(NodeComponent, { x: x, y: y, width: width, height: height, style: node.style, selected: !!node.selected, className: nodeClassNameFunc(node), color: nodeColorFunc(node), borderRadius: nodeBorderRadius, strokeColor: nodeStrokeColorFunc(node), strokeWidth: nodeStrokeWidth, shapeRendering: shapeRendering, onClick: onClick, id: node.id }));
 }
-const NodeComponentWrapper = require$$0.memo(NodeComponentWrapperInner);
-var MiniMapNodes$1 = require$$0.memo(MiniMapNodes);
+const NodeComponentWrapper = memo(NodeComponentWrapperInner);
+var MiniMapNodes$1 = memo(MiniMapNodes);
 
 const defaultWidth = 200;
 const defaultHeight = 150;
@@ -9628,7 +9626,7 @@ function MiniMapComponent({ style, className, nodeStrokeColor, nodeColor, nodeCl
 // a component properly.
 nodeComponent, bgColor, maskColor, maskStrokeColor, maskStrokeWidth, position = 'bottom-right', onClick, onNodeClick, pannable = false, zoomable = false, ariaLabel = 'React Flow mini map', inversePan, zoomStep = 10, offsetScale = 5, }) {
     const store = useStoreApi();
-    const svg = require$$0.useRef(null);
+    const svg = useRef(null);
     const { boundingRect, viewBB, rfId, panZoom, translateExtent, flowWidth, flowHeight } = useStore(selector$1, shallow$1);
     const elementWidth = style?.width ?? defaultWidth;
     const elementHeight = style?.height ?? defaultHeight;
@@ -9643,10 +9641,10 @@ nodeComponent, bgColor, maskColor, maskStrokeColor, maskStrokeWidth, position = 
     const width = viewWidth + offset * 2;
     const height = viewHeight + offset * 2;
     const labelledBy = `${ARIA_LABEL_KEY}-${rfId}`;
-    const viewScaleRef = require$$0.useRef(0);
-    const minimapInstance = require$$0.useRef();
+    const viewScaleRef = useRef(0);
+    const minimapInstance = useRef();
     viewScaleRef.current = viewScale;
-    require$$0.useEffect(() => {
+    useEffect(() => {
         if (svg.current && panZoom) {
             minimapInstance.current = XYMinimap({
                 domNode: svg.current,
@@ -9659,7 +9657,7 @@ nodeComponent, bgColor, maskColor, maskStrokeColor, maskStrokeWidth, position = 
             };
         }
     }, [panZoom]);
-    require$$0.useEffect(() => {
+    useEffect(() => {
         minimapInstance.current?.update({
             translateExtent,
             width: flowWidth,
@@ -9677,12 +9675,12 @@ nodeComponent, bgColor, maskColor, maskStrokeColor, maskStrokeWidth, position = 
         }
         : undefined;
     const onSvgNodeClick = onNodeClick
-        ? require$$0.useCallback((event, nodeId) => {
+        ? useCallback((event, nodeId) => {
             const node = store.getState().nodeLookup.get(nodeId);
             onNodeClick(event, node);
         }, [])
         : undefined;
-    return (jsxRuntime.jsx(Panel, { position: position, style: {
+    return (jsx(Panel, { position: position, style: {
             ...style,
             '--xy-minimap-background-color-props': typeof bgColor === 'string' ? bgColor : undefined,
             '--xy-minimap-mask-background-color-props': typeof maskColor === 'string' ? maskColor : undefined,
@@ -9691,21 +9689,21 @@ nodeComponent, bgColor, maskColor, maskStrokeColor, maskStrokeWidth, position = 
             '--xy-minimap-node-background-color-props': typeof nodeColor === 'string' ? nodeColor : undefined,
             '--xy-minimap-node-stroke-color-props': typeof nodeStrokeColor === 'string' ? nodeStrokeColor : undefined,
             '--xy-minimap-node-stroke-width-props': typeof nodeStrokeWidth === 'string' ? nodeStrokeWidth : undefined,
-        }, className: cc(['react-flow__minimap', className]), "data-testid": "rf__minimap", children: jsxRuntime.jsxs("svg", { width: elementWidth, height: elementHeight, viewBox: `${x} ${y} ${width} ${height}`, className: "react-flow__minimap-svg", role: "img", "aria-labelledby": labelledBy, ref: svg, onClick: onSvgClick, children: [ariaLabel && jsxRuntime.jsx("title", { id: labelledBy, children: ariaLabel }), jsxRuntime.jsx(MiniMapNodes$1, { onClick: onSvgNodeClick, nodeColor: nodeColor, nodeStrokeColor: nodeStrokeColor, nodeBorderRadius: nodeBorderRadius, nodeClassName: nodeClassName, nodeStrokeWidth: nodeStrokeWidth, nodeComponent: nodeComponent }), jsxRuntime.jsx("path", { className: "react-flow__minimap-mask", d: `M${x - offset},${y - offset}h${width + offset * 2}v${height + offset * 2}h${-width - offset * 2}z
+        }, className: cc(['react-flow__minimap', className]), "data-testid": "rf__minimap", children: jsxs("svg", { width: elementWidth, height: elementHeight, viewBox: `${x} ${y} ${width} ${height}`, className: "react-flow__minimap-svg", role: "img", "aria-labelledby": labelledBy, ref: svg, onClick: onSvgClick, children: [ariaLabel && jsx("title", { id: labelledBy, children: ariaLabel }), jsx(MiniMapNodes$1, { onClick: onSvgNodeClick, nodeColor: nodeColor, nodeStrokeColor: nodeStrokeColor, nodeBorderRadius: nodeBorderRadius, nodeClassName: nodeClassName, nodeStrokeWidth: nodeStrokeWidth, nodeComponent: nodeComponent }), jsx("path", { className: "react-flow__minimap-mask", d: `M${x - offset},${y - offset}h${width + offset * 2}v${height + offset * 2}h${-width - offset * 2}z
         M${viewBB.x},${viewBB.y}h${viewBB.width}v${viewBB.height}h${-viewBB.width}z`, fillRule: "evenodd", pointerEvents: "none" })] }) }));
 }
 MiniMapComponent.displayName = 'MiniMap';
-require$$0.memo(MiniMapComponent);
+memo(MiniMapComponent);
 
 function ResizeControl({ nodeId, position, variant = ResizeControlVariant.Handle, className, style = {}, children, color, minWidth = 10, minHeight = 10, maxWidth = Number.MAX_VALUE, maxHeight = Number.MAX_VALUE, keepAspectRatio = false, shouldResize, onResizeStart, onResize, onResizeEnd, }) {
     const contextNodeId = useNodeId();
     const id = typeof nodeId === 'string' ? nodeId : contextNodeId;
     const store = useStoreApi();
-    const resizeControlRef = require$$0.useRef(null);
+    const resizeControlRef = useRef(null);
     const defaultPosition = variant === ResizeControlVariant.Line ? 'right' : 'bottom-right';
     const controlPosition = position ?? defaultPosition;
-    const resizer = require$$0.useRef(null);
-    require$$0.useEffect(() => {
+    const resizer = useRef(null);
+    useEffect(() => {
         if (!resizeControlRef.current || !id) {
             return;
         }
@@ -9823,9 +9821,9 @@ function ResizeControl({ nodeId, position, variant = ResizeControlVariant.Handle
     const positionClassNames = controlPosition.split('-');
     const colorStyleProp = variant === ResizeControlVariant.Line ? 'borderColor' : 'backgroundColor';
     const controlStyle = color ? { ...style, [colorStyleProp]: color } : style;
-    return (jsxRuntime.jsx("div", { className: cc(['react-flow__resize-control', 'nodrag', ...positionClassNames, variant, className]), ref: resizeControlRef, style: controlStyle, children: children }));
+    return (jsx("div", { className: cc(['react-flow__resize-control', 'nodrag', ...positionClassNames, variant, className]), ref: resizeControlRef, style: controlStyle, children: children }));
 }
-require$$0.memo(ResizeControl);
+memo(ResizeControl);
 
 function isOutputPosition(position) {
     return position === -1;
@@ -9835,7 +9833,7 @@ function isInputPosition(position) {
 }
 var OUTPUT_POSITION = -1;
 
-var AssignmentContext = require$$0.createContext(function (t) { return "y"; });
+var AssignmentContext = createContext(function (t) { return "y"; });
 
 const CLASS_PART_SEPARATOR = '-';
 function createClassUtils(config) {
@@ -12355,7 +12353,7 @@ const twMerge = /*#__PURE__*/createTailwindMerge(getDefaultConfig);
 
 function Hole(props) {
     var termString = JSON.stringify(props.term);
-    var assignment = require$$0.useContext(AssignmentContext);
+    var assignment = useContext(AssignmentContext);
     var value = assignment(props.term);
     var isFunctionHole = function () {
         if ("variable" in props.term) {
@@ -12366,27 +12364,27 @@ function Hole(props) {
         }
     };
     var isFocussed = props.focus.isFocussed(termString);
-    return (jsxRuntime.jsx("div", __assign({ className: twMerge("bg-white w-6 h-6 m-1 border-black border-2 rounded-full select-none relative z-50", isFunctionHole() && "bg-pink", isFocussed && "scale-110 bg-yellow-highlight"), onMouseEnter: function () { return props.focus.focus(termString); }, onMouseLeave: function () { return props.focus.resetFocus(); } }, { children: value })));
+    return (jsx("div", __assign({ className: twMerge("bg-white w-6 h-6 m-1 border-black border-2 rounded-full select-none relative z-50", isFunctionHole() && "bg-pink", isFocussed && "scale-110 bg-yellow-highlight"), onMouseEnter: function () { return props.focus.focus(termString); }, onMouseLeave: function () { return props.focus.resetFocus(); } }, { children: value })));
 }
 
 function SourceConnectorPolygon() {
-    return jsxRuntime.jsx("polygon", { points: "3,2 14,2 19,10 14,18 3,18" });
+    return jsx("polygon", { points: "3,2 14,2 19,10 14,18 3,18" });
 }
 function TargetConnectorPolygon() {
-    return jsxRuntime.jsx("polygon", { points: "10,10 5,2 17,2 22,10 17,18 5,18" });
+    return jsx("polygon", { points: "10,10 5,2 17,2 22,10 17,18 5,18" });
 }
 function Connector(_a) {
     var type = _a.type, _b = _a.isConnected, isConnected = _b === void 0 ? false : _b, _c = _a.isInline, isInline = _c === void 0 ? false : _c;
-    return jsxRuntime.jsxs("svg", __assign({ className: twJoin("stroke-[1.5px] stroke-black pointer-events-none fill-white", isInline && "inline"), width: "24", height: "20", xmlns: "http://www.w3.org/2000/svg" }, { children: [type === "source" ? jsxRuntime.jsx(SourceConnectorPolygon, {}) : jsxRuntime.jsx(TargetConnectorPolygon, {}), type === "target" && isConnected ? jsxRuntime.jsx("polyline", { points: "1,2 6,10 1,18", fill: "none" }) : jsxRuntime.jsx(jsxRuntime.Fragment, {})] }));
+    return jsxs("svg", __assign({ className: twJoin("stroke-[1.5px] stroke-black pointer-events-none fill-white", isInline && "inline"), width: "24", height: "20", xmlns: "http://www.w3.org/2000/svg" }, { children: [type === "source" ? jsx(SourceConnectorPolygon, {}) : jsx(TargetConnectorPolygon, {}), type === "target" && isConnected ? jsx("polyline", { points: "1,2 6,10 1,18", fill: "none" }) : jsx(Fragment, {})] }));
 }
 
 function DummyHandle(_a) {
     var position = _a.position;
     if (position === "source") {
-        return jsxRuntime.jsx("div", __assign({ className: "react-flow__handle react-flow__handle-right" }, { children: jsxRuntime.jsx(Connector, { type: "source", isConnected: false }) }));
+        return jsx("div", __assign({ className: "react-flow__handle react-flow__handle-right" }, { children: jsx(Connector, { type: "source", isConnected: false }) }));
     }
     else {
-        return jsxRuntime.jsx("div", __assign({ className: "react-flow__handle react-flow__handle-left" }, { children: jsxRuntime.jsx(Connector, { type: "target", isConnected: false }) }));
+        return jsx("div", __assign({ className: "react-flow__handle react-flow__handle-left" }, { children: jsx(Connector, { type: "target", isConnected: false }) }));
     }
 }
 
@@ -12452,20 +12450,20 @@ function Node(props) {
         if (!props.useDummyHandle) {
             var handleId = getHandleId(props.position, props.gadgetId);
             var handleProps = getHandleProps(handleId);
-            return jsxRuntime.jsx(Handle, __assign({}, handleProps, { children: jsxRuntime.jsx(Connector, { type: handleProps.type, isConnected: false }) }));
+            return jsx(Handle, __assign({}, handleProps, { children: jsx(Connector, { type: handleProps.type, isConnected: false }) }));
         }
         else {
             var position = (isInputPosition(props.position)) ? "target" : "source";
-            return jsxRuntime.jsx(DummyHandle, { position: position });
+            return jsx(DummyHandle, { position: position });
         }
     }
     if ("variable" in props.term) {
         console.error("Term cannot be rendered as node:" + props.term);
-        return jsxRuntime.jsx(jsxRuntime.Fragment, {});
+        return jsx(Fragment, {});
     }
     else {
         var background = backgroundFromColorAbbreviation(props.term.label);
-        return (jsxRuntime.jsxs("div", __assign({ className: "flex items-center" }, { children: [jsxRuntime.jsx("div", __assign({ className: twMerge("m-1 border-black border-2 rounded-lg p-0.5", background, props.isGoalNode && "outline outline-offset-2 outline-2") }, { children: props.term.args.map(function (arg, idx) { return jsxRuntime.jsx(Hole, { term: arg, focus: props.holeFocus }, idx); }) })), renderHandle()] })));
+        return (jsxs("div", __assign({ className: "flex items-center" }, { children: [jsx("div", __assign({ className: twMerge("m-1 border-black border-2 rounded-lg p-0.5", background, props.isGoalNode && "outline outline-offset-2 outline-2") }, { children: props.term.args.map(function (arg, idx) { return jsx(Hole, { term: arg, focus: props.holeFocus }, idx); }) })), renderHandle()] })));
     }
 }
 
@@ -12510,7 +12508,7 @@ function connectionPath(props, index, fixedOffset) {
         ", " +
         pointToString(props.end);
     var path_command = svg_start_sequence + " " + svg_curve;
-    return (jsxRuntime.jsx("path", { d: path_command, strokeWidth: "2px", fill: "transparent" }, index));
+    return (jsx("path", { d: path_command, strokeWidth: "2px", fill: "transparent" }, index));
 }
 function ConnectionSvg(_a) {
     var props = __rest(_a, []);
@@ -12520,7 +12518,7 @@ function ConnectionSvg(_a) {
         });
         return pathElements;
     }
-    return jsxRuntime.jsx("svg", __assign({ className: "absolute top-0 left-0 w-full h-full z-5 pointer-events-none stroke-black" }, { children: drawConnections() }));
+    return jsx("svg", __assign({ className: "absolute top-0 left-0 w-full h-full z-5 pointer-events-none stroke-black" }, { children: drawConnections() }));
 }
 
 var hash = function (str, seed) {
@@ -12783,8 +12781,8 @@ function calculateHolePosition(gadgetId, hole) {
 function Gadget(_a) {
     var props = __rest(_a, []);
     var initialConnectionSetProps = { connections: [] };
-    var _b = __read(require$$0.useState(initialConnectionSetProps), 2), connectionState = _b[0], setConnectionState = _b[1];
-    var _c = __read(require$$0.useState(""), 2), focussedHole = _c[0], setFocussedHole = _c[1];
+    var _b = __read(useState(initialConnectionSetProps), 2), connectionState = _b[0], setConnectionState = _b[1];
+    var _c = __read(useState(""), 2), focussedHole = _c[0], setFocussedHole = _c[1];
     var focus = {
         isFocussed: function (hole) { return hole === focussedHole && props.displayHoleFocus; },
         focus: function (hole) { return setFocussedHole(hole); },
@@ -12794,7 +12792,7 @@ function Gadget(_a) {
         var positions = Array.from(props.terms.keys());
         return positions.some(isOutputPosition);
     }
-    require$$0.useLayoutEffect(function () {
+    useLayoutEffect(function () {
         function calculateInternalConnectionDrawingData(internalConnection) {
             var start = calculateHolePosition(props.id, internalConnection.from);
             var end = calculateHolePosition(props.id, internalConnection.to);
@@ -12827,7 +12825,7 @@ function Gadget(_a) {
                     isGoalNode: props.id === "goal_gadget",
                 };
                 if (isInputPosition(position)) {
-                    buffer.push(jsxRuntime.jsx(Node, __assign({}, nodeDisplayProps), position));
+                    buffer.push(jsx(Node, __assign({}, nodeDisplayProps), position));
                 }
             }
         }
@@ -12850,21 +12848,21 @@ function Gadget(_a) {
                 useDummyHandle: props.isAxiom,
                 isGoalNode: false
             };
-            return (jsxRuntime.jsx("div", __assign({ className: "flex flex-col justify-center" }, { children: jsxRuntime.jsx(Node, __assign({}, nodeDisplayProps)) })));
+            return (jsx("div", __assign({ className: "flex flex-col justify-center" }, { children: jsx(Node, __assign({}, nodeDisplayProps)) })));
         }
         else {
-            return jsxRuntime.jsx(jsxRuntime.Fragment, {});
+            return jsx(Fragment, {});
         }
     }
     function hasInputNodes() {
         return Array.from(props.terms.keys()).some(isInputPosition);
     }
-    return (jsxRuntime.jsxs("div", __assign({ className: "text-center relative" }, { children: [jsxRuntime.jsxs("div", __assign({ className: twMerge("flex", hasInputNodes() && "space-x-8"), id: props.id }, { children: [jsxRuntime.jsx("div", __assign({ className: "flex flex-col items-start" }, { children: makeInputNodes() })), makeOutputNodeContainer()] })), jsxRuntime.jsx(ConnectionSvg, __assign({}, connectionState))] })));
+    return (jsxs("div", __assign({ className: "text-center relative" }, { children: [jsxs("div", __assign({ className: twMerge("flex", hasInputNodes() && "space-x-8"), id: props.id }, { children: [jsx("div", __assign({ className: "flex flex-col items-start" }, { children: makeInputNodes() })), makeOutputNodeContainer()] })), jsx(ConnectionSvg, __assign({}, connectionState))] })));
 }
 
 function GadgetFlowNode(_a) {
     var data = _a.data;
-    return (jsxRuntime.jsx("div", { children: jsxRuntime.jsx(Gadget, __assign({}, data)) }));
+    return (jsx("div", { children: jsx(Gadget, __assign({}, data)) }));
 }
 
 function axiomToGadget(axiom, id) {
@@ -12909,7 +12907,7 @@ function axiomToString(a) {
 }
 
 function useIdGenerator(prefix) {
-    var counter = require$$0.useRef(0);
+    var counter = useRef(0);
     function getId() {
         counter.current = counter.current + 1;
         return prefix + counter.current;
@@ -12922,7 +12920,7 @@ function useIdGenerator(prefix) {
 
 function InsertGadgetButton(_a) {
     var makeGadget = _a.makeGadget, children = _a.children;
-    var ref = require$$0.useRef(null);
+    var ref = useRef(null);
     function getPosition() {
         var domRect = ref.current.getBoundingClientRect();
         return { x: domRect.left + domRect.width / 2, y: domRect.top + domRect.height / 2 };
@@ -12930,7 +12928,7 @@ function InsertGadgetButton(_a) {
     function onMouseDown(e) {
         makeGadget(getPosition());
     }
-    return jsxRuntime.jsx("div", __assign({ ref: ref, className: "flex justify-center px-1", onMouseDown: onMouseDown }, { children: children }));
+    return jsx("div", __assign({ ref: ref, className: "flex justify-center px-1", onMouseDown: onMouseDown }, { children: children }));
 }
 function GadgetPalette(_a) {
     var props = __rest(_a, []);
@@ -12944,8 +12942,8 @@ function GadgetPalette(_a) {
         terms.set(OUTPUT_POSITION, axiom.conclusion);
         return { terms: terms, id: getAxiomId(), isAxiom: true, displayHoleFocus: true };
     }
-    return (jsxRuntime.jsx(Panel, __assign({ position: 'top-center' }, { children: jsxRuntime.jsx(AssignmentContext.Provider, __assign({ value: axiomTermEnumeration }, { children: jsxRuntime.jsx("div", __assign({ id: "gadget_palette", className: "absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50" }, { children: props.axioms.map(function (axiom) {
-                    return jsxRuntime.jsx(InsertGadgetButton, __assign({ makeGadget: function (axiomPosition) { return props.makeGadget(axiom, axiomPosition); } }, { children: jsxRuntime.jsx(Gadget, __assign({}, makeAxiomGadget(axiom))) }), JSON.stringify(axiom));
+    return (jsx(Panel, __assign({ position: 'top-center' }, { children: jsx(AssignmentContext.Provider, __assign({ value: axiomTermEnumeration }, { children: jsx("div", __assign({ id: "gadget_palette", className: "absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50" }, { children: props.axioms.map(function (axiom) {
+                    return jsx(InsertGadgetButton, __assign({ makeGadget: function (axiomPosition) { return props.makeGadget(axiom, axiomPosition); } }, { children: jsx(Gadget, __assign({}, makeAxiomGadget(axiom))) }), JSON.stringify(axiom));
                 }) })) })) })));
 }
 
@@ -12956,7 +12954,7 @@ function CustomEdge(_a) {
         end: { x: props.targetX + 9, y: props.targetY },
         fromInput: true, toOutput: true
     };
-    return (jsxRuntime.jsx("g", __assign({ className: 'stroke-black' }, { children: connectionPath(data, 0, 20) })));
+    return (jsx("g", __assign({ className: 'stroke-black' }, { children: connectionPath(data, 0, 20) })));
 }
 
 function styleInject(css, ref) {
@@ -13008,12 +13006,12 @@ function _objectWithoutPropertiesLoose(source, excluded) {
 }
 
 var _excluded$1t = ["color"];
-var Crosshair1Icon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwardedRef) {
+var Crosshair1Icon = /*#__PURE__*/forwardRef(function (_ref, forwardedRef) {
   var _ref$color = _ref.color,
       color = _ref$color === void 0 ? 'currentColor' : _ref$color,
       props = _objectWithoutPropertiesLoose(_ref, _excluded$1t);
 
-  return require$$0.createElement("svg", Object.assign({
+  return createElement("svg", Object.assign({
     width: "15",
     height: "15",
     viewBox: "0 0 15 15",
@@ -13021,7 +13019,7 @@ var Crosshair1Icon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwarde
     xmlns: "http://www.w3.org/2000/svg"
   }, props, {
     ref: forwardedRef
-  }), require$$0.createElement("path", {
+  }), createElement("path", {
     d: "M0.877075 7.50207C0.877075 3.84319 3.84319 0.877075 7.50208 0.877075C11.1609 0.877075 14.1271 3.84319 14.1271 7.50207C14.1271 11.1609 11.1609 14.1271 7.50208 14.1271C3.84319 14.1271 0.877075 11.1609 0.877075 7.50207ZM1.84898 7.00003C2.0886 4.26639 4.26639 2.0886 7.00003 1.84898V4.50003C7.00003 4.77617 7.22388 5.00003 7.50003 5.00003C7.77617 5.00003 8.00003 4.77617 8.00003 4.50003V1.84862C10.7356 2.08643 12.9154 4.26502 13.1552 7.00003H10.5C10.2239 7.00003 10 7.22388 10 7.50003C10 7.77617 10.2239 8.00003 10.5 8.00003H13.1555C12.9176 10.7369 10.7369 12.9176 8.00003 13.1555V10.5C8.00003 10.2239 7.77617 10 7.50003 10C7.22388 10 7.00003 10.2239 7.00003 10.5V13.1552C4.26502 12.9154 2.08643 10.7356 1.84862 8.00003H4.50003C4.77617 8.00003 5.00003 7.77617 5.00003 7.50003C5.00003 7.22388 4.77617 7.00003 4.50003 7.00003H1.84898Z",
     fill: color,
     fillRule: "evenodd",
@@ -13030,12 +13028,12 @@ var Crosshair1Icon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwarde
 });
 
 var _excluded$37 = ["color"];
-var MinusIcon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwardedRef) {
+var MinusIcon = /*#__PURE__*/forwardRef(function (_ref, forwardedRef) {
   var _ref$color = _ref.color,
       color = _ref$color === void 0 ? 'currentColor' : _ref$color,
       props = _objectWithoutPropertiesLoose(_ref, _excluded$37);
 
-  return require$$0.createElement("svg", Object.assign({
+  return createElement("svg", Object.assign({
     width: "15",
     height: "15",
     viewBox: "0 0 15 15",
@@ -13043,7 +13041,7 @@ var MinusIcon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwardedRef)
     xmlns: "http://www.w3.org/2000/svg"
   }, props, {
     ref: forwardedRef
-  }), require$$0.createElement("path", {
+  }), createElement("path", {
     d: "M2.25 7.5C2.25 7.22386 2.47386 7 2.75 7H12.25C12.5261 7 12.75 7.22386 12.75 7.5C12.75 7.77614 12.5261 8 12.25 8H2.75C2.47386 8 2.25 7.77614 2.25 7.5Z",
     fill: color,
     fillRule: "evenodd",
@@ -13052,12 +13050,12 @@ var MinusIcon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwardedRef)
 });
 
 var _excluded$3x = ["color"];
-var PlusIcon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwardedRef) {
+var PlusIcon = /*#__PURE__*/forwardRef(function (_ref, forwardedRef) {
   var _ref$color = _ref.color,
       color = _ref$color === void 0 ? 'currentColor' : _ref$color,
       props = _objectWithoutPropertiesLoose(_ref, _excluded$3x);
 
-  return require$$0.createElement("svg", Object.assign({
+  return createElement("svg", Object.assign({
     width: "15",
     height: "15",
     viewBox: "0 0 15 15",
@@ -13065,7 +13063,7 @@ var PlusIcon = /*#__PURE__*/require$$0.forwardRef(function (_ref, forwardedRef) 
     xmlns: "http://www.w3.org/2000/svg"
   }, props, {
     ref: forwardedRef
-  }), require$$0.createElement("path", {
+  }), createElement("path", {
     d: "M8 2.75C8 2.47386 7.77614 2.25 7.5 2.25C7.22386 2.25 7 2.47386 7 2.75V7H2.75C2.47386 7 2.25 7.22386 2.25 7.5C2.25 7.77614 2.47386 8 2.75 8H7V12.25C7 12.5261 7.22386 12.75 7.5 12.75C7.77614 12.75 8 12.5261 8 12.25V8H12.25C12.5261 8 12.75 7.77614 12.75 7.5C12.75 7.22386 12.5261 7 12.25 7H8V2.75Z",
     fill: color,
     fillRule: "evenodd",
@@ -13079,7 +13077,7 @@ function ControlButtons(props) {
     }
     var buttonClassNames = "!w-10 !h-10 border-black border-2 rounded-lg m-0.5 hover:bg-black hover:text-white";
     var svgClassNames = "!max-w-none !max-h-none h-full";
-    return jsxRuntime.jsxs(Controls, __assign({ showZoom: false, showInteractive: false, showFitView: false, position: "bottom-right" }, { children: [jsxRuntime.jsx(ControlButton, __assign({ className: buttonClassNames, onClick: function () { return props.rf.zoomIn(); } }, { children: jsxRuntime.jsx(PlusIcon, { className: svgClassNames }) })), jsxRuntime.jsx(ControlButton, __assign({ className: buttonClassNames, onClick: function () { return props.rf.zoomOut(); } }, { children: jsxRuntime.jsx(MinusIcon, { className: svgClassNames }) })), jsxRuntime.jsx(ControlButton, __assign({ className: buttonClassNames, onClick: function () { return fitView(); } }, { children: jsxRuntime.jsx(Crosshair1Icon, { className: svgClassNames }) }))] }));
+    return jsxs(Controls, __assign({ showZoom: false, showInteractive: false, showFitView: false, position: "bottom-right" }, { children: [jsx(ControlButton, __assign({ className: buttonClassNames, onClick: function () { return props.rf.zoomIn(); } }, { children: jsx(PlusIcon, { className: svgClassNames }) })), jsx(ControlButton, __assign({ className: buttonClassNames, onClick: function () { return props.rf.zoomOut(); } }, { children: jsx(MinusIcon, { className: svgClassNames }) })), jsx(ControlButton, __assign({ className: buttonClassNames, onClick: function () { return fitView(); } }, { children: jsx(Crosshair1Icon, { className: svgClassNames }) }))] }));
 }
 
 function hasTargetHandle(e, handleId) {
@@ -13109,7 +13107,7 @@ function getNumberOfInputTerms(gadget) {
 }
 function useCompletionCheck(props) {
     var _a = useReactFlow(), getNode = _a.getNode, getEdges = _a.getEdges;
-    require$$0.useEffect(function () {
+    useEffect(function () {
         function hasUnconnectedInputHandle(node) {
             var edges = getEdges();
             var incomingEdges = edges.filter(function (edge) { return edge.target === node.id; });
@@ -13161,7 +13159,7 @@ function distance(a, b) {
 }
 var dummyConnection = { source: { nodeId: "", handleId: "", isSource: false }, target: { nodeId: "", handleId: "", isSource: false } };
 function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
-    var getHandles = require$$0.useCallback(function (node) {
+    var getHandles = useCallback(function (node) {
         var e_1, _a;
         var gadgetProps = node.data;
         var handleInfos = [];
@@ -13181,7 +13179,7 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
         }
         return handleInfos;
     }, []);
-    var getHandlePosition = require$$0.useCallback(function (handleId) {
+    var getHandlePosition = useCallback(function (handleId) {
         var handle = document.querySelector("[data-handleid=\"".concat(handleId, "\"]"));
         if (handle) {
             var positionOnScreen = getCenter(handle.getBoundingClientRect());
@@ -13191,7 +13189,7 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
             throw Error("Trying to access handle which doesn't exist:" + handleId);
         }
     }, []);
-    var getHandlesWithPositions = require$$0.useCallback(function (node) {
+    var getHandlesWithPositions = useCallback(function (node) {
         var handles = getHandles(node);
         var handlesWithPositions = handles.flatMap(function (handle) {
             var position = getHandlePosition(handle.handleId);
@@ -13204,14 +13202,14 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
         });
         return handlesWithPositions;
     }, []);
-    var getHandlesWithPositionExcludingNode = require$$0.useCallback(function (ignoreNode) {
+    var getHandlesWithPositionExcludingNode = useCallback(function (ignoreNode) {
         var allNodes = rf.getNodes();
         var nodesWithoutSelf = allNodes.filter(function (node) { return node.id !== ignoreNode; });
         var allHandlesWithPositions = nodesWithoutSelf.map(getHandlesWithPositions).flat();
         return allHandlesWithPositions;
     }, []);
-    var _a = __read(require$$0.useState(""), 2), connectingSourceHandle = _a[0], setConnectingSourceHandle = _a[1];
-    var _b = __read(require$$0.useState(""), 2), connectingTargetHandle = _b[0], setConnectingTargetHandle = _b[1];
+    var _a = __read(useState(""), 2), connectingSourceHandle = _a[0], setConnectingSourceHandle = _a[1];
+    var _b = __read(useState(""), 2), connectingTargetHandle = _b[0], setConnectingTargetHandle = _b[1];
     function makeConnectionInfo(handle1, handle2) {
         if (handle1.isSource) {
             if (!handle2.isSource) {
@@ -13239,7 +13237,7 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
             targetHandle: connectionInfo.target.handleId
         };
     }
-    var getCandidateProximityConnections = require$$0.useCallback(function (handle) {
+    var getCandidateProximityConnections = useCallback(function (handle) {
         var otherHandles = getHandlesWithPositionExcludingNode(handle.nodeId);
         var candidateConnections = otherHandles.flatMap(function (otherHandle) {
             var connection = makeConnectionInfo(handle, otherHandle.handle);
@@ -13259,7 +13257,7 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
         });
         return connectionsWithDistances;
     }, []);
-    var getProximityConnection = require$$0.useCallback(function (node) {
+    var getProximityConnection = useCallback(function (node) {
         var handles = getHandles(node);
         var allCandidateConnections = handles.flatMap(function (handle) { return getCandidateProximityConnections(handle); });
         var minimalDistanceConnection = allCandidateConnections.reduce(function (acc, connectionWithDistance) {
@@ -13277,7 +13275,7 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
             return null;
         }
     }, []);
-    var onNodeDrag = require$$0.useCallback(function (event, node) {
+    var onNodeDrag = useCallback(function (event, node) {
         var proximityConnection = getProximityConnection(node);
         if (proximityConnection) {
             setConnectingSourceHandle(proximityConnection.source.handleId);
@@ -13288,14 +13286,14 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
             setConnectingTargetHandle("");
         }
     }, []);
-    var highlightHandle = require$$0.useCallback(function (handleId) {
+    var highlightHandle = useCallback(function (handleId) {
         var handle = document.querySelector("[data-handleid=\"".concat(handleId, "\"]"));
         if (handle) {
             handle.children[0].classList.remove("fill-white");
             handle.children[0].classList.add("fill-green");
         }
     }, []);
-    require$$0.useEffect(function () {
+    useEffect(function () {
         document.querySelectorAll("[data-handleid]").forEach(function (handle) {
             handle.children[0].classList.remove("fill-green");
             handle.children[0].classList.add("fill-white");
@@ -13303,7 +13301,7 @@ function useProximityConnect(rf, isValidConnection, savelyAddEdge) {
         highlightHandle(connectingSourceHandle);
         highlightHandle(connectingTargetHandle);
     }, [connectingSourceHandle, connectingTargetHandle]);
-    var onNodeDragStop = require$$0.useCallback(function (event, node) {
+    var onNodeDragStop = useCallback(function (event, node) {
         var proximityConnection = getProximityConnection(node);
         if (proximityConnection) {
             savelyAddEdge(connectionFromConnectionInfo(proximityConnection));
@@ -13393,7 +13391,7 @@ function Diagram(props) {
         var _b = __read(_a, 2), gadgetId = _b[0], gadget = _b[1];
         return getGadgetNode(gadgetId, gadget);
     });
-    var getInitialEdge = require$$0.useCallback(function (connection, label) {
+    var getInitialEdge = useCallback(function (connection, label) {
         return {
             id: label,
             source: connection.from,
@@ -13405,7 +13403,7 @@ function Diagram(props) {
             data: { eq: getEquationId(connection.from, connection.to) }
         };
     }, []);
-    var getInitialEdges = require$$0.useCallback(function (initialDiagram) {
+    var getInitialEdges = useCallback(function (initialDiagram) {
         return initialDiagram.connections.map(function (edge, idx) { return getInitialEdge(edge, "edge_".concat(idx)); });
     }, []);
     var initialEdges = getInitialEdges(props.initData.initialDiagram);
@@ -13416,9 +13414,9 @@ function Diagram(props) {
     var getNodes = rf.getNodes;
     var getEdges = rf.getEdges;
     var _c = __read(useIdGenerator("gadget_"), 1), generateGadgetId = _c[0];
-    var dragStartInfo = require$$0.useRef(undefined);
+    var dragStartInfo = useRef(undefined);
     var numberOfNodes = useStore(nodesLengthSelector);
-    require$$0.useEffect(function () {
+    useEffect(function () {
         if (dragStartInfo.current !== undefined) {
             var nodeToBeDragged = document.querySelector("[data-id='".concat(dragStartInfo.current.id, "']"));
             nodeToBeDragged === null || nodeToBeDragged === void 0 ? void 0 : nodeToBeDragged.dispatchEvent(new MouseEvent("mousedown", {
@@ -13432,19 +13430,19 @@ function Diagram(props) {
         dragStartInfo.current = undefined;
     }, [numberOfNodes]);
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes: nodes, edges: edges });
-    var getConnectionInfo = require$$0.useCallback(function (connection) {
+    var getConnectionInfo = useCallback(function (connection) {
         var fromGadget = connection.source;
         var toGadget = connection.target;
         var toNode = getNodePositionFromHandle(connection.targetHandle);
         return { from: fromGadget, to: [toGadget, toNode] };
     }, []);
-    var deleteEquationsOfEdges = require$$0.useCallback(function (edges) {
+    var deleteEquationsOfEdges = useCallback(function (edges) {
         edges.map(function (e) {
             var connectionInfo = getConnectionInfo(e);
             props.removeEquation(connectionInfo.from, connectionInfo.to);
         });
     }, [edges, props]);
-    var getEquationFromConnection = require$$0.useCallback(function (connection) {
+    var getEquationFromConnection = useCallback(function (connection) {
         var sourceTerms = getNode(connection.source).data.terms;
         var targetTerms = getNode(connection.target).data.terms;
         var sourceTerm = getTermOfHandle(connection.sourceHandle, sourceTerms);
@@ -13452,7 +13450,7 @@ function Diagram(props) {
         var equation = [sourceTerm, targetTerm];
         return equation;
     }, [getNode]);
-    var doesNotCreateACycle = require$$0.useCallback(function (connection) {
+    var doesNotCreateACycle = useCallback(function (connection) {
         var nodes = getNodes();
         var edges = getEdges();
         var target = nodes.find(function (node) { return node.id === connection.target; });
@@ -13483,7 +13481,7 @@ function Diagram(props) {
             return false;
         return !hasCycle(target);
     }, [getNodes, getEdges]);
-    var removeEdgesConnectedToHandle = require$$0.useCallback(function (handleId) {
+    var removeEdgesConnectedToHandle = useCallback(function (handleId) {
         var edges = getEdges();
         var edgesConnectedToThisHandle = edges.filter(function (e) { return hasTargetHandle(e, handleId); });
         deleteEquationsOfEdges(edgesConnectedToThisHandle);
@@ -13491,7 +13489,7 @@ function Diagram(props) {
             return edges.filter(function (e) { return !hasTargetHandle(e, handleId); });
         });
     }, [getEdges, setEdges, props]);
-    var savelyAddEdge = require$$0.useCallback(function (connection) {
+    var savelyAddEdge = useCallback(function (connection) {
         removeEdgesConnectedToHandle(connection.targetHandle);
         var equation = getEquationFromConnection(connection);
         var connectionInfo = getConnectionInfo(connection);
@@ -13518,31 +13516,31 @@ function Diagram(props) {
         axioms: props.initData.axioms,
         makeGadget: makeGadget
     };
-    var disableHoleFocus = require$$0.useCallback(function () {
+    var disableHoleFocus = useCallback(function () {
         setNodes(function (nodes) { return nodes.map(function (node) {
             return __assign(__assign({}, node), { data: __assign(__assign({}, node.data), { displayHoleFocus: false }) });
         }); });
     }, []);
-    var onConnectStart = require$$0.useCallback(function (event, params) {
+    var onConnectStart = useCallback(function (event, params) {
         if (params.handleType === "target") {
             removeEdgesConnectedToHandle(params.handleId);
         }
         disableHoleFocus();
     }, [removeEdgesConnectedToHandle]);
-    var enableHoleFocus = require$$0.useCallback(function () {
+    var enableHoleFocus = useCallback(function () {
         setNodes(function (nodes) { return nodes.map(function (node) {
             return __assign(__assign({}, node), { data: __assign(__assign({}, node.data), { displayHoleFocus: true }) });
         }); });
     }, []);
-    var onConnect = require$$0.useCallback(function (connection) {
+    var onConnect = useCallback(function (connection) {
         savelyAddEdge(connection);
         enableHoleFocus();
     }, []);
-    var isInDiagram = require$$0.useCallback(function (connection) {
+    var isInDiagram = useCallback(function (connection) {
         var edges = getEdges();
         return edges.some(function (edge) { return edge.sourceHandle === connection.sourceHandle && edge.targetHandle === connection.targetHandle; });
     }, [edges, getEquationFromConnection]);
-    var isValidConnection = require$$0.useCallback(function (connection) {
+    var isValidConnection = useCallback(function (connection) {
         var _a = __read(getEquationFromConnection(connection), 2), source = _a[0], target = _a[1];
         var arityOk = sameArity(source, target);
         var colorsOk = colorsMatch(source, target);
@@ -13551,7 +13549,7 @@ function Diagram(props) {
         return colorsOk && arityOk && noCycle && notYetAConection;
     }, [getEquationFromConnection, getEdges, getNodes]);
     var isSatisfied = props.isSatisfied;
-    var updateEdgeAnimation = require$$0.useCallback(function () {
+    var updateEdgeAnimation = useCallback(function () {
         function highlightHandle(handleId) {
             var _a;
             var handle = document.querySelector("[data-handleid=\"".concat(handleId, "\"]"));
@@ -13575,13 +13573,13 @@ function Diagram(props) {
             return __assign(__assign({}, edge), { animated: !edgeIsSatisfied });
         }); });
     }, [isSatisfied, setEdges]);
-    require$$0.useEffect(function () {
+    useEffect(function () {
         updateEdgeAnimation();
     }, [isSatisfied, setEdges, setNodes]);
     var _d = __read(props.proximityConnectEnabled ?
         useProximityConnect(rf, isValidConnection, savelyAddEdge)
         : [function (e, n) { return void 0; }, function (e, n) { return void 0; }], 2), onNodeDrag = _d[0], onNodeDragStopProximityConnect = _d[1];
-    var onNodeDragStop = require$$0.useCallback(function (event, node) {
+    var onNodeDragStop = useCallback(function (event, node) {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
             props.removeGadget(node.id);
             var edgesToBeDeleted = getEdges().filter(function (e) { return node.id === e.source || node.id === e.target; });
@@ -13593,13 +13591,13 @@ function Diagram(props) {
             onNodeDragStopProximityConnect(event, node);
         }
     }, []);
-    var onEdgesDelete = require$$0.useCallback(function (edges) {
+    var onEdgesDelete = useCallback(function (edges) {
         deleteEquationsOfEdges(edges);
     }, []);
-    var onNodesDelete = require$$0.useCallback(function (nodes) {
+    var onNodesDelete = useCallback(function (nodes) {
         nodes.map(function (node) { return props.removeGadget(node.id); });
     }, []);
-    return jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [jsxRuntime.jsx(GadgetPalette, __assign({}, paletteProps)), jsxRuntime.jsx(index, { nodes: nodes, edges: edges, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, onConnect: onConnect, onEdgesDelete: onEdgesDelete, onNodesDelete: onNodesDelete, edgeTypes: edgeTypes, nodeTypes: nodeTypes, onInit: function () { return init(rf); }, onConnectStart: onConnectStart, isValidConnection: isValidConnection, minZoom: 0.1, onNodeDrag: onNodeDrag, onNodeDragStop: onNodeDragStop, nodeOrigin: [0.5, 0.5] }), jsxRuntime.jsx(ControlButtons, { rf: rf })] });
+    return jsxs(Fragment, { children: [jsx(GadgetPalette, __assign({}, paletteProps)), jsx(index, { nodes: nodes, edges: edges, onNodesChange: onNodesChange, onEdgesChange: onEdgesChange, onConnect: onConnect, onEdgesDelete: onEdgesDelete, onNodesDelete: onNodesDelete, edgeTypes: edgeTypes, nodeTypes: nodeTypes, onInit: function () { return init(rf); }, onConnectStart: onConnectStart, isValidConnection: isValidConnection, minZoom: 0.1, onNodeDrag: onNodeDrag, onNodeDragStop: onNodeDragStop, nodeOrigin: [0.5, 0.5] }), jsx(ControlButtons, { rf: rf })] });
 }
 
 function unifyVariable(currentAssignment, v, term) {
@@ -13731,7 +13729,7 @@ function getNumericalConstantsInInitializationData(initData) {
     var numericalConstantsInAxioms = initData.axioms.flatMap(getNumericalConstantsInAxiom);
     return numericalConstantsInAxioms.concat(numericalConstantsInInitialDiagram);
 }
-function getMaximumNumberInGameData(data) {
+function getMaximumNumberInGameData(data: InitializationData) {
     return 1 + Math.max.apply(Math, __spreadArray([], __read(getNumericalConstantsInInitializationData(data)), false));
 }
 function renameVariablesToEmptyString(t) {
@@ -17204,10 +17202,10 @@ function getEquationId(from, to) {
 }
 function Game(props) {
     var enumerationOffset = getMaximumNumberInGameData(props.initData);
-    var _a = __read(require$$0.useState(getInitialEquations(props.initData)), 2), equations = _a[0], setEquations = _a[1];
-    var enumeration = require$$0.useRef(new TermEnumerator(enumerationOffset));
-    var history = require$$0.useRef(new GameHistory(props.problemId));
-    var _b = __read(require$$0.useMemo(function () {
+    var _a = __read(useState(getInitialEquations(props.initData)), 2), equations = _a[0], setEquations = _a[1];
+    var enumeration = useRef(new TermEnumerator(enumerationOffset));
+    var history = useRef(new GameHistory(props.problemId));
+    var _b = __read(useMemo(function () {
         var unificationResult = unifyEquations(equations);
         enumeration.current.updateEnumeration(unificationResult.assignment);
         var termEnumeration = enumeration.current.getHoleValueAssignment(unificationResult.assignment);
@@ -17221,13 +17219,13 @@ function Game(props) {
         history.current.logEvent({ GadgetRemoved: { gadgetId: gadgetId } });
         synchronizeHistory(JSON.stringify(history.current));
     }
-    var addEquation = require$$0.useCallback(function (from, to, newEquation) {
+    var addEquation = useCallback(function (from, to, newEquation) {
         history.current.logEvent({ EquationAdded: { from: from, to: to } });
         var newEquations = new Map(equations);
         newEquations.set(getEquationId(from, to), newEquation);
         setEquations(function (equations) { return (new Map(equations)).set(getEquationId(from, to), newEquation); });
     }, [equations]);
-    var removeEquation = require$$0.useCallback(function (from, to) {
+    var removeEquation = useCallback(function (from, to) {
         history.current.logEvent({ EquationRemoved: { from: from, to: to } });
         setEquations(function (equations) {
             var newEquations = new Map(equations);
@@ -17235,7 +17233,7 @@ function Game(props) {
             return newEquations;
         });
     }, [equations]);
-    var setProblemSolvedAndWriteToHistory = require$$0.useCallback(function () {
+    var setProblemSolvedAndWriteToHistory = useCallback(function () {
         props.setProblemSolved();
         if (!history.current.completed) {
             history.current.logEvent({ Completed: null });
@@ -17243,7 +17241,7 @@ function Game(props) {
             synchronizeHistory(JSON.stringify(history.current));
         }
     }, []);
-    require$$0.useEffect(function () {
+    useEffect(function () {
         try {
             var historyString = JSON.stringify(history.current);
             synchronizeHistory(historyString);
@@ -17252,11 +17250,11 @@ function Game(props) {
             console.error(e);
         }
     }, [equations]);
-    return jsxRuntime.jsx(AssignmentContext.Provider, __assign({ value: termEnumeration }, { children: jsxRuntime.jsx(ReactFlowProvider, { children: jsxRuntime.jsx(Diagram, { initData: props.initData, addGadget: addGadget, removeGadget: removeGadget, addEquation: addEquation, removeEquation: removeEquation, isSatisfied: eqSatisfied, setProblemSolved: setProblemSolvedAndWriteToHistory, proximityConnectEnabled: props.proximityConnectEnabled }) }) }));
+    return jsx(AssignmentContext.Provider, __assign({ value: termEnumeration }, { children: jsx(ReactFlowProvider, { children: jsx(Diagram, { initData: props.initData, addGadget: addGadget, removeGadget: removeGadget, addEquation: addEquation, removeEquation: removeEquation, isSatisfied: eqSatisfied, setProblemSolved: setProblemSolvedAndWriteToHistory, proximityConnectEnabled: props.proximityConnectEnabled }) }) }));
 }
 
 function InfoviewGame(initData) {
-    return jsxRuntime.jsx(Game, { initData: initData, setProblemSolved: function () { }, proximityConnectEnabled: true });
+    return jsx(Game, { initData: initData, setProblemSolved: function () { }, proximityConnectEnabled: true });
 }
 
-module.exports = InfoviewGame;
+export { InfoviewGame as default };
