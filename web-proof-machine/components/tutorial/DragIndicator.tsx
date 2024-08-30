@@ -4,22 +4,21 @@ import { useEffect, useState } from "react";
 import { AnimatedHand } from "./AnimatedHand";
 import { XYPosition } from "@xyflow/react";
 
-type ObjectPosition = "BOTTOM_RIGHT" | "CENTER_RIGHT" | "CENTER_LEFT"
+type AnchorPoint = "BOTTOM_RIGHT" | "CENTER_RIGHT" | "CENTER_LEFT"
 
 export interface OverlayPosition {
-    object: string
-    objectPosition: ObjectPosition
+    elementId: string
+    anchorPoint: AnchorPoint
     offset: XYPosition
 }
 
 export interface DragIndicatorProps {
     origin: OverlayPosition
-    moveTo: { position: OverlayPosition } | { extent: XYPosition }
-    duration: number
+    destination: { absolutePosition: OverlayPosition } | { relativePosition: XYPosition }
     drawLine: boolean
 }
 
-function getXYPosition(rect: DOMRect, position: ObjectPosition): XYPosition {
+function getXYPosition(rect: DOMRect, position: AnchorPoint): XYPosition {
     switch (position) {
         case "BOTTOM_RIGHT": return { x: rect.right, y: rect.bottom }
         case "CENTER_RIGHT": return { x: rect.right, y: rect.top + rect.height / 2 }
@@ -28,32 +27,53 @@ function getXYPosition(rect: DOMRect, position: ObjectPosition): XYPosition {
     }
 }
 
-export function DragIndicator(props) {
-    const [position, setPosition] = useState({ x: 0, y: 0 })
-    const [extent, setExtent] = useState({ x: 0, y: 0 })
+const WAIT_BEFORE_ANIMATION = 500
+
+function calculateExtent(destination: { absolutePosition: OverlayPosition } | { relativePosition: XYPosition }, originPosition: XYPosition): XYPosition {
+    if ("relativePosition" in destination) {
+        return destination.relativePosition
+    } else {
+        const destinationRect = document.getElementById(destination.absolutePosition.elementId)!.getBoundingClientRect()
+        const destinationPosition = getXYPosition(destinationRect, destination.absolutePosition.anchorPoint)
+        return {
+            x: destinationPosition.x - originPosition.x + destination.absolutePosition.offset.x,
+            y: destinationPosition.y - originPosition.y + destination.absolutePosition.offset.y
+        }
+    }
+}
+
+function DragIndicator(props: DragIndicatorProps) {
+    try {
+
+        const originRect = document.getElementById(props.origin.elementId)!.getBoundingClientRect()
+        const originPosition = getXYPosition(originRect, props.origin.anchorPoint)
+
+        const extent = calculateExtent(props.destination, originPosition)
+
+        const style = { left: originPosition.x + props.origin.offset.x, top: originPosition.y + props.origin.offset.y }
+
+        return <div style={style} className="absolute">
+            <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} />
+        </div>
+    } catch (error) {
+        console.error(error)
+        return <></>
+    }
+}
+
+export function DelayedDragIndicator(props: DragIndicatorProps) {
+    const [animationHasStarted, setAnimationHasStarted] = useState(false)
 
     useEffect(() => {
-        setInterval(() => {
-            const fromGadgetPosition = document.getElementById(props.origin.object)!.getBoundingClientRect()
-            const originPosition = getXYPosition(fromGadgetPosition, props.origin.objectPosition)
-            setPosition(originPosition)
+        const interval = setInterval(() => {
+            setAnimationHasStarted(true)
+        }, WAIT_BEFORE_ANIMATION)
 
-            if ("position" in props.moveTo) {
-                const moveToPositionRect = document.getElementById(props.moveTo.position.object)!.getBoundingClientRect()
-                const moveToPosition = getXYPosition(moveToPositionRect, props.moveTo.position.objectPosition)
-                setExtent({
-                    x: moveToPosition.x - originPosition.x + props.moveTo.position.offset.x,
-                    y: moveToPosition.y - originPosition.y + props.moveTo.position.offset.y
-                })
-            } else {
-                setExtent(props.moveTo.extent)
-            }
-        }, 200)
+        return () => clearInterval(interval)
     }, [])
 
-    const style = { left: position.x + props.origin.offset.x, top: position.y + props.origin.offset.y }
-
-    return <div style={style} className="absolute">
-        <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} />
-    </div>
+    if (animationHasStarted)
+        return <DragIndicator {...props} />
+    else
+        return <></>
 }

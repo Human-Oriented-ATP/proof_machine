@@ -1,22 +1,21 @@
-import { DragIndicator, OverlayPosition } from "./DragIndicator";
+import { DelayedDragIndicator, OverlayPosition } from "./DragIndicator";
 
 const origin: OverlayPosition = {
-    object: "gadget2",
-    objectPosition: "CENTER_RIGHT",
+    elementId: "gadget2",
+    anchorPoint: "CENTER_RIGHT",
     offset: { x: -5, y: -1 }
 }
 
 const destination: OverlayPosition = {
-    object: "goal_gadget",
-    objectPosition: "CENTER_LEFT",
+    elementId: "goal_gadget",
+    anchorPoint: "CENTER_LEFT",
     offset: { x: 5, y: 0 }
 }
 
 export function InteractiveOverlay() {
     return <div className="fixed left-0 top-0 w-full h-full z-50 pointer-events-none">
-        <DragIndicator origin={origin}
-            moveTo={{ position: destination }}
-            drawLine={false}
-            duration={3500} />
+        <DelayedDragIndicator origin={origin}
+            destination={{ absolutePosition: destination }}
+            drawLine={true} />
     </div>
 }
