@@ -26,7 +26,7 @@ deriving Repr
 
 instance : Lean.ToJson InitialDiagramConnection where
   toJson c := .mkObj [
-    ("from", .arr #[c.source, (-1 : Int)]),
+    ("from", c.source),
     ("to", .arr #[c.target, c.targetPosition])
   ]
 
