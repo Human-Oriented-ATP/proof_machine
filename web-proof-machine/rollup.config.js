@@ -3,6 +3,8 @@ import typescript from '@rollup/plugin-typescript';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
+import postcss from 'rollup-plugin-postcss';
+import { resolve } from 'path';
 
 /** @type {(_: any) => import('rollup').RollupOptions} */
 export default cliArgs => {
@@ -10,19 +12,17 @@ export default cliArgs => {
     if (tsxName !== undefined)
         // We delete the custom argument so that Rollup does not try to process it and complain.
         delete cliArgs.tsxName;
-    const inputs = [ `components/game/StaticDiagram.tsx` ]
+    const inputs = [ `components/game/InfoviewGame.tsx` ]
 
-        const isProduction = process.env.NODE_ENV && process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV && process.env.NODE_ENV === 'production';
     const configForInput = fname => ({
     input: fname,
     output: {
         dir: './js-build',
-        format: 'es',
+        format: 'cjs',
         // Hax: apparently setting `global` makes some CommonJS modules work ¯\_(ツ)_/¯
         intro: 'const global = window;',
         sourcemap: isProduction ? false : 'inline',
-        plugins: isProduction ? [ terser() ] : [],
-        compact: isProduction
     },
     external: [
         'react',
@@ -55,6 +55,9 @@ export default cliArgs => {
                 'timers', 'console', 'vm', 'zlib', 'tty', 'domain', 'dns', 'dgram', 'child_process',
                 'cluster', 'module', 'net', 'readline', 'repl', 'tls', 'fs', 'crypto', 'perf_hooks',
             ],
+        }),
+        postcss({
+            extensions: ['.css']
         })
     ],
     })
