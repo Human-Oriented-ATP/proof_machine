@@ -1,3 +1,4 @@
+import { init } from "lib/util/ReactFlow";
 import { Axiom, GadgetId, NodePosition } from "./Primitives";
 import { Term, makeTermWithFreshVariables } from "./Term";
 import { Equation } from "./Unification";
@@ -28,9 +29,20 @@ export function makeProblemFileDataFromStatements(statements: Statement[]): Prob
     }
 }
 
-export type InitialDiagramGadget = {
+export interface InitialDiagramGadget {
     statement: Statement
     position: { x: number; y: number }
+}
+
+export interface LabelledInitialDiagramGadget extends InitialDiagramGadget {
+    id: GadgetId
+}
+
+function labelledInitialDiagramGadgetToInitialDiagramGadget(gadget: LabelledInitialDiagramGadget): InitialDiagramGadget {
+    return {
+        statement: gadget.statement,
+        position: gadget.position
+    }
 }
 
 export interface InitialDiagramConnection {
@@ -39,8 +51,16 @@ export interface InitialDiagramConnection {
 }
 
 export interface InitialDiagram {
-    gadgets: Map<GadgetId, InitialDiagramGadget>
+    gadgets: Map<GadgetId, InitialDiagramGadget> | LabelledInitialDiagramGadget[]
     connections: InitialDiagramConnection[]
+}
+
+export function getDiagramGadgetMap(diagrams: Map<GadgetId, InitialDiagramGadget> | LabelledInitialDiagramGadget[]): Map<GadgetId, InitialDiagramGadget> {
+    if (diagrams instanceof Map) {
+        return diagrams
+    } else {
+        return new Map(diagrams.map(gadget => [gadget.id, labelledInitialDiagramGadgetToInitialDiagramGadget(gadget)]))
+    }
 }
 
 export interface InitializationData {
@@ -65,8 +85,8 @@ export function makeInitializationDataFromProblemFileData(problemFileData: Probl
 
 export function getEquationFromInitialConnection(connection: InitialDiagramConnection, initialDiagram: InitialDiagram): Equation {
     try {
-        const sourceGadget = initialDiagram.gadgets.get(connection.from)!
-        const targetGadget = initialDiagram.gadgets.get(connection.to[0])!
+        const sourceGadget = getDiagramGadgetMap(initialDiagram.gadgets).get(connection.from)!
+        const targetGadget =  getDiagramGadgetMap(initialDiagram.gadgets).get(connection.to[0])!
         if (isGoal(sourceGadget.statement)) {
             throw new Error("Invalid connection in initial diagram: goal gadget cannot be a source.")
         }

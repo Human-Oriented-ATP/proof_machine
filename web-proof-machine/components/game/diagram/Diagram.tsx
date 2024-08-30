@@ -21,7 +21,7 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, getEquationFromInitialConnection, isAxiom } from 'lib/game/Initialization';
+import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, getDiagramGadgetMap, getEquationFromInitialConnection, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
@@ -80,7 +80,7 @@ function getGadgetNode(id: GadgetId, gadget: InitialDiagramGadget): GadgetNode {
 }
 
 export function Diagram(props: DiagramProps) {
-    const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
+    const initialGadgetsArray = Array.from(getDiagramGadgetMap(props.initData.initialDiagram.gadgets))
     const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
 
     const getInitialEdge = useCallback((connection: InitialDiagramConnection, label: string): EdgeWithEquation => {
