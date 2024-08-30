@@ -2,7 +2,7 @@ import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } fro
 import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
 import { DummyHandle } from '../../primitive/DummyHandle';
-import { twJoin, twMerge } from 'tailwind-merge';
+import { twMerge } from 'tailwind-merge';
 import { Term } from 'lib/game/Term';
 import { Connector } from './Connector';
 
