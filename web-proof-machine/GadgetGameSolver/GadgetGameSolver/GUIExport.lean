@@ -131,14 +131,9 @@ def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
 
 open Lean ProofWidgets Server
 
--- TODO: Needs updating
-/-
-
 @[widget_module]
-def GadgetGraph : Component GadgetGraphProps where
-  javascript := include_str ".." / ".." / "js-build" / "StaticDiagram.js"
-
--/
+def GadgetGraph : Component InitializationData where
+  javascript := include_str ".." / ".." / "js-build" / "InfoviewGame.js"
 
 -- open Lean Server Elab Command Json
 -- elab stx:"#gadget" : command => runTermElabM fun _ => do
