@@ -31,7 +31,8 @@ export function GameScreen(props: GameScreenProps) {
             <StaticTextOverlay problemId={props.problemId} />
             <Game {...props} setProblemSolved={setProblemSolved}
                 setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
-                proximityConnectEnabled={true} />
+                proximityConnectEnabled={true}
+                zoomEnabled={false} />
             <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         </div>
         <InteractiveOverlay hideInteractiveContent={userIsDraggingOrNavigating} />

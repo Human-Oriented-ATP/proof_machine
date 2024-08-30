@@ -37,6 +37,7 @@ interface DiagramProps {
     setProblemSolved: () => void
     setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
+    zoomEnabled: boolean
 }
 
 const nodesLengthSelector = (state) =>
@@ -312,6 +313,8 @@ export function Diagram(props: DiagramProps) {
         nodes.map(node => props.removeGadget(node.id))
     }, [])
 
+    const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
+
     return <>
         <GadgetPalette {...paletteProps} />
         <ReactFlow
@@ -327,7 +330,7 @@ export function Diagram(props: DiagramProps) {
             onInit={() => init(rf)}
             onConnectStart={onConnectStart}
             isValidConnection={isValidConnection}
-            minZoom={0.1}
+            {...zoomProps}
             onNodeDrag={onNodeDrag}
             onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             onNodeDragStop={onNodeDragStop}
@@ -335,6 +338,6 @@ export function Diagram(props: DiagramProps) {
             onMoveStart={() => props.setUserIsDraggingOrNavigating(true)}
             onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
         />
-        <ControlButtons rf={rf} ></ControlButtons>
+        <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} ></ControlButtons>
     </>
 }

@@ -2,6 +2,7 @@ import { ControlButton, Controls, ReactFlowInstance } from "@xyflow/react";
 import { Crosshair1Icon, MinusIcon, PlusIcon } from '@radix-ui/react-icons'
 
 export interface CustomControlProps {
+    zoomEnabled: boolean
     rf: ReactFlowInstance
 }
 
@@ -14,8 +15,12 @@ export function ControlButtons(props: CustomControlProps): JSX.Element {
     const svgClassNames = "!max-w-none !max-h-none h-full"
 
     return <Controls showZoom={false} showInteractive={false} showFitView={false} position="bottom-right">
-        <ControlButton className={buttonClassNames} onClick={() => props.rf.zoomIn()}><PlusIcon className={svgClassNames} /></ControlButton>
-        <ControlButton className={buttonClassNames} onClick={() => props.rf.zoomOut()}><MinusIcon className={svgClassNames} /></ControlButton>
+        {props.zoomEnabled &&
+            <>
+                <ControlButton className={buttonClassNames} onClick={() => props.rf.zoomIn()}><PlusIcon className={svgClassNames} /></ControlButton>
+                <ControlButton className={buttonClassNames} onClick={() => props.rf.zoomOut()}><MinusIcon className={svgClassNames} /></ControlButton>
+            </>
+        }
         <ControlButton className={buttonClassNames} onClick={() => fitView()}><Crosshair1Icon className={svgClassNames} /></ControlButton>
     </Controls >
 }

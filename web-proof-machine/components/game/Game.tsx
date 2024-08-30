@@ -16,6 +16,7 @@ export interface GameProps {
     setProblemSolved: () => void
     setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
+    zoomEnabled: boolean
 }
 
 function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
@@ -104,6 +105,7 @@ export function Game(props: GameProps) {
                 setProblemSolved={setProblemSolvedAndWriteToHistory}
                 setUserIsDraggingOrNavigating={props.setUserIsDraggingOrNavigating}
                 proximityConnectEnabled={props.proximityConnectEnabled}
+                zoomEnabled={props.zoomEnabled}
             ></Diagram>
         </ReactFlowProvider>
     </AssignmentContext.Provider>
