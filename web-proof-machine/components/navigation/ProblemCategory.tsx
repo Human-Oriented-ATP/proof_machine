@@ -3,6 +3,7 @@ import { getCompletedProblems } from "lib/study/CompletedProblems";
 import { useConfiguration } from "lib/study/LevelConfiguration";
 import { ProblemCategory } from "lib/study/Types";
 import { usePathname } from "next/navigation";
+import { twJoin } from "tailwind-merge";
 
 interface ProblemCategoryProps {
     category: ProblemCategory;
@@ -27,11 +28,13 @@ export function ProblemCategory(props: ProblemCategoryProps) {
 
     const currentPath = usePathname()
 
+    const useFlexibleNumberOfColumns = config !== null ? config.displayNamesAs !== "number" : false
+
     return <div className="max-w-3xl">
         <div>
             {props.category.name}
         </div>
-        <div className="grid grid-cols-5">
+        <div className={twJoin("grid", useFlexibleNumberOfColumns && "grid-cols-3 md:grid-cols-5", !useFlexibleNumberOfColumns && "grid-cols-5")}>
             {props.category.problems.map((problem, index) => {
                 return <div className="p-2" key={problem}>
                     <GameLevelButton

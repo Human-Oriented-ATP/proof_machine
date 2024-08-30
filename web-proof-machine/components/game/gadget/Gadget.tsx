@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
-import { GadgetProps, NodeDisplayProps, GadgetId, Focus, isInputPosition, outputPosition, isOutputPosition }
+import { GadgetProps, NodeDisplayProps, GadgetId, Focus, isInputPosition, OUTPUT_POSITION, isOutputPosition }
     from '../../../lib/game/Primitives'
 import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/ConnectionsFromTerms'
 import { twMerge } from 'tailwind-merge'
@@ -70,7 +70,7 @@ export function Gadget({ ...props }: GadgetProps) {
         if (hasOutputNode()) {
             const inputs = Array.from(props.terms).filter(key => isInputPosition(key[0]))
             const inputTerms = inputs.map(kv => kv[1])
-            const connections = makeConnections(inputTerms, props.terms.get(outputPosition)!)
+            const connections = makeConnections(inputTerms, props.terms.get(OUTPUT_POSITION)!)
             const drawingData = connections.map(calculateInternalConnectionDrawingData)
             setConnectionState({ connections: drawingData })
         }
@@ -98,8 +98,8 @@ export function Gadget({ ...props }: GadgetProps) {
     function makeOutputNodeContainer(): JSX.Element {
         if (hasOutputNode()) {
             const nodeDisplayProps = {
-                term: props.terms.get(outputPosition)!,
-                position: outputPosition,
+                term: props.terms.get(OUTPUT_POSITION)!,
+                position: OUTPUT_POSITION,
                 gadgetId: props.id,
                 holeFocus: focus,
                 useDummyHandle: props.isAxiom,

@@ -1,7 +1,7 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Equation, unifyEquations } from "../../lib/game/Unification";
+import { Equation, EquationId, unifyEquations } from "../../lib/game/Unification";
 import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
 import { InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
@@ -14,27 +14,37 @@ export interface GameProps {
     initData: InitializationData
     problemId?: string
     setProblemSolved: () => void
+    proximityConnectEnabled: boolean
 }
 
-function getInitialEquations(initData: InitializationData): Equation[] {
-    return initData.initialDiagram.connections.map(connection =>
-        getEquationFromInitialConnection(connection, initData.initialDiagram))
+function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
+    const equations = new Map()
+    initData.initialDiagram.connections.forEach(connection => {
+        const equationId = getEquationId(connection.from, connection.to)
+        const equation = getEquationFromInitialConnection(connection, initData.initialDiagram)
+        equations.set(equationId, equation)
+    })
+    return equations
+}
+
+export function getEquationId(from: GadgetId, to: [GadgetId, NodePosition]): EquationId {
+    return `equation-${from}-to-${to[0]}_${to[1]}`
 }
 
 export function Game(props: GameProps) {
     const enumerationOffset = getMaximumNumberInGameData(props.initData)
 
-    const [equations, setEquations] = useState<Equation[]>(getInitialEquations(props.initData))
+    const [equations, setEquations] = useState<Map<EquationId, Equation>>(getInitialEquations(props.initData))
 
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
     const [termEnumeration, eqSatisfied] = useMemo(() => {
-        const [assignment, eqSatisfied] = unifyEquations(equations)
-        enumeration.current.updateEnumeration(assignment)
-        const termEnumeration = enumeration.current.getHoleValueAssignment(assignment)
-        return [termEnumeration, eqSatisfied]
+        const unificationResult = unifyEquations(equations)
+        enumeration.current.updateEnumeration(unificationResult.assignment)
+        const termEnumeration = enumeration.current.getHoleValueAssignment(unificationResult.assignment)
+        return [termEnumeration, unificationResult.equationIsSatisfied]
     }, [equations])
 
     function addGadget(gadgetId: string, axiom: Axiom) {
@@ -47,16 +57,21 @@ export function Game(props: GameProps) {
         synchronizeHistory(JSON.stringify(history.current))
     }
 
-    function addEquation(from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], newEquation: Equation) {
+    const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
         history.current.logEvent({ EquationAdded: { from, to } })
-        setEquations(equations => [...equations, newEquation])
-    }
+        const newEquations = new Map(equations)
+        newEquations.set(getEquationId(from, to), newEquation)
+        setEquations(equations => (new Map(equations)).set(getEquationId(from, to), newEquation))
+    }, [equations])
 
-    function removeEquation(from: [GadgetId, NodePosition], to: [GadgetId, NodePosition], equationToBeDeleted: Equation) {
+    const removeEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition]) => {
         history.current.logEvent({ EquationRemoved: { from, to } })
-        setEquations(equations => equations.filter(equation =>
-            JSON.stringify(equation) !== JSON.stringify(equationToBeDeleted)))
-    }
+        setEquations(equations => {
+            const newEquations = new Map(equations)
+            newEquations.delete(getEquationId(from, to))
+            return newEquations
+        })
+    }, [equations])
 
     const setProblemSolvedAndWriteToHistory = useCallback(() => {
         props.setProblemSolved()
@@ -86,6 +101,7 @@ export function Game(props: GameProps) {
                 removeEquation={removeEquation}
                 isSatisfied={eqSatisfied}
                 setProblemSolved={setProblemSolvedAndWriteToHistory}
+                proximityConnectEnabled={props.proximityConnectEnabled}
             ></Diagram>
         </ReactFlowProvider>
     </AssignmentContext.Provider>

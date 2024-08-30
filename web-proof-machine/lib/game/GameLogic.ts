@@ -1,4 +1,4 @@
-import { Axiom, NodePosition, outputPosition } from "./Primitives";
+import { Axiom, NodePosition, OUTPUT_POSITION } from "./Primitives";
 import { GadgetId, GadgetProps } from "./Primitives";
 import { Term, makeAxiomWithFreshVariables as makeFreshVariables } from "./Term";
 
@@ -8,7 +8,7 @@ export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     axiomWithFreshVariables.hypotheses.forEach((hypothesis, i) => {
         terms.set(i, hypothesis)
     })
-    terms.set(outputPosition, axiomWithFreshVariables.conclusion)
+    terms.set(OUTPUT_POSITION, axiomWithFreshVariables.conclusion)
     return { terms, id, isAxiom: false, displayHoleFocus: true }
 }
 

@@ -25,7 +25,7 @@ export function isInputPosition(position: NodePosition): boolean {
     return !isOutputPosition(position)
 }
 
-export const outputPosition: NodePosition = -1
+export const OUTPUT_POSITION: NodePosition = -1
 
 export interface NodeDisplayProps extends AbstractNodeProps {
     position: NodePosition

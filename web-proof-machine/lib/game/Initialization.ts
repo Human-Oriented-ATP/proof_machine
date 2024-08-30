@@ -34,7 +34,7 @@ export type InitialDiagramGadget = {
 }
 
 export interface InitialDiagramConnection {
-    from: [GadgetId, NodePosition]
+    from: GadgetId
     to: [GadgetId, NodePosition]
 }
 
@@ -65,14 +65,14 @@ export function makeInitializationDataFromProblemFileData(problemFileData: Probl
 
 export function getEquationFromInitialConnection(connection: InitialDiagramConnection, initialDiagram: InitialDiagram): Equation {
     try {
-        const sourceNode = initialDiagram.gadgets.get(connection.from[0])!
-        const targetNode = initialDiagram.gadgets.get(connection.to[0])!
-        if (isGoal(sourceNode.statement)) {
+        const sourceGadget = initialDiagram.gadgets.get(connection.from)!
+        const targetGadget = initialDiagram.gadgets.get(connection.to[0])!
+        if (isGoal(sourceGadget.statement)) {
             throw new Error("Invalid connection in initial diagram: goal gadget cannot be a source.")
         }
-        const sourceTerm = sourceNode.statement.axiom.conclusion
-        const targetTerm = isGoal(targetNode.statement) ? targetNode.statement.goal : targetNode.statement.axiom.hypotheses[connection.to[1]]
-        return [makeTermWithFreshVariables(sourceTerm, connection.from[0]!), makeTermWithFreshVariables(sourceTerm, connection.from[0]!)]
+        const sourceTerm = sourceGadget.statement.axiom.conclusion
+        const targetTerm = isGoal(targetGadget.statement) ? targetGadget.statement.goal : targetGadget.statement.axiom.hypotheses[connection.to[1]]
+        return [makeTermWithFreshVariables(sourceTerm, connection.from!), makeTermWithFreshVariables(targetTerm, connection.to[0]!)]
     } catch (error) {
         throw new Error(`Invalid connection in initial diagram: possibly gadget ${connection.from} or ${connection.to} is missing in the diagram.`)
     }
