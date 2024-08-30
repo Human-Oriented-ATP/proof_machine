@@ -6,7 +6,8 @@ import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
 import { GameHelp } from "./GameHelp";
 import { Game } from "./Game";
-import TutorialOverlay from "../tutorial/TutorialOverlay";
+import StaticTextOverlay from "../tutorial/StaticTextOverlay";
+import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 
 interface GameScreenProps {
     initData: InitializationData
@@ -14,6 +15,8 @@ interface GameScreenProps {
 }
 
 export function GameScreen(props: GameScreenProps) {
+    const [userIsDraggingOrNavigating, setUserIsDraggingOrNavigating] = useState(false)
+
     const [isSolved, setIsSolved] = useState(false)
 
     const helpPopup = usePopup()
@@ -25,9 +28,12 @@ export function GameScreen(props: GameScreenProps) {
     return <div className='h-dvh flex flex-col'>
         <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
-            <TutorialOverlay problemId={props.problemId} />
-            <Game {...props} setProblemSolved={setProblemSolved} proximityConnectEnabled={true} />
+            <StaticTextOverlay problemId={props.problemId} />
+            <Game {...props} setProblemSolved={setProblemSolved}
+                setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
+                proximityConnectEnabled={true} />
             <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         </div>
+        <InteractiveOverlay hideInteractiveContent={userIsDraggingOrNavigating} />
     </div>
 }

@@ -12,10 +12,14 @@ const destination: OverlayPosition = {
     offset: { x: 5, y: 0 }
 }
 
-export function InteractiveOverlay() {
+export interface InteractiveOverlayProps {
+    hideInteractiveContent?: boolean
+}
+
+export function InteractiveOverlay(props: InteractiveOverlayProps) {
     return <div className="fixed left-0 top-0 w-full h-full z-50 pointer-events-none">
-        <DelayedDragIndicator origin={origin}
+        {props.hideInteractiveContent ? <></> : <DelayedDragIndicator origin={origin}
             destination={{ absolutePosition: destination }}
-            drawLine={true} />
+            drawLine={true} />}
     </div>
 }

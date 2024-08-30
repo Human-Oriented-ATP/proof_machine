@@ -35,6 +35,7 @@ interface DiagramProps {
     removeEquation: (from: GadgetId, to: [GadgetId, NodePosition]) => void
     isSatisfied: Map<EquationId, boolean>
     setProblemSolved: () => void
+    setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
 }
 
@@ -300,6 +301,7 @@ export function Diagram(props: DiagramProps) {
         } else {
             onNodeDragStopProximityConnect(event, node)
         }
+        props.setUserIsDraggingOrNavigating(false)
     }, [])
 
     const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
@@ -327,8 +329,11 @@ export function Diagram(props: DiagramProps) {
             isValidConnection={isValidConnection}
             minZoom={0.1}
             onNodeDrag={onNodeDrag}
+            onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
+            onMoveStart={() => props.setUserIsDraggingOrNavigating(true)}
+            onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
         />
         <ControlButtons rf={rf} ></ControlButtons>
     </>

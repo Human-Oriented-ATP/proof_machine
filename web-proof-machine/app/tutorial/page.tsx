@@ -52,7 +52,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
     try {
         return <Suspense>
             <GameScreen initData={initData} problemId={params.slug} />
-            <InteractiveOverlay />
         </Suspense>
     } catch (e) {
         return <div>

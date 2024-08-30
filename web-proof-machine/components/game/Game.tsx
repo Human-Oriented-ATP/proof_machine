@@ -14,6 +14,7 @@ export interface GameProps {
     initData: InitializationData
     problemId?: string
     setProblemSolved: () => void
+    setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
 }
 
@@ -101,6 +102,7 @@ export function Game(props: GameProps) {
                 removeEquation={removeEquation}
                 isSatisfied={eqSatisfied}
                 setProblemSolved={setProblemSolvedAndWriteToHistory}
+                setUserIsDraggingOrNavigating={props.setUserIsDraggingOrNavigating}
                 proximityConnectEnabled={props.proximityConnectEnabled}
             ></Diagram>
         </ReactFlowProvider>
