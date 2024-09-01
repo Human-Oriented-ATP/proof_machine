@@ -41,9 +41,9 @@ structure InitializationData where
 deriving Lean.ToJson, Repr
 
 structure ProofTree.RenderingParams where
-  holeWidth : Nat := 5
-  nodePadding : Nat := 5
-  gadgetThickness : Nat := 250
+  holeWidth : Nat := 15
+  nodePadding : Nat := 20
+  gadgetThickness : Nat := 500
 
 structure ProofTree.RenderingState extends InitialDiagram where
   location : Array Nat := #[]
@@ -64,7 +64,10 @@ macro_rules
 end LensNotation
 
 def mkGadgetId (loc : Array Nat) : String :=
-  s!"gadget_{loc}"
+  if loc.isEmpty then
+    "goal_gadget"
+  else
+    s!"gadget_{loc}"
 
 def mkEdgeId (sourceLoc : Array Nat) (childIdx : Nat) : String :=
   s!"edge_{sourceLoc}_{childIdx}"
@@ -102,8 +105,8 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
             xOffset := state.xOffset - params.gadgetThickness })
       exportToGraph tree
       modify <| connections %~ (·.push {
-        source := headId,
-        target := mkGadgetId treeLoc,
+        source := mkGadgetId treeLoc,
+        target := headId,
         targetPosition := idx
         })
 
@@ -112,7 +115,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     modify ({· with location := state.location, xOffset := state.xOffset, yOffset := yOffsetNew })
 
     let gadgetProps : InitialDiagramGadget := {
-      id := s!"gadget_{state.location}",
+      id := mkGadgetId state.location,
       statement := .axiom {
         hypotheses := goals.toArray.map ProofTree.headTerm,
         conclusion := term
@@ -131,22 +134,7 @@ def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
 
 open Lean ProofWidgets Server
 
-@[widget_module]
-def GadgetGraph : Component InitializationData where
+@[widget_module] def GadgetGraph : Component InitializationData where
   javascript := include_str ".." / ".." / "js-build" / "InfoviewGame.js"
-
--- open Lean Server Elab Command Json
--- elab stx:"#gadget" : command => runTermElabM fun _ => do
---   let props  : GadgetGraphProps := { gadgets := #[{
---       id := "test_gadget",
---       inputs := #[.app "x" #[]],
---       output? := some (.app "f" #[.app "b" #[]]),
---       x := 0,
---       y := 0
---     }] }
---   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
---     (return Lean.toJson props) stx
-
--- #gadget
 
 end GadgetGame
