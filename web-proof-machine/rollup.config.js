@@ -4,6 +4,8 @@ import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import postcss from 'rollup-plugin-postcss';
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 import { resolve } from 'path';
 
 /** @type {(_: any) => import('rollup').RollupOptions} */
@@ -57,8 +59,13 @@ export default cliArgs => {
             ],
         }),
         postcss({
-            extensions: ['.css']
-        })
+            extensions: ['.css'],
+            plugins: [
+                tailwindcss(),
+                autoprefixer(),
+            ],
+        }),
+        isProduction && terser()
     ],
     })
 
