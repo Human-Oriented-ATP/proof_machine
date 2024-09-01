@@ -24,6 +24,7 @@ structure State where
 structure Context where
   sort? : Bool
   axioms : List Axiom
+  timeout? : Option Nat
 
 abbrev GadgetGameSolverM := StateT State <| ReaderM Context
 
@@ -71,6 +72,11 @@ def getMatchingAxioms (term : Term) (sort? : Bool) : GadgetGameSolverM (List Axi
   let axioms := (← read).axioms
   Array.toList <$> Term.filterRelevantAxioms term axioms.toArray sort?
 
+def timedOut : GadgetGameSolverM Bool := do
+  match (← read).timeout? with
+  | none => return false
+  | some timeout => return (← getStepCount) > timeout
+
 mutual
 
 partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := do
@@ -90,7 +96,8 @@ partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Un
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
   changeCurrentTree <| .node (← axiom.conclusion.instantiateVars) («axiom».hypotheses.toList.map .goal)
-  forEachChild workOnCurrentGoal
+  unless ← timedOut do
+    forEachChild workOnCurrentGoal
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
@@ -111,24 +118,21 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
 
 end
 
-def runDFS (problemState : ProblemState) : ClosedProofTree :=
+def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
-      |>.run { sort? := false, axioms := problemState.axioms.toList }
+      |>.run { sort? := false, axioms := problemState.axioms.toList, timeout? := timeout? }
   let proofTree := σ.location.tree
-  if h : proofTree.isClosed then
-    ⟨proofTree, h⟩
-  else
-    panic! "Invalid proof tree, expected no open goals."
+  proofTree
 
-def runDFSOnFile (file : System.FilePath) : MetaM ClosedProofTree :=
+def runDFSOnFile (file : System.FilePath) : MetaM ProofTree :=
   runDFS <$> parsePrologFile file
 
 open Lean Elab Meta Term Elab Command in
-elab stx:"#gadget_display" name:str : command => runTermElabM fun _ => do
+elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let tree := runDFS problemState
-  let initDiagram := tree.val.getGadgetGraph
+  let tree := runDFS problemState (timeout?.map TSyntax.getNat)
+  let initDiagram := tree.getGadgetGraph
   let initData : InitializationData := {
     initialDiagram := initDiagram,
     axioms := problemState.axioms
@@ -138,6 +142,6 @@ elab stx:"#gadget_display" name:str : command => runTermElabM fun _ => do
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display "tim_easy01"
+#gadget_display "tim_easy01" 1
 
 end GadgetGame
