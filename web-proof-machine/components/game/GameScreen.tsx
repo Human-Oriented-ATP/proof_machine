@@ -26,7 +26,7 @@ export function GameScreen(props: GameScreenProps) {
         <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
             <TutorialOverlay problemId={props.problemId} />
-            <Game {...props} setProblemSolved={setProblemSolved} proximityConnectEnabled={true} />
+            <Game {...props} setProblemSolved={setProblemSolved} historyRecorded={true} proximityConnectEnabled={true} />
             <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         </div>
     </div>

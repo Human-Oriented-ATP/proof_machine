@@ -6,5 +6,5 @@ interface TutorialProps {
 }
 
 export function Tutorial(props: TutorialProps) {
-    return <Game {...props} setProblemSolved={() => console.log('solved')} />;
+    return <Game {...props} historyRecorded={true} setProblemSolved={() => console.log('solved')} proximityConnectEnabled={true} />;
 }
