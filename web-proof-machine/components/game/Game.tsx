@@ -14,6 +14,7 @@ export interface GameProps {
     initData: InitializationData
     problemId?: string
     setProblemSolved: () => void
+    historyRecorded: boolean
     proximityConnectEnabled: boolean
 }
 
@@ -49,12 +50,16 @@ export function Game(props: GameProps) {
 
     function addGadget(gadgetId: string, axiom: Axiom) {
         history.current.logEvent({ GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } })
-        synchronizeHistory(JSON.stringify(history.current))
+        if (props.historyRecorded) {
+            synchronizeHistory(JSON.stringify(history.current))
+        }
     }
 
     function removeGadget(gadgetId: string) {
         history.current.logEvent({ GadgetRemoved: { gadgetId } })
-        synchronizeHistory(JSON.stringify(history.current))
+        if (props.historyRecorded) {
+            synchronizeHistory(JSON.stringify(history.current))
+        }
     }
 
     const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
@@ -78,14 +83,18 @@ export function Game(props: GameProps) {
         if (!history.current.completed) {
             history.current.logEvent({ Completed: null })
             history.current.completed = true
-            synchronizeHistory(JSON.stringify(history.current))
+            if (props.historyRecorded) {
+                synchronizeHistory(JSON.stringify(history.current))
+            }
         }
     }, [])
 
     useEffect(() => {
         try {
             const historyString = JSON.stringify(history.current)
-            synchronizeHistory(historyString)
+            if (props.historyRecorded) {
+                synchronizeHistory(historyString)
+            }
         } catch (e) {
             console.error(e)
         }
