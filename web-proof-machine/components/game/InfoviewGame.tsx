@@ -1,4 +1,5 @@
 import { InitializationData } from "lib/game/Initialization"
+import "../../index.css"
 import { Game } from "./Game"
 
 export default function InfoviewGame(initData: InitializationData) {
