@@ -42,8 +42,8 @@ deriving Lean.ToJson, Repr
 
 structure ProofTree.RenderingParams where
   holeWidth : Nat := 15
-  nodePadding : Nat := 20
-  gadgetThickness : Nat := 500
+  nodePadding : Nat := 25
+  gadgetThickness : Nat := 150
 
 structure ProofTree.RenderingState extends InitialDiagram where
   location : Array Nat := #[]
@@ -63,11 +63,10 @@ macro_rules
 
 end LensNotation
 
+def goalGadgetId : String := "goal_gadget"
+
 def mkGadgetId (loc : Array Nat) : String :=
-  if loc.isEmpty then
-    "goal_gadget"
-  else
-    s!"gadget_{loc}"
+  s!"gadget_{loc}"
 
 def mkEdgeId (sourceLoc : Array Nat) (childIdx : Nat) : String :=
   s!"edge_{sourceLoc}_{childIdx}"
@@ -84,7 +83,10 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     let nodeHeight ← nodeSize term
     let gadgetProps : InitialDiagramGadget := {
       id := mkGadgetId state.location,
-      statement := .goal term,
+      statement := .axiom {
+        hypotheses := #[],
+        conclusion := term
+      },
       position := {
         x := state.xOffset,
         y := state.yOffset + nodeHeight / 2
@@ -128,8 +130,25 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
 
     modify <| gadgets %~ (·.push gadgetProps)
 
+    if state.location.isEmpty then
+      let goalGadgetProps : InitialDiagramGadget := {
+        id := goalGadgetId,
+        statement := .goal term,
+        position := {
+          gadgetProps.position with
+          x := state.xOffset + params.gadgetThickness
+        }
+      }
+
+      modify <| gadgets %~ (·.push goalGadgetProps)
+      modify <| connections %~ (·.push {
+        source := gadgetProps.id,
+        target := goalGadgetId,
+        targetPosition := 0
+      })
+
 def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
-  let (_, state) := proofTree.exportToGraph |>.run { xOffset := 0, yOffset := 0 } |>.run {}
+  let (_, state) := proofTree.exportToGraph |>.run { xOffset := 1000, yOffset := 0 } |>.run {}
   state.toInitialDiagram
 
 open Lean ProofWidgets Server
