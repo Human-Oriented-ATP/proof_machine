@@ -95,7 +95,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     set { state with
           yOffset := state.yOffset + nodeHeight,
           gadgets := state.gadgets.push gadgetProps }
-  | .node term goals => do
+  | .node ax term goals => do
     let params ← read
     let state ← get
     let headId := mkGadgetId state.location
@@ -118,10 +118,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
 
     let gadgetProps : InitialDiagramGadget := {
       id := mkGadgetId state.location,
-      statement := .axiom {
-        hypotheses := goals.toArray.map ProofTree.headTerm,
-        conclusion := term
-      },
+      statement := .axiom ax,
       position := {
         x := state.xOffset,
         y := (state.yOffset + yOffsetNew) / 2
