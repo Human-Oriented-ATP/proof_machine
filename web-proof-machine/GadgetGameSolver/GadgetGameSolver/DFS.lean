@@ -95,7 +95,7 @@ partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Un
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
-  changeCurrentTree <| .node (← axiom.conclusion.instantiateVars) («axiom».hypotheses.toList.map .goal)
+  changeCurrentTree <| .node (← axiom.conclusion.instantiateVars) (← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   unless ← timedOut do
     forEachChild workOnCurrentGoal
 
