@@ -20,11 +20,13 @@ structure State where
   goalStatusCtx : GoalStatusCtx := .empty
   location : Location
   count : Nat := 0
+  log : Array String := #[]
 
 structure Context where
   sort? : Bool
   axioms : List Axiom
-  timeout? : Option Nat
+  timeout? : Option Nat := none
+  verbose : Bool := true
 
 abbrev GadgetGameSolverM := StateT State <| ReaderM Context
 
@@ -77,73 +79,91 @@ def timedOut : GadgetGameSolverM Bool := do
   | none => return false
   | some timeout => return (← getStepCount) > timeout
 
+def log (message : String) : GadgetGameSolverM Unit := do
+  if (← read).verbose then
+    let annotatedMessage := s!"{← getStepCount}: {message}"
+    modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
+
 mutual
 
-partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := do
+partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
+  log s!"Working on goal {goal} ..."
   match (← getThe GoalStatusCtx).find? (← goal.instantiateVars) with
   | some (.solved proofTree) =>
+      log s!"The goal {goal} has been solved before, using the cached proof tree."
       changeCurrentTree proofTree
-  | some .ongoing => throw "Avoiding working on an open goal."
+  | some .ongoing =>
+      log s!"The goal {goal} is already being worked on."
+      throw "Avoiding working on an open goal."
   | none =>
       modifyThe GoalStatusCtx (·.insert (← goal.instantiateVars) .ongoing)
+      log s!"Finding matching axioms for {goal} ..."
       let choices ← getMatchingAxioms goal (← read).sort?
       applyAxioms choices
 
 partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
+  log s!"Applying axiom {«axiom»} to goal {goal} ..."
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
   changeCurrentTree <| .node «axiom»
     (term := ← «axiom».conclusion.instantiateVars)
     (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
-  unless ← timedOut do
-    forEachChild workOnCurrentGoal
+  log s!"Working on the new goals ..."
+  forEachChild workOnCurrentGoal
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   match axioms with
-  | [] => throw "Out of choices."
+  | [] =>
+      log s!"There are no axioms left to apply on {goal}."
+      throw "Out of choices."
+      -- TODO: mark goal as failed
   | choice :: choices =>
     let σ ← saveState
     try
       applyAxiom choice
       let ⟨proofTree, _⟩ ← getThe Location
-      if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
-        modifyThe GoalStatusCtx <| (·.insert (← goal.instantiateVars) <| .solved ⟨proofTree, h.right⟩)
+      -- TODO: investigate the first condition
+      if h:proofTree.isClosed then
+        -- TODO: generalize the proof tree as much as possible
+        modifyThe GoalStatusCtx <| (·.insert (← goal.instantiateVars) <| .solved ⟨proofTree, h⟩)
       else
+        -- TODO: add a guard to ensure that the goal is marked as `.ongoing`
         modifyThe GoalStatusCtx <| (·.erase goal)
     catch e =>
+      log s!"Failed to apply axiom {choice} on {goal}, trying the remaining ..."
       restoreState σ
       applyAxioms choices
 
 end
 
-def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree :=
+def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree × Array String :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
       |>.run { sort? := false, axioms := problemState.axioms.toList, timeout? := timeout? }
   let proofTree := σ.location.tree
-  proofTree
+  (proofTree, σ.log)
 
-def runDFSOnFile (file : System.FilePath) : MetaM ProofTree :=
+def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
   runDFS <$> parsePrologFile file
 
 open Lean Elab Meta Term Elab Command in
 elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let tree := runDFS problemState (timeout?.map TSyntax.getNat)
+  let ⟨tree, proofLog⟩ := runDFS problemState (timeout?.map TSyntax.getNat)
+  logInfoAt stx m!"{proofLog}"
   let initDiagram := tree.getGadgetGraph
   let initData : InitializationData := {
     initialDiagram := initDiagram,
     axioms := problemState.axioms
   }
   let jsonProps := Lean.toJson initData
-  logInfoAt stx <| toMessageData jsonProps
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display "tim_easy01" 1
+#gadget_display "tim_easy01"
 
 end GadgetGame
