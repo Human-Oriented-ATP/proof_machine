@@ -8,8 +8,8 @@ abbrev GadgetId := String
 abbrev EdgeId := String
 
 structure Position where
-  x : Nat
-  y : Nat
+  x : Int
+  y : Int
 deriving Repr, Lean.ToJson
 
 structure InitialDiagramGadget where
@@ -47,8 +47,8 @@ structure ProofTree.RenderingParams where
 
 structure ProofTree.RenderingState extends InitialDiagram where
   location : Array Nat := #[]
-  xOffset : Nat
-  yOffset : Nat
+  xOffset : Int
+  yOffset : Int
 
 section LensNotation
 
@@ -148,8 +148,8 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
       })
 
 def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
-  let (_, state) := proofTree.exportToGraph |>.run { xOffset := 1000, yOffset := 0 } |>.run {}
-  state.toInitialDiagram
+  let (_, state) := proofTree.exportToGraph |>.run { xOffset := -({} : RenderingParams).gadgetThickness, yOffset := 0 } |>.run {}
+  state.toInitialDiagram -- TODO: re-center goal gadget to (0, 0)
 
 open Lean ProofWidgets Server
 
