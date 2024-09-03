@@ -121,6 +121,7 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
   | [] =>
       goUp
       incrementStepCount
+      modifyThe OngoingGoalCtx (·.erase goal)
       log s!"There are no axioms left to apply on `{goal}`."
       throw "Out of choices."
       -- TODO: mark goal as failed
@@ -130,11 +131,11 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       applyAxiom choice
       let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
-      if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
-        -- TODO: generalize the proof tree as much as possible and cache
-        pure ()
-      else
-        modifyThe OngoingGoalCtx (·.erase goal)
+      -- if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
+      --   -- TODO: generalize the proof tree as much as possible and cache
+      --   pure ()
+      -- else
+      modifyThe OngoingGoalCtx (·.erase goal)
     catch e =>
       restoreState σ
       log s!"Error {e}: Failed to apply axiom {choice} on `{goal}`, trying the remaining ..."
@@ -158,6 +159,8 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
   let ⟨tree, proofLog⟩ := runDFS problemState (timeout?.map TSyntax.getNat)
   logInfoAt stx m!"{proofLog}"
+  if timeout?.isNone && !tree.isClosed then
+    throwError "The proof tree is not closed."
   let initDiagram := tree.getGadgetGraph
   let initData : InitializationData := {
     initialDiagram := initDiagram,
@@ -167,6 +170,6 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display "tim_easy03"
+#gadget_display "tim_easy01"
 
 end GadgetGame
