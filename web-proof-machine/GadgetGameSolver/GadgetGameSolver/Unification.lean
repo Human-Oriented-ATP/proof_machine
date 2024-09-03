@@ -27,6 +27,8 @@ def Axiom.instantiateVars («axiom» : Axiom) : M Axiom := do
 def assign (var : String) (t : Term) : ExceptT String M Unit := do
   let ctx ← getThe VarAssignmentCtx
   let t ← t.instantiateVars
+  if t == .var var then
+    return () -- no need to assign
   unless ! t.containsVar? var do
     throw "Occur check failed."
   match ctx.find? var with
@@ -64,6 +66,17 @@ def Term.unifyWithScore (s t : Term) : ExceptT String M Nat := do
 
 def Term.unifiable? (s t : Term) : M Bool := withoutModifyingState do
   return (← unify s t |>.run).toBool
+
+def Term.le (s t : Term) : Bool :=
+  -- the order of the arguments to `Term.unify` ensures that the meta-variables in `t` get instantiated preferentially
+  let (result, ctx) := Term.unify (M := StateM VarAssignmentCtx) t s |>.run {}
+  match result with
+  | .ok _ =>
+      ! s.collectVarsDedup.any ctx.contains
+  | .error _ => false
+
+instance : LE Term := ⟨(Term.le · ·)⟩
+instance : DecidableRel (LE.le (α := Term)) := (inferInstanceAs <| Decidable <| Term.le · ·)
 
 def Term.filterRelevantAxioms (t : Term) (axioms : Array Axiom) (sort? : Bool) : M (Array Axiom) := withoutModifyingState do
   let relevantAxiomsWithScores : Array (Axiom × Nat) ← axioms.filterMapM fun «axiom» ↦ withoutModifyingState do
