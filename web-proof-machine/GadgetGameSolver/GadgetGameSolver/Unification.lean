@@ -67,16 +67,13 @@ def Term.unifyWithScore (s t : Term) : ExceptT String M Nat := do
 def Term.unifiable? (s t : Term) : M Bool := withoutModifyingState do
   return (← unify s t |>.run).toBool
 
-def Term.le (s t : Term) : Bool :=
+def Term.subsumes (t s : Term) : Bool :=
   -- the order of the arguments to `Term.unify` ensures that the meta-variables in `t` get instantiated preferentially
   let (result, ctx) := Term.unify (M := StateM VarAssignmentCtx) t s |>.run {}
   match result with
   | .ok _ =>
-      ! s.collectVarsDedup.any ctx.contains
+      ! (s.collectVarsDedup.any ctx.contains) ∧ ! (ctx.toArray.any fun (_, val) => val matches .app _ _)
   | .error _ => false
-
-instance : LE Term := ⟨(Term.le · ·)⟩
-instance : DecidableRel (LE.le (α := Term)) := (inferInstanceAs <| Decidable <| Term.le · ·)
 
 def Term.filterRelevantAxioms (t : Term) (axioms : Array Axiom) (sort? : Bool) : M (Array Axiom) := withoutModifyingState do
   let relevantAxiomsWithScores : Array (Axiom × Nat) ← axioms.filterMapM fun «axiom» ↦ withoutModifyingState do

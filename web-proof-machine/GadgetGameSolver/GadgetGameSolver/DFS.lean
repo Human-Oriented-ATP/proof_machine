@@ -8,16 +8,18 @@ namespace GadgetGame
 
 open Lean
 
-inductive GoalStatus where
-  | ongoing
-  -- | failed
-  | solved (solution : ClosedProofTree)
+-- inductive GoalStatus where
+--   | ongoing
+--   -- | failed
+--   | solved (solution : ClosedProofTree)
 
-abbrev GoalStatusCtx := HashMap Term GoalStatus
+-- abbrev GoalStatusCtx := HashMap Term GoalStatus
+
+abbrev OngoingGoalCtx := Array Term
 
 structure State where
   assignmentCtx : VarAssignmentCtx := .empty
-  goalStatusCtx : GoalStatusCtx := .empty
+  ongoingGoalCtx : OngoingGoalCtx := .empty
   location : Location
   count : Nat := 0
   log : Array String := #[]
@@ -40,13 +42,14 @@ instance : MonadStateOf VarAssignmentCtx GadgetGameSolverM where
       let (a, ctx) := f σ.assignmentCtx
       (a, { σ with assignmentCtx := ctx })
 
-instance : MonadStateOf GoalStatusCtx GadgetGameSolverM where
-  get := do return (← get).goalStatusCtx
-  set ctx := do modify ({ · with goalStatusCtx := ctx })
+instance : MonadStateOf OngoingGoalCtx GadgetGameSolverM where
+  get := do return (← get).ongoingGoalCtx
+  set ctx := do modify ({ · with ongoingGoalCtx := ctx })
   modifyGet f := do
     modifyGet fun σ ↦
-      let (a, ctx) := f σ.goalStatusCtx
-      (a, { σ with goalStatusCtx := ctx })
+      let (a, ctx) := f σ.ongoingGoalCtx
+      (a, { σ with ongoingGoalCtx := ctx })
+
 
 instance : MonadStateOf Location GadgetGameSolverM where
   get := do return (← get).location
@@ -81,7 +84,7 @@ def timedOut : GadgetGameSolverM Bool := do
 
 def log (message : String) : GadgetGameSolverM Unit := do
   if (← read).verbose then
-    let annotatedMessage := s!"{← getStepCount}: {message}"
+    let annotatedMessage := s!"{← getStepCount} : {message}"
     modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
 
 mutual
@@ -89,20 +92,19 @@ mutual
 partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   log s!"Working on goal `{goal}` ..."
-  match (← getThe GoalStatusCtx).find? (← goal.instantiateVars) with
-  | some (.solved proofTree) =>
-      log s!"The goal `{goal}` has been solved before, using the cached proof tree."
-      changeCurrentTree proofTree
-  | some .ongoing =>
-      log s!"The goal `{goal}` is already being worked on."
-      throw "Avoiding working on an open goal."
+  match (← getThe OngoingGoalCtx).find? (Term.subsumes (← goal.instantiateVars) ·) with
+  | some ongoingGoal =>
+    goUp
+    incrementStepCount
+    log s!"The goal `{goal}` conflicts with the ongoing goal {ongoingGoal}."
+    throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal {ongoingGoal}."
   | none =>
-      modifyThe GoalStatusCtx (·.insert (← goal.instantiateVars) .ongoing)
-      log s!"Finding matching axioms for `{goal}` ..."
-      let choices ← getMatchingAxioms goal (← read).sort?
-      applyAxioms choices
+    modifyThe OngoingGoalCtx (·.push (← goal.instantiateVars))
+    log s!"Finding matching axioms for `{goal}` ..."
+    let choices ← getMatchingAxioms goal (← read).sort? -- TODO: load cached results here
+    applyAxioms choices
 
-partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
@@ -113,10 +115,12 @@ partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Un
     (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   forEachChild workOnCurrentGoal
 
-partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
+      goUp
+      incrementStepCount
       log s!"There are no axioms left to apply on `{goal}`."
       throw "Out of choices."
       -- TODO: mark goal as failed
@@ -127,14 +131,14 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
       if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
-        -- TODO: generalize the proof tree as much as possible
-        modifyThe GoalStatusCtx <| (·.insert (← goal.instantiateVars) <| .solved ⟨proofTree, h.right⟩)
+        -- TODO: generalize the proof tree as much as possible and cache
+        pure ()
       else
-        -- TODO: add a guard to ensure that the goal is marked as `.ongoing`
-        modifyThe GoalStatusCtx <| (·.erase goal)
+        modifyThe OngoingGoalCtx (·.erase goal)
     catch e =>
       restoreState σ
       log s!"Error {e}: Failed to apply axiom {choice} on `{goal}`, trying the remaining ..."
+      changeCurrentTree <| .goal goal
       applyAxioms choices
 
 end
@@ -163,6 +167,6 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display "tim_easy01"
+#gadget_display "tim_easy03"
 
 end GadgetGame
