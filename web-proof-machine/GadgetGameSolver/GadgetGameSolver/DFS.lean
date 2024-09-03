@@ -77,7 +77,7 @@ def getMatchingAxioms (term : Term) (sort? : Bool) : GadgetGameSolverM (List Axi
 def timedOut : GadgetGameSolverM Bool := do
   match (← read).timeout? with
   | none => return false
-  | some timeout => return (← getStepCount) > timeout
+  | some timeout => return (← getStepCount) ≥ timeout
 
 def log (message : String) : GadgetGameSolverM Unit := do
   if (← read).verbose then
@@ -88,37 +88,36 @@ mutual
 
 partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
-  log s!"Working on goal {goal} ..."
+  log s!"Working on goal `{goal}` ..."
   match (← getThe GoalStatusCtx).find? (← goal.instantiateVars) with
   | some (.solved proofTree) =>
-      log s!"The goal {goal} has been solved before, using the cached proof tree."
+      log s!"The goal `{goal}` has been solved before, using the cached proof tree."
       changeCurrentTree proofTree
   | some .ongoing =>
-      log s!"The goal {goal} is already being worked on."
+      log s!"The goal `{goal}` is already being worked on."
       throw "Avoiding working on an open goal."
   | none =>
       modifyThe GoalStatusCtx (·.insert (← goal.instantiateVars) .ongoing)
-      log s!"Finding matching axioms for {goal} ..."
+      log s!"Finding matching axioms for `{goal}` ..."
       let choices ← getMatchingAxioms goal (← read).sort?
       applyAxioms choices
 
-partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
+partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
-  log s!"Applying axiom {«axiom»} to goal {goal} ..."
+  log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
   changeCurrentTree <| .node «axiom»
     (term := ← «axiom».conclusion.instantiateVars)
     (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
-  log s!"Working on the new goals ..."
   forEachChild workOnCurrentGoal
 
-partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
+partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      log s!"There are no axioms left to apply on {goal}."
+      log s!"There are no axioms left to apply on `{goal}`."
       throw "Out of choices."
       -- TODO: mark goal as failed
   | choice :: choices =>
@@ -127,15 +126,15 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       applyAxiom choice
       let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
-      if h:proofTree.isClosed then
+      if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
         -- TODO: generalize the proof tree as much as possible
-        modifyThe GoalStatusCtx <| (·.insert (← goal.instantiateVars) <| .solved ⟨proofTree, h⟩)
+        modifyThe GoalStatusCtx <| (·.insert (← goal.instantiateVars) <| .solved ⟨proofTree, h.right⟩)
       else
         -- TODO: add a guard to ensure that the goal is marked as `.ongoing`
         modifyThe GoalStatusCtx <| (·.erase goal)
     catch e =>
-      log s!"Failed to apply axiom {choice} on {goal}, trying the remaining ..."
       restoreState σ
+      log s!"Error {e}: Failed to apply axiom {choice} on `{goal}`, trying the remaining ..."
       applyAxioms choices
 
 end
@@ -143,7 +142,7 @@ end
 def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree × Array String :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
-      |>.run { sort? := false, axioms := problemState.axioms.toList, timeout? := timeout? }
+      |>.run { sort? := false, axioms := problemState.axioms.toList, timeout? := timeout?, verbose := true }
   let proofTree := σ.location.tree
   (proofTree, σ.log)
 

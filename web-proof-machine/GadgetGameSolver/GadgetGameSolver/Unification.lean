@@ -49,7 +49,7 @@ partial def Term.unifyCore (s t : Term) : StateT Nat (ExceptT String M) Unit := 
     | none => assign (M := M) v s
   | .app f args, .app f' args' =>
     unless f = f' do
-      throw "Function arguments {f} and {f'} do not match."
+      throw s!"Function arguments {f} and {f'} do not match."
     unless args.size = args'.size do
       throw "The number of arguments does not match."
     modify Nat.succ -- the score is incremented by one every time the function heads match up
