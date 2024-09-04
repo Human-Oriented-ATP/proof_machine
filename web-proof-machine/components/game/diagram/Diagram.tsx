@@ -21,7 +21,7 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
+import { getDiagramGadgetMap, InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
