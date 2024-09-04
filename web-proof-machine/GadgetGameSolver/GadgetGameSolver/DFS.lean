@@ -155,7 +155,7 @@ def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
   runDFS <$> parsePrologFile file
 
 open Lean Elab Meta Term Elab Command in
-elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fun _ => do
+elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
   let ⟨tree, proofLog⟩ := runDFS problemState (timeout?.map TSyntax.getNat)
   logInfoAt stx m!"{proofLog}"
@@ -164,12 +164,12 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
   let initDiagram := tree.getGadgetGraph
   let initData : InitializationData := {
     initialDiagram := initDiagram,
-    axioms := problemState.axioms
+    axioms := if axioms?.isSome then problemState.axioms else .empty
   }
   let jsonProps := Lean.toJson initData
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display "tim_easy01"
+#gadget_display with_axioms "tim_easy01"
 
 end GadgetGame
