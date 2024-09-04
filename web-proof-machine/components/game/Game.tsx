@@ -9,6 +9,7 @@ import { AssignmentContext } from "../../lib/game/AssignmentContext";
 import { GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
+import { InitialViewportSetting } from "lib/util/ReactFlow";
 
 export interface GameProps {
     initData: InitializationData
@@ -17,6 +18,7 @@ export interface GameProps {
     setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
     zoomEnabled: boolean
+    initialViewportSetting?: InitialViewportSetting
 }
 
 function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
@@ -93,6 +95,8 @@ export function Game(props: GameProps) {
         }
     }, [equations])
 
+    const initialViewportSetting = props.initialViewportSetting || "ORIGIN_AT_RIGHT"
+
     return <AssignmentContext.Provider value={termEnumeration}>
         <ReactFlowProvider>
             <Diagram
@@ -106,6 +110,7 @@ export function Game(props: GameProps) {
                 setUserIsDraggingOrNavigating={props.setUserIsDraggingOrNavigating}
                 proximityConnectEnabled={props.proximityConnectEnabled}
                 zoomEnabled={props.zoomEnabled}
+                initialViewportSetting={initialViewportSetting}
             ></Diagram>
         </ReactFlowProvider>
     </AssignmentContext.Provider>
