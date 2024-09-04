@@ -16,12 +16,12 @@ import { Term } from '../../../lib/game/Term';
 import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
-import { hasTargetHandle, init } from '../../../lib/util/ReactFlow';
+import { InitialViewportSetting, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
 import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, getDiagramGadgetMap, getEquationFromInitialConnection, isAxiom } from 'lib/game/Initialization';
+import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
@@ -35,7 +35,10 @@ interface DiagramProps {
     removeEquation: (from: GadgetId, to: [GadgetId, NodePosition]) => void
     isSatisfied: Map<EquationId, boolean>
     setProblemSolved: () => void
+    setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
+    zoomEnabled: boolean
+    initialViewportSetting: InitialViewportSetting
 }
 
 const nodesLengthSelector = (state) =>
@@ -300,6 +303,7 @@ export function Diagram(props: DiagramProps) {
         } else {
             onNodeDragStopProximityConnect(event, node)
         }
+        props.setUserIsDraggingOrNavigating(false)
     }, [])
 
     const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
@@ -310,8 +314,10 @@ export function Diagram(props: DiagramProps) {
         nodes.map(node => props.removeGadget(node.id))
     }, [])
 
+    const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
+
     return <>
-        <GadgetPalette {...paletteProps} />
+        {props.initData.axioms.length !== 0 && <GadgetPalette {...paletteProps} />}
         <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -322,14 +328,17 @@ export function Diagram(props: DiagramProps) {
             onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
-            onInit={() => init(rf)}
+            onInit={() => init(rf, props.initialViewportSetting)}
             onConnectStart={onConnectStart}
             isValidConnection={isValidConnection}
-            minZoom={0.1}
+            {...zoomProps}
             onNodeDrag={onNodeDrag}
+            onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
+            onMoveStart={() => props.setUserIsDraggingOrNavigating(true)}
+            onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
         />
-        <ControlButtons rf={rf} ></ControlButtons>
+        <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} ></ControlButtons>
     </>
 }

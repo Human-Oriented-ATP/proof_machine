@@ -40,6 +40,7 @@ export function connectionPath(props: ConnectionDrawingData, index: number,
         <path key={index}
             d={path_command}
             strokeWidth="2px"
+            stroke='black'
             fill="transparent"
         />
     );

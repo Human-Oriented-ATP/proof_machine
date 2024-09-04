@@ -1,4 +1,4 @@
-import { Connector } from "./gadget/Connector"
+import { Connector } from "../game/gadget/Connector"
 
 const tutorialTexts: Map<string, JSX.Element> = new Map([
     ["tutorial01",
@@ -92,7 +92,7 @@ const tutorialTexts: Map<string, JSX.Element> = new Map([
     ]
 ])
 
-export default function TutorialOverlay({ problemId }: { problemId: string }) {
+export default function StaticTextOverlay({ problemId }: { problemId: string }) {
     if (tutorialTexts.has(problemId)) {
         return <div className="fixed w-full h-full">
             <div className="absolute left-44 top-12">

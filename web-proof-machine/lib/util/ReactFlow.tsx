@@ -1,4 +1,4 @@
-import { Node, Edge, ReactFlowInstance, NodeProps } from '@xyflow/react';
+import { Edge, ReactFlowInstance } from '@xyflow/react';
 import { GadgetProps } from '../game/Primitives';
 import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 
@@ -19,11 +19,17 @@ export function getGoalNode(props: GadgetProps): GadgetNode {
     };
 }
 
-export function init(rf: ReactFlowInstance) {
-    const rect = document.getElementById("root")?.getBoundingClientRect()!
-    const positionX = rect.width * 4 / 5
-    const positionY = rect.height / 2
-    const rfPosition = rf.screenToFlowPosition({ x: positionX, y: positionY })
-    const currentZoom = rf.getZoom()
-    rf.setViewport({ x: rfPosition.x, y: rfPosition.y, zoom: currentZoom })
+export type InitialViewportSetting = "ORIGIN_AT_RIGHT" | "FIT_INITIAL_DIAGRAM"
+
+export function init(rf: ReactFlowInstance, setting: InitialViewportSetting) {
+    if (setting === "ORIGIN_AT_RIGHT") {
+        const rect = document.getElementById("root")?.getBoundingClientRect()!
+        const positionX = rect.width * 4 / 5
+        const positionY = rect.height / 2
+        const rfPosition = rf.screenToFlowPosition({ x: positionX, y: positionY })
+        const currentZoom = rf.getZoom()
+        rf.setViewport({ x: rfPosition.x, y: rfPosition.y, zoom: currentZoom })
+    } else {
+        rf.fitView()
+    }
 }
