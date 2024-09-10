@@ -113,11 +113,11 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      if (← read).lateralBacktrack then
-        log s!"No exact matches found for `{goal}`, trying approximate matches ..."
-        withReader ({· with lateralBacktrack := false}) do
-          applyApproximateAxioms (← getApproximatelyMatchingAxioms)
-      else
+      -- if (← read).lateralBacktrack then
+      --   log s!"No exact matches found for `{goal}`, trying approximate matches ..."
+      --   withReader ({· with lateralBacktrack := false}) do
+      --     applyApproximateAxioms (← getApproximatelyMatchingAxioms)
+      -- else
         goUp
         incrementStepCount
         log s!"There are no axioms left to apply on `{goal}`."
@@ -141,12 +141,24 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       changeCurrentTree <| .goal goal
       applyAxioms choices
 
+partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit :=
+  sorry
+
 partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := do
-  let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
+  let ⟨.goal _, .node youngerSiblings _ «axiom» elderSiblings⟩ ← getThe Location |
     throw "Expected the current location to be a goal, different from the root."
   deallocate «axiom».collectVarsDedup
+
+  goUp
+  changeCurrentTree <| .goal «axiom».conclusion
+  applyAxiom «axiom»
+  -- TODO: re-order the goals
+
+  visitChild youngerSiblings.length
+  applyAxiom approxAxiom
   goUp
 
+  -- TODO: "regrow" the previous proof trees
 
 partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   pure ()
@@ -179,6 +191,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy01"
+#gadget_display with_axioms "tim_easy03"
 
 end GadgetGame
