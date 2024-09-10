@@ -26,6 +26,7 @@ structure State where
 
 structure Context where
   sort? : Bool
+  lateralBacktrack : Bool := true
   axioms : List Axiom
   timeout? : Option Nat := none
   verbose : Bool := true
@@ -73,9 +74,16 @@ def getCurrentGoal : ExceptT String GadgetGameSolverM Term := do
   let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
   return goal
 
-def getMatchingAxioms (term : Term) (sort? : Bool) : GadgetGameSolverM (List Axiom) := do
-  let axioms := (← read).axioms
-  Array.toList <$> Term.filterRelevantAxioms term axioms.toArray sort?
+def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
+  Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
+
+def getApproximatelyMatchingAxioms : ExceptT String GadgetGameSolverM (List Axiom) := do
+  let ⟨.goal goal, .node ys p a t es⟩ ← getThe Location | throw "Expected the current location to be a goal."
+  -- withoutModifyingState do
+  --   let a ← a.instantiateFresh s!"{← getStepCount}_temp"
+  --   Term.unify a.conclusion goal
+  sorry
+  -- getMatchingAxioms (← getCurrentGoal) (← read).sort?
 
 def timedOut : GadgetGameSolverM Bool := do
   match (← read).timeout? with
@@ -96,12 +104,12 @@ partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless 
   | some ongoingGoal =>
     goUp
     incrementStepCount
-    log s!"The goal `{goal}` conflicts with the ongoing goal {ongoingGoal}."
-    throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal {ongoingGoal}."
+    log s!"The goal `{goal}` conflicts with the ongoing goal `{ongoingGoal}`."
+    throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal `{ongoingGoal}`."
   | none =>
     modifyThe OngoingGoalCtx (·.push (← goal.instantiateVars))
     log s!"Finding matching axioms for `{goal}` ..."
-    let choices ← getMatchingAxioms goal (← read).sort? -- TODO: load cached results here
+    let choices ← getMatchingAxioms goal -- TODO: load cached results here
     applyAxioms choices
 
 partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
@@ -113,18 +121,24 @@ partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Un
   changeCurrentTree <| .node «axiom»
     (term := ← «axiom».conclusion.instantiateVars)
     (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
+  -- TODO: order the goals
   forEachChild workOnCurrentGoal
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      goUp
-      incrementStepCount
-      modifyThe OngoingGoalCtx (·.erase goal)
-      log s!"There are no axioms left to apply on `{goal}`."
-      throw "Out of choices."
-      -- TODO: mark goal as failed
+      if (← read).lateralBacktrack then
+        log s!"No exact matches found for `{goal}`, trying approximate matches ..."
+        withReader ({· with lateralBacktrack := false}) do
+          applyApproximateAxioms (← getApproximatelyMatchingAxioms)
+      else
+        goUp
+        incrementStepCount
+        modifyThe OngoingGoalCtx (·.erase goal)
+        log s!"There are no axioms left to apply on `{goal}`."
+        throw "Out of choices."
+        -- TODO: mark goal as failed
   | choice :: choices =>
     let σ ← saveState
     try
@@ -141,6 +155,8 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       log s!"Error {e}: Failed to apply axiom {choice} on `{goal}`, trying the remaining ..."
       changeCurrentTree <| .goal goal
       applyAxioms choices
+
+partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := sorry
 
 end
 
@@ -170,6 +186,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy01"
+-- #gadget_display "tim_easy04" 8
 
 end GadgetGame
