@@ -19,7 +19,7 @@ abbrev OngoingGoalCtx := Array Term
 
 structure State where
   assignmentCtx : VarAssignmentCtx := .empty
-  ongoingGoalCtx : OngoingGoalCtx := .empty
+  ongoingGoalCtx : OngoingGoalCtx := .empty -- TODO: Move to reader part of the monad
   location : Location
   count : Nat := 0
   log : Array String := #[]
@@ -78,12 +78,8 @@ def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
   Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
 
 def getApproximatelyMatchingAxioms : ExceptT String GadgetGameSolverM (List Axiom) := do
-  let ⟨.goal goal, .node ys p a t es⟩ ← getThe Location | throw "Expected the current location to be a goal."
-  -- withoutModifyingState do
-  --   let a ← a.instantiateFresh s!"{← getStepCount}_temp"
-  --   Term.unify a.conclusion goal
-  sorry
-  -- getMatchingAxioms (← getCurrentGoal) (← read).sort?
+  let ⟨.goal _, .node youngerSiblings _ «axiom» _ _⟩ ← getThe Location | throw "Expected the current location to be a goal, different from the root."
+  liftM <| getMatchingAxioms «axiom».hypotheses[youngerSiblings.length]!
 
 def timedOut : GadgetGameSolverM Bool := do
   match (← read).timeout? with
@@ -156,7 +152,7 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       changeCurrentTree <| .goal goal
       applyAxioms choices
 
-partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := sorry
+partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := pure ()
 
 end
 
@@ -186,6 +182,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
--- #gadget_display "tim_easy04" 8
+#gadget_display with_axioms "tim_easy01"
 
 end GadgetGame
