@@ -83,7 +83,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     let nodeHeight ← nodeSize term
     set { state with
           yOffset := state.yOffset + nodeHeight }
-  | .node ax term goals => do
+  | .node ax goals => do
     let params ← read
     let state ← get
     let headId := mkGadgetId state.location
@@ -101,7 +101,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
           targetPosition := idx
           })
 
-    let yOffsetNew := max (state.yOffset + (← nodeSize term)) (← get).yOffset
+    let yOffsetNew := max (state.yOffset + (← nodeSize ax.conclusion)) (← get).yOffset
 
     modify ({· with location := state.location, xOffset := state.xOffset, yOffset := yOffsetNew })
 
@@ -119,7 +119,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     if state.location.isEmpty then
       let goalGadgetProps : InitialDiagramGadget := {
         id := goalGadgetId,
-        statement := .goal term,
+        statement := .goal ax.conclusion,
         position := {
           gadgetProps.position with
           x := state.xOffset + params.gadgetThickness

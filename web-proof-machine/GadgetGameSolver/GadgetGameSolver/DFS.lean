@@ -78,7 +78,7 @@ def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
   Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
 
 def getApproximatelyMatchingAxioms : ExceptT String GadgetGameSolverM (List Axiom) := do
-  let ⟨.goal _, .node youngerSiblings _ «axiom» _ _⟩ ← getThe Location |
+  let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
     throw "Expected the current location to be a goal, different from the root."
   liftM <| getMatchingAxioms «axiom».hypotheses[youngerSiblings.length]!
 
@@ -98,9 +98,7 @@ partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Un
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
-  changeCurrentTree <| .node «axiom»
-    (term := ← «axiom».conclusion.instantiateVars)
-    (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
+  changeCurrentTree <| .node «axiom» (goals := «axiom».hypotheses.toList.map .goal)
 
 mutual
 
@@ -153,8 +151,15 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       changeCurrentTree <| .goal goal
       applyAxioms choices
 
+partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := do
+  let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
+    throw "Expected the current location to be a goal, different from the root."
+  deallocate «axiom».collectVarsDedup
+  goUp
+
+
 partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
-  sorry
+  pure ()
 
 end
 
@@ -184,6 +189,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
--- #gadget_display with_axioms "tim_easy01"
+#gadget_display with_axioms "tim_easy01"
 
 end GadgetGame

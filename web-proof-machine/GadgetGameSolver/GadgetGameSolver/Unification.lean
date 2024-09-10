@@ -75,6 +75,10 @@ def Term.subsumes (t s : Term) : Bool :=
       ! (s.collectVarsDedup.any ctx.contains) ∧ ! (ctx.toArray.any fun (_, val) => val matches .app _ _)
   | .error _ => false
 
+def deallocate (vars : Array String) : ExceptT String M Unit := do
+  for var in vars do
+    modifyThe VarAssignmentCtx (·.erase var)
+
 def Term.filterRelevantAxioms (t : Term) (axioms : Array Axiom) (sort? : Bool) : M (Array Axiom) := withoutModifyingState do
   let relevantAxiomsWithScores : Array (Axiom × Nat) ← axioms.filterMapM fun «axiom» ↦ withoutModifyingState do
     let .ok score ← (Term.unifyWithScore t «axiom».conclusion).run | return none
