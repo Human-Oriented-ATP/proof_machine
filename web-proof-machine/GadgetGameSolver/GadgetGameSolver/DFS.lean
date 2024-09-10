@@ -8,24 +8,17 @@ namespace GadgetGame
 
 open Lean
 
--- inductive GoalStatus where
---   | ongoing
---   -- | failed
---   | solved (solution : ClosedProofTree)
-
--- abbrev GoalStatusCtx := HashMap Term GoalStatus
-
 abbrev OngoingGoalCtx := Array Term
 
 structure State where
   assignmentCtx : VarAssignmentCtx := .empty
-  ongoingGoalCtx : OngoingGoalCtx := .empty -- TODO: Move to reader part of the monad
   location : Location
   count : Nat := 0
   log : Array String := #[]
 
 structure Context where
   sort? : Bool
+  ongoingGoalCtx : OngoingGoalCtx := .empty
   lateralBacktrack : Bool := true
   axioms : List Axiom
   timeout? : Option Nat := none
@@ -43,14 +36,13 @@ instance : MonadStateOf VarAssignmentCtx GadgetGameSolverM where
       let (a, ctx) := f σ.assignmentCtx
       (a, { σ with assignmentCtx := ctx })
 
-instance : MonadStateOf OngoingGoalCtx GadgetGameSolverM where
-  get := do return (← get).ongoingGoalCtx
-  set ctx := do modify ({ · with ongoingGoalCtx := ctx })
-  modifyGet f := do
-    modifyGet fun σ ↦
-      let (a, ctx) := f σ.ongoingGoalCtx
-      (a, { σ with ongoingGoalCtx := ctx })
+instance (priority := low) : MonadReaderOf OngoingGoalCtx (ExceptT String GadgetGameSolverM) where
+  read := do return (← read).ongoingGoalCtx
 
+instance (priority := low) : MonadWithReaderOf OngoingGoalCtx (ExceptT String GadgetGameSolverM) where
+  withReader mod act := do
+    withReader (fun σ ↦ { σ with ongoingGoalCtx := mod σ.ongoingGoalCtx }) do
+      act
 
 instance : MonadStateOf Location GadgetGameSolverM where
   get := do return (← get).location
@@ -105,17 +97,17 @@ mutual
 partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   log s!"Working on goal `{goal}` ..."
-  match (← getThe OngoingGoalCtx).find? (Term.subsumes (← goal.instantiateVars) ·) with
+  match (← readThe OngoingGoalCtx).find? (Term.subsumes (← goal.instantiateVars) ·) with
   | some ongoingGoal =>
     goUp
     incrementStepCount
     log s!"The goal `{goal}` conflicts with the ongoing goal `{ongoingGoal}`."
     throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal `{ongoingGoal}`."
   | none =>
-    modifyThe OngoingGoalCtx (·.push (← goal.instantiateVars))
-    log s!"Finding matching axioms for `{goal}` ..."
-    let choices ← getMatchingAxioms goal -- TODO: load cached results here
-    applyAxioms choices
+    withTheReader OngoingGoalCtx (·.push (← goal.instantiateVars)) do
+      log s!"Finding matching axioms for `{goal}` ..."
+      let choices ← getMatchingAxioms goal -- TODO: load cached results here
+      applyAxioms choices
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
@@ -128,7 +120,6 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       else
         goUp
         incrementStepCount
-        modifyThe OngoingGoalCtx (·.erase goal)
         log s!"There are no axioms left to apply on `{goal}`."
         throw "Out of choices."
         -- TODO: mark goal as failed
@@ -144,7 +135,6 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       --   -- TODO: generalize the proof tree as much as possible and cache
       --   pure ()
       -- else
-      modifyThe OngoingGoalCtx (·.erase goal)
     catch e =>
       restoreState σ
       log s!"Error {e}: Failed to apply axiom {choice} on `{goal}`, trying the remaining ..."
