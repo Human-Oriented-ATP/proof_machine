@@ -78,7 +78,8 @@ def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
   Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
 
 def getApproximatelyMatchingAxioms : ExceptT String GadgetGameSolverM (List Axiom) := do
-  let ⟨.goal _, .node youngerSiblings _ «axiom» _ _⟩ ← getThe Location | throw "Expected the current location to be a goal, different from the root."
+  let ⟨.goal _, .node youngerSiblings _ «axiom» _ _⟩ ← getThe Location |
+    throw "Expected the current location to be a goal, different from the root."
   liftM <| getMatchingAxioms «axiom».hypotheses[youngerSiblings.length]!
 
 def timedOut : GadgetGameSolverM Bool := do
@@ -90,6 +91,16 @@ def log (message : String) : GadgetGameSolverM Unit := do
   if (← read).verbose then
     let annotatedMessage := s!"{← getStepCount} : {message}"
     modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
+
+partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
+  let goal ← getCurrentGoal
+  log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
+  let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
+  Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
+  incrementStepCount
+  changeCurrentTree <| .node «axiom»
+    (term := ← «axiom».conclusion.instantiateVars)
+    (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
 
 mutual
 
@@ -107,18 +118,6 @@ partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless 
     log s!"Finding matching axioms for `{goal}` ..."
     let choices ← getMatchingAxioms goal -- TODO: load cached results here
     applyAxioms choices
-
-partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
-  let goal ← getCurrentGoal
-  log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
-  let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
-  Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
-  incrementStepCount
-  changeCurrentTree <| .node «axiom»
-    (term := ← «axiom».conclusion.instantiateVars)
-    (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
-  -- TODO: order the goals
-  forEachChild workOnCurrentGoal
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
@@ -139,6 +138,8 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
     let σ ← saveState
     try
       applyAxiom choice
+            -- TODO: order the goals
+      forEachChild workOnCurrentGoal
       let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
       -- if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
@@ -152,7 +153,8 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       changeCurrentTree <| .goal goal
       applyAxioms choices
 
-partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := pure ()
+partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
+  sorry
 
 end
 
@@ -182,6 +184,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy01"
+-- #gadget_display with_axioms "tim_easy01"
 
 end GadgetGame
