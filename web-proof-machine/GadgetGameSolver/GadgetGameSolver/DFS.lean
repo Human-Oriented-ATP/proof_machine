@@ -19,7 +19,6 @@ structure State where
 structure Context where
   sort? : Bool
   ongoingGoalCtx : OngoingGoalCtx := .empty
-  lateralBacktrack : Bool := true
   axioms : List Axiom
   timeout? : Option Nat := none
   verbose : Bool := true
@@ -87,7 +86,7 @@ def log (message : String) : GadgetGameSolverM Unit := do
 partial def reorderGoals (goals : List Term) : GadgetGameSolverM Unit := sorry
 -- TODO: this probably requires adding a permutation order into the proof tree zipper
 
-partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
+def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
@@ -112,25 +111,25 @@ partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless 
       let choices ← getMatchingAxioms goal -- TODO: load cached results here
       applyAxioms choices
 
-partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
+partial def applyAxioms (axioms : List Axiom) (approx := false) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      -- if (← read).lateralBacktrack then
-      --   log s!"No exact matches found for `{goal}`, trying approximate matches ..."
-      --   withReader ({· with lateralBacktrack := false}) do
-      --     applyApproximateAxioms (← getApproximatelyMatchingAxioms)
-      -- else
-        goUp
-        incrementStepCount
-        log s!"There are no axioms left to apply on `{goal}`."
-        throw "Out of choices."
-        -- TODO: mark goal as failed
+      unless approx do
+        applyAxioms (← getApproximatelyMatchingAxioms) (approx := true)
+      goUp
+      incrementStepCount
+      log s!"There are no axioms left to apply on `{goal}`."
+      throw "Out of choices."
+      -- TODO: mark goal as failed
   | choice :: choices =>
     let σ ← saveState
     try
-      applyAxiom choice
-            -- TODO: order the goals
+      if approx then
+        applyApproximateAxiom choice
+      else
+        applyAxiom choice
+      -- TODO: order the goals
       forEachChild workOnCurrentGoal
       -- let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
@@ -142,7 +141,7 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       restoreState σ
       log s!"Error {e}: Failed to apply axiom {choice} on `{goal}`, trying the remaining ..."
       changeCurrentTree <| .goal goal
-      applyAxioms choices
+      applyAxioms choices (approx := approx)
 
 partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit := do
   match proofTree with
@@ -150,6 +149,7 @@ partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameS
     Term.unify (← getCurrentGoal) goal
     workOnCurrentGoal
   | .node «axiom» goals =>
+    deallocate «axiom».collectVarsDedup -- TODO: check whether this line is necessary
     applyAxiom «axiom»
     for (idx, tree) in goals.enum do
       visitChild idx
@@ -157,7 +157,7 @@ partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameS
       goUp
 
 partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := do
-  let ⟨.goal _, .node youngerSiblings _ «axiom» elderSiblings⟩ ← getThe Location |
+  let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
     throw "Expected the current location to be a goal, different from the root."
   deallocate «axiom».collectVarsDedup
 
@@ -176,15 +176,6 @@ partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetG
     goUp
 
   visitChild youngerSiblings.length
-  forEachChild workOnCurrentGoal
-
-  for (idx, tree) in elderSiblings.enum do
-    visitChild (youngerSiblings.length.succ + idx)
-    regrowProofTree tree
-    goUp
-
-partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
-  pure ()
 
 end
 
