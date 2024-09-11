@@ -84,6 +84,9 @@ def log (message : String) : GadgetGameSolverM Unit := do
     let annotatedMessage := s!"{← getStepCount} : {message}"
     modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
 
+partial def reorderGoals (goals : List Term) : GadgetGameSolverM Unit := sorry
+-- TODO: this probably requires adding a permutation order into the proof tree zipper
+
 partial def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let goal ← getCurrentGoal
   log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
@@ -129,7 +132,7 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       applyAxiom choice
             -- TODO: order the goals
       forEachChild workOnCurrentGoal
-      let ⟨proofTree, _⟩ ← getThe Location
+      -- let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
       -- if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
       --   -- TODO: generalize the proof tree as much as possible and cache
@@ -141,8 +144,17 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       changeCurrentTree <| .goal goal
       applyAxioms choices
 
-partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit :=
-  sorry
+partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit := do
+  match proofTree with
+  | .goal goal =>
+    Term.unify (← getCurrentGoal) goal
+    workOnCurrentGoal
+  | .node «axiom» goals =>
+    applyAxiom «axiom»
+    for (idx, tree) in goals.enum do
+      visitChild idx
+      regrowProofTree tree
+      goUp
 
 partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := do
   let ⟨.goal _, .node youngerSiblings _ «axiom» elderSiblings⟩ ← getThe Location |
@@ -158,7 +170,18 @@ partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetG
   applyAxiom approxAxiom
   goUp
 
-  -- TODO: "regrow" the previous proof trees
+  for (idx, tree) in youngerSiblings.enum do
+    visitChild idx
+    regrowProofTree tree
+    goUp
+
+  visitChild youngerSiblings.length
+  forEachChild workOnCurrentGoal
+
+  for (idx, tree) in elderSiblings.enum do
+    visitChild (youngerSiblings.length.succ + idx)
+    regrowProofTree tree
+    goUp
 
 partial def applyApproximateAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := do
   pure ()
