@@ -61,38 +61,42 @@ def getStepCount : GadgetGameSolverM Nat := do
 def incrementStepCount : GadgetGameSolverM Unit := do
   modify (fun σ ↦ { σ with count := σ.count.succ })
 
+def log (message : String) : GadgetGameSolverM Unit := do
+  if (← read).verbose then
+    let annotatedMessage := s!"{← getStepCount} : {message}"
+    modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
+
 def getCurrentGoal : ExceptT String GadgetGameSolverM Term := do
   let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
   return goal
 
 def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
+  log s!"Finding axioms matching `{← term.instantiateVars}` ..."
   Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
 
 def getApproximatelyMatchingAxioms : ExceptT String GadgetGameSolverM (List Axiom) := do
   let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
     throw "Expected the current location to be a goal, different from the root."
-  liftM <| getMatchingAxioms «axiom».hypotheses[youngerSiblings.length]!
+  let term := «axiom».hypotheses[youngerSiblings.length]!
+  deallocate term.collectVarsDedup
+  log s!"Finding approximate axioms matching `{← term.instantiateVars}` ..."
+  liftM <| getMatchingAxioms term
 
 def timedOut : GadgetGameSolverM Bool := do
   match (← read).timeout? with
   | none => return false
   | some timeout => return (← getStepCount) ≥ timeout
 
-def log (message : String) : GadgetGameSolverM Unit := do
-  if (← read).verbose then
-    let annotatedMessage := s!"{← getStepCount} : {message}"
-    modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
-
 partial def reorderGoals (goals : List Term) : GadgetGameSolverM Unit := sorry
 -- TODO: this probably requires adding a permutation order into the proof tree zipper
 
-def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := do
+def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
   incrementStepCount
-  changeCurrentTree <| .node «axiom» (goals := «axiom».hypotheses.toList.map .goal)
+  changeCurrentTree <| .node «axiom» (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
 
 mutual
 
@@ -111,17 +115,21 @@ partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless 
       let choices ← getMatchingAxioms goal -- TODO: load cached results here
       applyAxioms choices
 
-partial def applyAxioms (axioms : List Axiom) (approx := false) : ExceptT String GadgetGameSolverM Unit := do
+partial def applyAxioms (axioms : List Axiom) (approx := false) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      unless approx do
-        applyAxioms (← getApproximatelyMatchingAxioms) (approx := true)
-      goUp
-      incrementStepCount
-      log s!"There are no axioms left to apply on `{goal}`."
-      throw "Out of choices."
-      -- TODO: mark goal as failed
+      if !approx then do
+        log s!"No exact matches found for `{← goal.instantiateVars}`, trying approximate matches ..."
+        let approxMatches ← getApproximatelyMatchingAxioms
+        log <| toString approxMatches
+        applyAxioms approxMatches (approx := true)
+      else
+        goUp
+        incrementStepCount
+        log s!"There are no axioms left to apply on `{goal}`."
+        throw "Out of choices."
+        -- TODO: mark goal as failed
   | choice :: choices =>
     let σ ← saveState
     try
@@ -143,33 +151,41 @@ partial def applyAxioms (axioms : List Axiom) (approx := false) : ExceptT String
       changeCurrentTree <| .goal goal
       applyAxioms choices (approx := approx)
 
-partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit := do
+partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   match proofTree with
   | .goal goal =>
     Term.unify (← getCurrentGoal) goal
     workOnCurrentGoal
   | .node «axiom» goals =>
-    deallocate «axiom».collectVarsDedup -- TODO: check whether this line is necessary
-    applyAxiom «axiom»
-    for (idx, tree) in goals.enum do
-      visitChild idx
-      regrowProofTree tree
-      goUp
+    -- deallocate «axiom».collectVarsDedup -- TODO: check whether this line is necessary
+    let σ ← saveState
+    try
+      applyAxiom «axiom»
+      for (idx, tree) in goals.enum do
+        visitChild idx
+        regrowProofTree tree
+        goUp
+    catch e =>
+      restoreState σ
+      workOnCurrentGoal
 
-partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := do
+partial def applyApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
     throw "Expected the current location to be a goal, different from the root."
   deallocate «axiom».collectVarsDedup
 
+  log s!"Restoring parent tree state to `{«axiom»}` ..."
   goUp
   changeCurrentTree <| .goal «axiom».conclusion
   applyAxiom «axiom»
   -- TODO: re-order the goals
 
+  log s!"Applying approximate axiom `{approxAxiom}` to child ..."
   visitChild youngerSiblings.length
   applyAxiom approxAxiom
   goUp
 
+  log "Regrowing proof trees of siblings ..."
   for (idx, tree) in youngerSiblings.enum do
     visitChild idx
     regrowProofTree tree
@@ -196,7 +212,7 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   logInfoAt stx m!"{proofLog}"
   if timeout?.isNone && !tree.isClosed then
     throwError "The proof tree is not closed."
-  let initDiagram := tree.getGadgetGraph
+  let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
   let initData : InitializationData := {
     initialDiagram := initDiagram,
     axioms := if axioms?.isSome then problemState.axioms else .empty
@@ -205,6 +221,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy03"
+#gadget_display with_axioms "tim_easy04"
 
 end GadgetGame
