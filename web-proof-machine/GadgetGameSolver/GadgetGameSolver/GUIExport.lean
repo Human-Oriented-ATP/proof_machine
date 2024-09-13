@@ -40,12 +40,12 @@ structure InitializationData where
   axioms : Array Axiom
 deriving Lean.ToJson, Repr
 
-structure ProofTree.RenderingParams where
+structure ProofResult.RenderingParams where
   holeWidth : Nat := 15
   nodePadding : Nat := 25
   gadgetThickness : Nat := 150
 
-structure ProofTree.RenderingState extends InitialDiagram where
+structure ProofResult.RenderingState extends InitialDiagram where
   location : Array Nat := #[]
   xOffset : Int
   yOffset : Int
@@ -71,19 +71,19 @@ def mkGadgetId (loc : Array Nat) : String :=
 def mkEdgeId (sourceLoc : Array Nat) (childIdx : Nat) : String :=
   s!"edge_{sourceLoc}_{childIdx}"
 
-def nodeSize (term : Term) : ReaderM ProofTree.RenderingParams Nat := do
+def nodeSize (term : Term) : ReaderM ProofResult.RenderingParams Nat := do
   let params ← read
   match term with
     | .var _ => return 0
     | .app _ args => return 2 * params.nodePadding + params.holeWidth * args.size
 
-partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingState (ReaderM ProofTree.RenderingParams) Unit
-  | .goal term => do
+partial def ProofResult.exportToGraph : ProofResult → StateT RenderingState (ReaderM RenderingParams) Unit
+  | ⟨_, .goal term⟩ => do
     let state ← get
     let nodeHeight ← nodeSize term
     set { state with
           yOffset := state.yOffset + nodeHeight }
-  | .node ax goals => do
+  | ⟨stmt, .node ax goals⟩ => do
     let params ← read
     let state ← get
     let headId := mkGadgetId state.location
@@ -93,7 +93,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
       modify ({ · with
             location := treeLoc,
             xOffset := state.xOffset - params.gadgetThickness })
-      exportToGraph tree
+      exportToGraph ⟨stmt, tree⟩
       unless tree matches .goal _ do
         modify <| connections %~ (·.push {
           source := mkGadgetId treeLoc,
@@ -119,7 +119,7 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
     if state.location.isEmpty then
       let goalGadgetProps : InitialDiagramGadget := {
         id := goalGadgetId,
-        statement := .goal ax.conclusion,
+        statement := .goal stmt,
         position := {
           gadgetProps.position with
           x := state.xOffset + params.gadgetThickness
@@ -133,8 +133,8 @@ partial def ProofTree.exportToGraph : ProofTree → StateT ProofTree.RenderingSt
         targetPosition := 0
       })
 
-def ProofTree.getGadgetGraph (proofTree : ProofTree) : InitialDiagram :=
-  let (_, state) := proofTree.exportToGraph |>.run { xOffset := -({} : RenderingParams).gadgetThickness, yOffset := 0 } |>.run {}
+def ProofResult.getGadgetGraph (proofResult : ProofResult) : InitialDiagram :=
+  let (_, state) := proofResult.exportToGraph |>.run { xOffset := -({} : RenderingParams).gadgetThickness, yOffset := 0 } |>.run {}
   state.toInitialDiagram -- TODO: re-center goal gadget to (0, 0)
 
 open Lean ProofWidgets Server

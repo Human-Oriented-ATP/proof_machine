@@ -23,6 +23,10 @@ inductive ProofTree where
   | node («axiom» : Axiom) (goals : List ProofTree)
 deriving Inhabited, Repr
 
+structure ProofResult where
+  statement : Term
+  proof : ProofTree
+
 def ProofTree.headTerm : ProofTree → Term
   | .goal term => term
   | .node «axiom» _ => «axiom».conclusion
