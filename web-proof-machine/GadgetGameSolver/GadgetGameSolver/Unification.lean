@@ -75,10 +75,6 @@ def Term.subsumes (t s : Term) : Bool :=
       ! (s.collectVarsDedup.any ctx.contains) ∧ ! (ctx.toArray.any fun (_, val) => val matches .app _ _)
   | .error _ => false
 
-def deallocate (vars : Array String) : M Unit := do
-  for var in vars do
-    modifyThe VarAssignmentCtx (·.erase var)
-
 def Term.filterRelevantAxioms (t : Term) (axioms : Array Axiom) (sort? : Bool) : M (Array Axiom) := withoutModifyingState do
   let relevantAxiomsWithScores : Array (Axiom × Nat) ← axioms.filterMapM fun «axiom» ↦ withoutModifyingState do
     let .ok score ← (Term.unifyWithScore «axiom».conclusion t).run | return none
@@ -89,6 +85,15 @@ def Term.filterRelevantAxioms (t : Term) (axioms : Array Axiom) (sort? : Bool) :
     else
       relevantAxiomsWithScores
   return relevantAxiomsSorted.map Prod.fst
+
+def Term.instantiateFresh (extension : String) (term : Term) : M Term := do
+  let freshVarCtx : PersistentHashMap String Term := term.collectVarsDedup.foldl (init := .empty)
+    fun ctx v ↦ ctx.insert v (.var <| modify v)
+  withoutModifyingState do
+    set freshVarCtx
+    term.instantiateVars
+where
+  modify : String → String := (· ++ "_" ++ extension)
 
 def Axiom.instantiateFresh (extension : String) («axiom» : Axiom) : M Axiom := do
   let freshVarCtx : PersistentHashMap String Term := «axiom».collectVarsDedup.foldl (init := .empty)
