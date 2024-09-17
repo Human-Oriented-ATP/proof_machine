@@ -35,9 +35,9 @@ module.exports = {
           '100%': { stroke: '#ff0000' }, // Ending color
         },
         svgStrokeBlink: {
-          '0%': { stroke: '#ffffff' },
-          '50%': { stroke: '#000000' },
-          '100%': { stroke: '#ffffff' },
+          '0%': { stroke: '#3d3d3d' },
+          '50%': { stroke: 'transparent' },
+          '100%': { stroke: '#3d3d3d' },
         },
       },
       backgroundImage: {
