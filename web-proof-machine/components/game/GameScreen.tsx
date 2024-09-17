@@ -29,7 +29,8 @@ export function GameScreen(props: GameScreenProps) {
         <div className="grow">
             <Game {...props}
                 setProblemSolved={setProblemSolved}
-                interactiveLevel={interactiveLevel}
+                interactiveSteps={interactiveLevel?.steps}
+                {...interactiveLevel?.settings}
             />
             <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
         </div>

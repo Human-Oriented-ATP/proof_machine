@@ -10,15 +10,17 @@ import { GameEvent, GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
 import { InitialViewportSetting } from "lib/util/ReactFlow";
-import { GadgetSelector, InteractiveLevel } from "components/tutorial/InteractiveLevel";
+import { GadgetSelector, InteractiveStep } from "components/tutorial/InteractiveLevel";
 import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 
 export interface GameProps {
     initData: InitializationData
     problemId?: string
     setProblemSolved: () => void
-    interactiveLevel?: InteractiveLevel
     initialViewportSetting?: InitialViewportSetting
+    zoomEnabled?: boolean
+    proximityConnectEnabled?: boolean
+    interactiveSteps?: InteractiveStep[]
 }
 
 function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
@@ -73,8 +75,8 @@ export function Game(props: GameProps) {
     const [tutorialStep, setTutorialStep] = useState(0)
 
     const getTriggerForNextTutorialStep = useCallback(() => {
-        return props.interactiveLevel?.steps[tutorialStep]?.trigger
-    }, [props.interactiveLevel, tutorialStep])
+        return props.interactiveSteps?.[tutorialStep]?.trigger
+    }, [props.interactiveSteps, tutorialStep])
 
     const advanceTutorial = useCallback(() => {
         setTutorialStep(tutorialStep + 1)
@@ -157,8 +159,8 @@ export function Game(props: GameProps) {
     }, [])
 
     const initialViewportSetting = props.initialViewportSetting || "ORIGIN_AT_RIGHT"
-    const proximityConnectEnabled = props.interactiveLevel?.settings?.proximityConnectEnabled ?? true
-    const zoomEnabled = props.interactiveLevel?.settings?.zoomEnabled ?? true
+    const proximityConnectEnabled = props.proximityConnectEnabled ?? true
+    const zoomEnabled = props.zoomEnabled ?? true
 
     return <>
         <AssignmentContext.Provider value={termEnumeration}>
@@ -178,9 +180,9 @@ export function Game(props: GameProps) {
                 ></Diagram>
             </ReactFlowProvider>
         </AssignmentContext.Provider>
-        {props.interactiveLevel &&
+        {props.interactiveSteps &&
             <InteractiveOverlay
-                interactiveSteps={props.interactiveLevel.steps}
+                interactiveSteps={props.interactiveSteps}
                 stepIndex={tutorialStep}
                 hideInteractiveContent={userIsDraggingOrNavigating}
                 getGadgetElementId={getGadgetElementId} />
