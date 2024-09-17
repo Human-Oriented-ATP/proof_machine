@@ -67,3 +67,11 @@ def GoalId.getInstantiatedGoal (goalId : GoalId) : m Term := do
   let goal ← instantiateVars goal
   modify (·.insert goalId { goal, proof })
   pure goal
+
+def PartialProof.toProofTree : PartialProof → m ProofTree
+| .goal goalId => do
+  let goal ← goalId.getInstantiatedGoal
+  return .goal goal
+| .node ax proofs => do
+  let proofs ← proofs.attach.mapM fun ⟨x, _⟩ => x.toProofTree
+  return .node ax proofs.toList

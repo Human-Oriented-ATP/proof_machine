@@ -123,7 +123,7 @@ structure State where
 
 
 
-abbrev SearchM := ExceptT String $ ReaderT Context $ StateT State $ StateT MetavarContext $ StateT GoalContext Id
+abbrev SearchM := ReaderT Context $ StateRefT State $ StateRefT MetavarContext $ StateRefT GoalContext (EIO String)
 instance : Inhabited (SearchM α) := ⟨throw default⟩
 
 def getUnique : SearchM Nat := modifyGet fun s => (s.unique, { s with unique := s.unique + 1 })
@@ -160,7 +160,7 @@ def mkGeneratorNode? (key : TermKey) (goalId : GoalId) (goal : Term) : SearchM (
   Create a new generator node for `mvar` and add `waiter` as its waiter.
   `key` must be `mkTableKey mctx mvarType`. -/
 def newSubgoal (key : TermKey) (goalId : GoalId) (goal : Term) (waiter : Waiter) : SearchM Unit := do
-    match (← mkGeneratorNode? key goalId goal) with
+    match ← mkGeneratorNode? key goalId goal with
     | none      => logMessage s!"no new subgoals for {← goalId.toString}"
     | some node =>
       let entry : TableEntry := { waiters := #[waiter] }
@@ -216,7 +216,6 @@ def tryResolve (goalId : GoalId) (ax : Axiom) : SearchM (Option (List GoalId)) :
 def tryAnswer (goalId : GoalId) (answer : Answer) : SearchM Bool := do
   let answerGoal := TermInstantiateFresh (toString (← getUnique)) answer.goal
   let goal ← goalId.getInstantiatedGoal
-  logMessage s!"try to propagate {answerGoal} to {goal}"
   if ← unify answerGoal goal then
     modifyThe GoalContext (·.insert goalId { goal, proof := answer.proof })
     pure true
@@ -242,7 +241,6 @@ def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
 
 private def mkAnswer (cNode : ConsumerNode) : SearchM Answer := do
   let proof ← cNode.goalId.instantiatedProof
-  logMessage s!"proof of {← cNode.goalId.toString}: {repr proof}"
   let goal ← cNode.goalId.getInstantiatedGoal
   let goal ← goal.instantiateVars
   return { proof, goal, size := cNode.size + 1 }
@@ -382,7 +380,11 @@ def step : SearchM Bool := do
 def getResult : SearchM (Option Proof) := do
   (← get).result?.mapM (·.toProof)
 
-partial def synth (timeout? : Option Nat) : SearchM (Option Proof) := do
+def getPartialResult (goalId : GoalId) : SearchM ProofTree := do
+  let proof ← goalId.instantiatedProof
+  proof.toProofTree
+
+partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree := do
   if (← step) then
     match (← getResult) with
     | none        =>
@@ -390,13 +392,16 @@ partial def synth (timeout? : Option Nat) : SearchM (Option Proof) := do
       let { stepCount, .. } ← get
       if let some timeout := timeout? then
         if timeout ≤ stepCount then
-          return none
-      synth timeout?
-    | some result => return result
+          getPartialResult goalId
+        else
+          synth timeout? goalId
+      else
+        synth timeout? goalId
+    | some result => return result.toProofTree
   else
-    return none
+    getPartialResult goalId
 
-def main (problemState : ProblemState) (timeout? : Option Nat) : ExceptT String Id (Option Proof) × Array String :=
+def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT String Id ProofTree × Array String) := do
   let { axioms, target := goal } := problemState
   let axioms := axioms.foldl (init := {}) fun axioms ax =>
     if let .app cls _ := ax.conclusion then
@@ -405,21 +410,24 @@ def main (problemState : ProblemState) (timeout? : Option Nat) : ExceptT String 
       | some axs => axioms.insert cls (axs.push ax)
     else
       axioms
-  let action : SearchM (Option Proof) := do
+  let action : SearchM ProofTree := do
     let goalId : GoalId := 0
     modifyThe GoalContext (·.insert goalId { goal, proof := none })
     let key := mkTableKey goal
-    newSubgoal key goalId goal Waiter.root
-    synth timeout?
-  let (r, s) := action.run { maxResultSize := none, axioms }
-    |>.run {} |>.run' {} |>.run' {}
-  (r, s.log)
+    try
+      newSubgoal key goalId goal Waiter.root
+      synth timeout? goalId
+    catch e =>
+      logMessage s!"error: {e}"
+      getPartialResult goalId
+  let ref ← IO.mkRef {}
+  let r ← (action.run { maxResultSize := none, axioms }) ref |>.run' {} |>.run' {} |>.toBaseIO
+  pure (r, (← ref.get).log)
 
-def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree × Array String:=
-  match main problemState timeout? with
-  | (.ok <| some proof, log) => (proof.toProofTree, log)
-  | (.ok none, log) => (panic! "no result found :(", log.push "no result found :(")
-  | (.error s, log) => (panic! s, log.push s!"error: {s}")
+def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) : BaseIO (ProofTree × Array String) := do
+  pure <| match ← main problemState timeout? with
+  | (.ok proof, log) => (proof, log)
+  | _ => unreachable!
 
 
 end JovanGadgetGame
