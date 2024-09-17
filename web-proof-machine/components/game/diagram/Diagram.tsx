@@ -86,6 +86,8 @@ export function Diagram(props: DiagramProps) {
     const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
     const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
 
+    const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
+
     const getInitialEdge = useCallback((connection: InitialDiagramConnection, label: string): EdgeWithEquation => {
         return {
             id: label,
@@ -122,6 +124,7 @@ export function Diagram(props: DiagramProps) {
     useEffect(() => {
         if (dragStartInfo.current !== undefined) {
             const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
+            props.setUserIsDraggingOrNavigating(true)
             nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
                 bubbles: true,
                 cancelable: true,
@@ -212,7 +215,7 @@ export function Diagram(props: DiagramProps) {
             deletable: true,
             data: axiomToGadget(axiom, id)
         }
-        props.addGadget(id, axiom)
+        gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
         setNodes((nodes) => nodes.concat(flowNode));
         dragStartInfo.current = { id, position: axiomPosition }
     }
@@ -233,6 +236,7 @@ export function Diagram(props: DiagramProps) {
             removeEdgesConnectedToHandle(params.handleId!)
         }
         disableHoleFocus()
+        props.setUserIsDraggingOrNavigating(true)
     }, [removeEdgesConnectedToHandle])
 
     const enableHoleFocus = useCallback(() => {
@@ -244,6 +248,7 @@ export function Diagram(props: DiagramProps) {
     const onConnect = useCallback((connection: Connection) => {
         savelyAddEdge(connection)
         enableHoleFocus()
+        props.setUserIsDraggingOrNavigating(false)
     }, [savelyAddEdge])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
@@ -289,18 +294,30 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    const [onNodeDrag, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
+    const [onNodeDragProximityConnect, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
         useProximityConnect(rf, isValidConnection, savelyAddEdge)
         : [(e, n) => void 0, (e, n) => void 0]
 
+    const onNodeDrag = useCallback((event: React.MouseEvent, node: GadgetNode) => {
+        onNodeDragProximityConnect(event, node)
+        props.setUserIsDraggingOrNavigating(true)
+    }, [])
+
     const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
-            props.removeGadget(node.id)
+            if (gadgetThatIsBeingAdded.current !== undefined) {
+                gadgetThatIsBeingAdded.current = undefined
+            } else {
+                props.removeGadget(node.id)
+            }
             const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
             deleteEquationsOfEdges(edgesToBeDeleted)
             setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
             setEdges(edges => edges.filter(e => node.id !== e.source && node.id !== e.target))
         } else {
+            if (gadgetThatIsBeingAdded.current !== undefined) {
+                props.addGadget(gadgetThatIsBeingAdded.current.gadgetId, gadgetThatIsBeingAdded.current.axiom)
+            }
             onNodeDragStopProximityConnect(event, node)
         }
         props.setUserIsDraggingOrNavigating(false)
@@ -330,13 +347,14 @@ export function Diagram(props: DiagramProps) {
             nodeTypes={nodeTypes}
             onInit={() => init(rf, props.initialViewportSetting)}
             onConnectStart={onConnectStart}
+            onConnectEnd={() => props.setUserIsDraggingOrNavigating(false)}
             isValidConnection={isValidConnection}
             {...zoomProps}
             onNodeDrag={onNodeDrag}
             onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
-            onMoveStart={() => props.setUserIsDraggingOrNavigating(true)}
+            onMove={() => props.setUserIsDraggingOrNavigating(true)}
             onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
         />
         <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} ></ControlButtons>
