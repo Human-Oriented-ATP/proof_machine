@@ -4,6 +4,7 @@ import { AdjustablePosition, DragIndicatorProps } from "./DragIndicator";
 export type LevelConfiguration = {
     zoomEnabled: boolean
     proximityConnectEnabled: boolean
+    gadgetDeletionEnabled: boolean
 }
 
 export type GadgetSelector = { elementId: string } | { axiom: string }

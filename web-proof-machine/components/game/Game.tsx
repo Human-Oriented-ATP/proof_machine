@@ -20,6 +20,7 @@ export interface GameProps {
     initialViewportSetting?: InitialViewportSetting
     zoomEnabled?: boolean
     proximityConnectEnabled?: boolean
+    gadgetDeletionEnabled?: boolean
     interactiveSteps?: InteractiveStep[]
 }
 
@@ -161,6 +162,7 @@ export function Game(props: GameProps) {
     const initialViewportSetting = props.initialViewportSetting || "ORIGIN_AT_RIGHT"
     const proximityConnectEnabled = props.proximityConnectEnabled ?? true
     const zoomEnabled = props.zoomEnabled ?? true
+    const gadgetDeletionEnabled = props.gadgetDeletionEnabled ?? true
 
     return <>
         <AssignmentContext.Provider value={termEnumeration}>
@@ -176,6 +178,7 @@ export function Game(props: GameProps) {
                     setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
                     proximityConnectEnabled={proximityConnectEnabled}
                     zoomEnabled={zoomEnabled}
+                    gadgetDeletionEnabled={gadgetDeletionEnabled}
                     initialViewportSetting={initialViewportSetting}
                 ></Diagram>
             </ReactFlowProvider>

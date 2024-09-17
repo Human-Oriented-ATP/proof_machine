@@ -28,8 +28,16 @@ const dragIndicator2: DragIndicatorProps<GadgetPosition> = {
     },
     drawLine: true
 }
+
+const safeSettings = {
+    zoomEnabled: false,
+    proximityConnectEnabled: false,
+    gadgetDeletionEnabled: false
+}
+
 export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map([
     ["tutorial01", {
+        settings: safeSettings,
         steps: [
             {
                 trigger: { GadgetAdded: {} },

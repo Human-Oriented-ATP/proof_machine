@@ -39,6 +39,7 @@ interface DiagramProps {
     setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
     zoomEnabled: boolean
+    gadgetDeletionEnabled: boolean
     initialViewportSetting: InitialViewportSetting
 }
 
@@ -214,7 +215,7 @@ export function Diagram(props: DiagramProps) {
             type: 'gadgetNode',
             position: rf.screenToFlowPosition(axiomPosition),
             dragging: true,
-            deletable: true,
+            deletable: props.gadgetDeletionEnabled,
             data: axiomToGadget(axiom, id)
         }
         gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
