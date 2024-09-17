@@ -87,6 +87,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 holeFocus: focus,
                 useDummyHandle: props.isAxiom,
                 isGoalNode: props.id === "goal_gadget",
+                openHandles: props.openHandles ?? []
             }
             if (isInputPosition(position)) {
                 buffer.push(<Node key={position} {...nodeDisplayProps}></Node>)

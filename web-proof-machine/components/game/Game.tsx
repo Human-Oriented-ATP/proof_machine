@@ -10,7 +10,7 @@ import { GameEvent, GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
 import { InitialViewportSetting } from "lib/util/ReactFlow";
-import { GadgetSelector, InteractiveLevel, InteractiveStep } from "components/tutorial/InteractiveLevel";
+import { GadgetSelector, InteractiveLevel } from "components/tutorial/InteractiveLevel";
 import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 
 export interface GameProps {

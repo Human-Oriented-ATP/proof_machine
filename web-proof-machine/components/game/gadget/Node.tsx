@@ -1,4 +1,4 @@
-import { NodeDisplayProps, NodePosition, isInputPosition, isOutputPosition } from '../../../lib/game/Primitives';
+import { NodeDisplayProps, NodePosition, OUTPUT_POSITION, isInputPosition, isOutputPosition } from '../../../lib/game/Primitives';
 import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
 import { DummyHandle } from '../../primitive/DummyHandle';
@@ -33,6 +33,10 @@ export function getHandleId(position: NodePosition, gadgetId: string): string {
     return `handle_${JSON.stringify(position)}_of_${gadgetId}`
 }
 
+export function isTargetHandle(handleId: string): boolean {
+    return handleId.slice(0, 10) !== `handle_${OUTPUT_POSITION}_`
+}
+
 export function getTermOfHandle(handleId: string, gadgetTerms: Map<NodePosition, Term>) {
     const position = handleId.split("_")[1]
     for (const [termPosition, term] of gadgetTerms) {
@@ -61,7 +65,10 @@ export function Node(props: NodeDisplayProps) {
         if (!props.useDummyHandle) {
             const handleId = getHandleId(props.position, props.gadgetId)
             const handleProps = getHandleProps(handleId)
-            return <Handle {...handleProps}><Connector type={handleProps.type} isConnected={false} /></Handle>
+            if (props.openHandles && props.openHandles.includes(handleId)) {
+                return <Handle {...handleProps}><Connector type={handleProps.type} isOpen={true} /></Handle>
+            }
+            return <Handle {...handleProps}><Connector type={handleProps.type} isOpen={false} /></Handle>
         } else {
             const position = (isInputPosition(props.position)) ? "target" : "source"
             return <DummyHandle position={position}></DummyHandle>

@@ -8,8 +8,8 @@ export interface DummyHandleProps {
 
 export function DummyHandle({ position }: DummyHandleProps) {
     if (position === "source") {
-        return <div className="react-flow__handle react-flow__handle-right"><Connector type="source" isConnected={false} /></div>
+        return <div className="react-flow__handle react-flow__handle-right"><Connector type="source" isOpen={false} /></div>
     } else {
-        return <div className="react-flow__handle react-flow__handle-left"><Connector type="target" isConnected={false} /></div>
+        return <div className="react-flow__handle react-flow__handle-left"><Connector type="target" isOpen={false} /></div>
     }
 }

@@ -4,7 +4,7 @@ import { axiomTermEnumeration } from '../../../lib/game/GameLogic';
 import { Axiom, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { GadgetProps } from '../../../lib/game/Primitives';
 import { AssignmentContext } from '../../../lib/game/AssignmentContext';
-import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
+import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
 

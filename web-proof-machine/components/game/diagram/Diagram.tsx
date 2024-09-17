@@ -13,16 +13,17 @@ import { axiomToGadget } from '../../../lib/game/GameLogic';
 import { Axiom, GadgetId, GadgetProps, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { Equation, EquationId } from '../../../lib/game/Unification';
 import { Term } from '../../../lib/game/Term';
-import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
+import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { InitialViewportSetting, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
-import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
-import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
+import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
+import { useProximityConnect } from 'lib/hooks/ProximityConnect';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
+import { useOpenHandleHighlighting } from 'lib/hooks/OpenHandleHighlighting';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
@@ -137,6 +138,7 @@ export function Diagram(props: DiagramProps) {
     }, [numberOfNodes])
 
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
+    useOpenHandleHighlighting({ nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: GadgetId, to: [GadgetId, NodePosition] } => {
         const fromGadget = connection.source!
