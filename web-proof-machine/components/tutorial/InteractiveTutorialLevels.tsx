@@ -15,7 +15,7 @@ const dragIndicator1: DragIndicatorProps<GadgetPosition> = {
 
 const dragIndicator2: DragIndicatorProps<GadgetPosition> = {
     origin: {
-        gadget: { elementId: "gadget_1" },
+        gadget: { axiom: ":-r(A)" },
         anchorPoint: "CENTER_RIGHT",
         offset: { x: 0, y: 0 }
     },

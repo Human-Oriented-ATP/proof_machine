@@ -1,5 +1,5 @@
 import { DelayedDragIndicator, DragIndicatorProps, OverlayPosition } from "./DragIndicator";
-import { TextAndDragIndicator, InteractiveLevel, InteractiveStep, GadgetPosition } from "./InteractiveLevel";
+import { TextAndDragIndicator, InteractiveLevel, InteractiveStep, GadgetPosition, GadgetSelector } from "./InteractiveLevel";
 import { interactiveTutorialLevels as interactiveTutorialLevels } from "./InteractiveTutorialLevels";
 
 // const origin: OverlayPosition = {
@@ -15,52 +15,38 @@ import { interactiveTutorialLevels as interactiveTutorialLevels } from "./Intera
 // }
 
 export interface InteractiveOverlayProps {
-    interactiveLevel: InteractiveLevel
-    step: number
+    interactiveSteps: InteractiveStep[]
+    stepIndex: number
     hideInteractiveContent?: boolean
-}
-
-function pickElementIdOfGadgetWithAxiom(axiom: string): string {
-    throw Error("Not implemented")
-    return ""
-}
-
-function getOverlayPosition(gadgetOverlayPosition: GadgetPosition) {
-    const anchorPoint = gadgetOverlayPosition.anchorPoint
-    const offset = gadgetOverlayPosition.offset
-    if ("elementId" in gadgetOverlayPosition.gadget) {
-        const elementId = gadgetOverlayPosition.gadget.elementId
-        return { elementId, anchorPoint, offset }
-    } else {
-        const elementId = pickElementIdOfGadgetWithAxiom(gadgetOverlayPosition.gadget.axiom)
-        return { elementId, anchorPoint, offset }
-    }
+    getGadgetElementId: (gadget: GadgetSelector) => string | undefined
 }
 
 export interface InteractiveContentProps {
     content: TextAndDragIndicator
+    getGadgetElementId: (gadget: GadgetSelector) => string | undefined
     hideInteractiveContent?: boolean
 }
 
-function toOverlayPosition(position: GadgetPosition): OverlayPosition {
-    if ("elementId" in position.gadget) {
-        return { elementId: position.gadget.elementId, anchorPoint: position.anchorPoint, offset: position.offset }
-    } else {
-        throw Error("Not impemented")
-    }
-}
-
-function getDragIndicatorProps(dragIndicator: DragIndicatorProps<GadgetPosition>): DragIndicatorProps<OverlayPosition> {
-    return {
-        origin: toOverlayPosition(dragIndicator.origin),
-        destination: "absolutePosition" in dragIndicator.destination ?
-            { absolutePosition: toOverlayPosition(dragIndicator.destination.absolutePosition) }
-            : dragIndicator.destination,
-        drawLine: dragIndicator.drawLine
-    }
-}
-
 export function InteractiveContent(props: InteractiveContentProps) {
+    function toOverlayPosition(position: GadgetPosition): OverlayPosition {
+        const elementId = props.getGadgetElementId(position.gadget)
+        if (!elementId) {
+            throw new Error(`Element not found for gadget ${position.gadget}`)
+        } else {
+            return { elementId, anchorPoint: position.anchorPoint, offset: position.offset }
+        }
+    }
+
+    function getDragIndicatorProps(dragIndicator: DragIndicatorProps<GadgetPosition>): DragIndicatorProps<OverlayPosition> {
+        return {
+            origin: toOverlayPosition(dragIndicator.origin),
+            destination: "absolutePosition" in dragIndicator.destination ?
+                { absolutePosition: toOverlayPosition(dragIndicator.destination.absolutePosition) }
+                : dragIndicator.destination,
+            drawLine: dragIndicator.drawLine
+        }
+    }
+
     return <div>
         <div className="absolute text-xl top-24 left-44 md:w-full md:text-center md:left-0 md:px-44">
             {props.content.text}
@@ -70,9 +56,9 @@ export function InteractiveContent(props: InteractiveContentProps) {
 }
 
 export function InteractiveOverlay(props: InteractiveOverlayProps) {
-    const step: InteractiveStep = props.interactiveLevel.steps[props.step]
+    const step: InteractiveStep = props.interactiveSteps[props.stepIndex]
     const content = step.content
     return <div className="fixed left-0 top-0 w-full h-full z-50 pointer-events-none">
-        <InteractiveContent content={content} hideInteractiveContent={props.hideInteractiveContent} />
+        <InteractiveContent content={content} hideInteractiveContent={props.hideInteractiveContent} getGadgetElementId={props.getGadgetElementId} />
     </div>
 }

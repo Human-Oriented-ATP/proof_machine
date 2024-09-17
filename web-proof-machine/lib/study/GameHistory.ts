@@ -28,8 +28,8 @@ export class GameHistory {
         this.log.push([event, new Date()]);
     }
 
-    mostRecentGadgetForAxiom(axiom: string): GadgetId | undefined {
-        for (let i = this.log.length - 1; i >= 0; i--) {
+    firstGadgetForAxiom(axiom: string): GadgetId | undefined {
+        for (let i = 0; i < this.log.length; i++) {
             const [event, _] = this.log[i];
             if ("GadgetAdded" in event && event.GadgetAdded.axiom === axiom) {
                 return event.GadgetAdded.gadgetId;
@@ -37,4 +37,5 @@ export class GameHistory {
         }
         return undefined;
     }
+
 }

@@ -10,17 +10,15 @@ import { GameEvent, GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
 import { InitialViewportSetting } from "lib/util/ReactFlow";
+import { GadgetSelector, InteractiveLevel, InteractiveStep } from "components/tutorial/InteractiveLevel";
+import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 
 export interface GameProps {
     initData: InitializationData
     problemId?: string
     setProblemSolved: () => void
-    setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
-    proximityConnectEnabled: boolean
-    zoomEnabled: boolean
+    interactiveLevel?: InteractiveLevel
     initialViewportSetting?: InitialViewportSetting
-    advanceTutorial: () => void
-    triggerForNextTutorialStep?: GameEvent
 }
 
 function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
@@ -70,6 +68,25 @@ export function Game(props: GameProps) {
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 
+    const [userIsDraggingOrNavigating, setUserIsDraggingOrNavigating] = useState(false)
+
+    const [tutorialStep, setTutorialStep] = useState(0)
+
+    const getTriggerForNextTutorialStep = useCallback(() => {
+        return props.interactiveLevel?.steps[tutorialStep]?.trigger
+    }, [props.interactiveLevel, tutorialStep])
+
+    const advanceTutorial = useCallback(() => {
+        setTutorialStep(tutorialStep + 1)
+    }, [tutorialStep])
+
+    const advanceTutorialIfIsCorrectEvent = useCallback((event: GameEvent) => {
+        const trigger = getTriggerForNextTutorialStep()
+        if (trigger && checkFieldsMatch(event, trigger)) {
+            advanceTutorial()
+        }
+    }, [advanceTutorial])
+
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const unificationResult = unifyEquations(equations)
         enumeration.current.updateEnumeration(unificationResult.assignment)
@@ -77,57 +94,50 @@ export function Game(props: GameProps) {
         return [termEnumeration, unificationResult.equationIsSatisfied]
     }, [equations])
 
-    const advanceTutorialIfTriggers = useCallback((event: GameEvent, trigger: GameEvent | undefined) => {
-        if (trigger &&
-            checkFieldsMatch(event, trigger)) {
-            props.advanceTutorial()
-        }
-    }, [props.advanceTutorial])
-
     const addGadget = useCallback((gadgetId: string, axiom: Axiom) => {
         const event: GameEvent = { GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } }
-        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        advanceTutorialIfIsCorrectEvent(event)
         history.current.logEvent(event)
         synchronizeHistory(JSON.stringify(history.current))
-    }, [props.triggerForNextTutorialStep])
+    }, [getTriggerForNextTutorialStep])
 
     const removeGadget = useCallback((gadgetId: string) => {
         const event: GameEvent = { GadgetRemoved: { gadgetId } }
-        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        advanceTutorialIfIsCorrectEvent(event)
         history.current.logEvent(event)
         synchronizeHistory(JSON.stringify(history.current))
-    }, [props.triggerForNextTutorialStep])
+    }, [getTriggerForNextTutorialStep])
 
     const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
         const event: GameEvent = { EquationAdded: { from, to } }
-        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        advanceTutorialIfIsCorrectEvent(event)
         history.current.logEvent(event)
         const newEquations = new Map(equations)
         newEquations.set(getEquationId(from, to), newEquation)
         setEquations(equations => (new Map(equations)).set(getEquationId(from, to), newEquation))
-    }, [equations, props.triggerForNextTutorialStep])
+    }, [equations, getTriggerForNextTutorialStep])
 
     const removeEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition]) => {
         const event: GameEvent = { EquationRemoved: { from, to } }
-        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        advanceTutorialIfIsCorrectEvent(event)
         history.current.logEvent(event)
         setEquations(equations => {
             const newEquations = new Map(equations)
             newEquations.delete(getEquationId(from, to))
             return newEquations
         })
-    }, [equations, props.triggerForNextTutorialStep])
+    }, [equations, getTriggerForNextTutorialStep])
 
     const setProblemSolvedAndWriteToHistory = useCallback(() => {
         props.setProblemSolved()
         if (!history.current.completed) {
             const event = { GameCompleted: null }
-            advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+            advanceTutorialIfIsCorrectEvent(event)
             history.current.logEvent(event)
             history.current.completed = true
             synchronizeHistory(JSON.stringify(history.current))
         }
-    }, [props.triggerForNextTutorialStep])
+    }, [getTriggerForNextTutorialStep])
 
     useEffect(() => {
         try {
@@ -138,23 +148,42 @@ export function Game(props: GameProps) {
         }
     }, [equations])
 
-    const initialViewportSetting = props.initialViewportSetting || "ORIGIN_AT_RIGHT"
+    const getGadgetElementId = useCallback((gadget: GadgetSelector) => {
+        if ("elementId" in gadget) {
+            return gadget.elementId
+        } else {
+            return history.current.firstGadgetForAxiom(gadget.axiom)
+        }
+    }, [])
 
-    return <AssignmentContext.Provider value={termEnumeration}>
-        <ReactFlowProvider>
-            <Diagram
-                initData={props.initData}
-                addGadget={addGadget}
-                removeGadget={removeGadget}
-                addEquation={addEquation}
-                removeEquation={removeEquation}
-                isSatisfied={eqSatisfied}
-                setProblemSolved={setProblemSolvedAndWriteToHistory}
-                setUserIsDraggingOrNavigating={props.setUserIsDraggingOrNavigating}
-                proximityConnectEnabled={props.proximityConnectEnabled}
-                zoomEnabled={props.zoomEnabled}
-                initialViewportSetting={initialViewportSetting}
-            ></Diagram>
-        </ReactFlowProvider>
-    </AssignmentContext.Provider>
+    const initialViewportSetting = props.initialViewportSetting || "ORIGIN_AT_RIGHT"
+    const proximityConnectEnabled = props.interactiveLevel?.settings?.proximityConnectEnabled ?? true
+    const zoomEnabled = props.interactiveLevel?.settings?.zoomEnabled ?? true
+
+    return <>
+        <AssignmentContext.Provider value={termEnumeration}>
+            <ReactFlowProvider>
+                <Diagram
+                    initData={props.initData}
+                    addGadget={addGadget}
+                    removeGadget={removeGadget}
+                    addEquation={addEquation}
+                    removeEquation={removeEquation}
+                    isSatisfied={eqSatisfied}
+                    setProblemSolved={setProblemSolvedAndWriteToHistory}
+                    setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
+                    proximityConnectEnabled={proximityConnectEnabled}
+                    zoomEnabled={zoomEnabled}
+                    initialViewportSetting={initialViewportSetting}
+                ></Diagram>
+            </ReactFlowProvider>
+        </AssignmentContext.Provider>
+        {props.interactiveLevel &&
+            <InteractiveOverlay
+                interactiveSteps={props.interactiveLevel.steps}
+                stepIndex={tutorialStep}
+                hideInteractiveContent={userIsDraggingOrNavigating}
+                getGadgetElementId={getGadgetElementId} />
+        }
+    </>
 }
