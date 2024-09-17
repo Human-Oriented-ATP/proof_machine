@@ -250,8 +250,6 @@ export function Diagram(props: DiagramProps) {
 
     const onConnect = useCallback((connection: Connection) => {
         savelyAddEdge(connection)
-        enableHoleFocus()
-        props.setUserIsDraggingOrNavigating(false)
     }, [savelyAddEdge])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
@@ -326,6 +324,11 @@ export function Diagram(props: DiagramProps) {
         props.setUserIsDraggingOrNavigating(false)
     }, [props.removeGadget])
 
+    const onConnectEnd = useCallback(() => {
+        props.setUserIsDraggingOrNavigating(false)
+        enableHoleFocus()
+    }, [])
+
     const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
         deleteEquationsOfEdges(edges)
     }, [])
@@ -350,7 +353,7 @@ export function Diagram(props: DiagramProps) {
             nodeTypes={nodeTypes}
             onInit={() => init(rf, props.initialViewportSetting)}
             onConnectStart={onConnectStart}
-            onConnectEnd={() => props.setUserIsDraggingOrNavigating(false)}
+            onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
             {...zoomProps}
             onNodeDrag={onNodeDrag}
