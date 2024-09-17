@@ -200,7 +200,7 @@ export function Diagram(props: DiagramProps) {
                 data: { eq: getEquationId(connectionInfo.from, connectionInfo.to) }
             }, edges)
         });
-    }, [props, setEdges, getEquationFromConnection])
+    }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
     function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
         const id = generateGadgetId()
@@ -244,7 +244,7 @@ export function Diagram(props: DiagramProps) {
     const onConnect = useCallback((connection: Connection) => {
         savelyAddEdge(connection)
         enableHoleFocus()
-    }, [])
+    }, [savelyAddEdge])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
         const edges = getEdges()
@@ -304,7 +304,7 @@ export function Diagram(props: DiagramProps) {
             onNodeDragStopProximityConnect(event, node)
         }
         props.setUserIsDraggingOrNavigating(false)
-    }, [])
+    }, [props.removeGadget])
 
     const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
         deleteEquationsOfEdges(edges)
@@ -312,7 +312,7 @@ export function Diagram(props: DiagramProps) {
 
     const onNodesDelete = useCallback((nodes: GadgetNode[]) => {
         nodes.map(node => props.removeGadget(node.id))
-    }, [])
+    }, [props.removeGadget])
 
     const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 

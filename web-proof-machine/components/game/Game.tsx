@@ -6,7 +6,7 @@ import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermE
 import { InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
-import { GameHistory } from "lib/study/GameHistory";
+import { GameEvent, GameHistory } from "lib/study/GameHistory";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { axiomToString } from "lib/game/GameLogic";
 import { InitialViewportSetting } from "lib/util/ReactFlow";
@@ -19,6 +19,8 @@ export interface GameProps {
     proximityConnectEnabled: boolean
     zoomEnabled: boolean
     initialViewportSetting?: InitialViewportSetting
+    advanceTutorial: () => void
+    triggerForNextTutorialStep?: GameEvent
 }
 
 function getInitialEquations(initData: InitializationData): Map<EquationId, Equation> {
@@ -33,6 +35,30 @@ function getInitialEquations(initData: InitializationData): Map<EquationId, Equa
 
 export function getEquationId(from: GadgetId, to: [GadgetId, NodePosition]): EquationId {
     return `equation-${from}-to-${to[0]}_${to[1]}`
+}
+
+function checkFieldsMatch(event: GameEvent, trigger: GameEvent): boolean {
+    const eventKey = Object.keys(event)[0];
+    const triggerKey = Object.keys(trigger)[0];
+
+    if (eventKey !== triggerKey) {
+        return false;
+    }
+
+    const eventValue = (event as any)[eventKey];
+    const triggerValue = (trigger as any)[triggerKey];
+
+    if (triggerValue === null) {
+        return true;
+    }
+
+    for (const key in triggerValue) {
+        if (triggerValue[key] !== undefined && triggerValue[key] !== eventValue[key]) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 export function Game(props: GameProps) {
@@ -51,40 +77,57 @@ export function Game(props: GameProps) {
         return [termEnumeration, unificationResult.equationIsSatisfied]
     }, [equations])
 
-    function addGadget(gadgetId: string, axiom: Axiom) {
-        history.current.logEvent({ GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } })
-        synchronizeHistory(JSON.stringify(history.current))
-    }
+    const advanceTutorialIfTriggers = useCallback((event: GameEvent, trigger: GameEvent | undefined) => {
+        if (trigger &&
+            checkFieldsMatch(event, trigger)) {
+            props.advanceTutorial()
+        }
+    }, [props.advanceTutorial])
 
-    function removeGadget(gadgetId: string) {
-        history.current.logEvent({ GadgetRemoved: { gadgetId } })
+    const addGadget = useCallback((gadgetId: string, axiom: Axiom) => {
+        const event: GameEvent = { GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } }
+        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        history.current.logEvent(event)
         synchronizeHistory(JSON.stringify(history.current))
-    }
+    }, [props.triggerForNextTutorialStep])
+
+    const removeGadget = useCallback((gadgetId: string) => {
+        const event: GameEvent = { GadgetRemoved: { gadgetId } }
+        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        history.current.logEvent(event)
+        synchronizeHistory(JSON.stringify(history.current))
+    }, [props.triggerForNextTutorialStep])
 
     const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
-        history.current.logEvent({ EquationAdded: { from, to } })
+        const event: GameEvent = { EquationAdded: { from, to } }
+        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        history.current.logEvent(event)
         const newEquations = new Map(equations)
         newEquations.set(getEquationId(from, to), newEquation)
         setEquations(equations => (new Map(equations)).set(getEquationId(from, to), newEquation))
-    }, [equations])
+    }, [equations, props.triggerForNextTutorialStep])
 
     const removeEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition]) => {
-        history.current.logEvent({ EquationRemoved: { from, to } })
+        const event: GameEvent = { EquationRemoved: { from, to } }
+        advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+        history.current.logEvent(event)
         setEquations(equations => {
             const newEquations = new Map(equations)
             newEquations.delete(getEquationId(from, to))
             return newEquations
         })
-    }, [equations])
+    }, [equations, props.triggerForNextTutorialStep])
 
     const setProblemSolvedAndWriteToHistory = useCallback(() => {
         props.setProblemSolved()
         if (!history.current.completed) {
-            history.current.logEvent({ Completed: null })
+            const event = { GameCompleted: null }
+            advanceTutorialIfTriggers(event, props.triggerForNextTutorialStep)
+            history.current.logEvent(event)
             history.current.completed = true
             synchronizeHistory(JSON.stringify(history.current))
         }
-    }, [])
+    }, [props.triggerForNextTutorialStep])
 
     useEffect(() => {
         try {

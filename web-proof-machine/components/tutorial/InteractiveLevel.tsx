@@ -1,19 +1,28 @@
 import { GameEvent } from "lib/study/GameHistory"
+import { AdjustablePosition, DragIndicatorProps } from "./DragIndicator";
 
-export type TutorialSettings = {
+export type LevelConfiguration = {
     zoomEnabled: boolean
     proximityConnectEnabled: boolean
 }
 
-type MakeGadgetAddedFieldsOptional<T> = T extends { GadgetAdded: infer G }
-    ? { GadgetAdded: Partial<G> }
-    : T;
+export type GadgetSelector = { elementId: string } | { axiom: string }
+
+export interface GadgetPosition extends AdjustablePosition {
+    gadget: GadgetSelector
+}
+
+export type TextAndDragIndicator = {
+    text?: string
+    dragIndicator?: DragIndicatorProps<GadgetPosition>
+}
 
 export type InteractiveStep = {
-    trigger: MakeGadgetAddedFieldsOptional<GameEvent>
-    content: string
+    trigger?: GameEvent
+    content: TextAndDragIndicator
 }
 
 export type InteractiveLevel = {
-    settings: TutorialSettings
+    settings?: LevelConfiguration
+    steps: InteractiveStep[]
 }
