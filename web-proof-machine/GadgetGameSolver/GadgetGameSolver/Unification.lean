@@ -10,11 +10,14 @@ abbrev VarAssignmentCtx := PersistentHashMap String Term
 variable [Monad M] [MonadStateOf VarAssignmentCtx M] [MonadFinally M] [MonadBacktrack VarAssignmentCtx M]
 
 partial def Term.instantiateVars (t : Term) : M Term := do
-  let ctx ← getThe VarAssignmentCtx
+  let ctx ← get
   match t with
   | .var v =>
     match ctx.find? v with
-    | .some s => return s -- this assumes the context is up-to-date
+    | .some s =>
+      let s ← s.instantiateVars
+      modify (·.insert v s)
+      return s
     | .none => return .var v
   | .app f args => .app f <$> args.mapM instantiateVars
 
@@ -33,7 +36,7 @@ def assign (var : String) (t : Term) : ExceptT String M Unit := do
     throw "Occur check failed."
   match ctx.find? var with
   | .some s =>
-    unless Term.isEq s t do
+    unless s == t do
       throw "Inconsistent assignment."
   | none => do
     let ctx' := ctx.map <| Term.substitute var t

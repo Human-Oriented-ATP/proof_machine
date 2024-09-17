@@ -3,6 +3,7 @@ import GadgetGameSolver.Unification
 import GadgetGameSolver.ProofTreeZipper
 import GadgetGameSolver.PrologParser
 import GadgetGameSolver.GUIExport
+import GadgetGameSolver.JovanSearch
 
 namespace GadgetGame
 
@@ -208,7 +209,7 @@ def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
 open Lean Elab Meta Term Elab Command in
 elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let ⟨tree, proofLog⟩ := runDFS problemState (timeout?.map TSyntax.getNat)
+  let ⟨tree, proofLog⟩ := JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat)
   logInfoAt stx m!"{proofLog}"
   if timeout?.isNone && !tree.isClosed then
     throwError "The proof tree is not closed."
