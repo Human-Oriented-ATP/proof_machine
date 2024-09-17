@@ -13,16 +13,17 @@ import { axiomToGadget } from '../../../lib/game/GameLogic';
 import { Axiom, GadgetId, GadgetProps, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { Equation, EquationId } from '../../../lib/game/Unification';
 import { Term } from '../../../lib/game/Term';
-import { useIdGenerator } from '../../../lib/hooks/IdGeneratorHook';
+import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { ControlButtons } from './ControlButtons';
 import { sameArity, colorsMatch } from 'lib/game/Term';
 import { InitialViewportSetting, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
-import { useCompletionCheck } from 'lib/hooks/CompletionCheckHook';
-import { useProximityConnect } from 'lib/hooks/ProximityConnectHook';
+import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
+import { useProximityConnect } from 'lib/hooks/ProximityConnect';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { getDiagramGadgetMap, InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
+import { useOpenHandleHighlighting } from 'lib/hooks/OpenHandleHighlighting';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
@@ -38,6 +39,7 @@ interface DiagramProps {
     setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
     zoomEnabled: boolean
+    gadgetDeletionEnabled: boolean
     initialViewportSetting: InitialViewportSetting
 }
 
@@ -86,6 +88,8 @@ export function Diagram(props: DiagramProps) {
     const initialGadgetsArray = Array.from(getDiagramGadgetMap(props.initData.initialDiagram.gadgets))
     const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
 
+    const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
+
     const getInitialEdge = useCallback((connection: InitialDiagramConnection, label: string): EdgeWithEquation => {
         return {
             id: label,
@@ -122,6 +126,7 @@ export function Diagram(props: DiagramProps) {
     useEffect(() => {
         if (dragStartInfo.current !== undefined) {
             const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
+            props.setUserIsDraggingOrNavigating(true)
             nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
                 bubbles: true,
                 cancelable: true,
@@ -134,6 +139,7 @@ export function Diagram(props: DiagramProps) {
     }, [numberOfNodes])
 
     useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
+    useOpenHandleHighlighting({ nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: GadgetId, to: [GadgetId, NodePosition] } => {
         const fromGadget = connection.source!
@@ -200,7 +206,7 @@ export function Diagram(props: DiagramProps) {
                 data: { eq: getEquationId(connectionInfo.from, connectionInfo.to) }
             }, edges)
         });
-    }, [props, setEdges, getEquationFromConnection])
+    }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
     function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
         const id = generateGadgetId()
@@ -209,10 +215,10 @@ export function Diagram(props: DiagramProps) {
             type: 'gadgetNode',
             position: rf.screenToFlowPosition(axiomPosition),
             dragging: true,
-            deletable: true,
+            deletable: props.gadgetDeletionEnabled,
             data: axiomToGadget(axiom, id)
         }
-        props.addGadget(id, axiom)
+        gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
         setNodes((nodes) => nodes.concat(flowNode));
         dragStartInfo.current = { id, position: axiomPosition }
     }
@@ -233,6 +239,7 @@ export function Diagram(props: DiagramProps) {
             removeEdgesConnectedToHandle(params.handleId!)
         }
         disableHoleFocus()
+        props.setUserIsDraggingOrNavigating(true)
     }, [removeEdgesConnectedToHandle])
 
     const enableHoleFocus = useCallback(() => {
@@ -243,8 +250,7 @@ export function Diagram(props: DiagramProps) {
 
     const onConnect = useCallback((connection: Connection) => {
         savelyAddEdge(connection)
-        enableHoleFocus()
-    }, [])
+    }, [savelyAddEdge])
 
     const isInDiagram = useCallback((connection: Connection): boolean => {
         const edges = getEdges()
@@ -289,21 +295,38 @@ export function Diagram(props: DiagramProps) {
         updateEdgeAnimation()
     }, [isSatisfied, setEdges, setNodes])
 
-    const [onNodeDrag, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
+    const [onNodeDragProximityConnect, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
         useProximityConnect(rf, isValidConnection, savelyAddEdge)
         : [(e, n) => void 0, (e, n) => void 0]
 
+    const onNodeDrag = useCallback((event: React.MouseEvent, node: GadgetNode) => {
+        onNodeDragProximityConnect(event, node)
+        props.setUserIsDraggingOrNavigating(true)
+    }, [])
+
     const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
-            props.removeGadget(node.id)
+            if (gadgetThatIsBeingAdded.current !== undefined) {
+                gadgetThatIsBeingAdded.current = undefined
+            } else {
+                props.removeGadget(node.id)
+            }
             const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
             deleteEquationsOfEdges(edgesToBeDeleted)
             setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
             setEdges(edges => edges.filter(e => node.id !== e.source && node.id !== e.target))
         } else {
+            if (gadgetThatIsBeingAdded.current !== undefined) {
+                props.addGadget(gadgetThatIsBeingAdded.current.gadgetId, gadgetThatIsBeingAdded.current.axiom)
+            }
             onNodeDragStopProximityConnect(event, node)
         }
         props.setUserIsDraggingOrNavigating(false)
+    }, [props.removeGadget])
+
+    const onConnectEnd = useCallback(() => {
+        props.setUserIsDraggingOrNavigating(false)
+        enableHoleFocus()
     }, [])
 
     const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
@@ -312,7 +335,7 @@ export function Diagram(props: DiagramProps) {
 
     const onNodesDelete = useCallback((nodes: GadgetNode[]) => {
         nodes.map(node => props.removeGadget(node.id))
-    }, [])
+    }, [props.removeGadget])
 
     const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 
@@ -330,13 +353,14 @@ export function Diagram(props: DiagramProps) {
             nodeTypes={nodeTypes}
             onInit={() => init(rf, props.initialViewportSetting)}
             onConnectStart={onConnectStart}
+            onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
             {...zoomProps}
             onNodeDrag={onNodeDrag}
             onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
-            onMoveStart={() => props.setUserIsDraggingOrNavigating(true)}
+            onMove={() => props.setUserIsDraggingOrNavigating(true)}
             onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
         />
         <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} ></ControlButtons>
