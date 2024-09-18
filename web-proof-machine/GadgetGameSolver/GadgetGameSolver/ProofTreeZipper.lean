@@ -120,12 +120,25 @@ def visitChild (idx : Nat) : M Unit := do
   goDown
   goRightBy idx
 
+def getCurrentIdx : M Nat := do
+  let loc ← getThe Location
+  match loc.path with
+  | .root => throw "Cannot get index of root."
+  | .node left _ _ _ => return left.length
+
 def forEachChild (act : M Unit) : M Unit := do
   let ⟨.node _ goals, _⟩ ← getThe Location | throw "No children nodes found."
   for idx in [0:goals.length] do
     visitChild idx
     act
     goUp
+
+def atParent (act : M α) : M α := do
+  let idx ← getCurrentIdx
+  goUp
+  let res ← act
+  visitChild idx
+  return res
 
 def isRoot : M Bool := do
   let loc ← getThe Location
@@ -140,5 +153,13 @@ partial def goToRoot : M Unit := do
 
 def changeCurrentTree (tree : ProofTree) : M Unit := do
   modify <| Location.change (tree := tree)
+
+def getCurrentGoal : M Term := do
+  let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
+  return goal
+
+def getCurrentHypothesis : M Term := do
+  let ⟨_, .node left _ «axiom» _⟩ ← getThe Location | throw "A hypothesis cannot be extracted if the current location is the root."
+  return «axiom».hypotheses[left.length]!
 
 end GadgetGame

@@ -66,22 +66,9 @@ def log (message : String) : GadgetGameSolverM Unit := do
     let annotatedMessage := s!"{← getStepCount} : {message}"
     modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
 
-def getCurrentGoal : ExceptT String GadgetGameSolverM Term := do
-  let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
-  return goal
-
 def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
   log s!"Finding axioms matching `{← term.instantiateVars}` ..."
   Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
-
-def getApproximatelyMatchingAxioms : ExceptT String GadgetGameSolverM (List Axiom) := do
-  let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
-    throw "Expected the current location to be a goal, different from the root."
-  let term := «axiom».hypotheses[youngerSiblings.length]!
-  log s!"Finding approximate axioms matching `{← term.instantiateVars}` ..."
-  withoutModifyingState do
-    set (σ := VarAssignmentCtx) {}
-    liftM <| getMatchingAxioms term
 
 def timedOut : GadgetGameSolverM Bool := do
   match (← read).timeout? with
@@ -99,15 +86,21 @@ def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := un
   changeCurrentTree <| .node «axiom» (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   -- TODO: Order the goals
 
+def resetCurrentTree : ExceptT String GadgetGameSolverM <| List (Nat × ProofTree) := atParent do
+  let ⟨.node «axiom» children, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
+  let hyp ← getCurrentHypothesis
+  changeCurrentTree <| ← .goal <$> hyp.instantiateFresh (toString <| ← getStepCount)
+  applyAxiom «axiom»
+  return children.enum.filter fun (_, tree) ↦ !(tree matches .goal _)
+
 mutual
 
-partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+partial def workOnCurrentGoal (approx : Bool := false) (proofStubs : List (Nat × ProofTree) := []) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   log s!"Working on goal `{goal}` ..."
   match (← readThe OngoingGoalCtx).find? (Term.subsumes (← goal.instantiateVars) ·) with
   | some ongoingGoal =>
     goUp
-    incrementStepCount
     log s!"The goal `{goal}` conflicts with the ongoing goal `{ongoingGoal}`."
     throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal `{ongoingGoal}`."
   | none =>
@@ -130,7 +123,7 @@ partial def workWithApproximateAxiom (approxAxiom : Axiom) : ExceptT String Gadg
   changeCurrentTree <| ← .goal <$> «axiom».conclusion.instantiateFresh (toString <| ← getStepCount)
   applyAxiom «axiom»
 
-  log s!"Applying approximate axiom `{approxAxiom}` to child ..."
+  -- log s!"Applying approximate axiom `{approxAxiom}` to child `{(← getCurrentGoal)}` ..."
   visitChild youngerSiblings.length
   workWithAxiom approxAxiom
 
@@ -142,29 +135,29 @@ partial def workWithApproximateAxiom (approxAxiom : Axiom) : ExceptT String Gadg
 
   visitChild youngerSiblings.length
 
-partial def applyAxioms (axioms : List Axiom) (approx := false) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+partial def applyAxioms (axioms : List Axiom) (approx := false) (proofStubs : List (Nat × ProofTree) := []) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      if !approx then do
-        log s!"No exact matches found for `{← goal.instantiateVars}`, trying approximate matches ..."
-        let approxMatches ← getApproximatelyMatchingAxioms
-        log <| toString approxMatches
-        applyAxioms approxMatches (approx := true)
-      else
+      if approx then do
         goUp
-        incrementStepCount
         log s!"There are no axioms left to apply on `{goal}`."
         throw "Out of choices."
+      else
+        log s!"No exact matches found for `{← goal.instantiateVars}`, trying approximate matches ..."
+        let proofStubs ← resetCurrentTree
+        workOnCurrentGoal (approx := true) proofStubs
+
+        atParent do
+          for (idx, tree) in proofStubs do
+            visitChild idx
+            regrowProofTree tree
+            goUp
         -- TODO: mark goal as failed
   | choice :: choices =>
     let σ ← saveState
     try
-      incrementStepCount
-      if approx then
-        workWithApproximateAxiom choice
-      else
-        workWithAxiom choice
+      workWithAxiom choice
       -- let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
       -- if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
@@ -175,7 +168,7 @@ partial def applyAxioms (axioms : List Axiom) (approx := false) : ExceptT String
       restoreState σ
       log s!"Error {e}: Failed to apply axiom `{choice}` on `{goal}`, trying the remaining ..."
       changeCurrentTree <| .goal goal
-      applyAxioms choices (approx := approx)
+      applyAxioms choices proofStubs (approx := approx)
 
 partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   match proofTree with
@@ -193,8 +186,6 @@ partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameS
     catch e =>
       restoreState σ
       workOnCurrentGoal
-
-
 
 end
 
@@ -224,6 +215,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy03"
+#gadget_display with_axioms "tim_easy02"
 
 end GadgetGame
