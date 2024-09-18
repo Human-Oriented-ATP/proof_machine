@@ -56,9 +56,13 @@ export function InteractiveContent(props: InteractiveContentProps) {
 }
 
 export function InteractiveOverlay(props: InteractiveOverlayProps) {
-    const step: InteractiveStep = props.interactiveSteps[props.stepIndex]
-    const content = step.content
-    return <div className="fixed left-0 top-0 w-full h-full z-50 pointer-events-none">
-        <InteractiveContent content={content} hideInteractiveContent={props.hideInteractiveContent} getGadgetElementId={props.getGadgetElementId} />
-    </div>
+    try {
+        const step: InteractiveStep = props.interactiveSteps[props.stepIndex]
+        const content = step.content
+        return <div className="fixed left-0 top-0 w-full h-full z-10 pointer-events-none">
+            <InteractiveContent content={content} hideInteractiveContent={props.hideInteractiveContent} getGadgetElementId={props.getGadgetElementId} />
+        </div>
+    } catch (e) {
+        return <></>
+    }
 }
