@@ -1,19 +1,19 @@
 import { DragIndicatorProps, OverlayPosition } from "./DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "./InteractiveLevel";
 
-const myOrigin: GadgetPosition = {
+const firstAxiomDragPoint: GadgetPosition = {
     gadget: { elementId: "axiom_1" },
     anchorPoint: "BOTTOM_RIGHT",
     offset: { x: -20, y: -20 }
 }
 
-const dragIndicator1: DragIndicatorProps<GadgetPosition> = {
-    origin: myOrigin,
+const dragFirstAxiomOut: DragIndicatorProps<GadgetPosition> = {
+    origin: firstAxiomDragPoint,
     destination: { relativePosition: { x: 200, y: 200 } },
     drawLine: false
 }
 
-const dragIndicator2: DragIndicatorProps<GadgetPosition> = {
+const connectGadgets: DragIndicatorProps<GadgetPosition> = {
     origin: {
         gadget: { axiom: ":-r(A)" },
         anchorPoint: "CENTER_RIGHT",
@@ -29,35 +29,39 @@ const dragIndicator2: DragIndicatorProps<GadgetPosition> = {
     drawLine: true
 }
 
-const safeSettings = {
+const TUTORIAL_SETTINGS = {
     zoomEnabled: false,
     proximityConnectEnabled: false,
     gadgetDeletionEnabled: false
 }
 
-export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map([
-    ["tutorial01", {
-        settings: safeSettings,
-        steps: [
-            {
-                trigger: { GadgetAdded: {} },
-                content: {
-                    text: "Drag the gadget onto the building area",
-                    dragIndicator: dragIndicator1
-                }
-            },
-            {
-                trigger: { EquationAdded: {} },
-                content: {
-                    text: "Now draw a line between the connectors",
-                    dragIndicator: dragIndicator2
-                }
-            },
-            {
-                content: {
-                    text: "Well done!"
-                }
-            }
-        ]
+const tutorial01: InteractiveLevel = {
+    settings: TUTORIAL_SETTINGS,
+    steps: [{
+        trigger: { GadgetAdded: {} },
+        content: {
+            text: "Drag the gadget onto the building area",
+            dragIndicator: dragFirstAxiomOut
+        }
+    }, {
+        trigger: { EquationAdded: {} },
+        content: {
+            text: "Now draw a line between the connectors",
+            dragIndicator: connectGadgets
+        }
+    }, {
+        content: {
+            text: "Well done!"
+        }
     }]
+}
+
+const tutorial02: InteractiveLevel = {
+    settings: TUTORIAL_SETTINGS,
+    steps: []
+}
+
+export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map([
+    ["tutorial01", tutorial01],
+    ["tutorial02", tutorial02]
 ])
