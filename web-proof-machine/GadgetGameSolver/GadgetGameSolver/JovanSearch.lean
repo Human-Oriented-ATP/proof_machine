@@ -104,29 +104,20 @@ structure Context where
   maxResultSize : Option Nat
   axioms        : Std.HashMap String (Array Axiom)
 
-/--
-  Remark: the SynthInstance.State is not really an extension of `Meta.State`.
-  The field `postponed` is not needed, and the field `mctx` is misleading since
-  `synthInstance` methods operate over different `MetavarContext`s simultaneously.
-  That being said, we still use `extends` because it makes it simpler to move from
-  `M` to `MetaM`.
--/
 structure State where
-  unique         : Nat := 1
+  uniqueNum      : Nat := 1
   stepCount      : Nat := 0
-  -- mctx           : MetavarContext  := {}
-  result?        : Option PartialProof    := none
+  result?        : Option PartialProof := none
   generatorStack : Array GeneratorNode            := #[]
   resumeStack    : Array (ConsumerNode × Answer)  := #[]
   tableEntries   : Std.HashMap TermKey TableEntry := {}
   log            : Array String := #[]
 
 
-
 abbrev SearchM := ReaderT Context $ StateRefT State $ StateRefT MetavarContext $ StateRefT GoalContext (EIO String)
 instance : Inhabited (SearchM α) := ⟨throw default⟩
 
-def getUnique : SearchM Nat := modifyGet fun s => (s.unique, { s with unique := s.unique + 1 })
+def getUnique : SearchM Nat := modifyGet fun s => (s.uniqueNum, { s with uniqueNum := s.uniqueNum + 1 })
 
 def logMessage (msg : String) : SearchM Unit := modify fun s => { s with log := s.log.push msg }
 
@@ -191,10 +182,10 @@ def AxiomInstantiateFresh (extension : String) (ax : Axiom) : Axiom :=
 
 
 /--
-  Try to synthesize metavariable `mvar` using the instance `inst`.
+  Try to synthesize metavariable `mvar` using the axiom `ax`.
   Remark: `mctx` is set using `withMCtx`.
   If it succeeds, the result is a new updated metavariable context and a new list of subgoals.
-  A subgoal is created for each instance implicit parameter of `inst`. -/
+  A subgoal is created for each hypothesis of `ax`. -/
 def tryResolve (goalId : GoalId) (ax : Axiom) : SearchM (Option (List GoalId)) := do
   let ax := AxiomInstantiateFresh (toString (← getUnique)) ax
   logMessage s!"apply axiom {ax} to {← goalId.toString}"
@@ -203,9 +194,9 @@ def tryResolve (goalId : GoalId) (ax : Axiom) : SearchM (Option (List GoalId)) :
   if ← unify ax.conclusion goal then
     let goalIds ← ax.hypotheses.mapM fun hyp => do
       let goalId : GoalId ← getUnique
-      modifyThe GoalContext  (·.insert goalId { goal := hyp, proof := none })
+      addGoal goalId { goal := hyp, proof := none }
       pure goalId
-    modifyThe GoalContext (·.insert goalId { goal, proof := some <| .node ax (goalIds.map .goal) })
+    addGoal goalId { goal, proof := some <| .node ax (goalIds.map .goal) }
     return some goalIds.toList
   logMessage "failed!"
   return none
@@ -213,14 +204,13 @@ def tryResolve (goalId : GoalId) (ax : Axiom) : SearchM (Option (List GoalId)) :
 /--
   Assign a precomputed answer to `mvar`.
   If it succeeds, the result is a new updated metavariable context and a new list of subgoals. -/
-def tryAnswer (goalId : GoalId) (answer : Answer) : SearchM Bool := do
+def useAnswer (goalId : GoalId) (answer : Answer) : SearchM Unit := do
   let answerGoal := TermInstantiateFresh (toString (← getUnique)) answer.goal
   let goal ← goalId.getInstantiatedGoal
   if ← unify answerGoal goal then
-    modifyThe GoalContext (·.insert goalId { goal, proof := answer.proof })
-    pure true
+    addGoal goalId { goal, proof := answer.proof }
   else
-    pure false
+    throw "failed to try anser"
 
 /-- Move waiters that are waiting for the given answer to the resume stack. -/
 def wakeUp (answer : Answer) : Waiter → SearchM Unit
@@ -253,10 +243,7 @@ def addAnswer (cNode : ConsumerNode) : SearchM Unit := do
   if (← read).maxResultSize.any (cNode.size ≥ ·) then
     logMessage s!"{← cNode.goalId.toString} has size {cNode.size}, which is big"
     pure ()
-    -- trace[Meta.synthInstance.answer] "{crossEmoji} {← instantiateMVars (← inferType cNode.mvar)}{Format.line}(size: {cNode.size} ≥ {(← read).maxResultSize})"
   else
-    -- withTraceNode `Meta.synthInstance.answer
-    --   (fun _ => return m!"{checkEmoji} {← instantiateMVars (← inferType cNode.mvar)}") do
     let answer ← mkAnswer cNode
     -- Remark: `answer` does not contain assignable or assigned metavariables.
     let key := cNode.key
@@ -268,17 +255,6 @@ def addAnswer (cNode : ConsumerNode) : SearchM Unit := do
 
 /-- Process the next subgoal in the given consumer node. -/
 def consume (cNode : ConsumerNode) : SearchM Unit := do
-  /- Filter out subgoals that have already been assigned when solving typing constraints.
-    This may happen when a local instance type depends on other local instances.
-    For example, in Mathlib, we have
-    ```
-    @Submodule.setLike : {R : Type u_1} → {M : Type u_2} →
-      [_inst_1 : Semiring R] →
-      [_inst_2 : AddCommMonoid M] →
-      [_inst_3 : @ModuleS R M _inst_1 _inst_2] →
-      SetLike (@Submodule R M _inst_1 _inst_2 _inst_3) M
-    ```
-  -/
   match cNode.subgoals with
   | []      => logMessage s!"adding answer {← cNode.goalId.toString}"; addAnswer cNode
   | goalId :: _ =>
@@ -354,17 +330,13 @@ def resume : SearchM Unit := do
   match cNode.subgoals with
   | []         => panic! "resume found no remaining subgoals"
   | goalId::rest =>
-    if ← tryAnswer goalId answer then
-      logMessage s! "propagating answer {answer.goal} to subgoal {← goalId.toString}"
-      -- withTraceNode `Meta.synthInstance.resume
-      --   (fun _ => withMCtx cNode.mctx do
-      --     return m!"propagating {← instantiateMVars answer.resultType} to subgoal {← instantiateMVars subgoal} of {← instantiateMVars goal}") do
-      -- trace[Meta.synthInstance.resume] "size: {cNode.size + answer.size}"
-      consume { cNode with
-        subgoals := rest,
-        mctx := ← getThe MetavarContext,
-        goalctx := ← getThe GoalContext,
-        size := cNode.size + answer.size }
+    useAnswer goalId answer
+    logMessage s! "propagating answer {answer.goal} to subgoal {← goalId.toString}"
+    consume { cNode with
+      subgoals := rest,
+      mctx := ← getThe MetavarContext,
+      goalctx := ← getThe GoalContext,
+      size := cNode.size + answer.size }
 
 def step : SearchM Bool := do
   let s ← get
@@ -388,7 +360,6 @@ partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree 
   if (← step) then
     match (← getResult) with
     | none        =>
-      increment
       let { stepCount, .. } ← get
       if let some timeout := timeout? then
         if timeout ≤ stepCount then
@@ -412,7 +383,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT
       axioms
   let action : SearchM ProofTree := do
     let goalId : GoalId := 0
-    modifyThe GoalContext (·.insert goalId { goal, proof := none })
+    addGoal goalId { goal, proof := none }
     let key := mkTableKey goal
     try
       newSubgoal key goalId goal Waiter.root
