@@ -20,8 +20,8 @@ open Lean
 
 inductive ProofTree where
   | goal (term : Term)
-  | node («axiom» : Axiom) (goals : List ProofTree)
-deriving Inhabited, Repr
+  | node («axiom» : Axiom) (ctx : VarAssignmentCtx) (goals : List ProofTree)
+deriving Inhabited
 
 structure ProofResult where
   statement : Term
@@ -29,34 +29,34 @@ structure ProofResult where
 
 def ProofTree.headTerm : ProofTree → Term
   | .goal term => term
-  | .node «axiom» _ => «axiom».conclusion
+  | .node «axiom» _ _ => «axiom».conclusion
 
 abbrev ProofTree.isClosed : ProofTree → Prop
   | .goal _ => False
-  | .node _ [] => True
-  | .node a (_goal::goals) => _goal.isClosed ∧ (ProofTree.node a goals).isClosed
+  | .node _ _ [] => True
+  | .node a ctx (_goal::goals) => _goal.isClosed ∧ (ProofTree.node a ctx goals).isClosed
 
 instance ProofTree.decideIfClosed : DecidablePred ProofTree.isClosed
   | .goal _ => by
     rw [isClosed]
     infer_instance
-  | .node _ [] => inferInstanceAs <| Decidable True
-  | .node a (_goal::goals) => by
+  | .node _ _ [] => inferInstanceAs <| Decidable True
+  | .node a ctx (_goal::goals) => by
     rw [isClosed]
-    exact instDecidableAnd (dp := decideIfClosed _goal) (dq := decideIfClosed <| .node a goals)
+    exact instDecidableAnd (dp := decideIfClosed _goal) (dq := decideIfClosed <| .node a ctx goals)
 
 partial def ProofTree.depth : ProofTree → Nat
   | .goal _ => 0
-  | .node _ goals => 1 + (goals.map depth).maximum?.getD 0
+  | .node _ _ goals => 1 + (goals.map depth).maximum?.getD 0
 
 abbrev ClosedProofTree := { tree : ProofTree // tree.isClosed }
 
 instance : Inhabited ClosedProofTree where
-  default := ⟨.node default [], trivial⟩
+  default := ⟨.node default {} [], trivial⟩
 
 inductive Path where
   | root
-  | node (youngerSiblings : List ProofTree) (parent : Path) («axiom» : Axiom) (elderSiblings : List ProofTree)
+  | node (youngerSiblings : List ProofTree) (parent : Path) («axiom» : Axiom) (ctx : VarAssignmentCtx) (elderSiblings : List ProofTree)
 deriving Inhabited
 
 structure Location where
@@ -69,28 +69,28 @@ namespace Location
 def goLeft (loc : Location) : Except String Location :=
   match loc.path with
   | .root => throw "Cannot go to the left of the root."
-  | .node (l :: left) up ax right =>
-    .ok { tree := l, path := .node left up ax (loc.tree :: right) }
-  | .node [] _ _ _ => throw "Reached left-most end."
+  | .node (l :: left) up ax ctx right =>
+    .ok { tree := l, path := .node left up ax ctx (loc.tree :: right) }
+  | .node [] _ _ _ _ => throw "Reached left-most end."
 
 def goRight (loc : Location) : Except String Location :=
   match loc.path with
   | .root => throw "Cannot go to the right of the root."
-  | .node left up ax (r :: right) =>
-    .ok { tree := r, path := .node (loc.tree :: left) up ax right }
-  | .node _ _ _ [] => throw "Reached right-most end."
+  | .node left up ax ctx (r :: right) =>
+    .ok { tree := r, path := .node (loc.tree :: left) up ax ctx right }
+  | .node _ _ _ _ [] => throw "Reached right-most end."
 
 def goUp (loc : Location) : Except String Location :=
   match loc.path with
   | .root => throw "Cannot go above the root."
-  | .node left up ax right => .ok { tree := .node ax (left.reverse ++ [loc.tree] ++ right), path := up }
+  | .node left up ax ctx right => .ok { tree := .node ax ctx (left.reverse ++ [loc.tree] ++ right), path := up }
 
 def goDown (loc : Location) : Except String Location :=
   match loc.tree with
   | .goal _ => throw "Cannot go below a goal node."
-  | .node ax (tree :: trees) =>
-    .ok { tree := tree, path := .node [] loc.path ax trees }
-  | .node _ [] => throw "Node has no children."
+  | .node ax ctx (tree :: trees) =>
+    .ok { tree := tree, path := .node [] loc.path ax ctx trees }
+  | .node _ _ [] => throw "Node has no children."
 
 def change (loc : Location) (tree : ProofTree) : Location :=
   { tree := tree, path := loc.path }
@@ -124,10 +124,10 @@ def getCurrentIdx : M Nat := do
   let loc ← getThe Location
   match loc.path with
   | .root => throw "Cannot get index of root."
-  | .node left _ _ _ => return left.length
+  | .node left _ _ _ _ => return left.length
 
 def forEachChild (act : M Unit) : M Unit := do
-  let ⟨.node _ goals, _⟩ ← getThe Location | throw "No children nodes found."
+  let ⟨.node _ _ goals, _⟩ ← getThe Location | throw "No children nodes found."
   for idx in [0:goals.length] do
     visitChild idx
     act
@@ -159,7 +159,7 @@ def getCurrentGoal : M Term := do
   return goal
 
 def getCurrentHypothesis : M Term := do
-  let ⟨_, .node left _ «axiom» _⟩ ← getThe Location | throw "A hypothesis cannot be extracted if the current location is the root."
+  let ⟨_, .node left _ «axiom» _ _⟩ ← getThe Location | throw "A hypothesis cannot be extracted if the current location is the root."
   return «axiom».hypotheses[left.length]!
 
 end GadgetGame

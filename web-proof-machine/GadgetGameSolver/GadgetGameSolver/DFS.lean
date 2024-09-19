@@ -83,14 +83,13 @@ def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := un
   log s!"Applying axiom `{«axiom»}` to goal `{goal}` ..."
   let «axiom» ← «axiom».instantiateFresh (toString <| ← getStepCount)
   Term.unify «axiom».conclusion goal -- putting the axiom as the first argument ensures that its variables get instantiated to the ones in the goal
-  changeCurrentTree <| .node «axiom» (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
+  changeCurrentTree <| .node «axiom» (← saveState) (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   -- TODO: Order the goals
 
 def resetCurrentTree : ExceptT String GadgetGameSolverM <| List (Nat × ProofTree) := atParent do
-  let ⟨.node «axiom» children, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
-  let hyp ← getCurrentHypothesis
-  changeCurrentTree <| ← .goal <$> hyp.instantiateFresh (toString <| ← getStepCount)
-  applyAxiom «axiom»
+  let ⟨.node «axiom» ctx children, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
+  restoreState ctx
+  changeCurrentTree <| .node «axiom» ctx (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   return children.enum.filter fun (_, tree) ↦ !(tree matches .goal _)
 
 mutual
@@ -107,33 +106,12 @@ partial def workOnCurrentGoal (approx : Bool := false) (proofStubs : List (Nat �
     withTheReader OngoingGoalCtx (·.push (← goal.instantiateVars)) do
       log s!"Finding matching axioms for `{goal}` ..."
       let choices ← getMatchingAxioms goal -- TODO: load cached results here
-      applyAxioms choices
+      applyAxioms choices approx proofStubs
 
 partial def workWithAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   incrementStepCount
   applyAxiom «axiom»
   forEachChild workOnCurrentGoal
-
-partial def workWithApproximateAxiom (approxAxiom : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
-  let ⟨.goal _, .node youngerSiblings _ «axiom» _⟩ ← getThe Location |
-    throw "Expected the current location to be a goal, different from the root."
-
-  log s!"Restoring parent tree state to `{«axiom»}` ..."
-  goUp
-  changeCurrentTree <| ← .goal <$> «axiom».conclusion.instantiateFresh (toString <| ← getStepCount)
-  applyAxiom «axiom»
-
-  -- log s!"Applying approximate axiom `{approxAxiom}` to child `{(← getCurrentGoal)}` ..."
-  visitChild youngerSiblings.length
-  workWithAxiom approxAxiom
-
-  log "Regrowing proof trees of siblings ..."
-  for (idx, tree) in youngerSiblings.enum do
-    visitChild idx
-    regrowProofTree tree
-    goUp
-
-  visitChild youngerSiblings.length
 
 partial def applyAxioms (axioms : List Axiom) (approx := false) (proofStubs : List (Nat × ProofTree) := []) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
@@ -175,7 +153,7 @@ partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameS
   | .goal goal =>
     Term.unify (← getCurrentGoal) goal
     workOnCurrentGoal
-  | .node «axiom» goals =>
+  | .node «axiom» _ctx goals =>
     let σ ← saveState
     try
       applyAxiom «axiom»
@@ -215,6 +193,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy02"
+#gadget_display with_axioms "tim_easy01"
 
 end GadgetGame

@@ -83,7 +83,7 @@ partial def ProofResult.exportToGraph : ProofResult → StateT RenderingState (R
     let nodeHeight ← nodeSize term
     set { state with
           yOffset := state.yOffset + nodeHeight }
-  | ⟨stmt, .node ax goals⟩ => do
+  | ⟨stmt, .node ax _ goals⟩ => do
     let params ← read
     let state ← get
     let headId := mkGadgetId state.location
