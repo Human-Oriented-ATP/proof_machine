@@ -112,9 +112,13 @@ structure TableEntry where
   /-- The priority is a number at least 1, with 1 being the highest priority. -/
   priority : Nat
 
+structure Config where
+  depthFirst : Bool
+
 structure Context where
   maxResultSize : Option Nat
   axioms        : Std.HashMap String (Array Axiom)
+  config        : Config
 
 structure State where
   uniqueNum      : Nat := 1
@@ -176,9 +180,11 @@ def newSubgoal (key : TermKey) (goalId : GoalId) (goal : Term) (waiter : Waiter)
     | some gNode =>
       let entry : TableEntry := { waiters := #[waiter], priority }
       logMessage s!"new goal {← goalId.toString}, with goalId {goalId}"
+      let { config := { depthFirst } , .. } ← read
       modify fun s =>
+        let stack := if depthFirst then s.generatorStack.push gNode else #[gNode] ++ s.generatorStack
        { s with
-         generatorStack := s.generatorStack.push gNode |>.insertionSort (·.priority > ·.priority)
+         generatorStack := stack.insertionSort (·.priority > ·.priority)
          tableEntries   := s.tableEntries.insert key entry }
 
 def findEntry? (key : TermKey) : SearchM (Option TableEntry) := do
@@ -402,7 +408,7 @@ partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree 
     logMessage "finished with search :("
     getPartialResult goalId
 
-def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT String Id ProofTree × Nat × Array String) := do
+def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config) : BaseIO (ExceptT String Id ProofTree × Nat × Array String) := do
   let { axioms, target := goal } := problemState
   let axioms := axioms.foldl (init := {}) fun axioms ax =>
     if let .app cls _ := ax.conclusion then
@@ -430,12 +436,12 @@ def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT
         logMessage s!"error getting partial result: {e}"
         pure default
   let ref ← IO.mkRef {}
-  let r ← (action.run { maxResultSize := none, axioms }) ref |>.run' {} |>.run' {} |>.toBaseIO
+  let r ← (action.run { maxResultSize := none, axioms, config }) ref |>.run' {} |>.run' {} |>.toBaseIO
   let state ← ref.get
   pure (r, state.stepCount, state.log)
 
-def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) : BaseIO (ProofTree × Nat × Array String) := do
-  pure <| match ← main problemState timeout? with
+def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) (config : Config) : BaseIO (ProofTree × Nat × Array String) := do
+  pure <| match ← main problemState timeout? config with
   | (.ok proof, log) => (proof, log)
   | _ => unreachable!
 

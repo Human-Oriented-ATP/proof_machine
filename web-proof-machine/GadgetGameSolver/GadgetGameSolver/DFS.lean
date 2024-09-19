@@ -209,7 +209,7 @@ def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
 open Lean Elab Meta Term Elab Command in
 elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat)
+  let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat) (config := { depthFirst := false })
   logInfoAt stx m!"number of steps: {numSteps}"
   -- logInfoAt stx m!"{proofLog}"
   if timeout?.isNone && !tree.isClosed then
@@ -223,7 +223,7 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "jacob25"
+#gadget_display with_axioms "tim_easy08"
 
 /-
 results:

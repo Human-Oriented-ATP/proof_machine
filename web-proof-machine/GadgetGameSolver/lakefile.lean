@@ -5,6 +5,7 @@ package «GadgetGameSolver» where
   -- add package configuration options here
 
 lean_lib «GadgetGameSolver» where
+  precompileModules := true
   -- add library configuration options here
 
 @[default_target]
