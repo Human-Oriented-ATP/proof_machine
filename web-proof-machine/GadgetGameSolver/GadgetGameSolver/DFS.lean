@@ -209,8 +209,9 @@ def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
 open Lean Elab Meta Term Elab Command in
 elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let ⟨tree, proofLog⟩ ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat)
-  logInfoAt stx m!"{proofLog}"
+  let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat)
+  logInfoAt stx m!"number of steps: {numSteps}"
+  -- logInfoAt stx m!"{proofLog}"
   if timeout?.isNone && !tree.isClosed then
     throwError "The proof tree is not closed."
   let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
@@ -222,6 +223,24 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy04" 500
+#gadget_display with_axioms "jacob25"
 
+/-
+results:
+tim_easy01: 6
+tim_easy02: 40 - 29
+tim_easy03: 40 - 11 - 13
+tim_easy04: ∞  - 10
+tim_easy05: ∞
+tim_easy06: ∞
+tim_easy07: 8
+tim_easy08: ∞  - 42
+tim_easy09: ∞  - 29
+tim_easy10: 14 - 8
+tim_easy11: 3
+tim_easy12: ∞  - 24 - 21
+tim_easy13: 5
+
+jacob25: 1439
+-/
 end GadgetGame

@@ -9,13 +9,23 @@ open GadgetGame
 
 inductive TermKey where
 | var : Nat → TermKey
-| app : String → Array TermKey → TermKey
-deriving Inhabited, BEq, Hashable
+| app : UInt64 → String → Array TermKey → TermKey
+deriving Inhabited, BEq
+
+instance : Hashable TermKey where
+  hash
+    | .var n => hash n
+    | .app h _ _ => h
+
+def TermKey.mkApp (f : String) (args : Array TermKey) : TermKey :=
+  let hash := args.foldl (init := hash f) (mixHash · <| hash ·)
+  .app hash f args
 
 /-- A goal in the tabled (type class) resolution. -/
 structure GeneratorNode where
   goalId          : GoalId
   key             : TermKey
+  priority        : Nat
   mctx            : MetavarContext
   goalctx         : GoalContext
   axioms          : Array Axiom
@@ -84,14 +94,14 @@ def toTermKey (e : Term) : StateM MkKeyState TermKey := do
       pure e'
   | .app f args =>
     let args ← args.attach.mapM fun ⟨x, _⟩ => toTermKey x
-    return .app f args
+    return .mkApp f args
 
 /-- Remark: `mkTableKey` assumes `e` does not contain assigned metavariables. -/
 def mkTableKey (e : Term) : TermKey :=
   toTermKey e |>.run' {}
 
 structure Answer where
-  proof : PartialProof
+  proof : LazyPartialProof
   goal  : Term
   size  : Nat
   deriving Inhabited
@@ -99,6 +109,8 @@ structure Answer where
 structure TableEntry where
   waiters : Array Waiter
   answers : Array Answer := #[]
+  /-- The priority is a number at least 1, with 1 being the highest priority. -/
+  priority : Nat
 
 structure Context where
   maxResultSize : Option Nat
@@ -112,10 +124,18 @@ structure State where
   resumeStack    : Array (ConsumerNode × Answer)  := #[]
   tableEntries   : Std.HashMap TermKey TableEntry := {}
   log            : Array String := #[]
+  time           : Nat := 0
 
 
 abbrev SearchM := ReaderT Context $ StateRefT State $ StateRefT MetavarContext $ StateRefT GoalContext (EIO String)
 instance : Inhabited (SearchM α) := ⟨throw default⟩
+
+def timeit (k : SearchM α) : SearchM α := do
+  let t0 ← IO.monoNanosNow
+  let a ← k
+  let t1 ← IO.monoNanosNow
+  modify fun s => { s with time := s.time + (t1 - t0) }
+  pure a
 
 def getUnique : SearchM Nat := modifyGet fun s => (s.uniqueNum, { s with uniqueNum := s.uniqueNum + 1 })
 
@@ -134,7 +154,7 @@ def TermHasVars : Term → Bool
 | .var _ => true
 | .app _ args => args.attach.any fun ⟨x, _⟩ => TermHasVars x
 
-def mkGeneratorNode? (key : TermKey) (goalId : GoalId) (goal : Term) : SearchM (Option GeneratorNode) := do
+def mkGeneratorNode? (key : TermKey) (goalId : GoalId) (goal : Term) (priority : Nat) : SearchM (Option GeneratorNode) := do
   let .app cls _ := goal | throw s!"goal is a metavariable: {goal}"
   match (← read).axioms[cls]? with
   | none => return none
@@ -142,7 +162,7 @@ def mkGeneratorNode? (key : TermKey) (goalId : GoalId) (goal : Term) : SearchM (
     let mctx ← getThe MetavarContext
     let goalctx ← getThe GoalContext
     return some {
-      goalId, key, mctx, goalctx, axioms
+      goalId, key, mctx, goalctx, axioms, priority
       goalHasMVars := TermHasVars goal
       currInstanceIdx := axioms.size
     }
@@ -150,15 +170,15 @@ def mkGeneratorNode? (key : TermKey) (goalId : GoalId) (goal : Term) : SearchM (
 /--
   Create a new generator node for `mvar` and add `waiter` as its waiter.
   `key` must be `mkTableKey mctx mvarType`. -/
-def newSubgoal (key : TermKey) (goalId : GoalId) (goal : Term) (waiter : Waiter) : SearchM Unit := do
-    match ← mkGeneratorNode? key goalId goal with
+def newSubgoal (key : TermKey) (goalId : GoalId) (goal : Term) (waiter : Waiter) (priority : Nat) : SearchM Unit := do
+    match ← mkGeneratorNode? key goalId goal priority with
     | none      => logMessage s!"no new subgoals for {← goalId.toString}"
-    | some node =>
-      let entry : TableEntry := { waiters := #[waiter] }
-      logMessage s!"new goal {← goalId.toString}"
+    | some gNode =>
+      let entry : TableEntry := { waiters := #[waiter], priority }
+      logMessage s!"new goal {← goalId.toString}, with goalId {goalId}"
       modify fun s =>
        { s with
-         generatorStack := s.generatorStack.push node
+         generatorStack := s.generatorStack.push gNode |>.insertionSort (·.priority > ·.priority)
          tableEntries   := s.tableEntries.insert key entry }
 
 def findEntry? (key : TermKey) : SearchM (Option TableEntry) := do
@@ -166,7 +186,7 @@ def findEntry? (key : TermKey) : SearchM (Option TableEntry) := do
 
 def getEntry (key : TermKey) : SearchM TableEntry := do
   match (← findEntry? key) with
-  | none       => panic! "invalid key at synthInstance"
+  | none       => panic! "invalid key at gadget search"
   | some entry => pure entry
 
 
@@ -188,17 +208,16 @@ def AxiomInstantiateFresh (extension : String) (ax : Axiom) : Axiom :=
   A subgoal is created for each hypothesis of `ax`. -/
 def tryResolve (goalId : GoalId) (ax : Axiom) : SearchM (Option (List GoalId)) := do
   let ax := AxiomInstantiateFresh (toString (← getUnique)) ax
-  logMessage s!"apply axiom {ax} to {← goalId.toString}"
 
   let goal ← goalId.getInstantiatedGoal
   if ← unify ax.conclusion goal then
+    logMessage s!"applied axiom {ax} to {← goalId.toString}"
     let goalIds ← ax.hypotheses.mapM fun hyp => do
       let goalId : GoalId ← getUnique
-      addGoal goalId { goal := hyp, proof := none }
+      addGoal goalId hyp none
       pure goalId
-    addGoal goalId { goal, proof := some <| .node ax (goalIds.map .goal) }
+    addGoal goalId goal (some <| .inl <| .node ax (goalIds.map .goal))
     return some goalIds.toList
-  logMessage "failed!"
   return none
 
 /--
@@ -208,18 +227,15 @@ def useAnswer (goalId : GoalId) (answer : Answer) : SearchM Unit := do
   let answerGoal := TermInstantiateFresh (toString (← getUnique)) answer.goal
   let goal ← goalId.getInstantiatedGoal
   if ← unify answerGoal goal then
-    addGoal goalId { goal, proof := answer.proof }
+    addGoal goalId goal (some <| .inr answer.proof)
   else
     throw "failed to try anser"
 
 /-- Move waiters that are waiting for the given answer to the resume stack. -/
 def wakeUp (answer : Answer) : Waiter → SearchM Unit
   | .root               => do
-    /- Recall that we now use `ignoreLevelMVarDepth := true`. Thus, we should allow solutions
-       containing universe metavariables, and not check `answer.result.paramNames.isEmpty`.
-       We use `openAbstractMVarsResult` to construct the universe metavariables
-       at the correct depth. -/
-    modify fun s => { s with result? := answer.proof }
+    let proof ← answer.proof.eval
+    modify fun s => { s with result? := proof }
   | .consumerNode cNode =>
     modify fun s => { s with resumeStack := s.resumeStack.push (cNode, answer) }
 
@@ -230,7 +246,7 @@ def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
     oldAnswer.goal != answer.goal
 
 private def mkAnswer (cNode : ConsumerNode) : SearchM Answer := do
-  let proof ← cNode.goalId.instantiatedProof
+  let proof := LazyPartialProof.mk cNode.goalId (← getThe GoalContext)
   let goal ← cNode.goalId.getInstantiatedGoal
   let goal ← goal.instantiateVars
   return { proof, goal, size := cNode.size + 1 }
@@ -247,9 +263,9 @@ def addAnswer (cNode : ConsumerNode) : SearchM Unit := do
     let answer ← mkAnswer cNode
     -- Remark: `answer` does not contain assignable or assigned metavariables.
     let key := cNode.key
-    let { waiters, answers } ← getEntry key
+    let { waiters, answers, priority } ← getEntry key
     if isNewAnswer answers answer then
-      let newEntry := { waiters, answers := answers.push answer }
+      let newEntry := { waiters, answers := answers.push answer, priority }
       modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
       waiters.forM (wakeUp answer)
 
@@ -261,16 +277,27 @@ def consume (cNode : ConsumerNode) : SearchM Unit := do
     let waiter := Waiter.consumerNode cNode
     let goal ← goalId.getInstantiatedGoal
     let key := mkTableKey goal
+    let { priority, .. } ← getEntry cNode.key
+    let priority := priority * cNode.subgoals.length
     match ← findEntry? key with
     | none       =>
-      newSubgoal key goalId goal waiter
+      newSubgoal key goalId goal waiter priority
     | some entry =>
       logMessage s!"found key in table: {goal}."
-
+      if priority < entry.priority then
+        modify fun s =>
+          let generatorStack := s.generatorStack.size.foldRev (init := s.generatorStack) fun i stack =>
+            let gNode := stack[i]!
+            if gNode.key == key then
+              stack.set! i { gNode with priority }
+            else
+              stack
+          let generatorStack := generatorStack.insertionSort (·.priority > ·.priority)
+          { s with generatorStack }
       modify fun s =>
       { s with
         resumeStack  := entry.answers.foldl (fun s answer => s.push (cNode, answer)) s.resumeStack,
-        tableEntries := s.tableEntries.insert key { entry with waiters := entry.waiters.push waiter } }
+        tableEntries := s.tableEntries.insert key { entry with waiters := entry.waiters.push waiter, priority := min priority entry.priority } }
 
 def getTop : SearchM GeneratorNode :=
   return (← get).generatorStack.back
@@ -363,6 +390,8 @@ partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree 
       let { stepCount, .. } ← get
       if let some timeout := timeout? then
         if timeout ≤ stepCount then
+          let s ← get
+          logMessage s! "stack size: {s.generatorStack.size}, unique numbers: {s.uniqueNum}"
           getPartialResult goalId
         else
           synth timeout? goalId
@@ -370,9 +399,10 @@ partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree 
         synth timeout? goalId
     | some result => return result.toProofTree
   else
+    logMessage "finished with search :("
     getPartialResult goalId
 
-def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT String Id ProofTree × Array String) := do
+def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT String Id ProofTree × Nat × Array String) := do
   let { axioms, target := goal } := problemState
   let axioms := axioms.foldl (init := {}) fun axioms ax =>
     if let .app cls _ := ax.conclusion then
@@ -383,19 +413,28 @@ def main (problemState : ProblemState) (timeout? : Option Nat) : BaseIO (ExceptT
       axioms
   let action : SearchM ProofTree := do
     let goalId : GoalId := 0
-    addGoal goalId { goal, proof := none }
+    addGoal goalId goal none
     let key := mkTableKey goal
     try
-      newSubgoal key goalId goal Waiter.root
-      synth timeout? goalId
+      let t0 ← IO.monoNanosNow
+      newSubgoal key goalId goal Waiter.root (priority := 1)
+      let r ← synth timeout? goalId
+      let t1 ← IO.monoNanosNow
+      logMessage s!"measured time: {(← get).time/1000000}ms out of {(t1-t0)/1000000}ms"
+      pure r
     catch e =>
       logMessage s!"error: {e}"
-      getPartialResult goalId
+      try
+        getPartialResult goalId
+      catch e =>
+        logMessage s!"error getting partial result: {e}"
+        pure default
   let ref ← IO.mkRef {}
   let r ← (action.run { maxResultSize := none, axioms }) ref |>.run' {} |>.run' {} |>.toBaseIO
-  pure (r, (← ref.get).log)
+  let state ← ref.get
+  pure (r, state.stepCount, state.log)
 
-def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) : BaseIO (ProofTree × Array String) := do
+def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) : BaseIO (ProofTree × Nat × Array String) := do
   pure <| match ← main problemState timeout? with
   | (.ok proof, log) => (proof, log)
   | _ => unreachable!

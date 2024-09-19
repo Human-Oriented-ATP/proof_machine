@@ -21,20 +21,30 @@ inductive PartialProof where
 | node : Axiom → Array PartialProof → PartialProof
 deriving Inhabited, Repr
 
-structure GoalDecl where
-  goal : Term
-  proof : Option PartialProof
+mutual
+inductive LazyPartialProof where
+| mk
+  (goalId  : GoalId)
+  (goalctx : Std.HashMap.Raw GoalId GoalDecl)
 deriving Inhabited
 
-abbrev GoalContext := Lean.PersistentHashMap GoalId GoalDecl
+inductive GoalDecl where
+| mk
+  (goal : Term)
+  (proof : Option (PartialProof ⊕ LazyPartialProof))
+deriving Inhabited
+end
 
+abbrev GoalContext := Std.HashMap.Raw GoalId GoalDecl
 
 variable {m : Type → Type} [Monad m] [MonadStateOf MetavarContext m] [MonadStateOf GoalContext m] [MonadExceptOf String m]
 
 def GoalId.toString (goalId : GoalId) : m String := do
-  let some { goal, .. } := (← get).find? goalId | throw "oh no"
+  let some (.mk goal _) := (← get)[goalId]? | throw s!"oh no: goalId {goalId}"
   pure s!"{goal}"
 
+def addGoal (goalId : GoalId) (goal : Term) (proof : Option (PartialProof ⊕ LazyPartialProof)) : m Unit :=
+  modify (·.insert goalId (.mk goal proof))
 
 mutual
 
@@ -46,27 +56,38 @@ mutual
       return .node ax proofs
 
   partial def GoalId.instantiatedProof (goalId : GoalId) : m PartialProof := do
-    let some goalDecl := (← get).find? goalId | throw "uh oh"
-    match goalDecl.proof with
+    let some (.mk goal proof) := (← get)[goalId]? | throw "uh oh"
+    match proof with
     | none => return .goal goalId
     | some proof =>
+      let proof ← match proof with
+        | .inl proof => pure proof
+        | .inr proof => proof.eval
       let proof ← proof.instantiate
-      modify (·.insert goalId { goalDecl with proof })
+      modify (·.insert goalId (.mk goal (some (.inl proof))))
       pure proof
 
+  partial def LazyPartialProof.eval : LazyPartialProof → m PartialProof
+  | .mk goalId mctx => do
+    let mctx' ← get
+    set (mctx:GoalContext)
+    let proof ← goalId.instantiatedProof
+    set mctx'
+    pure proof
+
 end
+
+def GoalId.getInstantiatedGoal (goalId : GoalId) : m Term := do
+  let some (.mk goal proof) := (← get)[goalId]? | throw "iao"
+  let goal ← instantiateVars goal
+  modify (·.insert goalId (.mk goal proof))
+  pure goal
 
 def PartialProof.toProof : PartialProof → m Proof
   | .node ax proofs => do
     let proofs ← proofs.attach.mapM fun ⟨x, _⟩ => x.toProof
     return .node ax proofs
   | .goal goalId => throw s!"goal {goalId} is unsolved"
-
-def GoalId.getInstantiatedGoal (goalId : GoalId) : m Term := do
-  let some { goal, proof } := (← get).find? goalId | throw "iao"
-  let goal ← instantiateVars goal
-  modify (·.insert goalId { goal, proof })
-  pure goal
 
 def PartialProof.toProofTree : PartialProof → m ProofTree
 | .goal goalId => do
