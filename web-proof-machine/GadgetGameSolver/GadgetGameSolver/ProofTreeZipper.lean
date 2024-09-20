@@ -162,4 +162,8 @@ def getCurrentHypothesis : M Term := do
   let ⟨_, .node left _ «axiom» _ _⟩ ← getThe Location | throw "A hypothesis cannot be extracted if the current location is the root."
   return «axiom».hypotheses[left.length]!
 
+def getCurrentHeadTerm : M Term := do
+  let loc ← getThe Location
+  return loc.tree.headTerm
+
 end GadgetGame

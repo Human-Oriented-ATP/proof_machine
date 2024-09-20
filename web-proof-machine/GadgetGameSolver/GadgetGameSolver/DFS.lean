@@ -19,6 +19,7 @@ structure State where
 structure Context where
   sort? : Bool
   ongoingGoalCtx : OngoingGoalCtx := .empty
+  target : Term
   axioms : List Axiom
   timeout? : Option Nat := none
   verbose : Bool := true
@@ -86,68 +87,61 @@ def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := un
   changeCurrentTree <| .node «axiom» (← saveState) (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   -- TODO: Order the goals
 
-def resetCurrentTree : ExceptT String GadgetGameSolverM <| List (Nat × ProofTree) := atParent do
+def resetProblem : ExceptT String GadgetGameSolverM Unit := do
+  goToRoot
+  changeCurrentTree <| .goal (← read).target
+
+def resetCurrentTree : ExceptT String GadgetGameSolverM Unit := do
   log "Resetting the current tree ..."
-  let ⟨.node «axiom» ctx children, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
-  restoreState ctx
-  changeCurrentTree <| .goal (← «axiom».conclusion.instantiateVars)
-  applyAxiom «axiom»
-  -- changeCurrentTree <| .node «axiom» ctx (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
-  return children.enum.filter fun (_, tree) ↦ !(tree matches .goal _)
+  if ← isRoot then do
+    resetProblem
+  else atParent do
+    let ⟨.node _ ctx _, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
+    restoreState ctx
 
 mutual
 
-partial def workOnCurrentGoal (approx : Bool := false) (proofStubs : List (Nat × ProofTree) := []) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+partial def workOnCurrentGoal : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   log s!"Working on goal `{goal}` ..."
-  match (← readThe OngoingGoalCtx).find? (Term.subsumes (← goal.instantiateVars) ·) with
+  match (← readThe OngoingGoalCtx).find? (Term.subsumes goal ·) with
   | some ongoingGoal =>
     goUp
-    log s!"The goal `{← goal.instantiateVars}` conflicts with the ongoing goal `{ongoingGoal}`."
+    log s!"The goal `{goal}` conflicts with the ongoing goal `{ongoingGoal}`."
     throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal `{ongoingGoal}`."
   | none =>
-    withTheReader OngoingGoalCtx (·.push (← goal.instantiateVars)) do
+    withTheReader OngoingGoalCtx (·.push goal) do
       log s!"Finding matching axioms for `{goal}` ..."
       let choices ← getMatchingAxioms goal -- TODO: load cached results here
-      applyAxioms choices approx proofStubs
+      applyAxioms choices
 
 partial def workWithAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   incrementStepCount
   applyAxiom «axiom»
+  -- TODO: order the new goals
   forEachChild workOnCurrentGoal
 
-partial def applyAxioms (axioms : List Axiom) (approx := false) (proofStubs : List (Nat × ProofTree) := []) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
   match axioms with
   | [] =>
-      if approx then do
+      if goal == (← getCurrentHypothesis) then
         goUp
         log s!"There are no axioms left to apply on `{goal}`."
         throw "Out of choices."
-      else
-        log s!"No exact matches found for `{← goal.instantiateVars}`, trying approximate matches ..."
-        let proofStubs ← resetCurrentTree
-        workOnCurrentGoal (approx := true) proofStubs
-
-        log "Regrowing previous proof stubs ..."
-        atParent do
-          for (idx, tree) in proofStubs do
-            visitChild idx
-            regrowProofTree tree
-            goUp
         -- TODO: mark goal as failed
+      else
+        log s!"No exact matches found for `{goal}`, trying approximate matches ..."
+        resetCurrentTree
+        workOnCurrentGoal
+        log "Repairing previous proof stubs ..."
+        unless ← isRoot do
+          atParent repairProofTree
   | choice :: choices =>
     let σ ← saveState
     try
       log s!"Trying to apply axiom `{choice}` on `{goal}` ..."
       workWithAxiom choice
-
-      log "Regrowing previous proof stubs ..."
-      atParent do
-        for (idx, tree) in proofStubs do
-          visitChild idx
-          regrowProofTree tree
-          goUp
       -- let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
       -- if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
@@ -158,23 +152,15 @@ partial def applyAxioms (axioms : List Axiom) (approx := false) (proofStubs : Li
       restoreState σ
       log s!"Error {e}: Failed to apply axiom `{choice}` on `{goal}`, trying the remaining ..."
       changeCurrentTree <| .goal goal
-      applyAxioms choices proofStubs (approx := approx)
+      applyAxioms choices
 
-partial def regrowProofTree (proofTree : ProofTree) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
-  match proofTree with
-  | .goal goal =>
-    Term.unify (← getCurrentGoal) goal
-    workOnCurrentGoal
-  | .node «axiom» _ctx goals =>
-    let σ ← saveState
-    try
-      applyAxiom «axiom»
-      for (idx, tree) in goals.enum do
-        visitChild idx
-        regrowProofTree tree
-        goUp
-    catch e =>
-      restoreState σ
+partial def repairProofTree : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
+  forEachChild do
+    let hyp ← getCurrentHypothesis
+    if ← hyp.unifiable? (← getCurrentHeadTerm) then do
+      repairProofTree
+    else
+      changeCurrentTree <| .goal hyp
       workOnCurrentGoal
 
 end
@@ -182,7 +168,7 @@ end
 def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree × Array String :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
-      |>.run { sort? := false, axioms := problemState.axioms.toList, timeout? := timeout?, verbose := true }
+      |>.run { sort? := false, target := problemState.target, axioms := problemState.axioms.toList, timeout? := timeout?, verbose := true }
   let proofTree := σ.location.tree
   (proofTree, σ.log)
 
@@ -205,6 +191,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy09" 15
+#gadget_display with_axioms "tim_easy04"
 
 end GadgetGame
