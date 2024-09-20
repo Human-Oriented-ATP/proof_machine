@@ -87,9 +87,12 @@ def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := un
   -- TODO: Order the goals
 
 def resetCurrentTree : ExceptT String GadgetGameSolverM <| List (Nat × ProofTree) := atParent do
+  log "Resetting the current tree ..."
   let ⟨.node «axiom» ctx children, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
   restoreState ctx
-  changeCurrentTree <| .node «axiom» ctx (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
+  changeCurrentTree <| .goal (← «axiom».conclusion.instantiateVars)
+  applyAxiom «axiom»
+  -- changeCurrentTree <| .node «axiom» ctx (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
   return children.enum.filter fun (_, tree) ↦ !(tree matches .goal _)
 
 mutual
@@ -100,7 +103,7 @@ partial def workOnCurrentGoal (approx : Bool := false) (proofStubs : List (Nat �
   match (← readThe OngoingGoalCtx).find? (Term.subsumes (← goal.instantiateVars) ·) with
   | some ongoingGoal =>
     goUp
-    log s!"The goal `{goal}` conflicts with the ongoing goal `{ongoingGoal}`."
+    log s!"The goal `{← goal.instantiateVars}` conflicts with the ongoing goal `{ongoingGoal}`."
     throw s!"Backtracking from `{goal}` due to conflict with the ongoing goal `{ongoingGoal}`."
   | none =>
     withTheReader OngoingGoalCtx (·.push (← goal.instantiateVars)) do
@@ -126,6 +129,7 @@ partial def applyAxioms (axioms : List Axiom) (approx := false) (proofStubs : Li
         let proofStubs ← resetCurrentTree
         workOnCurrentGoal (approx := true) proofStubs
 
+        log "Regrowing previous proof stubs ..."
         atParent do
           for (idx, tree) in proofStubs do
             visitChild idx
@@ -135,7 +139,15 @@ partial def applyAxioms (axioms : List Axiom) (approx := false) (proofStubs : Li
   | choice :: choices =>
     let σ ← saveState
     try
+      log s!"Trying to apply axiom `{choice}` on `{goal}` ..."
       workWithAxiom choice
+
+      log "Regrowing previous proof stubs ..."
+      atParent do
+        for (idx, tree) in proofStubs do
+          visitChild idx
+          regrowProofTree tree
+          goUp
       -- let ⟨proofTree, _⟩ ← getThe Location
       -- TODO: investigate the first condition
       -- if h:(← goal.instantiateVars).isClosed ∧ proofTree.isClosed then
@@ -193,6 +205,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy01"
+#gadget_display with_axioms "tim_easy09" 15
 
 end GadgetGame

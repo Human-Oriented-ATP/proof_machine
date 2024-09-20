@@ -154,9 +154,9 @@ partial def goToRoot : M Unit := do
 def changeCurrentTree (tree : ProofTree) : M Unit := do
   modify <| Location.change (tree := tree)
 
-def getCurrentGoal : M Term := do
+def getCurrentGoal [MonadStateOf VarAssignmentCtx M] : M Term := do
   let ⟨.goal goal, _⟩ ← getThe Location | throw "Expected the current location to be a goal."
-  return goal
+  goal.instantiateVars
 
 def getCurrentHypothesis : M Term := do
   let ⟨_, .node left _ «axiom» _ _⟩ ← getThe Location | throw "A hypothesis cannot be extracted if the current location is the root."
