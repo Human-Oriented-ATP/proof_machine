@@ -1,7 +1,7 @@
 import Lean
 import GadgetGameSolver.Primitives
 
-def Array.eraseDups [BEq α] : Array α → Array α
+def Array.eraseDups {α} [BEq α] : Array α → Array α
   | ⟨l⟩ => ⟨l.eraseDups⟩
 namespace GadgetGame
 
@@ -49,7 +49,7 @@ def parseProblemState : TSyntax `problem_state → ProblemState
     else panic! "Expected a single goal in the problem state."
   | stx => panic s!"Expected problem state, got {stx}."
 
-def parsePrologFile [Monad M] [MonadLiftT IO M] [MonadEnv M] (file : System.FilePath) : M ProblemState := do
+def parsePrologFile {M} [Monad M] [MonadLiftT IO M] [MonadEnv M] (file : System.FilePath) : M ProblemState := do
   let input ← IO.FS.readFile file
   let stx ← IO.ofExcept <| Parser.runParserCategory (← getEnv) `problem_state input
   return parseProblemState ⟨stx⟩

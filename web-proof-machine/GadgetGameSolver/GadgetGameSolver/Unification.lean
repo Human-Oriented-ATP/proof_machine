@@ -7,7 +7,7 @@ open Lean Meta
 
 abbrev VarAssignmentCtx := PersistentHashMap String Term
 
-variable [Monad M] [MonadStateOf VarAssignmentCtx M] [MonadFinally M] [MonadBacktrack VarAssignmentCtx M]
+variable {M : Type → Type} [Monad M] [MonadStateOf VarAssignmentCtx M] [MonadFinally M] [MonadBacktrack VarAssignmentCtx M]
 
 partial def Term.instantiateVars (t : Term) : M Term := do
   let ctx ← get

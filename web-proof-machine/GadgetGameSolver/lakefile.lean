@@ -2,6 +2,7 @@ import Lake
 open Lake DSL
 
 package «GadgetGameSolver» where
+  leanOptions := #[⟨`autoImplicit, false⟩]
   -- add package configuration options here
 
 lean_lib «GadgetGameSolver» where

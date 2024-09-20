@@ -51,7 +51,7 @@ partial def unifyCore (s t : Term) : m Bool := do
       pure false
 
 def unify (s t : Term) : m Bool := do
-  let mctx ← getThe MetavarContext
+  let mctx ← get
   if ← unifyCore s t then
     pure true
   else
@@ -76,7 +76,7 @@ partial def setToCore (s t : Term) : m Bool := do
       pure false
 
 def setTo (s t : Term) : m Bool := do
-  let mctx ← getThe MetavarContext
+  let mctx ← get
   if ← setToCore s (← instantiateVars t) then
     pure true
   else

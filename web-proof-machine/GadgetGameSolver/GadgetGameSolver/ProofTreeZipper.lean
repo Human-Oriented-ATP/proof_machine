@@ -2,8 +2,9 @@ import GadgetGameSolver.Primitives
 import GadgetGameSolver.Unification
 import Lean
 
+variable {M : Type → Type}
 -- TODO: Move
-def modifyWithExcept [Monad M] [MonadStateOf α M] [MonadExceptOf ε M] (mod : α → Except ε α) : M Unit := do
+def modifyWithExcept {α ε : Type} [Monad M] [MonadStateOf α M] [MonadExceptOf ε M] (mod : α → Except ε α) : M Unit := do
   match mod (← getThe α) with
   | .ok a => set a
   | .error e => throw e

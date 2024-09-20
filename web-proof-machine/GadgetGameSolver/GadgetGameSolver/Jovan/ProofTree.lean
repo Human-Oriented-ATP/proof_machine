@@ -43,7 +43,7 @@ def GoalId.toString (goalId : GoalId) : m String := do
   let some (.mk goal _) := (← get)[goalId]? | throw s!"oh no: goalId {goalId}"
   pure s!"{goal}"
 
-def addGoal (goalId : GoalId) (goal : Term) (proof : Option (PartialProof ⊕ LazyPartialProof)) : m Unit :=
+def setGoal (goalId : GoalId) (goal : Term) (proof : Option (PartialProof ⊕ LazyPartialProof)) : m Unit :=
   modify (·.insert goalId (.mk goal proof))
 
 mutual
