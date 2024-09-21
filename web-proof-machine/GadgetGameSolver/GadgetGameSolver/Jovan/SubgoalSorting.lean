@@ -85,7 +85,7 @@ def checkAxioms (goal : Term) : SearchM (Float × Array Axiom) := do
 /--
 Returns the easiest goal with its applicable axioms sorted from difficult to easy, and the remaining goals.
 Returns `.error true` if there are no goals. Returns `.error false` if some goals can't be solved. -/
-def bestSubGoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array Axiom) × Array GoalId)) := do
+def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array Axiom) × Array GoalId)) := do
   let some goals ← OptionT.run <| goals.mapM fun goalId => do
     let goal ← goalId.getInstantiatedGoal
     let (difficulty, axioms) ← checkAxioms goal

@@ -46,7 +46,9 @@ structure TableEntry where
   priority : Nat
 
 structure Config where
-  depthFirst : Bool
+  depthFirst            : Bool
+  orderGoalsAndAxioms   : Bool
+  prioritizeUndeepGoals : Bool
 
 structure Context where
   maxResultSize : Option Nat
@@ -74,6 +76,8 @@ def timeit {α} (k : SearchM α) : SearchM α := do
   modify fun s => { s with time := s.time + (t1 - t0) }
   pure a
 
+def getConfig : SearchM Config := return (← read).config
+
 def getUnique : SearchM Nat := modifyGet fun s => (s.uniqueNum, { s with uniqueNum := s.uniqueNum + 1 })
 
 def logMessage (msg : String) : SearchM Unit := modify fun s => { s with log := s.log.push s!"{s.stepCount}: {msg}" }
@@ -96,3 +100,7 @@ def AxiomInstantiateFresh (extension : String) (ax : Axiom) : Axiom :=
     let conclusion := TermInstantiateFresh extension conclusion
     let hypotheses := hypotheses.map (TermInstantiateFresh extension)
     { hypotheses, conclusion }
+
+def getFreshAxioms (goal : Term) : SearchM (Array Axiom) := do
+  let axioms ← getAxioms goal
+  axioms.mapM fun ax => return AxiomInstantiateFresh (toString (← getUnique)) ax

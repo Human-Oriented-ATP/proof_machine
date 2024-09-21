@@ -26,11 +26,11 @@ def newSubgoal (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) (waiter 
   let gNode ← mkGeneratorNode key goalId axioms priority
   let entry : TableEntry := { waiters := #[waiter], priority }
   logMessage s!"new goal {← goalId.toString}, with goalId {goalId}"
-  let { config := { depthFirst } , .. } ← read
+  let { depthFirst, prioritizeUndeepGoals, .. } ← getConfig
   modify fun s =>
     let stack := if depthFirst then s.generatorStack.push gNode else #[gNode] ++ s.generatorStack
     { s with
-      generatorStack := stack.insertionSort (·.priority > ·.priority)
+      generatorStack := if prioritizeUndeepGoals then stack.insertionSort (·.priority > ·.priority) else stack
       tableEntries   := s.tableEntries.insert key entry }
 
 def findEntry? (key : TermKey) : SearchM (Option TableEntry) := do
@@ -46,7 +46,7 @@ def getEntry (key : TermKey) : SearchM TableEntry := do
   Remark: `mctx` is set using `withMCtx`.
   If it succeeds, the result is a new updated metavariable context and a new list of subgoals.
   A subgoal is created for each hypothesis of `ax`. -/
-def tryAxiom (goalId : GoalId) (ax : Axiom) : SearchM (Array GoalId) := do
+def tryAxiom (goalId : GoalId) (ax : Axiom) : SearchM (Option (Array GoalId)) := do
   -- let ax := AxiomInstantiateFresh (toString (← getUnique)) ax
   let goal ← goalId.getInstantiatedGoal
   if ← unify ax.conclusion goal then
@@ -59,7 +59,7 @@ def tryAxiom (goalId : GoalId) (ax : Axiom) : SearchM (Array GoalId) := do
     setGoal goalId goal (some <| .inl <| .node ax (goalIds.map .goal))
     return goalIds
   else
-    throw "failed to apply axiom"
+    return none
 
 /--
   Assign a precomputed answer to `mvar`.
@@ -111,7 +111,8 @@ def addAnswer (goalId : GoalId) (key : TermKey) (size : Nat) : SearchM Unit := d
 
 /-- Process the next subgoal in the given consumer node. -/
 def consume (key : TermKey) (goalId : GoalId) (subgoals : Array GoalId) (size : Nat) : SearchM Unit := do
-  match ← bestSubGoal subgoals with
+  let { orderGoalsAndAxioms, .. } ← getConfig
+  match ← if orderGoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
   | .error true =>
     logMessage s!"adding answer to {← goalId.toString}"
     addAnswer goalId key size
@@ -130,21 +131,33 @@ def consume (key : TermKey) (goalId : GoalId) (subgoals : Array GoalId) (size : 
     | none       =>
       newSubgoal key nextSubgoalId axioms waiter priority
     | some entry =>
-      logMessage s!"found key in table: {subgoal}."
+      logMessage s!"found key in table: subgoal {subgoal} of {← goalId.toString}."
       if priority < entry.priority then
-        modify fun s =>
-          let generatorStack := s.generatorStack.size.foldRev (init := s.generatorStack) fun i stack =>
-            let gNode := stack[i]!
-            if gNode.key == key then
-              stack.set! i { gNode with priority }
-            else
-              stack
-          let generatorStack := generatorStack.insertionSort (·.priority > ·.priority)
-          { s with generatorStack }
+        let { prioritizeUndeepGoals, .. } ← getConfig
+        if prioritizeUndeepGoals then
+          modify fun s =>
+            let generatorStack := s.generatorStack.size.foldRev (init := s.generatorStack) fun i stack =>
+              let gNode := stack[i]!
+              if gNode.key == key then
+                stack.set! i { gNode with priority }
+              else
+                stack
+            let generatorStack := generatorStack.insertionSort (·.priority > ·.priority)
+            { s with generatorStack }
       modify fun s =>
       { s with
         resumeStack  := entry.answers.foldl (fun s answer => s.push (cNode, answer)) s.resumeStack,
         tableEntries := s.tableEntries.insert key { entry with waiters := entry.waiters.push waiter, priority := min priority entry.priority } }
+where
+  bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array Axiom) × Array GoalId)) := do
+    if h : goals.size = 0 then
+      return .error true
+    else
+      let goalId := goals[0]
+      let goal ← goalId.getInstantiatedGoal
+      let axioms ← getFreshAxioms goal
+      logMessage s!"subgoals {← goals.mapM (·.toString)}"
+      return .ok ((goalId, axioms), goals[1:])
 
 def getTop : SearchM GeneratorNode :=
   return (← get).generatorStack.back
@@ -185,8 +198,8 @@ def generate : SearchM Unit := do
       -- withTraceNode `Meta.synthInstance
       --   (return m!"{exceptOptionEmoji ·} apply {ax.val} to {← instantiateMVars (← inferType goal)}") do
     modifyTop fun gNode => { gNode with currAxiomIdx := idx }
-    let subgoals ← tryAxiom goalId ax
-    consume key goalId subgoals 0
+    if let some subgoals ← tryAxiom goalId ax then
+      consume key goalId subgoals 0
 
 def getNextToResume : SearchM (ConsumerNode × Answer) := do
   let r := (← get).resumeStack.back
@@ -256,7 +269,12 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
     let goalId : GoalId := 0
     setGoal goalId goal none
     let key := mkTableKey goal
-    let (_, axioms) ← checkAxioms goal
+    let { orderGoalsAndAxioms, .. } ← getConfig
+    let axioms ←
+      if orderGoalsAndAxioms then
+        pure (← checkAxioms goal).2
+      else
+        getFreshAxioms goal
     try
       let t0 ← IO.monoNanosNow
       newSubgoal key goalId axioms Waiter.root (priority := 1)
@@ -290,5 +308,15 @@ TODO:
 - globally cache all results in a discrimination tree in their most general form,
 and lookup in this in a way to not instantiate metavariables.
 If possible, allow to instantiate non-shared metavariables. (Maybe use reference counting???)
+
+- Detect for each waiter whether it is loopy. This means that when propagating & resuming results,
+  we don't get into silly loops if we just propagate into well founded waiters.
+
+  What about multiple waiters that form a loop together? We should mark all of them as loopy.
+
+  When a goal is new, it has 1 waiter, that is not loopy.
+
+  When a goal already exists, we should search the whole (well founded) propagation tree of the new waiter,
+  and for each branch that leads to this goal again, we mark all waiters as loopy.
 
 -/
