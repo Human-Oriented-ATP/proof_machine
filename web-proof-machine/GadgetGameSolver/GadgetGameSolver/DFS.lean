@@ -64,7 +64,7 @@ def incrementStepCount : GadgetGameSolverM Unit := do
 
 def log (message : String) : GadgetGameSolverM Unit := do
   if (← read).verbose then
-    let annotatedMessage := s!"{← getStepCount} : {message}"
+    let annotatedMessage := s!"{← getStepCount}|{← getCurrentHeadTerm}: {message}"
     modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
 
 def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
@@ -155,13 +155,17 @@ partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM
       applyAxioms choices
 
 partial def repairProofTree : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
-  forEachChild do
-    let hyp ← getCurrentHypothesis
-    if ← hyp.unifiable? (← getCurrentHeadTerm) then do
-      repairProofTree
-    else
-      changeCurrentTree <| .goal hyp
-      workOnCurrentGoal
+  log "Repairing the proof tree ..."
+  unless ← isGoal do
+    forEachChild do
+      let hyp ← getCurrentHypothesis
+      try
+        Term.unify hyp (← getCurrentHeadTerm)
+        repairProofTree
+      catch e =>
+        log s!"Error {e}: Unification failed, repairing the mismatched tree ..."
+        changeCurrentTree <| .goal hyp
+        workOnCurrentGoal
 
 end
 
@@ -191,6 +195,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy04"
+#gadget_display with_axioms "tim_easy09"
 
 end GadgetGame
