@@ -49,9 +49,9 @@ def parseProblemState : TSyntax `problem_state → ProblemState
     else panic! "Expected a single goal in the problem state."
   | stx => panic s!"Expected problem state, got {stx}."
 
-def parsePrologFile [Monad M] [MonadLiftT IO M] [MonadEnv M] (file : System.FilePath) : M ProblemState := do
+def parsePrologFile (env : Environment) (file : System.FilePath) : IO ProblemState := do
   let input ← IO.FS.readFile file
-  let stx ← IO.ofExcept <| Parser.runParserCategory (← getEnv) `problem_state input
+  let stx ← IO.ofExcept <| Parser.runParserCategory env `problem_state input
   return parseProblemState ⟨stx⟩
 
 end GadgetGame

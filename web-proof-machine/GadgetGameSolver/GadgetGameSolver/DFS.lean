@@ -169,23 +169,25 @@ partial def repairProofTree : ExceptT String GadgetGameSolverM Unit := unless �
 
 end
 
-def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree × Array String :=
+def runDFS (problemState : ProblemState) (timeout? : Option Nat := none) : ProofTree × Nat × Array String :=
   let (_, σ) := workOnCurrentGoal
       |>.run { location := ⟨.goal problemState.target, .root⟩ }
       |>.run { sort? := false, target := problemState.target, axioms := problemState.axioms.toList, timeout? := timeout?, verbose := true }
   let proofTree := σ.location.tree
-  (proofTree, σ.log)
+  (proofTree, σ.count, σ.log)
 
-def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
-  runDFS <$> parsePrologFile file
+def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Nat × Array String) := do
+  runDFS <$> parsePrologFile (← getEnv) file
 
 open Lean Elab Meta Term Elab Command in
 elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
-  let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let ⟨tree, proofLog⟩ := runDFS problemState (timeout?.map TSyntax.getNat)
+  let problemState ← parsePrologFile (← getEnv) s!"../problems/{name.getString}.pl"
+  let ⟨tree, count, proofLog⟩ := runDFS problemState (timeout?.map TSyntax.getNat)
   logInfoAt stx m!"{proofLog}"
   if timeout?.isNone && !tree.isClosed then
     throwError "The proof tree is not closed."
+  else
+    logInfoAt stx s!"Finished proof in {count} steps."
   let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
   let initData : InitializationData := {
     initialDiagram := initDiagram,
@@ -195,6 +197,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy09"
+-- #gadget_display with_axioms "tim_easy09"
 
 end GadgetGame
