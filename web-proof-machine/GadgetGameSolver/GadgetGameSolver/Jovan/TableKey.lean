@@ -6,7 +6,7 @@ namespace JovanGadgetGame
 inductive TermKey where
 | var : Nat → TermKey
 | app : UInt64 → String → Array TermKey → TermKey
-deriving Inhabited, BEq
+deriving Inhabited, BEq, Repr
 
 instance : Hashable TermKey where
   hash
@@ -60,5 +60,23 @@ def toTermKey (e : GadgetGame.Term) : StateM MkKeyState TermKey := do
 /-- Remark: `mkTableKey` assumes `e` does not contain assigned metavariables. -/
 def mkTableKey (e : GadgetGame.Term) : TermKey :=
   toTermKey e |>.run' {}
+
+/-- Determines if `s` can be reached from `t` using metavariable instantiations. -/
+partial def TermKey.isMoreSpecific (s t : TermKey) : Bool :=
+  go s t {} |>.isSome
+where
+  go s t (map : Std.HashMap Nat TermKey) : Option (Std.HashMap Nat TermKey) := do
+    match t with
+    | .var n => match map[n]? with
+      | none => map.insert n s
+      | some s' =>
+        guard (s == s')
+        map
+    | .app _ fT argsT => match s with
+      | .var _ => none
+      | .app _ fS argsS =>
+        guard (fS == fT)
+        guard (argsS.size == argsT.size)
+        argsS.size.foldM (init := map) fun i map => go argsS[i]! argsT[i]! map
 
 end JovanGadgetGame

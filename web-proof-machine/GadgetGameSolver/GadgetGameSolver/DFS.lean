@@ -209,8 +209,12 @@ def runDFSOnFile (file : System.FilePath) : MetaM (ProofTree × Array String) :=
 open Lean Elab Meta Term Elab Command in
 elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
-  let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat)
-    (config := { depthFirst := true, orderGoalsAndAxioms := true, prioritizeUndeepGoals := true })
+  let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat) {
+    depthFirst := true
+    prioritizeUndeepGoals := true
+    orderGoalsAndAxioms := true
+    postponeLoopySearch := true
+  }
   logInfoAt stx m!"number of steps: {numSteps}"
   logInfoAt stx m!"{proofLog}"
   if timeout?.isNone && !tree.isClosed then
@@ -235,12 +239,12 @@ tim_easy05: ∞
 tim_easy06: ∞
 tim_easy07: 8  - 5
 tim_easy08: ∞  - 42 - 15
-tim_easy09: ∞  - 29 - ∞
+tim_easy09: ∞  - 29 - ∞ - 34 - 36
 tim_easy10: 14 - 8  - 5
 tim_easy11: 3
-tim_easy12: ∞  - 24 - 21 - 31
-tim_easy13: 5 - 4
+tim_easy12: ∞  - 24 - 21 - 31 - 21 - 25
+tim_easy13: 5  - 4
 
-jacob25: 1439 - 329
+jacob25: 1439 - 329 - ∞
 -/
 end GadgetGame

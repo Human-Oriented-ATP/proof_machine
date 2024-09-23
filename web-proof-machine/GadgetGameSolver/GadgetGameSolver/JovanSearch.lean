@@ -11,35 +11,33 @@ def TermHasVars : Term → Bool
 | .var _ => true
 | .app _ args => args.attach.any fun ⟨x, _⟩ => TermHasVars x
 
-def mkGeneratorNode (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) (priority : Nat) : SearchM GeneratorNode := do
+def mkGeneratorNode (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) : SearchM GeneratorNode := do
   let mctx ← getThe MetavarContext
   let goalctx ← getThe GoalContext
   return {
-    goalId, key, mctx, goalctx, axioms, priority
+    goalId, key, mctx, goalctx, axioms
     currAxiomIdx := axioms.size
   }
 
 /--
   Create a new generator node for `mvar` and add `waiter` as its waiter.
   `key` must be `mkTableKey mctx mvarType`. -/
-def newSubgoal (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) (waiter : Waiter) (priority : Nat) : SearchM Unit := do
-  let gNode ← mkGeneratorNode key goalId axioms priority
+def newSubgoal (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) (waiter : Waiter) (priority : Priority) (isLoopy : Bool) : SearchM Unit := do
+  let gNode ← mkGeneratorNode key goalId axioms
   let entry : TableEntry := { waiters := #[waiter], priority }
-  logMessage s!"new goal {← goalId.toString}, with goalId {goalId}"
-  let { depthFirst, prioritizeUndeepGoals, .. } ← getConfig
-  modify fun s =>
-    let stack := if depthFirst then s.generatorStack.push gNode else #[gNode] ++ s.generatorStack
-    { s with
-      generatorStack := if prioritizeUndeepGoals then stack.insertionSort (·.priority > ·.priority) else stack
-      tableEntries   := s.tableEntries.insert key entry }
-
-def findEntry? (key : TermKey) : SearchM (Option TableEntry) := do
-  return (← get).tableEntries[key]?
-
-def getEntry (key : TermKey) : SearchM TableEntry := do
-  match (← findEntry? key) with
-  | none       => panic! "invalid key at gadget search"
-  | some entry => pure entry
+  logMessage s!"new{if isLoopy then " loopy" else ""} goal {← goalId.toString}, with goalId {goalId} and importance 1/{priority.invImportance} and times {priority.times}"
+  if !isLoopy then
+    if (← get).generatorStack.find? priority |>.isSome then
+      throw s! "OHNO duplicate {priority.times}"
+    modify fun s =>
+      let stack := s.generatorStack.insert priority gNode
+      { s with
+        generatorStack := stack
+        tableEntries   := s.tableEntries.insert key entry }
+  else
+    modify fun s => { s with
+      loopyStack   := s.loopyStack.cons (.inr gNode)
+      tableEntries := s.tableEntries.insert key entry }
 
 /--
   Try to synthesize metavariable `mvar` using the axiom `ax`.
@@ -73,12 +71,15 @@ def useAnswer (answer : Answer) (goalId : GoalId) : SearchM Unit := do
     throw "failed to try anser"
 
 /-- Move waiters that are waiting for the given answer to the resume stack. -/
-def wakeUp (answer : Answer) : Waiter → SearchM Unit
+def wakeUp (answer : Answer) (isLoopy : Bool) : Waiter → SearchM Unit
   | .root               => do
     let proof ← answer.proof.eval
     modify fun s => { s with result? := proof }
-  | .consumerNode cNode =>
-    modify fun s => { s with resumeStack := s.resumeStack.push (cNode, answer) }
+  | .consumerNode cNode => do
+    if isLoopy then
+      modify fun s => { s with loopyStack := s.loopyStack.cons (.inl (cNode, answer)) }
+    else
+      modify fun s => { s with resumeStack := s.resumeStack.push (cNode, answer) }
 
 def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
   oldAnswers.all fun oldAnswer =>
@@ -103,51 +104,86 @@ def addAnswer (goalId : GoalId) (key : TermKey) (size : Nat) : SearchM Unit := d
   else
     let answer ← mkAnswer goalId size
     -- Remark: `answer` does not contain assignable or assigned metavariables.
-    let { waiters, answers, priority } ← getEntry key
+    let { waiters, loopyWaiters, answers, priority } ← getEntry key
     if isNewAnswer answers answer then
       let newEntry := { waiters, answers := answers.push answer, priority }
       modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
-      waiters.forM (wakeUp answer)
+      waiters.forM (wakeUp answer false)
+      loopyWaiters.forM (wakeUp answer true)
+
+/--
+Checks whether `originalKey` can be reached from `key` during result propagation.
+Sets waiters to be loopy if they contribute to this.
+-/
+partial def isLoopyKey (key originalKey : TermKey) : SearchM Bool := do
+  if originalKey.isMoreSpecific key then
+    logMessage "loop has been detected"
+    return true
+  else
+    let { waiters, .. } ← getEntry key
+    waiters.anyM fun
+      | .root               => pure false
+      | .consumerNode cNode => isLoopyKey cNode.key originalKey
+
+def processSubgoal (cNode : ConsumerNode) (axioms : Array Axiom) (priority : Priority) : SearchM Unit := do
+  let waiter := Waiter.consumerNode cNode
+  let goal ← cNode.nextSubgoalId.getInstantiatedGoal
+  let key := mkTableKey goal
+  let config@{ prioritizeUndeepGoals, postponeLoopySearch, .. } ← getConfig
+  let isLoopy ←
+    if postponeLoopySearch then
+      isLoopyKey cNode.key key
+    else
+      pure false
+
+  match ← findEntry? key with
+  | none       =>
+    newSubgoal key cNode.nextSubgoalId axioms waiter priority isLoopy
+  | some entry =>
+    logMessage s!"found key in table: subgoal {goal} of {← cNode.goalId.toString}."
+
+    let priority ← do
+      if priority.cmp entry.priority config |>.isLT then
+        if prioritizeUndeepGoals then
+          modify fun s =>
+            match s.generatorStack.find? priority with
+            | none => s
+            | some gNode => { s with
+              generatorStack := s.generatorStack.erase entry.priority |>.insert priority gNode }
+        pure priority
+      else
+        pure entry.priority
+
+    if isLoopy then
+      modify fun s => { s with
+        loopyStack := entry.answers.foldl (fun s answer => s.cons (.inl (cNode, answer))) s.loopyStack }
+    else
+      modify fun s => { s with
+        resumeStack := entry.answers.foldl (fun s answer => s.push (cNode, answer)) s.resumeStack }
+
+    let entry := { entry with priority }
+    let entry :=
+      if isLoopy then
+        { entry with loopyWaiters := entry.loopyWaiters.push waiter }
+      else
+        { entry with waiters := entry.waiters.push waiter }
+    modify fun s => { s with tableEntries := s.tableEntries.insert key entry }
 
 /-- Process the next subgoal in the given consumer node. -/
-def consume (key : TermKey) (goalId : GoalId) (subgoals : Array GoalId) (size : Nat) : SearchM Unit := do
+def consume (key : TermKey) (goalId : GoalId) (subgoals : Array GoalId) (size : Nat) (times : Array Nat) : SearchM Unit := do
   let { orderGoalsAndAxioms, .. } ← getConfig
   match ← if orderGoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
   | .error true =>
-    logMessage s!"adding answer to {← goalId.toString}"
     addAnswer goalId key size
   | .error false =>
-    logMessage s!"goal {← goalId.toString} is unsolvable :o"
+    logMessage s!"goal {← goalId.toString} is unsolvable"
   | .ok ((nextSubgoalId, axioms), laterSubgoals) =>
+    let { priority := { invImportance, times := allTimes }, .. } ← getEntry key
+    let invImportance := invImportance * (laterSubgoals.size + 1)
+    let allTimes := times ++ allTimes
     let mctx ← getThe MetavarContext
     let goalctx ← getThe GoalContext
-    let cNode : ConsumerNode := { goalId, key, mctx, goalctx, nextSubgoalId, laterSubgoals, size }
-    let waiter := Waiter.consumerNode cNode
-    let { priority, .. } ← getEntry key
-    let priority := priority * (laterSubgoals.size + 1)
-    let subgoal ← nextSubgoalId.getInstantiatedGoal
-    let key := mkTableKey subgoal
-    match ← findEntry? key with
-    | none       =>
-      newSubgoal key nextSubgoalId axioms waiter priority
-    | some entry =>
-      logMessage s!"found key in table: subgoal {subgoal} of {← goalId.toString}."
-      if priority < entry.priority then
-        let { prioritizeUndeepGoals, .. } ← getConfig
-        if prioritizeUndeepGoals then
-          modify fun s =>
-            let generatorStack := s.generatorStack.size.foldRev (init := s.generatorStack) fun i stack =>
-              let gNode := stack[i]!
-              if gNode.key == key then
-                stack.set! i { gNode with priority }
-              else
-                stack
-            let generatorStack := generatorStack.insertionSort (·.priority > ·.priority)
-            { s with generatorStack }
-      modify fun s =>
-      { s with
-        resumeStack  := entry.answers.foldl (fun s answer => s.push (cNode, answer)) s.resumeStack,
-        tableEntries := s.tableEntries.insert key { entry with waiters := entry.waiters.push waiter, priority := min priority entry.priority } }
+    processSubgoal { goalId, key, mctx, goalctx, nextSubgoalId, laterSubgoals, size, times } axioms { invImportance, times := allTimes }
 where
   bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array Axiom) × Array GoalId)) := do
     if h : goals.size = 0 then
@@ -159,17 +195,19 @@ where
       logMessage s!"subgoals {← goals.mapM (·.toString)}"
       return .ok ((goalId, axioms), goals[1:])
 
-def getTop : SearchM GeneratorNode :=
-  return (← get).generatorStack.back
+@[inline] def modifyGNode (p : Priority) (f : GeneratorNode → GeneratorNode) : SearchM Unit :=
+  modify fun s => { s with generatorStack := s.generatorStack.modify p f }
 
-@[inline] def modifyTop (f : GeneratorNode → GeneratorNode) : SearchM Unit :=
-  modify fun s => { s with generatorStack := s.generatorStack.modify (s.generatorStack.size - 1) f }
+@[inline] def modifyLoopyTopGNode (f : GeneratorNode → GeneratorNode) : SearchM Unit :=
+  modify fun s => { s with loopyStack := s.loopyStack.modifyTop fun
+    | .inr gNode => .inr (f gNode)
+    | x => x }
 
 /-- Try the next instance in the node on the top of the generator stack. -/
-def generate : SearchM Unit := do
-  let gNode ← getTop
+@[specialize]
+def generate (gNode : GeneratorNode) (pop : SearchM Unit) (setAxIdx : Nat → SearchM Unit) : SearchM Unit := do
   if gNode.currAxiomIdx == 0  then
-    modify fun s => { s with generatorStack := s.generatorStack.pop }
+    pop
   else
     let key    := gNode.key
     let idx    := gNode.currAxiomIdx - 1
@@ -197,36 +235,46 @@ def generate : SearchM Unit := do
     -- discard do withMCtx mctx do
       -- withTraceNode `Meta.synthInstance
       --   (return m!"{exceptOptionEmoji ·} apply {ax.val} to {← instantiateMVars (← inferType goal)}") do
-    modifyTop fun gNode => { gNode with currAxiomIdx := idx }
+    setAxIdx idx
     if let some subgoals ← tryAxiom goalId ax then
-      consume key goalId subgoals 0
-
-def getNextToResume : SearchM (ConsumerNode × Answer) := do
-  let r := (← get).resumeStack.back
-  modify fun s => { s with resumeStack := s.resumeStack.pop }
-  return r
+      consume key goalId subgoals 0 #[← getUnique]
 
 /--
   Given `(cNode, answer)` on the top of the resume stack, continue execution by using `answer` to solve the
   next subgoal. -/
-def resume : SearchM Unit := do
-  -- if (← get).stepCount = 26 then
-  --   throw "woopwoop"
-  let (cNode, answer) ← getNextToResume
+def resume (pair : ConsumerNode × Answer) : SearchM Unit := do
+  let (cNode, answer) := pair
   set cNode.mctx
   set cNode.goalctx
   useAnswer answer cNode.nextSubgoalId
   logMessage s! "propagating answer {answer.goal} to subgoal {← cNode.nextSubgoalId.toString} of {← cNode.goalId.toString}"
-  consume cNode.key cNode.goalId cNode.laterSubgoals (cNode.size + answer.size)
+  consume cNode.key cNode.goalId cNode.laterSubgoals (cNode.size + answer.size) (cNode.times.push (← getUnique))
 
 def step : SearchM Bool := do
   let s ← get
   if !s.resumeStack.isEmpty then
-    resume
+    let r := s.resumeStack.back
+    modify fun s => { s with resumeStack := s.resumeStack.pop }
+    resume r
     return true
-  else if !s.generatorStack.isEmpty then
-    generate
+  else if let some (p, top) := s.generatorStack.top then
+    generate top
+      (modify fun s => { s with generatorStack := s.generatorStack.erase p })
+      (fun idx => modifyGNode p fun gNode => { gNode with currAxiomIdx := idx })
     return true
+  else if let some (x, stack) := s.loopyStack.uncons? then
+    increment
+    logMessage "doing a loopy case"
+    match x with
+    | .inl r =>
+      modify fun s => { s with loopyStack := stack }
+      resume r
+      return true
+    | .inr gNode =>
+      generate gNode
+        (modify fun s => { s with loopyStack := stack })
+        (fun idx => modifyLoopyTopGNode fun gNode => { gNode with currAxiomIdx := idx })
+      return true
   else
     return false
 
@@ -244,8 +292,6 @@ partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree 
       let { stepCount, .. } ← get
       if let some timeout := timeout? then
         if timeout ≤ stepCount then
-          let s ← get
-          logMessage s! "stack size: {s.generatorStack.size}, unique numbers: {s.uniqueNum}"
           getPartialResult goalId
         else
           synth timeout? goalId
@@ -277,7 +323,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
         getFreshAxioms goal
     try
       let t0 ← IO.monoNanosNow
-      newSubgoal key goalId axioms Waiter.root (priority := 1)
+      newSubgoal key goalId axioms Waiter.root rootPriority false
       let r ← synth timeout? goalId
       let t1 ← IO.monoNanosNow
       logMessage s!"measured time: {(← get).time/1000000}ms out of {(t1-t0)/1000000}ms"
@@ -289,8 +335,8 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
       catch e =>
         logMessage s!"error getting partial result: {e}"
         pure default
-  let ref ← IO.mkRef {}
-  let r ← (action.run { maxResultSize := none, axioms, config }) ref |>.run' {} |>.run' {} |>.toBaseIO
+  let ref ← IO.mkRef { config }
+  let r ← (action.run { maxResultSize := none, axioms }) ref |>.run' {} |>.run' {} |>.toBaseIO
   let state ← ref.get
   pure (r, state.stepCount, state.log)
 
@@ -308,15 +354,5 @@ TODO:
 - globally cache all results in a discrimination tree in their most general form,
 and lookup in this in a way to not instantiate metavariables.
 If possible, allow to instantiate non-shared metavariables. (Maybe use reference counting???)
-
-- Detect for each waiter whether it is loopy. This means that when propagating & resuming results,
-  we don't get into silly loops if we just propagate into well founded waiters.
-
-  What about multiple waiters that form a loop together? We should mark all of them as loopy.
-
-  When a goal is new, it has 1 waiter, that is not loopy.
-
-  When a goal already exists, we should search the whole (well founded) propagation tree of the new waiter,
-  and for each branch that leads to this goal again, we mark all waiters as loopy.
 
 -/
