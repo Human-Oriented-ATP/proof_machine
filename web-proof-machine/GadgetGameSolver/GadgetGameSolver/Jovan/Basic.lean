@@ -80,8 +80,8 @@ structure Answer where
 
 structure TableEntry where
   waiters      : Array Waiter
-  loopyWaiters : Array Waiter := #[]
-  answers      : Array Answer := #[]
+  loopyWaiters : Array Waiter
+  answers      : Array Answer
   priority     : Priority
 
 structure Config where

@@ -24,7 +24,7 @@ def mkGeneratorNode (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) : S
   `key` must be `mkTableKey mctx mvarType`. -/
 def newSubgoal (key : TermKey) (goalId : GoalId) (axioms : Array Axiom) (waiter : Waiter) (priority : Priority) (isLoopy : Bool) : SearchM Unit := do
   let gNode ← mkGeneratorNode key goalId axioms
-  let entry : TableEntry := { waiters := #[waiter], priority }
+  let entry := { waiters := #[waiter], loopyWaiters := #[], answers := #[], priority }
   logMessage s!"new{if isLoopy then " loopy" else ""} goal {← goalId.toString}, with goalId {goalId} and importance 1/{priority.invImportance} and times {priority.times}"
   if !isLoopy then
     if (← get).generatorStack.find? priority |>.isSome then
@@ -106,8 +106,9 @@ def addAnswer (goalId : GoalId) (key : TermKey) (size : Nat) : SearchM Unit := d
     -- Remark: `answer` does not contain assignable or assigned metavariables.
     let { waiters, loopyWaiters, answers, priority } ← getEntry key
     if isNewAnswer answers answer then
-      let newEntry := { waiters, answers := answers.push answer, priority }
+      let newEntry := { waiters, loopyWaiters, answers := answers.push answer, priority }
       modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
+      logMessage s!"{waiters.size}, {loopyWaiters.size}"
       waiters.forM (wakeUp answer false)
       loopyWaiters.forM (wakeUp answer true)
 
@@ -140,7 +141,7 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array Axiom) (priority : Pri
   | none       =>
     newSubgoal key cNode.nextSubgoalId axioms waiter priority isLoopy
   | some entry =>
-    logMessage s!"found key in table: subgoal {goal} of {← cNode.goalId.toString}."
+    logMessage s!"found goal in table: subgoal {goal} of {← cNode.goalId.toString}."
 
     let priority ← do
       if priority.cmp entry.priority config |>.isLT then
@@ -174,9 +175,10 @@ def consume (key : TermKey) (goalId : GoalId) (subgoals : Array GoalId) (size : 
   let { orderGoalsAndAxioms, .. } ← getConfig
   match ← if orderGoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
   | .error true =>
+    logMessage s!"adding answer to goal {← goalId.toString}"
     addAnswer goalId key size
   | .error false =>
-    logMessage s!"goal {← goalId.toString} is unsolvable"
+    logMessage s!"goal {← goalId.toString} is now unsolvable"
   | .ok ((nextSubgoalId, axioms), laterSubgoals) =>
     let { priority := { invImportance, times := allTimes }, .. } ← getEntry key
     let invImportance := invImportance * (laterSubgoals.size + 1)
@@ -252,6 +254,7 @@ def resume (pair : ConsumerNode × Answer) : SearchM Unit := do
 
 def step : SearchM Bool := do
   let s ← get
+  logMessage s!"{s.loopyStack.in.length + s.loopyStack.out.length}"
   if !s.resumeStack.isEmpty then
     let r := s.resumeStack.back
     modify fun s => { s with resumeStack := s.resumeStack.pop }
