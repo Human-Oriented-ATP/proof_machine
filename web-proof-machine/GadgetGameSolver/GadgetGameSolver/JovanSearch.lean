@@ -355,4 +355,10 @@ TODO:
 and lookup in this in a way to not instantiate metavariables.
 If possible, allow to instantiate non-shared metavariables. (Maybe use reference counting???)
 
+- Use global constants to keep track of the proofs. Then a proof consists of global constants.
+  The constants have their number of variables stored, and each application of a constant explicitly instantiated them.
+  This will make type checking much more nice.
+- Then, make a generalizing function for partial proofs, to find the general goal being solved
+  by a partial proof. Then check whether a subgoal is a specialization of this, to detect loops.
+
 -/

@@ -34,7 +34,7 @@ end Queue
 
 
 structure PriorityQueue (π : Type u) (α : Type v) (cmp : π → π → Ordering) where
-  tree : Lean.RBMap π α cmp := {}
+  tree : Lean.RBNode π (fun _ => α) := {}
 
 namespace PriorityQueue
 
@@ -42,23 +42,32 @@ variable {π : Type u} {α : Type v} {cmp : π → π → Ordering }
 
 @[inline]
 def top (q : PriorityQueue π α cmp) : Option (π × α) :=
-  q.tree.max
+  match q.tree.max with
+  | some ⟨k, v⟩ => some (k, v)
+  | none        => none
 
 @[inline]
 def erase (p : π) (q : PriorityQueue π α cmp) : PriorityQueue π α cmp :=
-  { tree := q.tree.erase p }
+  { tree := q.tree.erase cmp p }
 
 @[inline]
 def find? (p : π) (q : PriorityQueue π α cmp) : Option α :=
-  q.tree.find? p
+  q.tree.find cmp p
 
 @[inline]
 def insert (p : π) (a : α) (q : PriorityQueue π α cmp) : PriorityQueue π α cmp :=
-  { tree := q.tree.insert p a }
+  { tree := q.tree.insert cmp p a }
+
+open Lean.RBNode in
+@[specialize] private def modifyNode (cmp : π → π → Ordering) (p : π) (f : α → α) : Lean.RBNode π (fun _ => α) → Lean.RBNode π (fun _ => α)
+  | leaf             => leaf
+  | node c a p' v b =>
+    match cmp p p' with
+    | Ordering.lt => node c (modifyNode cmp p f a) p' v b
+    | Ordering.gt => node c a p' v (modifyNode cmp p f b)
+    | Ordering.eq => node c a p' (f v) b
+
 
 @[inline]
 def modify (p : π) (f : α → α) (q : PriorityQueue π α cmp) : PriorityQueue π α cmp :=
-  { tree :=
-    match q.tree.find? p with
-    | none => {}
-    | some a => q.tree.insert p (f a) }
+  { tree := modifyNode cmp p f q.tree  }
