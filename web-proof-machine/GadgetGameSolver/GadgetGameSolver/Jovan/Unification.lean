@@ -1,84 +1,73 @@
-import Lean
-import GadgetGameSolver.Primitives
+import GadgetGameSolver.Jovan.Variables
 
 namespace JovanGadgetGame
 
-open GadgetGame
+variable {m : Type → Type} [Monad m] [MonadMCtx m]
 
-abbrev MetavarContext := Lean.PersistentHashMap String Term
-
-variable {m : Type → Type} [Monad m] [MonadStateOf MetavarContext m]
-
-partial def instantiateVars (t : Term) : m Term := do
-  match t with
-  | .var v =>
-    match (← get).find? v with
-    | some t =>
-      let t ← instantiateVars t
-      modify (·.insert v t)
-      pure t
-    | none => return .var v
-  | .app f args => .app f <$> args.mapM instantiateVars
+def Expr.containsMVar? (mvarId : MVarId) : Expr → Bool
+  | .mvar mvarId' => mvarId' == mvarId
+  | .app _ args => args.attach.any <| fun ⟨arg, _⟩ => containsMVar? mvarId arg
 
 
-def assign (var : String) (t : Term) : m Bool := do
-  let mctx ← get
-  if t == .var var then
+def assign? (mvarId : MVarId) (t : Expr) : m Bool := do
+  let t ← t.instantiateMVars
+  if t == .mvar mvarId then
     return true -- no need to assign
-  if t.containsVar? var then
+  if t.containsMVar? mvarId then
     return false
-  match mctx.find? var with
-  | .some s =>
+  match ← mvarId.getAssignment? with
+  | some s =>
     return s == t
   | none => do
-    set <| mctx.insert var t
+    mvarId.assign t
     return true
 
-partial def unifyCore (s t : Term) : m Bool := do
+partial def unifyCore (s t : Expr) : m Bool := do
   match s, t with
-  | .var v, t =>
-    match (← get).find? v with
-    | .some s => unifyCore s t
-    | none => assign v (← instantiateVars t)
-  | s, .var v =>
-    match (← get).find? v with
-    | .some t => unifyCore s t
-    | none => assign v (← instantiateVars s)
+  | .mvar mvarId, t =>
+    match ← mvarId.getAssignment? with
+    | some s => unifyCore s t
+    | none => assign? mvarId t
+  | s, .mvar mvarId =>
+    match ← mvarId.getAssignment? with
+    | some t => unifyCore s t
+    | none => assign? mvarId s
   | .app f args, .app f' args' =>
-    if f == f' && args.size == args'.size then
+    if f = f' && args.size = args'.size then
       args.size.allM fun i => unifyCore args[i]! args'[i]!
     else
       pure false
 
-def unify (s t : Term) : m Bool := do
-  let mctx ← get
-  if ← unifyCore s t then
-    pure true
-  else
-    set mctx
-    pure false
-
-partial def setToCore (s t : Term) : m Bool := do
-  match s, t with
-  | .var v, t =>
-    match (← get).find? v with
-    | .some s => setToCore s t
-    | none => assign v t
-  | .app _ _, .var _ =>
-    dbg_trace s!"{s} can't be set to {t}";
-
-    pure false
-  | .app f args, .app f' args' =>
-    if f == f' && args.size == args'.size then
-      args.size.allM fun i => setToCore args[i]! args'[i]!
+def unify (s t : Cell) : m Bool := do
+  let mctx ← getMCtx
+  let core : m Bool := do
+    if s.f = t.f && s.args.size = t.args.size then
+      s.args.size.allM fun i => unifyCore s.args[i]! t.args[i]!
     else
-      dbg_trace s!"{s} can't be set to {t}";
       pure false
-
-def setTo (s t : Term) : m Bool := do
-  let mctx ← get
-  if ← setToCore s (← instantiateVars t) then
+  if ← core then
     pure true
   else
-    set mctx
+    setMCtx mctx
     pure false
+
+variable [MonadGCtx m] [MonadEnv m] [MonadExceptOf String m]
+
+partial def checkProof (proof : Proof) : m Cell := do
+  match proof with
+  | .goal goalId => goalId.getGoal!
+  | .node name vars proofs =>
+    let gadget := (← name.getConstInfo).gadget
+    if vars.size != gadget.varNames.size then
+      throw "incorrect number of variables in proof node"
+    if proofs.size != gadget.hypotheses.size then
+      throw "incorrect number of proofs in proof node"
+    proofs.size.forM fun i => do
+      let hypType := gadget.hypotheses[i]!.instantiate vars
+      let proofType ← checkProof proofs[i]!
+      unless ← unify proofType hypType do
+        throw s!"mismatch: a proof of {← proofType.toString} is applied to subgoal {← hypType.toString}"
+    return gadget.conclusion.instantiate vars
+
+partial def Proof.check (proof : Proof) : m Unit :=
+  discard <| checkProof proof

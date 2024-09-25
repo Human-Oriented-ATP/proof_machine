@@ -1,6 +1,6 @@
-import GadgetGameSolver.Jovan.ProofTree
 import GadgetGameSolver.Jovan.Basic
-import Lean
+import GadgetGameSolver.Jovan.Unification
+
 /-!
 when choosing the next subgoal in a consumer node, we want to do so wisely.
 - A goal that has at most 1 applicable axiom is the best
@@ -44,38 +44,38 @@ and never repeat the same axiom. With this, the goal may be solved, or the whole
 -/
 
 namespace JovanGadgetGame
-open GadgetGame
 
-def specificity : Term → Float
-| .var _ => 0
+def specificity : Expr → Float
+| .mvar _ => 0
 | .app _ args => if args.isEmpty then 1 else
-  let argSpec := args.attach.foldl (init := 0) (fun spec ⟨x, _⟩ => spec + specificity x) / args.size.toFloat
+  let argSpec := args.attach.foldl (init := 0) (fun spec ⟨arg, _⟩ => spec + specificity arg) / args.size.toFloat
   (1 + argSpec) / 2
 
 /-- difficulty of a goal. (since it is a goal, it isn't a metavariable) -/
-def difficulty : Term → Float := (1 / specificity ·)
+def difficulty (c : Cell) : Float :=
+  if c.args.isEmpty then 1 else
+    2 - c.args.foldl (init := 0) (fun spec arg => spec + specificity arg) / c.args.size.toFloat
 
 /-- Returns `none` if `ax` doesn't work. Returns the difficulty -/
-def checkAxiom (goal : Term) (ax : Axiom) : SearchM (Option (Axiom × Float)) := do
-  let ax := AxiomInstantiateFresh (toString (← getUnique)) ax
-  let mctx ← getThe MetavarContext
-  if ← unify ax.conclusion goal then
-    if ax.hypotheses.isEmpty then
-      set mctx
-      return some (ax, 1/2)
+def checkAxiom (goal : Cell) (cInfo : ConstantInfo) : SearchM (Option (AxiomApplication × Float)) := do
+  let (mvars, gadget) ← cInfo.gadget.instantiateFresh
+  let axiomApp := { gadget, name := cInfo.name, mvars }
+  let mctx ← getMCtx
+  if ← unify gadget.conclusion goal then
+    if gadget.hypotheses.isEmpty then
+      setMCtx mctx
+      return some (axiomApp, 1/2)
     else
-      let d ← ax.hypotheses.foldlM (init := 0) fun d subGoal => do
-        let subGoal ← instantiateVars subGoal
+      let d ← gadget.hypotheses.foldlM (init := 0) fun d subGoal => do
+        let subGoal ← subGoal.instantiateMVars
         return d + (difficulty subGoal)
-      set mctx
-      return some (ax, d)
+      setMCtx mctx
+      return some (axiomApp, d)
   else
    return none
 
-structure AxiomApplication where
-
 /-- Returns the difficulty of the goal, and the axioms sorted from difficult to easy. -/
-def checkAxioms (goal : Term) : SearchM (Float × Array Axiom) := do
+def checkAxioms (goal : Cell) : SearchM (Float × Array AxiomApplication) := do
   let axioms ← getAxioms goal
   let filteredAxioms ← axioms.filterMapM (checkAxiom goal)
   let difficulty := filteredAxioms.foldl (init := 0) (· + ·.2)
@@ -85,7 +85,7 @@ def checkAxioms (goal : Term) : SearchM (Float × Array Axiom) := do
 /--
 Returns the easiest goal with its applicable axioms sorted from difficult to easy, and the remaining goals.
 Returns `.error true` if there are no goals. Returns `.error false` if some goals can't be solved. -/
-def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array Axiom) × Array GoalId)) := do
+def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array AxiomApplication) × Array GoalId)) := do
   let some goals ← OptionT.run <| goals.mapM fun goalId => do
     let goal ← goalId.getInstantiatedGoal
     let (difficulty, axioms) ← checkAxioms goal
@@ -97,12 +97,3 @@ def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array 
   let some (_, goalId, axioms) := goals.getMax? (·.1 > ·.1) | return .error true
   let otherGoals := goals.filterMap fun (_, goalId', _) => if goalId' == goalId then none else some goalId'
   return .ok ((goalId, axioms), otherGoals)
-
-
-
-
-
-inductive GoalSortingResult where
-| goal (goal : GoalId) (goals : List GoalId) (cNode : ConsumerNode)
-| solved (answer : Answer)
-| none
