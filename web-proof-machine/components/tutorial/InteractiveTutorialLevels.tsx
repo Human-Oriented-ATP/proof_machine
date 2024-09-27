@@ -1,6 +1,8 @@
 import { Connector } from "components/game/gadget/Connector";
 import { DragIndicatorProps, OverlayPosition } from "./DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "./InteractiveLevel";
+import { InitialDiagram } from "lib/game/Initialization";
+import { parseAxiom, parseTerm } from "lib/parsing/Semantics";
 
 const firstAxiomDragPoint: GadgetPosition = {
     gadget: { elementId: "axiom_1" },
@@ -36,8 +38,19 @@ const TUTORIAL_SETTINGS = {
     gadgetDeletionEnabled: false
 }
 
+const initialDiagram: InitialDiagram = { 
+    gadgets: new Map([
+        ["axiom_1", { statement: {axiom: parseAxiom("r(1, 2, 3).")}, position: { x: -100, y: -30 } }],
+        ["goal_gadget", { statement: { goal: parseTerm("y(12)") }, position: { x: 0, y: 0 } }]
+    ]),
+    connections: [
+        { from: "axiom_1", to: ["goal_gadget", 0] }
+    ]
+}
+
 const tutorial01: InteractiveLevel = {
     settings: TUTORIAL_SETTINGS,
+    initialDiagram: initialDiagram,
     steps: [{
         content: {
             jsx: <>Drag the matching gadget onto the building area. Example of a connector: <Connector type={"source"} isInline={true}/></>,

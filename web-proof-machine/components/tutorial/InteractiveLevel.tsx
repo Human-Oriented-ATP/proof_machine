@@ -1,5 +1,6 @@
 import { GameEvent } from "lib/study/GameHistory"
 import { AdjustablePosition, DragIndicatorProps } from "./DragIndicator";
+import { InitialDiagram } from "lib/game/Initialization";
 
 export type LevelConfiguration = {
     zoomEnabled: boolean
@@ -25,5 +26,6 @@ export type InteractiveStep = {
 
 export type InteractiveLevel = {
     settings?: LevelConfiguration
+    initialDiagram?: InitialDiagram
     steps: InteractiveStep[]
 }

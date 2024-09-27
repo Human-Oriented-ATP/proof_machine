@@ -23,11 +23,15 @@ export function GameScreen(props: GameScreenProps) {
     }, [])
 
     const interactiveLevel = interactiveTutorialLevels.get(props.problemId)
+    const initialDiagram = interactiveLevel?.initialDiagram
+    const initData = initialDiagram ? { ...props.initData, initialDiagram } : props.initData
 
     return <div className='h-dvh flex flex-col'>
         <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
-            <Game {...props}
+            <Game 
+                problemId={props.problemId}
+                initData={initData}
                 setProblemSolved={setProblemSolved}
                 interactiveSteps={interactiveLevel?.steps}
                 {...interactiveLevel?.settings}
