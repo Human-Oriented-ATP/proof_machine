@@ -13,14 +13,14 @@ export interface GadgetPosition extends AdjustablePosition {
     gadget: GadgetSelector
 }
 
-export type TextAndDragIndicator = {
-    text?: string
+export type JsxAndDragIndicator = {
+    jsx?: JSX.Element
     dragIndicator?: DragIndicatorProps<GadgetPosition>
 }
 
 export type InteractiveStep = {
     trigger?: GameEvent
-    content: TextAndDragIndicator
+    content: JsxAndDragIndicator
 }
 
 export type InteractiveLevel = {

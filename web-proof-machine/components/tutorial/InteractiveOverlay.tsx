@@ -1,5 +1,5 @@
 import { DelayedDragIndicator, DragIndicatorProps, OverlayPosition } from "./DragIndicator";
-import { TextAndDragIndicator, InteractiveLevel, InteractiveStep, GadgetPosition, GadgetSelector } from "./InteractiveLevel";
+import { JsxAndDragIndicator, InteractiveLevel, InteractiveStep, GadgetPosition, GadgetSelector } from "./InteractiveLevel";
 import { interactiveTutorialLevels as interactiveTutorialLevels } from "./InteractiveTutorialLevels";
 
 // const origin: OverlayPosition = {
@@ -22,7 +22,7 @@ export interface InteractiveOverlayProps {
 }
 
 export interface InteractiveContentProps {
-    content: TextAndDragIndicator
+    content: JsxAndDragIndicator
     getGadgetElementId: (gadget: GadgetSelector) => string | undefined
     hideInteractiveContent?: boolean
 }
@@ -49,7 +49,7 @@ export function InteractiveContent(props: InteractiveContentProps) {
 
     return <div>
         <div className="absolute text-xl top-24 left-44 md:w-full md:text-center md:left-0 md:px-44">
-            {props.content.text}
+            {props.content.jsx}
         </div>
         {props.content.dragIndicator && !props.hideInteractiveContent && <DelayedDragIndicator {...getDragIndicatorProps(props.content.dragIndicator)} />}
     </div>

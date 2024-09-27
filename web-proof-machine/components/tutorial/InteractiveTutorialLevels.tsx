@@ -1,3 +1,4 @@
+import { Connector } from "components/game/gadget/Connector";
 import { DragIndicatorProps, OverlayPosition } from "./DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "./InteractiveLevel";
 
@@ -39,19 +40,19 @@ const tutorial01: InteractiveLevel = {
     settings: TUTORIAL_SETTINGS,
     steps: [{
         content: {
-            text: "Drag the matching gadget onto the building area",
+            jsx: <>Drag the matching gadget onto the building area. Example of a connector: <Connector type={"source"} isInline={true}/></>,
             dragIndicator: dragFirstAxiomOut
         },
         trigger: { GadgetAdded: { axiom: ":-r(1)"} }
     }, {
         content: {
-            text: "Now draw a line between the connectors",
+            jsx: <>"Now draw a line between the connectors"</>,
             dragIndicator: connectGadgets
         },
         trigger: { EquationAdded: {} }
     }, {
         content: {
-            text: "Well done!"
+            jsx: <>"Well done!"</>
         }
     }]
 }
