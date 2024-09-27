@@ -68,16 +68,40 @@ def log (message : String) : GadgetGameSolverM Unit := do
     modify (fun σ ↦ { σ with log := σ.log.push annotatedMessage })
 
 def getMatchingAxioms (term : Term) : GadgetGameSolverM (List Axiom) := do
-  log s!"Finding axioms matching `{← term.instantiateVars}` ..."
   Array.toList <$> Term.filterRelevantAxioms term (← read).axioms.toArray (← read).sort?
+
+/-- The score of a term is calculated as the number of applicable axioms added to the "density" of variables in the term.
+    Terms with fewer matching axioms get a lower score, and among terms with the same number of matching axioms, terms with fewer variables get a lower score.
+    Since the variable density is always between 0 and 1, the score ensures that the number of matching axioms takes a higher priority than the variable density in ordering the goals. -/
+def calculateTermScore (term : Term) : GadgetGameSolverM Float := do
+  let term ← term.instantiateVars
+  let matchingAxiomCount := (← getMatchingAxioms term).length
+  let variableDensity : Float := (← term.instantiateVars).variableDensity
+  return matchingAxiomCount.toFloat + variableDensity
 
 def timedOut : GadgetGameSolverM Bool := do
   match (← read).timeout? with
   | none => return false
   | some timeout => return (← getStepCount) ≥ timeout
 
-partial def reorderGoals (goals : List Term) : GadgetGameSolverM Unit := sorry
--- TODO: this probably requires adding a permutation order into the proof tree zipper
+def visitBestChild : ExceptT String GadgetGameSolverM Unit := do
+  let unsolvedGoals ← (← getUnsolvedGoals).enum.mapM fun (idx, goal) ↦ do
+    return (idx, goal, ← calculateTermScore goal)
+  if unsolvedGoals.isEmpty then
+    throw "No goal children nodes found."
+  else
+    let ongoingGoals ← readThe OngoingGoalCtx
+    let nonConflictingGoals := unsolvedGoals.filter fun (_, goal, _) ↦
+      ongoingGoals.any (Term.subsumes goal ·)
+    let relevantGoals :=
+      if nonConflictingGoals.isEmpty then
+        unsolvedGoals
+      else
+        nonConflictingGoals
+    let sortedGoals := relevantGoals.toArray.qsort fun (_, _, score) (_, _, score') ↦ score' > score
+    let (bestGoalIdx, bestGoal, bestScore) := sortedGoals.get! 0
+    log s!"Visiting the best child goal {bestGoalIdx}, `{bestGoal}` with score {bestScore} ..."
+    visitChild bestGoalIdx
 
 def applyAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
@@ -96,8 +120,9 @@ def resetCurrentTree : ExceptT String GadgetGameSolverM Unit := do
   if ← isRoot then do
     resetProblem
   else atParent do
-    let ⟨.node _ ctx _, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
+    let ⟨.node «axiom» ctx _, _⟩ ← getThe Location | throw "The parent node cannot be a goal."
     restoreState ctx
+    changeCurrentTree <| .node «axiom» ctx (goals := ← «axiom».hypotheses.toList.mapM (.goal <$> ·.instantiateVars))
 
 mutual
 
@@ -119,7 +144,10 @@ partial def workWithAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM
   incrementStepCount
   applyAxiom «axiom»
   -- TODO: order the new goals
-  forEachChild workOnCurrentGoal
+  while ← hasUnsolvedGoals do
+    visitBestChild
+    workOnCurrentGoal
+    goUp
 
 partial def applyAxioms (axioms : List Axiom) : ExceptT String GadgetGameSolverM Unit := unless ← timedOut do
   let goal ← getCurrentGoal
@@ -197,6 +225,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
--- #gadget_display with_axioms "tim_easy09"
+#gadget_display with_axioms "tim_easy01"
 
 end GadgetGame

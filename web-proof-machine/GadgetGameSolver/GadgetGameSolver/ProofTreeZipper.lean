@@ -27,6 +27,10 @@ structure ProofResult where
   statement : Term
   proof : ProofTree
 
+def ProofTree.isGoal : ProofTree → Bool
+  | .goal _ => true
+  | .node _ _ _ => false
+
 def ProofTree.headTerm : ProofTree → Term
   | .goal term => term
   | .node «axiom» _ _ => «axiom».conclusion
@@ -169,5 +173,14 @@ def getCurrentHeadTerm [MonadStateOf VarAssignmentCtx M] : M Term := do
 def isGoal : M Bool := do
   let loc ← getThe Location
   return loc.tree matches .goal _
+
+def getUnsolvedGoals [MonadStateOf VarAssignmentCtx M] : M (List Term) := do
+  let ⟨.node _ _ goals, _⟩ ← getThe Location | throw "Expected the current location to be a node."
+  goals.filterMapM fun
+    | .goal goal => do return some (← goal.instantiateVars)
+    | _ => return none
+
+def hasUnsolvedGoals [MonadStateOf VarAssignmentCtx M] : M Bool := do
+  return !(← getUnsolvedGoals).isEmpty
 
 end GadgetGame

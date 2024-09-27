@@ -67,6 +67,8 @@ def Term.unifyWithScore (s t : Term) : ExceptT String M Nat := do
 def Term.unifiable? (s t : Term) : M Bool := withoutModifyingState do
   return (← unify s t |>.run).toBool
 
+/-- `Term.subsumes currentGoal ongoingGoal` works out the exact condition for when it is correct to
+    backtrack from the current goal due to a conflict with an ongoing goal. -/
 def Term.subsumes (t s : Term) : Bool :=
   -- the order of the arguments to `Term.unify` ensures that the meta-variables in `t` get instantiated preferentially
   let (result, ctx) := Term.unify (M := StateM VarAssignmentCtx) t s |>.run {}

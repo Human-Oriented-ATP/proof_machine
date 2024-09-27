@@ -59,6 +59,14 @@ def Term.argsSize : Term → Nat
   | .var _ => 0
   | .app _ args => args.size
 
+def Term.size : Term → Nat
+  | .var _ => 1
+  | .app _ args =>
+    if args.isEmpty then
+      1
+    else
+      (args.attach.map fun ⟨t, _⟩ ↦ t.size).foldl (init := 0) (· + ·)
+
 partial def Term.collectVars : Term → Array String
   | .var v => #[v]
   | .app _ args => args.concatMap collectVars
@@ -67,6 +75,12 @@ abbrev Term.isClosed (t : Term) := t.collectVars = #[]
 
 def Term.collectVarsDedup (t : Term) : Array String :=
   t.collectVars.toList.eraseDups.toArray
+
+def Term.variableDensity (term : Term) : Float :=
+  if term.argsSize = 0 then
+    0
+  else
+    term.collectVars.size.toFloat / term.size.toFloat
 
 def Axiom.collectVars : Axiom → Array String
   | ⟨hyps, conclusion⟩ =>
