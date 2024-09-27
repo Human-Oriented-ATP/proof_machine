@@ -8,48 +8,52 @@ def Expr.containsMVar? (mvarId : MVarId) : Expr → Bool
   | .mvar mvarId' => mvarId' == mvarId
   | .app _ args => args.attach.any <| fun ⟨arg, _⟩ => containsMVar? mvarId arg
 
-
-def assign? (mvarId : MVarId) (t : Expr) : m Bool := do
+def assignUnassigned? (mvarId : MVarId) (t : Expr) : m Bool := do
   let t ← t.instantiateMVars
   if t == .mvar mvarId then
     return true -- no need to assign
   if t.containsMVar? mvarId then
-    return false
-  match ← mvarId.getAssignment? with
-  | some s =>
-    return s == t
-  | none => do
-    mvarId.assign t
-    return true
+    return false -- occurs check failed
+  mvarId.assign t
+  return true
 
-partial def unifyCore (s t : Expr) : m Bool := do
-  match s, t with
-  | .mvar mvarId, t =>
-    match ← mvarId.getAssignment? with
-    | some s => unifyCore s t
-    | none => assign? mvarId t
-  | s, .mvar mvarId =>
-    match ← mvarId.getAssignment? with
-    | some t => unifyCore s t
-    | none => assign? mvarId s
-  | .app f args, .app f' args' =>
-    if f = f' && args.size = args'.size then
-      args.size.allM fun i => unifyCore args[i]! args'[i]!
+mutual
+  partial def unifyCore (s t : Expr) : m Bool := do
+    match s, t with
+    | .mvar mvarId, t =>
+      match ← mvarId.getAssignment? with
+      | some s => unifyCore s t
+      | none => assignUnassigned? mvarId t
+    | s, .mvar mvarId =>
+      match ← mvarId.getAssignment? with
+      | some t => unifyCore s t
+      | none => assignUnassigned? mvarId s
+    | .app f args, .app f' args' =>
+      unifyApp f f' args args'
+
+  @[inline]
+  partial def unifyApp (f f' : String) (args args' : Array Expr) : m Bool := do
+    if h : f = f' ∧ args.size = args'.size then
+      let rec go (i : Nat) (h : i ≤ args.size := by omega) := do
+        if h : i = args.size then
+          return true
+        else
+          if ← unifyCore args[i] args'[i] then
+            go (i + 1)
+          else
+            return false
+      go 0
     else
-      pure false
+      return false
+end
 
 def unify (s t : Cell) : m Bool := do
   let mctx ← getMCtx
-  let core : m Bool := do
-    if s.f = t.f && s.args.size = t.args.size then
-      s.args.size.allM fun i => unifyCore s.args[i]! t.args[i]!
-    else
-      pure false
-  if ← core then
-    pure true
+  if ← unifyApp s.f t.f s.args t.args then
+    return true
   else
     setMCtx mctx
-    pure false
+    return false
 
 variable [MonadGCtx m] [MonadEnv m] [MonadExceptOf String m]
 

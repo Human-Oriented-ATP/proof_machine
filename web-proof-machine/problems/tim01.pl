@@ -1,4 +1,4 @@
-g(1,2,3). % this is a comment
+g(1,2,3).
 b(4,2,3).
 r(1,2).
 r(A,B) :- g(B,A,C).

@@ -212,38 +212,106 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat) {
     depthFirst := true
     prioritizeUndeepGoals := true
-    orderGoalsAndAxioms := true
+    orderSubgoalsAndAxioms := true
     postponeLoopySearch := true
   }
-  logInfoAt stx m!"number of steps: {numSteps}"
-  logInfoAt stx m!"{proofLog}"
-  if timeout?.isNone && !tree.isClosed then
-    throwError "The proof tree is not closed."
-  let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
-  let initData : InitializationData := {
-    initialDiagram := initDiagram,
-    axioms := if axioms?.isSome then problemState.axioms else .empty
-  }
-  let jsonProps := Lean.toJson initData
-  Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
-    (return jsonProps) stx
+  logInfoAt stx m!"num steps: {numSteps}"
 
-#gadget_display with_axioms "tim_easy13"
+  logInfoAt stx m!"{proofLog}"
+
+  -- if timeout?.isNone && !tree.isClosed then
+  --   throwError "The proof tree is not closed."
+  -- let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
+  -- let initData : InitializationData := {
+  --   initialDiagram := initDiagram,
+  --   axioms := if axioms?.isSome then problemState.axioms else .empty
+  -- }
+  -- let jsonProps := Lean.toJson initData
+  -- Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
+  --   (return jsonProps) stx
+
+-- #gadget_display with_axioms "tim_easy01" -- 6  - 5
+-- #gadget_display with_axioms "tim_easy02" -- 40 - 29
+-- #gadget_display with_axioms "tim_easy03" -- 40 - 11 - 13 - 5
+-- #gadget_display with_axioms "tim_easy04" -- ∞  - 10 - 11
+-- #gadget_display with_axioms "tim_easy07" -- 8  - 5
+-- #gadget_display with_axioms "tim_easy08" -- ∞  - 42 - 15
+-- #gadget_display with_axioms "tim_easy09" -- ∞  - 29 - ∞ - 34 - 36 - 34
+-- #gadget_display with_axioms "tim_easy10" -- 14 - 8  - 5
+-- #gadget_display with_axioms "tim_easy11" -- 3
+-- #gadget_display with_axioms "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21
+-- #gadget_display with_axioms "tim_easy13" -- 5  - 4
+
+-- #gadget_display with_axioms "jovan_easy02" -- 20
+
+-- #gadget_display with_axioms "tim04" -- 41
+-- #gadget_display with_axioms "tim08" -- 24
+-- #gadget_display with_axioms "tim10" -- 23
+-- #gadget_display with_axioms "tim11" -- 13
+-- #gadget_display with_axioms "tim12" -- 213
+-- #gadget_display with_axioms "tim16" -- 17
+-- #gadget_display with_axioms "tim17" -- 28
+-- #gadget_display with_axioms "tim18" -- 19
+-- #gadget_display with_axioms "tim19" -- 12
+-- #gadget_display with_axioms "tim23" -- 25
+-- #gadget_display with_axioms "tim24" -- 15
+-- #gadget_display with_axioms "tim25" -- 84
+-- #gadget_display with_axioms "tim25a" -- 32
+-- #gadget_display with_axioms "tim33" -- 31
+-- #gadget_display with_axioms "tim36" -- 12
+-- #gadget_display with_axioms "tim43" -- 11
+-- #gadget_display with_axioms "tim46" -- 123
+
 /-
 results:
-tim_easy01: 6  - 5
-tim_easy02: 40 - 29
-tim_easy03: 40 - 11 - 13 - 5
-tim_easy04: ∞  - 10 - 11
-tim_easy05: ∞
-tim_easy06: ∞
-tim_easy07: 8  - 5
-tim_easy08: ∞  - 42 - 15
-tim_easy09: ∞  - 29 - ∞ - 34 - 36
-tim_easy10: 14 - 8  - 5
-tim_easy11: 3
-tim_easy12: ∞  - 24 - 21 - 31 - 21 - 25
-tim_easy13: 5  - 4
+tim01: ∞
+tim02: ∞
+tim03: ∞
+tim04: 41
+tim05: ∞
+tim05a: ∞
+tim06: ∞
+tim07: ∞
+tim08: 36
+tim09: ∞
+tim10: 23
+tim11: 13
+tim12: 341
+tim14: ∞
+tim16: 19
+tim17: 25
+tim18: 19
+tim19: 11
+tim20: ∞
+tim21: ∞
+tim22: ∞
+tim22a: ∞
+tim22b: ∞
+tim22c: ∞
+tim23: 25
+tim24: 15
+tim25: 77
+tim25a: 32
+tim27: ∞
+tim28: ∞
+tim29: ∞
+tim30: ∞
+tim31: ∞
+tim32: ∞
+tim33: 33
+tim34: ∞
+tim35: ∞
+tim36: 15
+tim37: ∞
+tim37a: ∞
+tim38: ∞
+tim39: ∞
+tim40: 114
+tim41: 93
+tim42: ∞
+tim43: 11
+tim44: ∞
+tim46: 123
 
 jacob25: 1439 - 329 - ∞
 -/

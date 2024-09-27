@@ -1,44 +1,8 @@
 import GadgetGameSolver.Jovan.Variables
 import GadgetGameSolver.Jovan.Stack
+import GadgetGameSolver.Jovan.Priority
 
 namespace JovanGadgetGame
-
-structure Priority where
-  /-- The inverse importance is a number at least 1, with 1 being the highest importance. -/
-  invImportance : Nat
-  /-- The times of the axiom applications that lead to this goal -/
-  times         : Array Nat
-  deriving Inhabited
-
-def timesCmpDFS (as bs : Array Nat) : Ordering :=
-  let rec go n :=
-    if h : n < as.size then
-      if h : n < bs.size then
-        let a := as[n]
-        let b := bs[n]
-        (compare a b).then (go (n+1))
-      else
-        .gt
-    else
-      if n < bs.size then
-        .lt
-      else
-        .eq
-  go 0
-
-def timesCmpBFS (as bs : Array Nat) : Ordering :=
-  let rec go n :=
-    if h : n < as.size then
-      let a := as[n]
-      let b := bs[n]!
-      (compare a b).then (go (n+1))
-    else
-      .eq
-  (compare bs.size as.size).then (go 0)
-
-def rootPriority : Priority where
-  invImportance := 1
-  times         := #[]
 
 structure AxiomApplication where
   name   : Name
@@ -49,7 +13,6 @@ structure AxiomApplication where
 /-- A goal in the tabled (type class) resolution. -/
 structure GeneratorNode where
   goalId       : GoalId
-  key          : CellKey
   mctx         : MVarContext
   goalctx      : GoalContext
   axioms       : Array AxiomApplication
@@ -81,16 +44,17 @@ structure Answer where
   deriving Inhabited
 
 structure TableEntry where
+  gNode        : GeneratorNode
+  priority     : Priority
   waiters      : Array Waiter
   loopyWaiters : Array Waiter
   answers      : Array Answer
-  priority     : Priority
 
 structure Config where
-  depthFirst            : Bool
-  prioritizeUndeepGoals : Bool
-  orderGoalsAndAxioms   : Bool
-  postponeLoopySearch   : Bool
+  depthFirst             : Bool
+  prioritizeUndeepGoals  : Bool
+  orderSubgoalsAndAxioms : Bool
+  postponeLoopySearch    : Bool
 
 def Priority.cmp (p q : Priority) (config : Config) :=
   let cmpTime (_ : Unit) :=
@@ -115,9 +79,9 @@ structure State where
   uniqueNum      : Nat := 1
   stepCount      : Nat := 0
   result?        : Option ConstantInfo := none
-  generatorStack : PriorityQueue Priority GeneratorNode (·.cmp · config) := {}
+  generatorStack : PriorityQueue Priority CellKey (·.cmp · config) := {}
   resumeStack    : Array (ConsumerNode × Answer)                         := #[]
-  loopyStack     : Queue (ConsumerNode × Answer ⊕ GeneratorNode)        := {}
+  loopyStack     : Queue (ConsumerNode × Answer ⊕ CellKey)        := {}
   tableEntries   : Std.HashMap CellKey TableEntry := {}
   log            : Array String := #[]
   time           : Nat := 0

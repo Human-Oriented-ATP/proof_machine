@@ -64,7 +64,7 @@ structure AbstractedGadget where
   varNames   : Array String
   conclusion : AbstractedCell
   hypotheses : Array AbstractedCell
-  deriving Inhabited, BEq
+  deriving Inhabited
 
 /-! Creating `CellKey` from `Cell` and `AbstractedGadget` from `Axiom`. -/
 
