@@ -112,7 +112,7 @@ export function Game(props: GameProps) {
     }, [getTriggerForNextTutorialStep])
 
     const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
-        const event: GameEvent = { EquationAdded: { from, to } }
+        const event: GameEvent = { ConnectionAdded: { from, to } }
         advanceTutorialIfIsCorrectEvent(event)
         history.current.logEvent(event)
         const newEquations = new Map(equations)
@@ -121,7 +121,7 @@ export function Game(props: GameProps) {
     }, [equations, getTriggerForNextTutorialStep])
 
     const removeEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition]) => {
-        const event: GameEvent = { EquationRemoved: { from, to } }
+        const event: GameEvent = { ConnectionRemoved: { from, to } }
         advanceTutorialIfIsCorrectEvent(event)
         history.current.logEvent(event)
         setEquations(equations => {

@@ -62,7 +62,7 @@ const tutorial01: InteractiveLevel = {
             jsx: <>"Now draw a line between the connectors"</>,
             dragIndicator: connectGadgets
         },
-        trigger: { EquationAdded: {} }
+        trigger: { ConnectionAdded: {} }
     }, {
         content: {
             jsx: <>"Well done!"</>
