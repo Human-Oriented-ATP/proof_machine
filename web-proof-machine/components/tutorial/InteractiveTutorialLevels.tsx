@@ -15,7 +15,7 @@ const dragFirstAxiomOut: DragIndicatorProps<GadgetPosition> = {
 
 const connectGadgets: DragIndicatorProps<GadgetPosition> = {
     origin: {
-        gadget: { axiom: ":-r(A)" },
+        gadget: { axiom: ":-r(1)" },
         anchorPoint: "CENTER_RIGHT",
         offset: { x: 0, y: 0 }
     },
@@ -38,17 +38,17 @@ const TUTORIAL_SETTINGS = {
 const tutorial01: InteractiveLevel = {
     settings: TUTORIAL_SETTINGS,
     steps: [{
-        trigger: { GadgetAdded: {} },
         content: {
-            text: "Drag the gadget onto the building area",
+            text: "Drag the matching gadget onto the building area",
             dragIndicator: dragFirstAxiomOut
-        }
+        },
+        trigger: { GadgetAdded: { axiom: ":-r(1)"} }
     }, {
-        trigger: { EquationAdded: {} },
         content: {
             text: "Now draw a line between the connectors",
             dragIndicator: connectGadgets
-        }
+        },
+        trigger: { EquationAdded: {} }
     }, {
         content: {
             text: "Well done!"
