@@ -139,7 +139,7 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
         resumeStack := entry.answers.foldl (fun s answer => s.push (cNode, answer)) s.resumeStack }
 
     let entry ← do
-      if prioritizeUndeepGoals && (priority.cmp entry.priority config).isLT then
+      if prioritizeUndeepGoals && (priority.cmp entry.priority config).isGT then
         modify fun s => { s with
           generatorStack := s.generatorStack.erase entry.priority |>.insert priority key }
         pure { entry with priority }
@@ -357,28 +357,27 @@ If possible, allow to instantiate non-shared metavariables. (Maybe use reference
 
 
 
--- inductive Loopness where
--- | waiters : Lean.AssocList Nat Loopness → Loopness
--- | looped : Loopness
+inductive Loopness where
+| waiters : Lean.AssocList Nat Loopness → Loopness
+| looped : Loopness
 
--- /-
--- to keep track of loopy solutions:
--- - when we find a goal, we mark which ways of propagating it lead to loopy places.
--- - if every way leads to a loopy place, then we put this goal on the loopy stack.
--- - and for every intermediate goal, we store a reference to this halted goal,
---   instructing to revive it.
+/-
+to keep track of loopy solutions:
+- when we find a goal, we mark which ways of propagating it lead to loopy places.
+- if every way leads to a loopy place, then we put this goal on the loopy stack.
+- and for every intermediate goal, we store a reference to this halted goal,
+  instructing to revive it.
 
--- we don't want to have loopy waiters separate anymore. Instead each waiter comes with a
--- `Loopness`, which tells us where not to propagate the solution.
+we don't want to have loopy waiters separate anymore. Instead each waiter comes with a
+`Loopness`, which tells us where not to propagate the solution.
 
--- What to annotate on solutions to goals? I guess we shouldn't care if accidentally one step of
--- looping does happen. It's more important to avoid the opposite.
+What to annotate on solutions to goals? I guess we shouldn't care if accidentally one step of
+looping does happen. It's more important to avoid the opposite.
 
--- In a table entry, besides answers there will also be the list of subgoals that have been
--- put to sleep due to loopyness.
+In a table entry, besides answers there will also be the list of subgoals that have been
+put to sleep due to loopyness.
 
--- -/
+-/
 
--- #exit
 
 -/
