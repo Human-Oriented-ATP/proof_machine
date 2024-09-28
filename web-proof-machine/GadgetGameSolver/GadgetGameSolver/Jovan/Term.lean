@@ -7,7 +7,7 @@ namespace JovanGadgetGame
 
 structure MVarId where
   id : Nat
-deriving BEq
+deriving Inhabited, BEq
 
 instance : Hashable MVarId where
   hash mvarId := hash mvarId.id
@@ -16,6 +16,10 @@ inductive Expr where
 | mvar : MVarId → Expr
 | app  : String → Array Expr → Expr
 deriving Inhabited, BEq
+
+def Expr.mvarId! : Expr → MVarId
+  | mvar mvarId => mvarId
+  | _ => panic! "mvar expected"
 
 structure Cell where
   f    : String
@@ -66,6 +70,17 @@ structure AbstractedGadget where
   hypotheses : Array AbstractedCell
   deriving Inhabited
 
+/-! Instantiating abstracted gadgets -/
+
+def instantiateExpr (e : AbstractedExpr) (subst : Array Expr) : Expr :=
+  match e with
+  | .mvar i => subst[i]!
+  | .app f args => .app f <| args.attach.map fun ⟨arg, _⟩ => instantiateExpr arg subst
+
+def AbstractedCell.instantiate (c : AbstractedCell) (subst : Array Expr) : Cell where
+  f := c.f
+  args := c.args.map (instantiateExpr · subst)
+
 /-! Creating `CellKey` from `Cell` and `AbstractedGadget` from `Axiom`. -/
 
 structure MkCellKeyState where
@@ -91,7 +106,6 @@ def abstractCell (c : Cell) : StateM MkCellKeyState CellKey :=
     cell.args := ← c.args.mapM abstractExpr }
 
 def Cell.abstract (c : Cell) : CellKey := abstractCell c |>.run' {}
-
 
 
 structure AbstractAxiomState where
@@ -123,13 +137,17 @@ def _root_.GadgetGame.Axiom.abstract (ax : GadgetGame.Axiom) : AbstractedGadget 
   let ((conclusion, hypotheses), { varNames, ..}) := StateT.run go {}
   { conclusion, hypotheses, varNames }
 
-/-! Instantiating abstracted gadgets -/
+/-! Collecting metavariables -/
 
-def instantiateExpr (e : AbstractedExpr) (subst : Array Expr) : Expr :=
-  match e with
-  | .mvar i => subst[i]!
-  | .app f args => .app f <| args.attach.map fun ⟨arg, _⟩ => instantiateExpr arg subst
+structure CollectMVarsState where
+  result : Std.HashSet MVarId := {}
 
-def AbstractedCell.instantiate (c : AbstractedCell) (subst : Array Expr) : Cell where
-  f := c.f
-  args := c.args.map (instantiateExpr · subst)
+def Expr.collectMVars : Expr → CollectMVarsState → CollectMVarsState
+  | .mvar mvarId => fun s => { s with result := s.result.insert mvarId }
+  | .app _ args => args.attach.foldl (fun s ⟨e, _⟩ => e.collectMVars s)
+
+def Cell.collectMVars (c : Cell) : CollectMVarsState → CollectMVarsState :=
+  c.args.foldl fun s e => e.collectMVars s
+
+def Gadget.collectMVars (gadget : Gadget) : CollectMVarsState → CollectMVarsState :=
+  gadget.conclusion.collectMVars ∘ gadget.hypotheses.foldl fun s e => e.collectMVars s

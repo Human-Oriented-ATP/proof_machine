@@ -44,11 +44,14 @@ def timesCmpBFS (t t' : Times) : Ordering :=
 
 structure Priority where
   /-- The inverse importance is a number at least 1, with 1 being the highest importance. -/
-  invImportance : Nat
+  numCases : Nat
+  -- /-- The size of the solution so far -/
+  -- size          : Nat
   /-- The times of the axiom applications that lead to this goal -/
   times         : Times
   deriving Inhabited
 
 def rootPriority : Priority where
-  invImportance := 1
+  numCases := 1
+  -- size          := 0
   times         := #[]

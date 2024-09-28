@@ -22,11 +22,12 @@ structure GeneratorNode where
 structure ConsumerNode where
   goalId        : GoalId
   key           : CellKey
+  proof         : Proof
   mctx          : MVarContext
   goalctx       : GoalContext
   nextSubgoalId : GoalId
   laterSubgoals : Array GoalId
-  size          : Nat -- instance size so far
+  size          : Nat -- number of gadgets used so far
   times         : Array Nat -- times of creating/modifying this node
   deriving Inhabited
 
@@ -52,20 +53,20 @@ structure TableEntry where
 
 structure Config where
   depthFirst             : Bool
-  prioritizeUndeepGoals  : Bool
+  fewerCasesFirst        : Bool
+  -- simplerSolutionsFirst  : Bool
   orderSubgoalsAndAxioms : Bool
-  postponeLoopySearch    : Bool
+  postponeLoopSearch     : Bool
+  postponeSpiralSearch   : Bool
 
 def Priority.cmp (p q : Priority) (config : Config) :=
-  let cmpTime (_ : Unit) :=
+  let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
+  -- let cmp := cmp.then <| if config.simplerSolutionsFirst then compare q.size p.size else .eq
+  cmp.then <|
     if config.depthFirst then
       timesCmpDFS p.times q.times
     else
       timesCmpBFS p.times q.times
-  if config.prioritizeUndeepGoals then
-    (compare q.invImportance p.invImportance).then (cmpTime ())
-  else
-    cmpTime ()
 
 structure Context where
   maxResultSize : Option Nat

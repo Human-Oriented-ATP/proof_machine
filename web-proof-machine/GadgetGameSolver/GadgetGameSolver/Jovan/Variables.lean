@@ -11,6 +11,9 @@ class MonadUnique (m : Type → Type) where
 
 export MonadUnique (getUnique)
 
+instance (m n) [MonadLift m n] [MonadUnique m] : MonadUnique n where
+  getUnique      := liftM (getUnique : m _)
+
 /-! Proof constants -/
 
 structure ConstantInfo where
@@ -28,11 +31,23 @@ class MonadEnv (m : Type → Type) where
 
 export MonadEnv (getEnv modifyEnv)
 
+instance (m n) [MonadLift m n] [MonadEnv m] : MonadEnv n where
+  getEnv      := liftM (getEnv : m _)
+  modifyEnv f := liftM (modifyEnv f : m _)
+
 def Name.getConstInfo [MonadEnv m] (name : Name) : m ConstantInfo := do
   return (← getEnv).proofs[name]!
 
 def ConstantInfo.addToEnv [MonadEnv m] (cInfo : ConstantInfo) : m Unit := do
   modifyEnv fun env => { proofs := env.proofs.insert cInfo.name cInfo }
+
+def _root_.GadgetGame.Axiom.addFreshConstantInfo [MonadUnique m] [MonadEnv m] (ax : GadgetGame.Axiom) : m ConstantInfo := do
+  let cInfo := {
+    name.name  := ← getUnique
+    gadget     := ax.abstract
+    definition := .inl ax }
+  cInfo.addToEnv
+  return cInfo
 
 /-! Expr metavariables -/
 
@@ -60,8 +75,16 @@ instance (m n) [MonadLift m n] [MonadMCtx m] : MonadMCtx n where
 
 variable [MonadMCtx m]
 
-@[inline] def setMCtx (goalCtx : MVarContext) : m Unit :=
-  modifyMCtx (fun _ => goalCtx)
+@[inline] def setMCtx (mctx : MVarContext) : m Unit :=
+  modifyMCtx (fun _ => mctx)
+
+/-- Doesn't use `try _ finally _ => _`, since we're not catching any errors. -/
+@[inline] def withMCtx {α : Type} (mctx : MVarContext) (k : m α) : m α := do
+  let mctx' ← getMCtx
+  setMCtx mctx
+  let a ← k
+  setMCtx mctx'
+  pure a
 
 def mkFreshMVar [MonadUnique m] (userName : String) : m Expr := do
   let mvarId := { id := ← getUnique }
@@ -133,10 +156,10 @@ variable [MonadGCtx m]
 abbrev setGCtx (goalCtx : GoalContext) : m Unit :=
   modifyGCtx (fun _ => goalCtx)
 
-def mkFreshGoalVar [MonadUnique m] (goal : Cell) : m GoalId := do
+def mkFreshGoalVar [MonadUnique m] (goal : Cell) : m Proof := do
   let goalId := { id := ← getUnique }
   modifyGCtx fun gctx => { gctx with decls := gctx.decls.insert goalId { goal } }
-  return goalId
+  return .goal goalId
 
 def GoalId.assign (goalId : GoalId) (proof : Proof) : m Unit :=
   modifyGCtx fun gctx => { gctx with assignments := gctx.assignments.insert goalId proof }
@@ -155,20 +178,44 @@ def GoalId.getInstantiatedGoal (goalId : GoalId) : m Cell := do
 mutual
   partial def Proof.instantiate (proof : Proof) : m Proof := do
     match proof with
-    | .goal goalId => goalId.getInstantiatedProof!
+    | .goal goalId => goalId.getInstantiatedAssignment
     | .node name vars proofs =>
       let vars   ← vars.mapM (·.instantiateMVars)
       let proofs ← proofs.mapM (·.instantiate)
       return .node name vars proofs
 
-  partial def GoalId.getInstantiatedProof! (goalId : GoalId) : m Proof := do
-    let some proof ← goalId.getAssignment? | throw "proof contains an uninstantiated hole"
+  partial def GoalId.getInstantiatedAssignment (goalId : GoalId) : m Proof := do
+    let some proof ← goalId.getAssignment? | return .goal goalId
     let proof ← proof.instantiate
     goalId.assign proof
     return proof
 end
 
-section AbstractGadget
+mutual
+  partial def Proof.instantiate! (proof : Proof) : m Proof := do
+    match proof with
+    | .goal goalId => goalId.getInstantiatedAssignment!
+    | .node name vars proofs =>
+      let vars   ← vars.mapM (·.instantiateMVars)
+      let proofs ← proofs.mapM (·.instantiate!)
+      return .node name vars proofs
+
+  partial def GoalId.getInstantiatedAssignment! (goalId : GoalId) : m Proof := do
+    let some proof ← goalId.getAssignment? | throw "proof contains an uninstantiated hole"
+    let proof ← proof.instantiate!
+    goalId.assign proof
+    return proof
+end
+
+def AbstractedProof.instantiateFresh [MonadUnique m] (proof : AbstractedProof) : m (Array Proof × Array Expr × Proof) := do
+  let mvars ← proof.varNames.mapM mkFreshMVar
+  let goalIds ← proof.goals.mapM fun c => mkFreshGoalVar (c.instantiate mvars)
+  return (goalIds, mvars, proof.instantiate mvars goalIds)
+
+
+
+
+/-! Abstracting Gadgets and Proofs -/
 
 structure AbstractGadgetState where
   names : Array String := #[]
@@ -202,7 +249,34 @@ def Gadget.abstract (gadget : Gadget) : m AbstractedGadget := do
       varNames   := (← get).names }
   return go.run (← getMCtx) |>.run' {}
 
-end AbstractGadget
+
+structure MkAbstractedProofState where
+  exprState : AbstractGadgetState := {}
+  goals     : Array AbstractedCell := #[]
+  map       : Std.HashMap GoalId AbstractedProofTerm := {}
+
+def abstractProof (proof : Proof) : ReaderT (MVarContext × GoalContext) (StateM MkAbstractedProofState) AbstractedProofTerm := do
+  match proof with
+  | .goal goalId =>
+    let s ← get
+    match s.map[goalId]? with
+    | some proof => pure proof
+    | none =>
+      let goal := (← read).2.decls[goalId]!.goal
+      let (goal, exprState) := abstractCell' goal |>.run (← read).1 |>.run (← get).exprState
+      let proof := .goal s.map.size
+      set { s with exprState, goals := s.goals.push goal, map := s.map.insert goalId proof }
+      pure proof
+  | .node name vars proofs =>
+    let proofs ← proofs.attach.mapM fun ⟨proof, _⟩ => abstractProof proof
+    let (vars, exprState) := vars.mapM abstractExpr' |>.run (← read).1 |>.run (← get).exprState
+    modify ({ · with exprState })
+    return .node name vars proofs
+
+def Proof.abstract (proof : Proof) : m AbstractedProof := do
+  let (proof, s) := (abstractProof proof).run (← getMCtx, ← getGCtx) |>.run {}
+  return { proof, varNames := s.exprState.names, goals := s.goals }
+
 
 end ProofContext
 
@@ -210,38 +284,14 @@ end ProofContext
 
 variable [MonadEnv m] [MonadMCtx m] [MonadGCtx m] [MonadExceptOf String m]
 
-/-! Expanding the `Evnvironment` -/
+/-! Type inference -/
 
-def GoalId.addFreshConstantInfo [MonadUnique m] [MonadEnv m] (goalId : GoalId) : m ConstantInfo := do
-  let proof := (← goalId.getInstantiatedProof!).abstract
-  unless proof.numGoals == 0 do
-    throw "proof contains holes"
-  let gadget : Gadget := {
-    conclusion := ← goalId.getInstantiatedGoal
-    hypotheses := #[] }
-  let cInfo := {
-    name.name := ← getUnique
-    gadget := ← gadget.abstract
-    definition := .inr proof }
-  cInfo.addToEnv
-  return cInfo
-
-def _root_.GadgetGame.Axiom.addFreshConstantInfo [MonadUnique m] [MonadEnv m] (ax : GadgetGame.Axiom) : m ConstantInfo := do
-  let cInfo := {
-    name.name  := ← getUnique
-    gadget     := ax.abstract
-    definition := .inl ax }
-  cInfo.addToEnv
-  return cInfo
-
--- /-! Type inference -/
-
--- def Proof.inferType (proof : Proof) : m Cell := do
---   match proof with
---   | .node name vars _ =>
---     return (← name.getConstInfo).gadget.conclusion.instantiate vars
---   | .goal goalId =>
---     return (← goalId.getDecl!).goal
+def Proof.inferType (proof : Proof) : m Cell := do
+  match proof with
+  | .node name vars _ =>
+    return (← name.getConstInfo).gadget.conclusion.instantiate vars
+  | .goal goalId =>
+    return ← goalId.getGoal!
 
 
 /-! Printing gadgets -/

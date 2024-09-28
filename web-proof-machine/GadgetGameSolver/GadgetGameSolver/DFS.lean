@@ -211,59 +211,73 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
   let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat) {
     depthFirst := true
-    prioritizeUndeepGoals := true
+    fewerCasesFirst := true
+    -- simplerSolutionsFirst := false
     orderSubgoalsAndAxioms := true
-    postponeLoopySearch := true
+    postponeLoopSearch := true
+    postponeSpiralSearch := true
   }
   logInfoAt stx m!"num steps: {numSteps}"
 
   logInfoAt stx m!"{proofLog}"
 
-  -- if timeout?.isNone && !tree.isClosed then
-  --   throwError "The proof tree is not closed."
-  -- let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
-  -- let initData : InitializationData := {
-  --   initialDiagram := initDiagram,
-  --   axioms := if axioms?.isSome then problemState.axioms else .empty
-  -- }
-  -- let jsonProps := Lean.toJson initData
-  -- Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
-  --   (return jsonProps) stx
+  if timeout?.isNone && !tree.isClosed then
+    throwError "The proof tree is not closed."
+  let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
+  let initData : InitializationData := {
+    initialDiagram := initDiagram,
+    axioms := if axioms?.isSome then problemState.axioms else .empty
+  }
+  let jsonProps := Lean.toJson initData
+  Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
+    (return jsonProps) stx
 
--- #gadget_display with_axioms "tim_easy08" 39
+-- #gadget_display with_axioms "tim08"
 
 -- #exit
 
-#gadget_display with_axioms "tim_easy01" -- 6  - 5
-#gadget_display with_axioms "tim_easy02" -- 40 - 29 | 32
-#gadget_display with_axioms "tim_easy03" -- 40 - 11 - 13 - 5
-#gadget_display with_axioms "tim_easy04" -- ∞  - 10 - 11
-#gadget_display with_axioms "tim_easy07" -- 8  - 5
-#gadget_display with_axioms "tim_easy08" -- ∞  - 42 - 15 | 36
-#gadget_display with_axioms "tim_easy09" -- ∞  - 29 - ∞ - 34 - 36 - 34 | 40
-#gadget_display with_axioms "tim_easy10" -- 14 - 8  - 5
-#gadget_display with_axioms "tim_easy11" -- 3
-#gadget_display with_axioms "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21 | 28
-#gadget_display with_axioms "tim_easy13" -- 5  - 4
+-- #gadget_display with_axioms "tim_easy01" -- 6  - 5
+-- #gadget_display with_axioms "tim_easy02" -- 40 - 29 | 32
+-- #gadget_display with_axioms "tim_easy03" -- 40 - 11 - 13 - 5
+-- #gadget_display with_axioms "tim_easy04" -- ∞  - 10 - 11
+-- #gadget_display with_axioms "tim_easy05" -- ∞  - 59
+-- #gadget_display with_axioms "tim_easy06" -- ∞  - 109
+-- #gadget_display with_axioms "tim_easy07" -- 8  - 5
+-- #gadget_display with_axioms "tim_easy08" -- ∞  - 42 - 15 | 36
+-- #gadget_display with_axioms "tim_easy09" -- ∞  - 29 - ∞ - 34 - 36 - 34 | 40
+-- #gadget_display with_axioms "tim_easy10" -- 14 - 8  - 5
+-- #gadget_display with_axioms "tim_easy11" -- 3
+-- #gadget_display with_axioms "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21 | 28
+-- #gadget_display with_axioms "tim_easy13" -- 5  - 4
 
-#gadget_display with_axioms "jovan_easy02" -- 20
+-- #gadget_display with_axioms "jovan_easy02" -- 20
 
+-- #gadget_display with_axioms "jacob25" 300
+
+#exit
+#gadget_display with_axioms "tim03" -- ∞ - 42
 #gadget_display with_axioms "tim04" -- 41 | 36
+#gadget_display with_axioms "tim07" -- ∞ - 267
 #gadget_display with_axioms "tim08" -- 24 | 28
 #gadget_display with_axioms "tim10" -- 23
 #gadget_display with_axioms "tim11" -- 13
 #gadget_display with_axioms "tim12" -- 213 | 307
+#gadget_display with_axioms "tim14" -- ∞ - 307
 #gadget_display with_axioms "tim16" -- 17 | 19
 #gadget_display with_axioms "tim17" -- 28 | 9
 #gadget_display with_axioms "tim18" -- 19 | 18
 #gadget_display with_axioms "tim19" -- 12
+#gadget_display with_axioms "tim20" -- ∞ - 366
 #gadget_display with_axioms "tim23" -- 25
 #gadget_display with_axioms "tim24" -- 15 | 11
 #gadget_display with_axioms "tim25" -- 84 | 45
 #gadget_display with_axioms "tim25a" -- 32 | 34
+#gadget_display with_axioms "tim27" -- ∞ - 565
+#gadget_display with_axioms "tim31" -- ∞ - 1570
 #gadget_display with_axioms "tim33" -- 31 | 33
 #gadget_display with_axioms "tim36" -- 12 | 15
 #gadget_display with_axioms "tim43" -- 11
+#gadget_display with_axioms "tim44" -- ∞ - 120
 #gadget_display with_axioms "tim46" -- 123 | 90
 
 /-

@@ -22,6 +22,10 @@ inductive Proof where
 | node : Name → Array Expr → Array Proof → Proof
 deriving Inhabited
 
+def Proof.goalId! : Proof → GoalId
+  | goal goalId => goalId
+  | _ => panic! "goal expected"
+
 inductive AbstractedProofTerm where
 | goal : Nat → AbstractedProofTerm
 | node : Name → Array AbstractedExpr → Array AbstractedProofTerm → AbstractedProofTerm
@@ -29,35 +33,9 @@ deriving Inhabited
 
 structure AbstractedProof where
   proof    : AbstractedProofTerm
-  numVars  : Nat
-  numGoals : Nat
+  varNames : Array String
+  goals    : Array AbstractedCell
   deriving Inhabited
-
-/-! Creating `AbstractedProof` from `Proof` -/
-
-structure MkAbstractedProofState where
-  exprMap  : Std.HashMap MVarId AbstractedExpr := {}
-  proofMap : Std.HashMap GoalId AbstractedProofTerm := {}
-
-def abstractProof (proof : Proof) : StateM MkAbstractedProofState AbstractedProofTerm := do
-  match proof with
-  | .goal goalId =>
-    let s ← get
-    match s.proofMap[goalId]? with
-    | some proof => pure proof
-    | none =>
-      let proof := .goal s.proofMap.size
-      set { s with proofMap := s.proofMap.insert goalId proof }
-      pure proof
-  | .node name vars proofs =>
-    let proofs ← proofs.attach.mapM fun ⟨proof, _⟩ => abstractProof proof
-    let (vars, { map := exprMap }) := vars.mapM abstractExpr |>.run { map := (← get).exprMap }
-    modify ({ · with exprMap })
-    return .node name vars proofs
-
-def Proof.abstract (proof : Proof) : AbstractedProof :=
-  let (proof, s) := (abstractProof proof).run {}
-  { proof, numVars := s.exprMap.size, numGoals := s.proofMap.size }
 
 /-! Instantiating abstracted proofs -/
 

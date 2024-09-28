@@ -1,6 +1,5 @@
 import GadgetGameSolver.Jovan.SubGoalSorting
-import GadgetGameSolver.Jovan.Unification
-import GadgetGameSolver.Jovan.Term
+import GadgetGameSolver.Jovan.SpiralDetection
 import Lean
 
 namespace JovanGadgetGame
@@ -22,11 +21,11 @@ def mkGeneratorNode (goalId : GoalId) (axioms : Array AxiomApplication) : Search
 /--
   Create a new generator node for `mvar` and add `waiter` as its waiter.
   `key` must be `mkTableKey mctx mvarType`. -/
-def newSubgoal (key : CellKey) (goalId : GoalId) (axioms : Array AxiomApplication) (waiter : Waiter) (priority : Priority) (isLoopy : Bool) : SearchM Unit := do
+def newSubgoal (key : CellKey) (goalId : GoalId) (axioms : Array AxiomApplication) (waiter : Waiter) (priority : Priority) (isSpiral : Bool) : SearchM Unit := do
   let gNode ← mkGeneratorNode goalId axioms
   let entry := { gNode, waiters := #[waiter], loopyWaiters := #[], answers := #[], priority }
-  logMessage s!"new{if isLoopy then " loopy" else ""} goal {← goalId.toString}, with goalId {goalId.id} and importance 1/{priority.invImportance} and times {priority.times}"
-  if !isLoopy then
+  logMessage s!"new{if isSpiral then " spiral" else ""} goal {← goalId.toString}, with goalId {goalId.id} and importance 1/{priority.numCases} and times {priority.times}"
+  if !isSpiral then
     if (← get).generatorStack.find? priority |>.isSome then
       throw s! "OHNO duplicate {priority.times}"
     modify fun s => { s with
@@ -47,9 +46,9 @@ def tryAxiom (goalId : GoalId) (ax : AxiomApplication) : SearchM (Option (Array 
   if ← unify ax.gadget.conclusion (← goalId.getGoal!) then
     increment
     logMessage s!"applied axiom {← ax.gadget.toString} to {goalString}"
-    let goalIds ← ax.gadget.hypotheses.mapM mkFreshGoalVar
-    goalId.assign (.node ax.name ax.mvars (goalIds.map .goal))
-    return goalIds
+    let goals ← ax.gadget.hypotheses.mapM mkFreshGoalVar
+    goalId.assign (.node ax.name ax.mvars goals)
+    return goals.map (·.goalId!)
   else
     return none
 
@@ -80,7 +79,7 @@ def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
     oldAnswer.cInfo.gadget.conclusion != answer.cInfo.gadget.conclusion
 
 private def mkAnswer (goalId : GoalId) (size : Nat) : SearchM Answer := do
-  return { cInfo := ← goalId.addFreshConstantInfo, size := size + 1 }
+  return { cInfo := ← goalId.addFreshConstantInfo, size }
 
 /--
   Create a new answer after `cNode` resolved all subgoals.
@@ -98,10 +97,11 @@ def addAnswer (goalId : GoalId) (key : CellKey) (size : Nat) : SearchM Unit := d
       modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
       entry.waiters.forM (wakeUp answer false)
       entry.loopyWaiters.forM (wakeUp answer true)
+    else
+      logMessage s!"answer {answer.cInfo.gadget.conclusion} isn't new"
 
 /--
 Checks whether `originalKey` can be reached from `key` during result propagation.
-Sets waiters to be loopy if they contribute to this.
 -/
 partial def isLoopyKey (key originalKey : CellKey) : SearchM Bool := do
   if originalKey == key then
@@ -117,18 +117,18 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
   let waiter := Waiter.consumerNode cNode
   let goal ← cNode.nextSubgoalId.getInstantiatedGoal
   let key := goal.abstract
-  let config@{ prioritizeUndeepGoals, postponeLoopySearch, .. } ← getConfig
-  let isLoopy ←
-    if postponeLoopySearch then
-      isLoopyKey cNode.key key
-    else
-      pure false
-
+  let config@{ fewerCasesFirst, postponeLoopSearch, postponeSpiralSearch, .. } ← getConfig
   match ← findEntry? key with
   | none       =>
-    newSubgoal key cNode.nextSubgoalId axioms waiter priority isLoopy
+    let isSpiral ← if postponeSpiralSearch then isSpiral cNode else pure false
+    newSubgoal key cNode.nextSubgoalId axioms waiter priority isSpiral
   | some entry =>
     logMessage s!"found goal in table: subgoal {← goal.toString} of {← cNode.goalId.toString}."
+    let isLoopy ←
+      if postponeLoopSearch then
+        isLoopyKey cNode.key key
+      else
+        pure false
 
 
     if isLoopy then
@@ -139,7 +139,7 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
         resumeStack := entry.answers.foldl (fun s answer => s.push (cNode, answer)) s.resumeStack }
 
     let entry ← do
-      if prioritizeUndeepGoals && (priority.cmp entry.priority config).isGT then
+      if fewerCasesFirst && (priority.cmp entry.priority config).isGT then
         modify fun s => { s with
           generatorStack := s.generatorStack.erase entry.priority |>.insert priority key }
         pure { entry with priority }
@@ -153,7 +153,7 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
     modify fun s => { s with tableEntries := s.tableEntries.insert key entry }
 
 /-- Process the next subgoal in the given consumer node. -/
-def consume (key : CellKey) (goalId : GoalId) (subgoals : Array GoalId) (size : Nat) (times : Array Nat) : SearchM Unit := do
+def consume (goalId : GoalId) (key : CellKey) (subgoals : Array GoalId) (size : Nat) (times : Array Nat) : SearchM Unit := do
   let { orderSubgoalsAndAxioms, .. } ← getConfig
   match ← if orderSubgoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
   | .error true =>
@@ -162,12 +162,19 @@ def consume (key : CellKey) (goalId : GoalId) (subgoals : Array GoalId) (size : 
   | .error false =>
     logMessage s!"goal {← goalId.toString} is now unsolvable"
   | .ok ((nextSubgoalId, axioms), laterSubgoals) =>
-    let { priority := { invImportance, times := allTimes }, .. } ← getEntry key
-    let invImportance := invImportance * (laterSubgoals.size + 1)
-    let allTimes := allTimes.push times
+
+    let proof   ← goalId.getInstantiatedAssignment
     let mctx    ← getMCtx
     let goalctx ← getGCtx
-    processSubgoal { goalId, key, mctx, goalctx, nextSubgoalId, laterSubgoals, size, times } axioms { invImportance, times := allTimes }
+    let cNode := { goalId, key, proof, mctx, goalctx, nextSubgoalId, laterSubgoals, size, times }
+
+    let { priority := { numCases, times := allTimes }, .. } ← getEntry key
+    let priority := {
+      numCases := numCases * (laterSubgoals.size + 1)
+      -- size     := totalSize + size
+      times    := allTimes.push times
+    }
+    processSubgoal cNode axioms priority
 where
   bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array AxiomApplication) × Array GoalId)) := do
     if h : goals.size = 0 then
@@ -220,7 +227,7 @@ def generate (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
       --   (return m!"{exceptOptionEmoji ·} apply {ax.val} to {← instantiateMVars (← inferType goal)}") do
     modify fun s => { s with tableEntries := s.tableEntries.insert key { entry with gNode.currAxiomIdx := idx }}
     if let some subgoals ← tryAxiom goalId ax then
-      consume key goalId subgoals 0 #[← getUnique]
+      consume goalId key subgoals 1 #[← getUnique]
 
 /--
   Given `(cNode, answer)` on the top of the resume stack, continue execution by using `answer` to solve the
@@ -231,7 +238,7 @@ def resume (pair : ConsumerNode × Answer) : SearchM Unit := do
   setGCtx cNode.goalctx
   useAnswer answer cNode.nextSubgoalId
   logMessage s! "propagating answer {answer.cInfo.gadget.conclusion} to subgoal {← cNode.nextSubgoalId.toString} of {← cNode.goalId.toString}"
-  consume cNode.key cNode.goalId cNode.laterSubgoals (cNode.size + answer.size) (cNode.times.push (← getUnique))
+  consume cNode.goalId cNode.key cNode.laterSubgoals (cNode.size + answer.size) (cNode.times.push (← getUnique))
 
 def step : SearchM Bool := do
   let s ← get
@@ -301,7 +308,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
     withReader ({ · with axioms }) do
     let (goal, { varNames, .. }) := (abstractTermAsCell goal).run {}
     let goal := goal.instantiate (← varNames.mapM mkFreshMVar)
-    let goalId ← mkFreshGoalVar goal
+    let goalId := (← mkFreshGoalVar goal).goalId!
     let key := goal.abstract
     let { orderSubgoalsAndAxioms, .. } ← getConfig
     let axioms ←
@@ -348,36 +355,18 @@ TODO:
 and lookup in this in a way to not instantiate metavariables.
 If possible, allow to instantiate non-shared metavariables. (Maybe use reference counting???)
 
-- Use global constants to keep track of the proofs. Then a proof consists of global constants.
-  The constants have their number of variables stored, and each application of a constant explicitly instantiated them.
-  This will make type checking much more nice.
-- Then, make a generalizing function for partial proofs, to find the general goal being solved
-  by a partial proof. Then check whether a subgoal is a specialization of this, to detect loops.
+- re-awaken spirally goals if they are needed again.
+  In a table entry, besides answers there will also be the list of subgoals that have been
+  put to sleep due to spirals. So then the spirals can be checked again.
+  If there is no spiral, then pput the relevant key on the regular generator stack.
 
+- stop using loopy waiters, and instead store all cycles globally.
+  Then, when going up the directed graph of waiters, each waiter comes with a
+  tree of bad directions. Therefore, each answer comes with a tree of bad directions.
+  They can be stored in a `PathTree` data type:
 
-
-
-inductive Loopness where
-| waiters : Lean.AssocList Nat Loopness → Loopness
-| looped : Loopness
-
-/-
-to keep track of loopy solutions:
-- when we find a goal, we mark which ways of propagating it lead to loopy places.
-- if every way leads to a loopy place, then we put this goal on the loopy stack.
-- and for every intermediate goal, we store a reference to this halted goal,
-  instructing to revive it.
-
-we don't want to have loopy waiters separate anymore. Instead each waiter comes with a
-`Loopness`, which tells us where not to propagate the solution.
-
-What to annotate on solutions to goals? I guess we shouldn't care if accidentally one step of
-looping does happen. It's more important to avoid the opposite.
-
-In a table entry, besides answers there will also be the list of subgoals that have been
-put to sleep due to loopyness.
-
--/
-
+inductive PathTree where
+| node : Lean.AssocList WaiterIdx PathTree → PathTree
+| nil  : PathTree
 
 -/
