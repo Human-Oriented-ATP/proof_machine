@@ -85,7 +85,7 @@ def timedOut : GadgetGameSolverM Bool := do
   | some timeout => return (← getStepCount) ≥ timeout
 
 def visitBestChild : ExceptT String GadgetGameSolverM Unit := do
-  let unsolvedGoals ← (← getUnsolvedGoals).enum.mapM fun (idx, goal) ↦ do
+  let unsolvedGoals ← (← getUnsolvedGoals).mapM fun (idx, goal) ↦ do
     return (idx, goal, ← calculateTermScore goal)
   if unsolvedGoals.isEmpty then
     throw "No goal children nodes found."
@@ -144,7 +144,7 @@ partial def workWithAxiom («axiom» : Axiom) : ExceptT String GadgetGameSolverM
   incrementStepCount
   applyAxiom «axiom»
   -- TODO: order the new goals
-  while ← hasUnsolvedGoals do
+  while (← hasUnsolvedGoals) && !(← timedOut) do
     visitBestChild
     workOnCurrentGoal
     goUp
@@ -225,6 +225,6 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
   Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
     (return jsonProps) stx
 
-#gadget_display with_axioms "tim_easy01"
+#gadget_display with_axioms "tim_easy04"
 
 end GadgetGame

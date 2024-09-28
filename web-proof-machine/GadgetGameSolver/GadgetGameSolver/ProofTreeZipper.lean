@@ -174,10 +174,10 @@ def isGoal : M Bool := do
   let loc ← getThe Location
   return loc.tree matches .goal _
 
-def getUnsolvedGoals [MonadStateOf VarAssignmentCtx M] : M (List Term) := do
+def getUnsolvedGoals [MonadStateOf VarAssignmentCtx M] : M (List (Nat × Term)) := do
   let ⟨.node _ _ goals, _⟩ ← getThe Location | throw "Expected the current location to be a node."
-  goals.filterMapM fun
-    | .goal goal => do return some (← goal.instantiateVars)
+  goals.enum.filterMapM fun
+    | (idx, .goal goal) => do return some (idx, ← goal.instantiateVars)
     | _ => return none
 
 def hasUnsolvedGoals [MonadStateOf VarAssignmentCtx M] : M Bool := do
