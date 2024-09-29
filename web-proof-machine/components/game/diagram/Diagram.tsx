@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, getOutgoers, useStore, XYPosition, ReactFlow, OnConnectStartParams
+    EdgeTypes, Edge, getOutgoers, useStore, XYPosition, ReactFlow, OnConnectStartParams,
+    Background,
+    BackgroundVariant
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -362,7 +364,9 @@ export function Diagram(props: DiagramProps) {
             nodeOrigin={[0.5, 0.5]}
             onMove={() => props.setUserIsDraggingOrNavigating(true)}
             onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
-        />
+        >
+            <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
+        </ReactFlow>
         <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} ></ControlButtons>
     </>
 }
