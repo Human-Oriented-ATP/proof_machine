@@ -49,7 +49,7 @@ export function InteractiveContent(props: InteractiveContentProps) {
 
     return <div>
         <div className="absolute text-xl top-24 left-44 md:w-full md:text-center md:left-0 md:px-44">
-            {props.content.jsx}
+            <span className="backdrop-blur-sm">{props.content.jsx}</span>
         </div>
         {props.content.dragIndicator && !props.hideInteractiveContent && <DelayedDragIndicator {...getDragIndicatorProps(props.content.dragIndicator)} />}
     </div>
