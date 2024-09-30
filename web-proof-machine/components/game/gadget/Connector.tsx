@@ -19,7 +19,7 @@ export function TargetConnectorPolygon() {
 export function Connector({ type, isOpen: isConnected = false, isInline = false, isBroken = false }: ConnectorProps) {
     return <svg width="24" height="20" xmlns="http://www.w3.org/2000/svg"
         className={twJoin("stroke-[1.5px] stroke-black pointer-events-none fill-white", 
-            isInline && "inline h-[24px]", 
+            isInline && "inline align-text-bottom", 
             isBroken && HANDLE_BROKEN_CLASSES)}>
         {type === "source" ? <SourceConnectorPolygon /> : <TargetConnectorPolygon />}
         {type === "target" && isConnected ? <polyline points="1,2 6,10 1,18" fill="none" className="stroke-black animate-svg-stroke-blink" /> : <></>}
