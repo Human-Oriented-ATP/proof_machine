@@ -16,8 +16,8 @@ import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 export interface GameProps {
     initData: InitializationData
     problemId?: string
-    setLevelCompleted: () => void
-    setDiagramHasBrokenConnection?: (hasBrokenConnection: boolean) => void
+    setLevelIsCompleted?: (levelIsCompleted: boolean) => void
+    setDiagramHasBrokenConnection?: (diagramHasBrokenConnection: boolean) => void
     initialViewportSetting?: InitialViewportSetting
     zoomEnabled?: boolean
     proximityConnectEnabled?: boolean
@@ -91,23 +91,23 @@ export function Game(props: GameProps) {
         }
     }, [advanceTutorial])
 
-    const updateDiagramHasBrokenConnection = useCallback((equations: Map<string, boolean>) => {
-        if (props.setDiagramHasBrokenConnection) { 
-            if (Array.from(equations.values()).every(value => value === true)) {
-                props.setDiagramHasBrokenConnection(false)
-            } else { 
-                props.setDiagramHasBrokenConnection(true)
-            }
+    const setDiagramHasBrokenConnection = useCallback((eqSatisfied: Map<string, boolean>) => {
+        if (props.setDiagramHasBrokenConnection) {
+            const existsBrokenConnection = Array.from(eqSatisfied.values()).some(value => value === false)
+            props.setDiagramHasBrokenConnection(existsBrokenConnection)
         }
-    }, []) 
+    }, [props.setDiagramHasBrokenConnection])
 
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const unificationResult = unifyEquations(equations)
         enumeration.current.updateEnumeration(unificationResult.assignment)
         const termEnumeration = enumeration.current.getHoleValueAssignment(unificationResult.assignment)
-        updateDiagramHasBrokenConnection(unificationResult.equationIsSatisfied)
         return [termEnumeration, unificationResult.equationIsSatisfied]
     }, [equations])
+
+    useEffect(() => {
+        setDiagramHasBrokenConnection(eqSatisfied)
+    }, [eqSatisfied])
 
     const addGadget = useCallback((gadgetId: string, axiom: Axiom) => {
         const event: GameEvent = { GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } }
@@ -143,8 +143,14 @@ export function Game(props: GameProps) {
         })
     }, [equations, getTriggerForNextTutorialStep])
 
+    const setLevelIsCompleted = useCallback((levelIsCompleted: boolean) => {
+        if (props.setLevelIsCompleted) {
+            props.setLevelIsCompleted(levelIsCompleted)
+        }
+    }, [])
+
     const setLevelCompletedAndWriteToHistory = useCallback(() => {
-        props.setLevelCompleted()
+        setLevelIsCompleted(true)
         if (!history.current.completed) {
             const event = { GameCompleted: null }
             advanceTutorialIfIsCorrectEvent(event)
