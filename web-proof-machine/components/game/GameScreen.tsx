@@ -13,26 +13,38 @@ interface GameScreenProps {
     problemId: string
 }
 
+export type StatusBarState = { 
+    levelIsCompleted: boolean
+    diagramHasBrokenConnection: boolean
+}
+
 export function GameScreen(props: GameScreenProps) {
-    const [isSolved, setIsSolved] = useState(false)
+    const [statusBarState, setStatusBarState] = useState<StatusBarState>({ levelIsCompleted: false, diagramHasBrokenConnection: false })
 
     const helpPopup = usePopup()
 
-    const setProblemSolved = useCallback(() => {
-        setIsSolved(true)
+    const setLevelCompleted = useCallback(() => {
+        setStatusBarState({ ...statusBarState, levelIsCompleted: true})
+    }, [])
+
+    const setDiagramHasBrokenConnection = useCallback((hasBrokenConnection: boolean) => {
+        setStatusBarState({ ...statusBarState, diagramHasBrokenConnection: hasBrokenConnection })
     }, [])
 
     const interactiveLevel = interactiveTutorialLevels.get(props.problemId)
     const initialDiagram = interactiveLevel?.initialDiagram
     const initData = initialDiagram ? { ...props.initData, initialDiagram } : props.initData
 
+    console.log(statusBarState)
+
     return <div className='h-dvh flex flex-col'>
-        <div><MenuBar isSolved={isSolved} showHelpWindow={helpPopup.open} /></div>
+        <div><MenuBar statusBarState={statusBarState} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
             <Game 
                 problemId={props.problemId}
                 initData={initData}
-                setProblemSolved={setProblemSolved}
+                setLevelCompleted={setLevelCompleted}
+                setDiagramHasBrokenConnection={setDiagramHasBrokenConnection}
                 interactiveSteps={interactiveLevel?.steps}
                 {...interactiveLevel?.settings}
             />

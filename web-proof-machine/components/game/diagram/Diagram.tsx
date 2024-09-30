@@ -37,7 +37,7 @@ interface DiagramProps {
     addEquation: (from: GadgetId, to: [GadgetId, NodePosition], equation: Equation) => void
     removeEquation: (from: GadgetId, to: [GadgetId, NodePosition]) => void
     isSatisfied: Map<EquationId, boolean>
-    setProblemSolved: () => void
+    setLevelCompleted: () => void
     setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
     proximityConnectEnabled: boolean
     zoomEnabled: boolean
@@ -140,7 +140,7 @@ export function Diagram(props: DiagramProps) {
         dragStartInfo.current = undefined
     }, [numberOfNodes])
 
-    useCompletionCheck({ setProblemSolved: props.setProblemSolved, nodes, edges })
+    useCompletionCheck({ setProblemSolved: props.setLevelCompleted, nodes, edges })
     useOpenHandleHighlighting({ nodes, edges })
 
     const getConnectionInfo = useCallback((connection: Connection | Edge): { from: GadgetId, to: [GadgetId, NodePosition] } => {

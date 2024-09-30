@@ -16,7 +16,8 @@ import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 export interface GameProps {
     initData: InitializationData
     problemId?: string
-    setProblemSolved: () => void
+    setLevelCompleted: () => void
+    setDiagramHasBrokenConnection?: (hasBrokenConnection: boolean) => void
     initialViewportSetting?: InitialViewportSetting
     zoomEnabled?: boolean
     proximityConnectEnabled?: boolean
@@ -90,10 +91,21 @@ export function Game(props: GameProps) {
         }
     }, [advanceTutorial])
 
+    const updateDiagramHasBrokenConnection = useCallback((equations: Map<string, boolean>) => {
+        if (props.setDiagramHasBrokenConnection) { 
+            if (Array.from(equations.values()).every(value => value === true)) {
+                props.setDiagramHasBrokenConnection(false)
+            } else { 
+                props.setDiagramHasBrokenConnection(true)
+            }
+        }
+    }, []) 
+
     const [termEnumeration, eqSatisfied] = useMemo(() => {
         const unificationResult = unifyEquations(equations)
         enumeration.current.updateEnumeration(unificationResult.assignment)
         const termEnumeration = enumeration.current.getHoleValueAssignment(unificationResult.assignment)
+        updateDiagramHasBrokenConnection(unificationResult.equationIsSatisfied)
         return [termEnumeration, unificationResult.equationIsSatisfied]
     }, [equations])
 
@@ -131,8 +143,8 @@ export function Game(props: GameProps) {
         })
     }, [equations, getTriggerForNextTutorialStep])
 
-    const setProblemSolvedAndWriteToHistory = useCallback(() => {
-        props.setProblemSolved()
+    const setLevelCompletedAndWriteToHistory = useCallback(() => {
+        props.setLevelCompleted()
         if (!history.current.completed) {
             const event = { GameCompleted: null }
             advanceTutorialIfIsCorrectEvent(event)
@@ -174,7 +186,7 @@ export function Game(props: GameProps) {
                     addEquation={addEquation}
                     removeEquation={removeEquation}
                     isSatisfied={eqSatisfied}
-                    setProblemSolved={setProblemSolvedAndWriteToHistory}
+                    setLevelCompleted={setLevelCompletedAndWriteToHistory}
                     setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
                     proximityConnectEnabled={proximityConnectEnabled}
                     zoomEnabled={zoomEnabled}
