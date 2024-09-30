@@ -28,7 +28,7 @@ export function GameScreen(props: GameScreenProps) {
     const initData = initialDiagram ? { ...props.initData, initialDiagram } : props.initData
 
     return <div className='h-dvh flex flex-col'>
-        <div><MenuBar statusBarState={{levelIsCompleted, diagramHasBrokenConnection}} showHelpWindow={helpPopup.open} /></div>
+        <div><MenuBar levelIsCompleted={levelIsCompleted} diagramHasBrokenConnection={diagramHasBrokenConnection} showHelpWindow={helpPopup.open} /></div>
         <div className="grow">
             <Game 
                 problemId={props.problemId}
