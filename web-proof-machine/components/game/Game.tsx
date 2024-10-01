@@ -55,7 +55,10 @@ function checkFieldsMatch(event: GameEvent, trigger: GameEvent): boolean {
     }
 
     for (const key in triggerValue) {
-        if (triggerValue[key] !== undefined && triggerValue[key] !== eventValue[key]) {
+        if (triggerValue[key] === undefined) {
+            continue;
+        } else if (JSON.stringify(triggerValue[key]).replace(/\s+/g, '') 
+                    !== JSON.stringify(eventValue[key]).replace(/\s+/g, '')) {
             return false;
         }
     }
