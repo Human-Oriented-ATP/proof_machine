@@ -231,7 +231,11 @@ export function Diagram(props: DiagramProps) {
 
     const paletteProps: GadgetPaletteProps = {
         axioms: props.initData.axioms,
-        makeGadget: makeGadget
+        makeGadget: makeGadget,
+        abortAddingGadget: () => {
+            setNodes(nodes => nodes.filter(node => node.id !== gadgetThatIsBeingAdded.current?.gadgetId))
+            gadgetThatIsBeingAdded.current = undefined
+        }
     }
 
     const disableHoleFocus = useCallback(() => {
