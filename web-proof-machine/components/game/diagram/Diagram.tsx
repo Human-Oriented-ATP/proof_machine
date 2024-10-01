@@ -76,20 +76,24 @@ function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps
     }
 }
 
-function getGadgetNode(id: GadgetId, gadget: InitialDiagramGadget): GadgetNode {
+function makeGadgetNode(id: GadgetId, gadget: InitialDiagramGadget, deletable: boolean): GadgetNode {
     return {
         id,
         type: 'gadgetNode',
         position: gadget.position,
-        deletable: id !== "goal_gadget",
+        deletable: deletable && id !== "goal_gadget",
         data: getGadgetProps(id, gadget)
     }
 }
 
-export function Diagram(props: DiagramProps) {
+function getInitialNodes(props: DiagramProps): GadgetNode[] {
     const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
-    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => getGadgetNode(gadgetId, gadget))
+    const deletable = props.gadgetDeletionEnabled
+    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => makeGadgetNode(gadgetId, gadget, deletable))
+    return initialNodes
+}
 
+export function Diagram(props: DiagramProps) {
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
 
     const getInitialEdge = useCallback((connection: InitialDiagramConnection, label: string): EdgeWithEquation => {
@@ -112,7 +116,7 @@ export function Diagram(props: DiagramProps) {
     const initialEdges: EdgeWithEquation[] = getInitialEdges(props.initData.initialDiagram)
 
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
-    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>(initialNodes);
+    const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>(getInitialNodes(props));
     const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>(initialEdges);
 
     const getNode = rf.getNode
