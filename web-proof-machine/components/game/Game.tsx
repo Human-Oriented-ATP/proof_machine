@@ -67,11 +67,9 @@ function checkFieldsMatch(event: GameEvent, trigger: GameEvent): boolean {
 }
 
 export function Game(props: GameProps) {
-    const enumerationOffset = getMaximumNumberInGameData(props.initData)
-
     const [equations, setEquations] = useState<Map<EquationId, Equation>>(getInitialEquations(props.initData))
 
-    const enumeration = useRef<TermEnumerator>(new TermEnumerator(enumerationOffset))
+    const enumeration = useRef<TermEnumerator>(new TermEnumerator(getMaximumNumberInGameData(props.initData)))
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId))
 

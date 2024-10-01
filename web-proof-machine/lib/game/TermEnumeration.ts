@@ -56,7 +56,7 @@ export function getMaximumNumberInGameData(data: InitializationData): number {
     if (maximalExistingNumber === -Infinity) {
         return 0
     } else { 
-        return maximalExistingNumber
+        return 1 + maximalExistingNumber
     }
 }
 

@@ -11,13 +11,15 @@ import { useRef } from 'react';
 export interface GadgetPaletteProps {
     axioms: Axiom[]
     makeGadget: (a: Axiom, axiomPosition: XYPosition) => void
+    abortAddingGadget: () => void
 }
 
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
     makeGadget: (axiomPosition: XYPosition) => void
+    abortAddingGadget: () => void
 }
 
-export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonProps):
+export function InsertGadgetButton({ makeGadget, abortAddingGadget, children }: InsertGadgetButtonProps):
     JSX.Element {
     const ref = useRef<HTMLDivElement>(null)
 
@@ -28,9 +30,10 @@ export function InsertGadgetButton({ makeGadget, children }: InsertGadgetButtonP
 
     function onMouseDown(e: React.MouseEvent) {
         makeGadget(getPosition())
+        console.log("mouse down")
     }
 
-    return <div ref={ref} className="flex justify-center px-1" onMouseDown={onMouseDown}>
+    return <div ref={ref} className="flex justify-center px-1" onMouseDown={onMouseDown} onClick={abortAddingGadget}>
         {children}
     </div>
 }
@@ -53,7 +56,8 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
             <AssignmentContext.Provider value={axiomTermEnumeration}>
                 <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
                     {props.axioms.map(axiom => {
-                        return <InsertGadgetButton key={JSON.stringify(axiom)} makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)}>
+                        return <InsertGadgetButton key={JSON.stringify(axiom)} makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)} 
+                                                    abortAddingGadget={props.abortAddingGadget}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>
                         </InsertGadgetButton>
                     })}
