@@ -52,7 +52,12 @@ export function getNumericalConstantsInInitializationData(initData: Initializati
 }
 
 export function getMaximumNumberInGameData(data: InitializationData): number {
-    return 1 + Math.max(...getNumericalConstantsInInitializationData(data))
+    const maximalExistingNumber = Math.max(...getNumericalConstantsInInitializationData(data)) 
+    if (maximalExistingNumber === -Infinity) {
+        return 0
+    } else { 
+        return maximalExistingNumber
+    }
 }
 
 function renameVariablesToEmptyString(t: Term): Term {
