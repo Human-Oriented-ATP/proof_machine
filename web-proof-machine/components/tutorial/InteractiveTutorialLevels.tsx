@@ -9,6 +9,10 @@ function SourceConnector() {
 }
 
 function TargetConnector() { 
+    return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} isOpen={true}/></div>
+}
+
+function OpenTargetConnector() { 
     return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true}/></div>
 }
 
@@ -104,7 +108,7 @@ const tutorial02: InteractiveLevel = {
     initialDiagram: tutorial02InitialDiagram, 
     steps: [{
         content: { 
-            jsx: <>hiya</>,
+            jsx: <>Some better text explaining broken connections</>,
             dragIndicator: tutorial02DragIndicatorDeleteConnection
         },
         trigger: { ConnectionRemoved: {} }
@@ -117,12 +121,49 @@ const tutorial02: InteractiveLevel = {
     },
     { 
         content: { 
-            jsx: <>Well done!</>
+            jsx: <>Now connect the remaining gadgets and we're done!</>
+        },
+        trigger: {GameCompleted:null}
+    }]
+}
+
+const tutorial03: InteractiveLevel = {
+    settings: RESTRICTIVE_SETTINGS,
+    steps: [{
+        content: {
+            jsx: <>To move forward, close the open connector <OpenTargetConnector/>. </>,
+        },
+        trigger: { ConnectionAdded: {to: ["goal_gadget",0]} }
+    }, {
+        content: {
+            jsx: <>To finish the level, close <i><b>all</b></i> open connectors <OpenTargetConnector/>.</>,
         }
+    }]
+}
+
+const tutorial04InitialDiagram : InitialDiagram = { 
+    gadgets: new Map([
+        ["goal_gadget", { statement: { goal: parseTerm("b(1, 2)") }, position: {x : 0, y: 0}}],
+        ["initial_gadget_1", { statement: { axiom: parseAxiom("r(1, 2).") }, position: {x : -600, y: 0}}],
+        ["initial_gadget_2", { statement: { axiom: parseAxiom("b(A,B):-r(A, B),r(A, C),r(D,B).") }, position: {x : -300, y: 0}}]   
+    ]),
+    connections: []
+}
+
+const tutorial04 : InteractiveLevel = {
+    settings: RESTRICTIVE_SETTINGS,
+    initialDiagram: tutorial04InitialDiagram, 
+    steps: [{
+        content: {
+            jsx: <>You can create multiple connections from one gadget by dragging multiple times.</>
+        }
+
     }]
 }
 
 export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map([
     ["tutorial01", tutorial01],
-    ["tutorial02", tutorial02]
+    ["tutorial02", tutorial02],
+    ["tutorial03", tutorial03],
+    ["tutorial04", tutorial04]
 ])
