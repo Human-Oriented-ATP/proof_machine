@@ -1,4 +1,3 @@
-import { StatusBarState } from 'components/game/GameScreen';
 import { MenuButtons } from './MenuButtons';
 import { ExclamationTriangleIcon, StarIcon } from '@radix-ui/react-icons';
 import { Connector } from 'components/game/gadget/Connector';
@@ -17,7 +16,7 @@ const LEVEL_COMPLETED_MESSAGE = <>
 const BROKEN_CONNECTION_MESSAGE = <>
     <ExclamationTriangleIcon className='w-8 h-8 inline-block mr-2'/>
     Broken connection! Click 
-    <span className="inline-block mx-0.5"><Connector type={'target'} isInline={true} isBroken={true} /></span> 
+    <span className="inline-block mx-0.5 align-text-bottom"><Connector type={'target'} isInline={true} isBroken={true} /></span> 
     to remove 
     </>
 const EMPTY_MESSAGE = <></> 

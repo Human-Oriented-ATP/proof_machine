@@ -13,11 +13,6 @@ interface GameScreenProps {
     problemId: string
 }
 
-export type StatusBarState = { 
-    levelIsCompleted: boolean
-    diagramHasBrokenConnection: boolean
-}
-
 export function GameScreen(props: GameScreenProps) {
     const [levelIsCompleted, setLevelIsCompleted] = useState(false)
     const [diagramHasBrokenConnection, setDiagramHasBrokenConnection] = useState(false)
