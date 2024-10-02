@@ -22,9 +22,12 @@ function easeAnimation(x: number) {
     return x * x * (3 - 2 * x)
 }
 
-function getMillisecondsUntilNextFrame(animationProgress: number) {
+function getMillisecondsUntilNextFrame(animationProgress: number, endWithClick: boolean) {
     if (animationProgress === 0) {
-        return WAIT_BEFORE_ANIMATION
+        if (!endWithClick)
+            return WAIT_BEFORE_ANIMATION
+        else 
+            return MILLISECONDS_BETWEEN_FRAMES
     } else if (animationProgress >= 1) {
         return WAIT_AFTER_ANIMATION
     } else {
@@ -41,7 +44,7 @@ export function AnimatedHand(props: AnimatedHandProps) {
                 setAnimationProgress(animationProgress + 1 / NUMBER_OF_FRAMES)
             else
                 setAnimationProgress(0)
-        }, getMillisecondsUntilNextFrame(animationProgress))
+        }, getMillisecondsUntilNextFrame(animationProgress, props.endWithClick))
 
         return () => clearInterval(interval)
     }, [animationProgress])

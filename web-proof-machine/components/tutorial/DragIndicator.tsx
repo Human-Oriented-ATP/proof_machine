@@ -73,8 +73,6 @@ export function DelayedDragIndicator(props: DragIndicatorProps<OverlayPosition>)
         return () => clearInterval(interval)
     }, [])
 
-    console.log(props.endWithClick)
-
     if (animationHasStarted)
         return <DragIndicator {...props} />
     else

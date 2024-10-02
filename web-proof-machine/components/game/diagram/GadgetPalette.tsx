@@ -30,7 +30,6 @@ export function InsertGadgetButton({ makeGadget, abortAddingGadget, children }: 
 
     function onMouseDown(e: React.MouseEvent) {
         makeGadget(getPosition())
-        console.log("mouse down")
     }
 
     return <div ref={ref} className="flex justify-center px-1" onMouseDown={onMouseDown} onClick={abortAddingGadget}>

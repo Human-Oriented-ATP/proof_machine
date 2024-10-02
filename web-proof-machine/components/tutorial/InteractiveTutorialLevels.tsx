@@ -3,6 +3,9 @@ import { DragIndicatorProps, OverlayPosition } from "./DragIndicator";
 import { GadgetPosition, InteractiveLevel, LevelConfiguration } from "./InteractiveLevel";
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseAxiom, parseStatement, parseTerm } from "lib/parsing/Semantics";
+import { Gadget } from "components/game/gadget/Gadget";
+import { AssignmentContext } from "lib/game/AssignmentContext";
+import { axiomTermEnumeration } from "lib/game/GameLogic";
 
 function SourceConnector() { 
     return <div className="inline-block translate-y-[-2px]"><Connector type={"source"} isInline={true}/></div>
@@ -10,6 +13,10 @@ function SourceConnector() {
 
 function TargetConnector() { 
     return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true}/></div>
+}
+
+function BrokenTargetConnector() {
+    return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} isBroken={true}/></div>
 }
 
 function OpenTargetConnector() { 
@@ -21,7 +28,7 @@ const RESTRICTIVE_SETTINGS: LevelConfiguration = {
     proximityConnectEnabled: false,
     gadgetDeletionEnabled: false,
     panEnabled: false,
-    initialViewportSetting: "FIT_INITIAL_DIAGRAM"
+    initialViewportSetting: "ORIGIN_AT_RIGHT",
 }
 
 const DELETE_ONLY_SETTINGS = {
@@ -100,47 +107,44 @@ const tutorial02DragIndicatorDeleteConnection : DragIndicatorProps<GadgetPositio
     origin: {
         gadget: { elementId: "goal_gadget" },
         anchorPoint: "CENTER_LEFT",
-        offset: { x: -80, y: 30 }
+        offset: { x: 25, y: 30 }
     },
-    destination: { relativePosition: { x: 80, y: -30 } },
+    destination: { relativePosition: { x: -25, y: -30 } },
     drawLine: false,
     endWithClick: true
 }
 
-const tutorial02DragIndicatorAddSwapGadget : DragIndicatorProps<GadgetPosition> = {
-    origin: {
-        gadget: { elementId: "axiom_2" },
-        anchorPoint: "BOTTOM_RIGHT",
-        offset: { x: -20, y: -20 }
-    },
-    destination: { relativePosition: { x: 200, y: 200 } },
-    drawLine: false
+function ConverterGadget() { 
+    return <div className="inline-block backdrop-blur scale-75 align-middle">
+        <AssignmentContext.Provider value={axiomTermEnumeration}>
+        <Gadget id="tutorial_explanation" 
+                    isAxiom={true} 
+                    terms={new Map([[0, parseTerm("r(A, B)")], [-1, parseTerm("r(B, A)")]])} 
+                    displayHoleFocus={false} />
+        </AssignmentContext.Provider>
+                    </div>
 }
 
-
 const tutorial02: InteractiveLevel = {
-    settings: { ...RESTRICTIVE_SETTINGS, showBrokenConnectionStatusBarMessage: false },
+    settings: { ...RESTRICTIVE_SETTINGS, initialViewportSetting: "FIT_INITIAL_DIAGRAM", showBrokenConnectionStatusBarMessage: false },
     initialDiagram: tutorial02InitialDiagram, 
     steps: [{
         content: { 
-            jsx: <>Some better text explaining broken connections</>,
+            jsx: <>The dotted line means that the connection is broken. Remove it by clicking on <BrokenTargetConnector />.</>,
             dragIndicator: tutorial02DragIndicatorDeleteConnection
         },
         trigger: { ConnectionRemoved: {} }
     }, { 
         content: {
-            jsx: <>Try using this gadget to swap the numbers</>,
-            dragIndicator: tutorial02DragIndicatorAddSwapGadget
+            jsx: <>Now add the swapper gadget<ConverterGadget />to the work bench</>,
         },
         trigger: { GadgetAdded: { axiom: "r(B, A):-r(A, B)"} } 
     },
     { 
         content: { 
-            jsx: <>Now connect the remaining gadgets and we're done!</>
+            jsx: <>You can use this gadget to swap the numbers and complete the gadget machine</>
         },
-        trigger: {
-            GameCompleted:null
-        }
+        trigger: { GameCompleted: null }
     }]
 }
 
