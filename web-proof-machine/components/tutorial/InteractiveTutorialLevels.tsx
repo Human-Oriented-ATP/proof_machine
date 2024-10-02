@@ -1,6 +1,6 @@
 import { Connector } from "components/game/gadget/Connector";
 import { DragIndicatorProps, OverlayPosition } from "./DragIndicator";
-import { GadgetPosition, InteractiveLevel } from "./InteractiveLevel";
+import { GadgetPosition, InteractiveLevel, LevelConfiguration } from "./InteractiveLevel";
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseAxiom, parseStatement, parseTerm } from "lib/parsing/Semantics";
 
@@ -16,10 +16,12 @@ function OpenTargetConnector() {
     return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} isOpen={true}/></div>
 }
 
-const RESTRICTIVE_SETTINGS = {
+const RESTRICTIVE_SETTINGS: LevelConfiguration = {
     zoomEnabled: false,
     proximityConnectEnabled: false,
-    gadgetDeletionEnabled: false
+    gadgetDeletionEnabled: false,
+    panEnabled: false,
+    initialViewportSetting: "FIT_INITIAL_DIAGRAM"
 }
 
 const DELETE_ONLY_SETTINGS = {
@@ -116,7 +118,7 @@ const tutorial02DragIndicatorAddSwapGadget : DragIndicatorProps<GadgetPosition> 
 
 
 const tutorial02: InteractiveLevel = {
-    settings: RESTRICTIVE_SETTINGS,
+    settings: { ...RESTRICTIVE_SETTINGS, showBrokenConnectionStatusBarMessage: false },
     initialDiagram: tutorial02InitialDiagram, 
     steps: [{
         content: { 
@@ -194,19 +196,19 @@ const tutorial04TgtDragPoint3: GadgetPosition = {
 const tutorial04DragIndicator1 : DragIndicatorProps<GadgetPosition> = {
     origin: tutorial04SrcDragPoint,
     destination : { absolutePosition: tutorial04TgtDragPoint1},
-    drawLine: false
+    drawLine: true
 }
 
 const tutorial04DragIndicator2 : DragIndicatorProps<GadgetPosition> = {
     origin: tutorial04SrcDragPoint,
     destination : { absolutePosition: tutorial04TgtDragPoint2},
-    drawLine: false
+    drawLine: true
 }
 
 const tutorial04DragIndicator3 : DragIndicatorProps<GadgetPosition> = {
     origin: tutorial04SrcDragPoint,
     destination : { absolutePosition: tutorial04TgtDragPoint3},
-    drawLine: false
+    drawLine: true
 }
 
 
@@ -251,34 +253,14 @@ const tutorial05InitialDiagram : InitialDiagram = {
     connections: []
 }
 
-const tutorial05SrcDragPoint: GadgetPosition = {
-    gadget: { elementId: "initial_gadget_1" },
-    anchorPoint: "CENTER_LEFT",
-    offset: { x: 0, y: 0 }
-}
-
-const tutorial05TgtDragPoint: GadgetPosition = {
-    gadget: { elementId: "axiom_1" },
-    anchorPoint: "BOTTOM_RIGHT",
-    offset: { x: 50, y: 225 }
-}
-
-const tutorial05DragIndicator: DragIndicatorProps<GadgetPosition> = {
-    origin: tutorial05SrcDragPoint,
-    destination: {absolutePosition: tutorial05TgtDragPoint},
-    drawLine: false
-}
-
-
 const tutorial05 : InteractiveLevel = {
     settings: DELETE_ONLY_SETTINGS,
     initialDiagram: tutorial05InitialDiagram, 
     steps: [{
         content: {
             jsx: <>What chaos! Drag gadgets over the pallet to delete them.</>,
-            dragIndicator: tutorial05DragIndicator
         },
-        trigger: { GadgetRemoved: {gadgetId: "initial_gadget_1" }}
+        trigger: { GadgetRemoved: {} }
     },{
         content: {
             jsx: <>That's better, now solve the level!</>,
@@ -289,37 +271,12 @@ const tutorial05 : InteractiveLevel = {
     }]
 }
 
-const tutorial06SrcDragPoint: GadgetPosition = {
-    gadget: { elementId: "axiom_4" },
-    anchorPoint: "CENTER_RIGHT",
-    offset: { x: 0, y: 0 }
-}
-
-const tutorial06TgtDragPoint: GadgetPosition = {
-    gadget: { elementId: "goal_gadget" },
-    anchorPoint: "CENTER_LEFT",
-    offset: { x: -20, y: 0 }
-}
-
-const tutorial06DragIndicator: DragIndicatorProps<GadgetPosition> = {
-    origin: tutorial06SrcDragPoint,
-    destination: {absolutePosition: tutorial06TgtDragPoint},
-    drawLine: false
-}
-
 const tutorial06 : InteractiveLevel = {
     settings: DEFAULT_SETTINGS,
     steps: [{
         content: {
-            jsx: <>To save time, if you connector near each other they connect automatically!</>,
-            dragIndicator: tutorial06DragIndicator
-        },
-        trigger: { ConnectionAdded: {to: ["goal_gadget",0]}}
-    },{
-        content: {
-            jsx: <>To save time, if you drag connectors near each other they connect automatically!</>,
-            },
-        trigger: {GameCompleted:null}
+            jsx: <>If you move gadgets close together they connect automatically</>,
+        }
     }]
 }
 

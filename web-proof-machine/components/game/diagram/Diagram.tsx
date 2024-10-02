@@ -42,6 +42,7 @@ interface DiagramProps {
     proximityConnectEnabled: boolean
     zoomEnabled: boolean
     gadgetDeletionEnabled: boolean
+    panEnabled: boolean
     initialViewportSetting: InitialViewportSetting
 }
 
@@ -372,6 +373,7 @@ export function Diagram(props: DiagramProps) {
             nodeOrigin={[0.5, 0.5]}
             onMove={() => props.setUserIsDraggingOrNavigating(true)}
             onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
+            panOnDrag={props.panEnabled}
         >
             <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
         </ReactFlow>
