@@ -57,21 +57,3 @@ export async function retrieveHistory(playerId: string, problemId: string) {
         console.log(error)
     }
 }
-
-export async function createTable() {
-    try {
-        await sql`CREATE TABLE testing_0 (
-            player_id VARCHAR(255) NOT NULL,
-            problem_id VARCHAR(255) NOT NULL,
-            start TIMESTAMP NOT NULL,
-            latest TIMESTAMP NOT NULL,
-            history JSONB NOT NULL,
-            completed BOOLEAN NOT NULL, 
-            unique(player_id, problem_id, start)
-        )`
-        console.log("Table created.")
-    } catch (error) {
-        console.log("Error creating table.")
-        console.log(error)
-    }
-}
