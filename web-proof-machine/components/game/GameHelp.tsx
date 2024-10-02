@@ -66,7 +66,7 @@ export function GameHelp() {
             </HelpSection>
 
             <HelpSection title="Gadgets">
-                <HelpItem>Drag gadgets from the palette to use them in the machine</HelpItem>
+                <HelpItem>Drag gadgets from the gadget shelf to use them in the machine</HelpItem>
                 <HelpItem>Press shift to select multiple gadgets</HelpItem>
                 <HelpItem>Press backspace <DeleteKeyIcon /> to remove selected gadgets</HelpItem>
                 <HelpItem>You can also drag gadgets over the gadget shelf to remove them</HelpItem>
