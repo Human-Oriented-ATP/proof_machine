@@ -17,7 +17,11 @@
         },
         {
             "name": "Pink tutorial",
-            "problems": []
+            "problems": [
+                "tutorial07",
+                "tutorial08",
+                "tutorial09"                
+            ]
         }
     ]
 }

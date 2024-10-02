@@ -6,6 +6,9 @@ export const tutorial06: InteractiveLevel = {
     steps: [{
         content: {
             jsx: <>If you move gadgets very close together they connect automatically.</>,
+        },
+        trigger: {
+            GameCompleted: null
         }
     }]
 };
