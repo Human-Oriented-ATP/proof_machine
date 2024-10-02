@@ -43,7 +43,8 @@ export function InteractiveContent(props: InteractiveContentProps) {
             destination: "absolutePosition" in dragIndicator.destination ?
                 { absolutePosition: toOverlayPosition(dragIndicator.destination.absolutePosition) }
                 : dragIndicator.destination,
-            drawLine: dragIndicator.drawLine
+            drawLine: dragIndicator.drawLine,
+            endWithClick: dragIndicator.endWithClick
         }
     }
 

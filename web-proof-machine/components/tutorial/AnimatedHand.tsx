@@ -5,6 +5,7 @@ interface AnimatedHandProps {
     toX: number
     toY: number
     drawLine: boolean
+    endWithClick: boolean
 }
 
 const NUMBER_OF_FRAMES = 100
@@ -12,10 +13,10 @@ const MILLISECONDS_BETWEEN_FRAMES = 10
 const WAIT_BEFORE_ANIMATION = 500
 const WAIT_AFTER_ANIMATION = 500
 
-const IMAGE_SIZE = 35
-const MARGIN = 50 // Ensures that the dotte line & hand are not cut off
-const OFFSET_ALIGNING_HAND_AND_LINE_X = -12
-const OFFSET_ALIGNING_HAND_AND_LINE_Y = 0
+const IMAGE_SIZE = 70
+const MARGIN = 70 // Ensures that the dotte line & hand are not cut off
+const OFFSET_ALIGNING_HAND_AND_LINE_X = -31
+const OFFSET_ALIGNING_HAND_AND_LINE_Y = -20
 
 function easeAnimation(x: number) {
     return x * x * (3 - 2 * x)
@@ -53,6 +54,8 @@ export function AnimatedHand(props: AnimatedHandProps) {
 
     const style = { 'left': `${width + x + OFFSET_ALIGNING_HAND_AND_LINE_X}px`, 'top': `${height + y + OFFSET_ALIGNING_HAND_AND_LINE_Y}px` }
 
+    const imageSource = props.endWithClick && animationProgress >= 0.999 ? "/clicking-hand.svg" : "/pointing-hand.svg"
+
     return <div className="translate-x-1/2" style={{ "width": `${width * 2}px`, "height": `${height * 2}px`, 'transform': 'translate(-50%,-50%)' }}>
         {props.drawLine ?
             <svg className="absolute w-full h-full">
@@ -60,7 +63,7 @@ export function AnimatedHand(props: AnimatedHandProps) {
             </svg>
             : <></>}
         <div className="absolute" style={style}>
-            <Image src="/pointing-hand.svg" width={IMAGE_SIZE} height={IMAGE_SIZE} alt="" className="stroke-black fill-green" />
+            <Image src={imageSource} width={IMAGE_SIZE} height={IMAGE_SIZE} alt="" className="stroke-black fill-green" />
         </div>
     </div>
 }

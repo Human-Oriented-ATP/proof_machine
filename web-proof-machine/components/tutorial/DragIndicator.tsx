@@ -17,6 +17,7 @@ export interface DragIndicatorProps<Position> {
     origin: Position
     destination: { absolutePosition: Position } | { relativePosition: XYPosition }
     drawLine: boolean
+    endWithClick?: boolean
 }
 
 function getXYPosition(rect: DOMRect, position: AnchorPoint): XYPosition {
@@ -53,7 +54,7 @@ function DragIndicator(props: DragIndicatorProps<OverlayPosition>) {
         const style = { left: originPosition.x + props.origin.offset.x, top: originPosition.y + props.origin.offset.y }
 
         return <div style={style} className="absolute">
-            <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} />
+            <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} endWithClick={props.endWithClick ?? false} />
         </div>
     } catch (error) {
         console.error(error)
@@ -71,6 +72,8 @@ export function DelayedDragIndicator(props: DragIndicatorProps<OverlayPosition>)
 
         return () => clearInterval(interval)
     }, [])
+
+    console.log(props.endWithClick)
 
     if (animationHasStarted)
         return <DragIndicator {...props} />

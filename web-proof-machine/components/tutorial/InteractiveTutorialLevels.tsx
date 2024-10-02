@@ -100,10 +100,11 @@ const tutorial02DragIndicatorDeleteConnection : DragIndicatorProps<GadgetPositio
     origin: {
         gadget: { elementId: "goal_gadget" },
         anchorPoint: "CENTER_LEFT",
-        offset: { x: 0, y: 0}
+        offset: { x: -80, y: 30 }
     },
-    destination: { relativePosition: { x: -30, y: 0 } },
+    destination: { relativePosition: { x: 80, y: -30 } },
     drawLine: false,
+    endWithClick: true
 }
 
 const tutorial02DragIndicatorAddSwapGadget : DragIndicatorProps<GadgetPosition> = {
@@ -113,7 +114,7 @@ const tutorial02DragIndicatorAddSwapGadget : DragIndicatorProps<GadgetPosition> 
         offset: { x: -20, y: -20 }
     },
     destination: { relativePosition: { x: 200, y: 200 } },
-    drawLine: false,
+    drawLine: false
 }
 
 
