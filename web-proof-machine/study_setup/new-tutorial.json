@@ -1,0 +1,19 @@
+{
+    "name": "new-tutorial",
+    "displayNamesAs": "number",
+    "displayUnlistedProblems": false,
+    "categories": [
+        {
+            "name": "Tutorial",
+            "problems": [
+                "tutorial01",
+                "tutorial01b",
+                "tutorial02"
+            ]
+        },
+        {
+            "name": "Pink tutorial",
+            "problems": []
+        }
+    ]
+}

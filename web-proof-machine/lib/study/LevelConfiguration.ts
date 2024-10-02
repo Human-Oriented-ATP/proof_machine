@@ -2,6 +2,7 @@ import { StudyConfiguration } from "./Types";
 
 import pilot1 from "study_setup/pilot1.json"
 import allProblems from "study_setup/all-problems.json"
+import newTutorial from "study_setup/new-tutorial.json"
 import { usePathname } from "next/navigation";
 
 export function useConfigurationIdentifier(): string {
@@ -16,6 +17,8 @@ export function getConfigFromIdentifier(configIdentifier: string): StudyConfigur
             return pilot1
         case "internal":
             return allProblems
+        case "new-tutorial":
+            return newTutorial
     }
     return null
 }
