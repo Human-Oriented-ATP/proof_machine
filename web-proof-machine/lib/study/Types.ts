@@ -5,12 +5,13 @@ export type ProblemCategory = {
 
 export interface StudyConfiguration {
     name: string;
-    displayNamesAs: string
+    displayNamesAs: "name" | "number"
     displayUnlistedProblems: boolean
     categories: ProblemCategory[]
 }
 
 export interface GameLevelButtonProps {
+    config: StudyConfiguration
     label: string
     href: string
     isSolved: boolean

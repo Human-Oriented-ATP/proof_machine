@@ -1,19 +1,12 @@
 import { ProblemCategoryGrid } from "./ProblemGrid"
-import { getConfigFromIdentifier } from "lib/study/LevelConfiguration"
 import { StartFirstUnsolvedLevelButton } from "../primitive/buttons/StartFirstUnsolvedLevel"
+import { StudyConfiguration } from "lib/study/Types"
 
-export function ProblemSelection({ configIdentifier }: { configIdentifier: string }) {
-    const config = getConfigFromIdentifier(configIdentifier)
-
-    if (config === null) {
-        return <div>Something went wrong! Configuration not found.</div>
-    } else {
-        return <>
-            <div className="p-4">
-                <ProblemCategoryGrid categories={config.categories} />
-            </div>
-            <StartFirstUnsolvedLevelButton />
-        </>
-    }
-
+export function ProblemSelection({ config }: { config: StudyConfiguration }) {
+    return <>
+        <div className="p-4">
+            <ProblemCategoryGrid config={config} categories={config.categories} />
+        </div>
+        <StartFirstUnsolvedLevelButton />
+    </>
 }

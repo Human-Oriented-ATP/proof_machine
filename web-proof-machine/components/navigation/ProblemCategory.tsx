@@ -1,34 +1,30 @@
 import { GameLevelButton } from "components/primitive/buttons/GameLevel";
 import { getCompletedProblems } from "lib/study/CompletedProblems";
-import { useConfiguration } from "lib/study/LevelConfiguration";
-import { ProblemCategory } from "lib/study/Types";
+import { ProblemCategory, StudyConfiguration } from "lib/study/Types";
 import { usePathname } from "next/navigation";
 import { twJoin } from "tailwind-merge";
 
 interface ProblemCategoryProps {
+    config: StudyConfiguration
     category: ProblemCategory;
 }
 
-export function ProblemCategory(props: ProblemCategoryProps) {
+export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
     const completedProblems = getCompletedProblems()
 
-    const config = useConfiguration()
-
     function getButtonLabel(index: number, problem: string): string {
-        if (config === null) {
+        if (props.config.displayNamesAs === "number") {
             return `${index + 1}`
         } else {
-            if (config.displayNamesAs === "number") {
-                return `${index + 1}`
-            } else {
-                return problem
-            }
+            return problem
         }
     }
 
     const currentPath = usePathname()
 
-    const useFlexibleNumberOfColumns = config !== null ? config.displayNamesAs !== "number" : false
+    const useFlexibleNumberOfColumns = props.config.displayNamesAs !== "number"
+
+    console.log(props.config)
 
     return <div className="max-w-3xl">
         <div>
@@ -41,7 +37,8 @@ export function ProblemCategory(props: ProblemCategoryProps) {
                         label={getButtonLabel(index, problem)}
                         href={`${currentPath}/game/${problem}`}
                         isSolved={completedProblems.includes(problem)}
-                        isBlocked={false} />
+                        isBlocked={false}
+                        config={props.config} />
                 </div>
             })}
         </div>

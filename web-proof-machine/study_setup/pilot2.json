@@ -1,0 +1,38 @@
+{
+    "name": "pilot2",
+    "displayNamesAs": "number",
+    "displayUnlistedProblems": false,
+    "categories": [
+        {
+            "name": "Tutorial",
+            "problems": [
+                "tutorial01",
+                "tutorial02",
+                "tutorial03",
+                "tutorial04",
+                "tutorial05",
+                "tutorial06",
+                "tutorial07",
+                "jacob_easy03",
+                "tim_easy11",
+		"tim_easy13",    
+		"tim_easy12"    
+            ]
+        },
+        {
+            "name": "Puzzles",
+            "problems": [
+                "tim18",
+                "jacob_easy05",
+                "tim16",
+		"tim20",
+		"tim_easy09",
+		"tim29",
+		"tim02",
+		"tim_easy06",
+		"jacob08",
+		"tim25"
+            ]
+        }
+    ]
+}
