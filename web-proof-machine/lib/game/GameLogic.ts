@@ -38,6 +38,6 @@ function termToString(t: Term): string {
 
 export function axiomToString(a: Axiom) {
     const hypotheses = a.hypotheses.map(termToString).join(",")
-    const conclustion = termToString(a.conclusion)
-    return hypotheses + ":-" + conclustion
+    const conclusion = termToString(a.conclusion)
+    return conclusion + ":-" + hypotheses
 }
