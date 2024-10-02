@@ -17,10 +17,20 @@ export const tutorial05: InteractiveLevel = {
     initialDiagram: tutorial05InitialDiagram,
     steps: [{
         content: {
-            jsx: <>What chaos! Drag gadgets over the pallet to delete them.</>,
+            jsx: <>What chaos! Drag gadgets over the gadget shelf to delete them.</>,
         },
         trigger: { GadgetRemoved: {} }
     }, {
+        content: {
+            jsx: <>What chaos! Drag gadgets over the gadget shelf to delete them.</>,
+        },
+        trigger: { GadgetRemoved: {} }
+    },{
+        content: {
+            jsx: <>What chaos! Drag gadgets over the gadget shelf to delete them.</>,
+        },
+        trigger: { GadgetRemoved: {} }
+    },{
         content: {
             jsx: <>That's better, now solve the level!</>,
         },

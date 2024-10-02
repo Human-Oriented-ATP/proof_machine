@@ -15,7 +15,7 @@ const LEVEL_COMPLETED_MESSAGE = <>
     </>
 const BROKEN_CONNECTION_MESSAGE = <>
     <ExclamationTriangleIcon className='w-8 h-8 inline-block mr-2'/>
-    Broken connection! Click the
+    Broken connection! Click the connector
     <span className="inline-block mx-0.5 align-text-bottom"><Connector type={'target'} isInline={true} isBroken={true} /></span> 
     below to remove 
     </>

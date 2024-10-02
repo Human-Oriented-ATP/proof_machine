@@ -50,7 +50,7 @@ export const tutorial02: InteractiveLevel = {
         content: {
             jsx: <>Now add the swapper gadget<ConverterGadget />to the work bench</>,
         },
-        trigger: { GadgetAdded: { axiom: "r(B, A):-r(A, B)" } }
+        trigger: { GadgetAdded: { axiom: "r(A, B):-r(B, A)" } }
     },
     {
         content: {

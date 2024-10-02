@@ -7,8 +7,12 @@
             "name": "Tutorial",
             "problems": [
                 "tutorial01",
-                "tutorial01b",
-                "tutorial02"
+                "tutorial01a",
+                "tutorial02",
+                "tutorial03",
+                "tutorial04",
+                "tutorial05",
+                "tutorial06"
             ]
         },
         {

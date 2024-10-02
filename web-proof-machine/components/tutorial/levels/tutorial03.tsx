@@ -5,7 +5,7 @@ export const tutorial03: InteractiveLevel = {
     settings: RESTRICTIVE_SETTINGS,
     steps: [{
         content: {
-            jsx: <>To move forward, close the open connector <OpenTargetConnector />. </>,
+            jsx: <>Connect a gadget to the open connector <OpenTargetConnector />. </>,
         },
         trigger: { ConnectionAdded: { to: ["goal_gadget", 0] } }
     }, {

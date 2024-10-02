@@ -52,19 +52,19 @@ export const tutorial04: InteractiveLevel = {
     initialDiagram: tutorial04InitialDiagram,
     steps: [{
         content: {
-            jsx: <>You can create multiple connections from one gadget by dragging multiple times.</>,
+            jsx: <>You can create multiple connections from one gadget by drawing multiple lines.</>,
             dragIndicator: tutorial04DragIndicator1
         },
         trigger: { ConnectionAdded: { to: ["initial_gadget_2", 0] } }
     }, {
         content: {
-            jsx: <>You can create multiple connections from one gadget by dragging multiple times.</>,
+            jsx: <>You can create multiple connections from one gadget by drawing multiple lines.</>,
             dragIndicator: tutorial04DragIndicator2
         },
         trigger: { ConnectionAdded: { to: ["initial_gadget_2", 1] } }
     }, {
         content: {
-            jsx: <>You can create multiple connections from one gadget by dragging multiple times.</>,
+            jsx: <>You can create multiple connections from one gadget by drawing multiple lines.</>,
             dragIndicator: tutorial04DragIndicator3
         },
         trigger: { ConnectionAdded: { to: ["initial_gadget_2", 2] } }

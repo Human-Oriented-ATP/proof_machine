@@ -14,7 +14,7 @@ const dragFirstAxiomOut: DragIndicatorProps<GadgetPosition> = {
 };
 const connectGadgets: DragIndicatorProps<GadgetPosition> = {
     origin: {
-        gadget: { axiom: ":-r(1)" },
+        gadget: { axiom: "r(1)" },
         anchorPoint: "CENTER_RIGHT",
         offset: { x: -4, y: 0 }
     },
@@ -31,19 +31,19 @@ export const tutorial01: InteractiveLevel = {
     settings: RESTRICTIVE_SETTINGS,
     steps: [{
         content: {
-            jsx: <>Drag the matching gadget from the shelf onto the work bench</>,
+            jsx: <>Drag the matching gadget from the shelf onto the work bench.</>,
             dragIndicator: dragFirstAxiomOut
         },
-        trigger: { GadgetAdded: { axiom: ":-r(1)" } }
+        trigger: { GadgetAdded: { axiom: "r(1)" } }
     }, {
         content: {
-            jsx: <>Now draw a line between the connectors <SourceConnector /> and <TargetConnector /></>,
+            jsx: <>Now draw a line between the connectors <SourceConnector /> and <TargetConnector />.</>,
             dragIndicator: connectGadgets
         },
         trigger: { ConnectionAdded: {} }
     }, {
         content: {
-            jsx: <>Well done!</>
+            jsx: <>You have completed the gadget machine. Click next level to continue!</>
         }
     }]
 };
