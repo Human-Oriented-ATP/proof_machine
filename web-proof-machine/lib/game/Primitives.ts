@@ -8,7 +8,7 @@ export interface Focus<T> {
 
 export interface HoleProps {
     term: Term
-    focus: Focus<string>
+    focus?: Focus<string>
 }
 
 export interface AbstractNodeProps {
