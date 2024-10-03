@@ -49,7 +49,7 @@ export const parser: PrologParser = new PrologParser()
 
 export function parseTermCst(text: string): CstNode {
     parser.input = tokenize(text)
-    const cst = parser.compoundTerm()
+    const cst = parser.argument()
 
     parser.errors.map(console.log)
 
