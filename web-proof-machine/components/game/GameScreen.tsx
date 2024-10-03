@@ -7,9 +7,11 @@ import MenuBar from "components/navigation/MenuBar";
 import { GameHelp } from "./GameHelp";
 import { Game } from "./Game";
 import { interactiveTutorialLevels } from "components/tutorial/InteractiveTutorialLevels";
+import { StudyConfiguration } from "lib/study/Types";
 
 interface GameScreenProps {
     initData: InitializationData
+    configuration: StudyConfiguration
     problemId: string
 }
 
@@ -27,7 +29,8 @@ export function GameScreen(props: GameScreenProps) {
     return <div className='h-dvh flex flex-col'>
         <div><MenuBar levelIsCompleted={levelIsCompleted} 
                       diagramHasBrokenConnection={showBrokenConnectionStatusBarMessage ? diagramHasBrokenConnection : false} 
-                      showHelpWindow={helpPopup.open} /></div>
+                      showHelpWindow={helpPopup.open}
+                      configuration={props.configuration} /></div>
         <div className="grow">
             <Game 
                 problemId={props.problemId}

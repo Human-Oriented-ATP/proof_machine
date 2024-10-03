@@ -2,7 +2,8 @@ import Button from '../primitive/buttons/Default';
 import { HighlightedButton } from "../primitive/buttons/Highlighted";
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useConfiguration, getNextProblem } from 'lib/study/LevelConfiguration';
+import { getNextProblem } from 'lib/study/LevelConfiguration';
+import { StudyConfiguration } from 'lib/study/Types';
 
 function getProblemFromPathname(pathname: string): string {
     const pathComponents = pathname.split("/")
@@ -12,23 +13,22 @@ function getProblemFromPathname(pathname: string): string {
 interface MenuButtonsProps {
     levelCompleted: boolean;
     showHelpWindow: () => void;
+    configuration: StudyConfiguration
 }
 
-export function MenuButtons({ levelCompleted, showHelpWindow }: MenuButtonsProps) {
+export function MenuButtons({ levelCompleted, showHelpWindow, configuration }: MenuButtonsProps) {
     const router = useRouter();
     const path = usePathname();
 
     const currentProblem = getProblemFromPathname(path);
-    const config = useConfiguration();
 
     function getNextLevelHref(): undefined | string {
-        if (config) {
-            const nextProblem = getNextProblem(config, currentProblem);
-            if (nextProblem !== undefined) {
-                return `../game/${nextProblem}`;
-            }
+        const nextProblem = getNextProblem(configuration, currentProblem);
+        if (nextProblem !== undefined) {
+            return `../game/${nextProblem}`;
+        } else {
+            return undefined
         }
-        return undefined;
     }
 
     function getStudyHomeHref(): string {

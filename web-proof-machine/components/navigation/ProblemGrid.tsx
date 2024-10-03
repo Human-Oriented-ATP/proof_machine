@@ -1,39 +1,27 @@
-"use client"
-
-import { ProblemCategory as ProblemCategoryType, StudyConfiguration } from "lib/study/Types";
+import { StudyConfiguration } from "lib/study/Types";
 import { ProblemCategoryDisplay } from "./ProblemCategory";
-import { getProblemList } from "lib/study/LevelConfiguration";
-import { loadProblemList } from "lib/game/LoadProblems";
-import { useEffect, useState } from "react";
 
-interface ProblemCategoryGridProps {
-    config: StudyConfiguration
-    categories: ProblemCategoryType[];
+export function getProblemList(config: StudyConfiguration): string[] {
+    const categories = config.categories
+    const problemList = categories.flatMap(category => category.problems)
+    return problemList
 }
 
-export function ProblemCategoryGrid(props: ProblemCategoryGridProps) {
-    const [allProblemsInFolder, setAllProblems] = useState<string[]>([])
-
-    useEffect(() => {
-        loadProblemList().then((problems) => {
-            setAllProblems(problems)
-        })
-    }, [])
-
-    function getUnlistedProblems(): JSX.Element {
-        if (props.config.displayUnlistedProblems === true) {
-            const allProblemsInConfig = getProblemList(props.config)
-            const unlistedProblems = allProblemsInFolder.filter((problem) => !allProblemsInConfig.includes(problem))
-            return <ProblemCategoryDisplay config={props.config} category={{ name: "Unlisted Problems", problems: unlistedProblems }} />
-        } else {
-            return <></>
-        }
+function getUnlistedProblems(config: StudyConfiguration, allProblems: string[]): JSX.Element {
+    if (config.displayUnlistedProblems === true) {
+        const allProblemsInConfig = getProblemList(config)
+        const unlistedProblems = allProblems.filter((problem) => !allProblemsInConfig.includes(problem))
+        return <ProblemCategoryDisplay config={config} category={{ name: "Unlisted Problems", problems: unlistedProblems }} />
+    } else {
+        return <></>
     }
+}
 
+export function ProblemCategoryGrid(props: { config: StudyConfiguration, allProblems: string[] }) {
     return <div className="grid grid-col-1 space-y-12 text-xl justify-center">
-        {props.categories.map((problemCategory) => {
+        {props.config.categories.map((problemCategory) => {
             return <ProblemCategoryDisplay config={props.config} key={problemCategory.name} category={problemCategory} />
         })}
-        {getUnlistedProblems()}
+        {getUnlistedProblems(props.config, props.allProblems)}
     </div>;
 }

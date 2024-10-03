@@ -1,5 +1,6 @@
 import StudyScreen from "components/navigation/StudyScreen";
 import { promises as fs } from "fs"
+import { loadAllProblemsInDirectory } from "lib/game/LoadProblems";
 import { StudyConfiguration } from "lib/study/Types";
 
 export async function generateStaticParams() {
@@ -11,6 +12,7 @@ export async function generateStaticParams() {
 export default async function Page({ params }: { params: { slug: string } }) {
     const configurationIdentifier = params.slug
     const configuration : StudyConfiguration = JSON.parse(await fs.readFile(process.cwd() + "/study_setup/" + configurationIdentifier + ".json", "utf-8"))
-
-    return <StudyScreen config={configuration} />
+    const allProblems = await loadAllProblemsInDirectory()
+    
+    return <StudyScreen config={configuration} allProblems={allProblems} />
 }

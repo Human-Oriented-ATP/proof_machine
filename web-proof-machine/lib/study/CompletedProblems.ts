@@ -1,3 +1,5 @@
+"use client"
+
 import { clientSideCookies } from "lib/util/ClientSideCookies";
 
 export function markLevelCompleted(problemId: string) {

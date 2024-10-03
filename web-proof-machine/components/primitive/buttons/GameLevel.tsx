@@ -4,17 +4,15 @@ import Link from "next/link";
 import { twJoin } from "tailwind-merge";
 import Button from "./Default";
 
-function AdjustableButton( { displayNamesAs, ...props }) {
+function AdjustableButton( { displayNamesAs = "", ...props }) {
     let classNames = "w-28 text-sm md:w-36 md:text-base";
     if (displayNamesAs === "number") {
-        console.log("helllo")
         classNames = "w-16";
     }
     return <Button {...props} moreClassnames={twJoin("h-16", classNames)} />;
 }
 
 export function GameLevelButton(props: GameLevelButtonProps) {
-    console.log("names:", props.config.displayNamesAs)
     if (!props.isBlocked) {
         return <div className="relative">
             <Link href={props.href}>
@@ -25,7 +23,7 @@ export function GameLevelButton(props: GameLevelButtonProps) {
         </div>;
     } else {
         return <div className="relative">
-            <AdjustableButton displayNamesAs={props.config.displayNamesAs} highlightOnHover={false}>
+            <AdjustableButton highlightOnHover={false}>
                 <LockClosedIcon className="w-6 h-6 inline" />
             </AdjustableButton>
         </div>;

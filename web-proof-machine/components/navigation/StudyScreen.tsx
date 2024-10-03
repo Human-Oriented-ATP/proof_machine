@@ -1,13 +1,11 @@
-"use client"
-
 import { StudyConfiguration } from "lib/study/Types";
 import { ProblemSelection } from "./ProblemSelection";
 
-export default function StudyScreen({ config }: { config: StudyConfiguration }) {
+export default function StudyScreen(props: { config: StudyConfiguration, allProblems: string[] }) {
     return <div className="w-screen text-center pt-10">
         <div>
             <h1 className="text-2xl p-8">Welcome to the Gadgets Game!</h1>
-            <ProblemSelection config={config} />
+            <ProblemSelection {...props} />
         </div>
     </div>
 }

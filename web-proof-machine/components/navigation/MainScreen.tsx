@@ -1,14 +1,11 @@
-"use client"
-
 import Link from "next/link"
 import Button from "../primitive/buttons/Default"
-import { resetProgress } from "lib/study/CompletedProblems"
 import { ProblemSelection } from "./ProblemSelection"
-import { useRouter } from "next/navigation"
+import internal from "study_setup/internal.json"
+import { StudyConfiguration } from "lib/study/Types"
+import { ResetProgressButton } from "components/primitive/buttons/ResetProgress"
 
-export default function MainScreen() {
-    const router = useRouter()
-
+export default function MainScreen({ allProblems }: { allProblems: string[] }) {
     return <div className="w-screen text-center pt-10">
         <h1 className="text-2xl p-4">Welcome to the Gadgets Game!</h1>
 
@@ -25,8 +22,7 @@ export default function MainScreen() {
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
-                <Button onClick={() => { resetProgress(); alert("Progress has been reset."); router.refresh() }}>
-                    Reset progress</Button>
+                <ResetProgressButton />
             </div>
             <div className="m-1.5 inline-block">
                 <Link href="internal/view">
@@ -37,7 +33,7 @@ export default function MainScreen() {
 
         <h2 className="text-xl p-4">Choose the game you want to play:</h2>
         <div>
-            <ProblemSelection configIdentifier={"internal"} />
+            <ProblemSelection config={(internal as StudyConfiguration)} allProblems={allProblems} />
         </div>
     </div>
 }

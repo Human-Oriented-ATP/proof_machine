@@ -1,11 +1,13 @@
 import { MenuButtons } from './MenuButtons';
 import { ExclamationTriangleIcon, StarIcon } from '@radix-ui/react-icons';
 import { Connector } from 'components/game/gadget/Connector';
+import { StudyConfiguration } from 'lib/study/Types';
 
-interface LevelCompletedBannerProps {
+interface MenuBarProps {
     levelIsCompleted: boolean
     diagramHasBrokenConnection: boolean
     showHelpWindow: () => void
+    configuration: StudyConfiguration
 }
 
 const LEVEL_COMPLETED_MESSAGE = <>
@@ -21,7 +23,7 @@ const BROKEN_CONNECTION_MESSAGE = <>
     </>
 const EMPTY_MESSAGE = <></> 
 
-export default function MenuBar(props: LevelCompletedBannerProps) {
+export default function MenuBar(props: MenuBarProps) {
 
     const message = props.levelIsCompleted ? LEVEL_COMPLETED_MESSAGE : 
                     props.diagramHasBrokenConnection ? BROKEN_CONNECTION_MESSAGE : EMPTY_MESSAGE
@@ -31,7 +33,7 @@ export default function MenuBar(props: LevelCompletedBannerProps) {
             <div className='grow m-1 text-center text-xl'>
                 {message}
             </div>
-            <MenuButtons levelCompleted={props.levelIsCompleted} showHelpWindow={props.showHelpWindow} />
+            <MenuButtons levelCompleted={props.levelIsCompleted} showHelpWindow={props.showHelpWindow} configuration={props.configuration} />
         </div>
     </div>
 };

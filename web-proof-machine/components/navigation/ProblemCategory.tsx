@@ -1,7 +1,6 @@
 import { GameLevelButton } from "components/primitive/buttons/GameLevel";
-import { getCompletedProblems } from "lib/study/CompletedProblems";
 import { ProblemCategory, StudyConfiguration } from "lib/study/Types";
-import { usePathname } from "next/navigation";
+import { cookies } from "next/headers";
 import { twJoin } from "tailwind-merge";
 
 interface ProblemCategoryProps {
@@ -10,7 +9,7 @@ interface ProblemCategoryProps {
 }
 
 export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
-    const completedProblems = getCompletedProblems()
+    const completedProblems: string[] = cookies().get("completedProblems")?.toString().split(",") || []
 
     function getButtonLabel(index: number, problem: string): string {
         if (props.config.displayNamesAs === "number") {
@@ -20,11 +19,7 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
         }
     }
 
-    const currentPath = usePathname()
-
     const useFlexibleNumberOfColumns = props.config.displayNamesAs !== "number"
-
-    console.log(props.config)
 
     return <div className="max-w-3xl">
         <div>
@@ -35,7 +30,7 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
                 return <div className="p-2" key={problem}>
                     <GameLevelButton
                         label={getButtonLabel(index, problem)}
-                        href={`${currentPath}/game/${problem}`}
+                        href={`${props.config.name}/game/${problem}`}
                         isSolved={completedProblems.includes(problem)}
                         isBlocked={false}
                         config={props.config} />

@@ -1,3 +1,5 @@
+"use client" 
+
 import { resetProgress } from "lib/study/CompletedProblems";
 import { useRouter } from "next/navigation";
 import Button from "./Default";
