@@ -1,7 +1,7 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Axiom } from "./Primitives";
 import { InitializationData, isGoal } from "./Initialization";
-import { Assignment, assignTermRecursively, getVariableSet, hashTerm, substitute, Term } from "./Term";
+import { Assignment, assignTermDeeply, getVariableSet, hashTerm, substitute, Term } from "./Term";
 
 function isConstant(t: Term) {
     return "label" in t && t.args.length === 0
@@ -138,13 +138,13 @@ export class TermEnumerator {
         const termsInAssignment = termAssignment.getAssignedValues()
         const termsWithoutConstants = removeConstants(termsInAssignment)
         const fullyAssignedTerms = termsWithoutConstants.map(term =>
-            assignTermRecursively(term, termAssignment))
+            assignTermDeeply(term, termAssignment))
         this.removeSuperfluousTerms(fullyAssignedTerms)
         this.enumerateNewTerms(fullyAssignedTerms)
     }
 
     private toHoleValue(t: Term, termAssignment: Assignment): string {
-        const fullyAssignedTerm = assignTermRecursively(t, termAssignment)
+        const fullyAssignedTerm = assignTermDeeply(t, termAssignment)
         if ("variable" in fullyAssignedTerm) {
             throw Error("Cannot get hole value for a variable" + fullyAssignedTerm)
         } else {

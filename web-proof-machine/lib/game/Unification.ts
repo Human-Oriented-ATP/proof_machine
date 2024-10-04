@@ -1,5 +1,5 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
-import { Term, Assignment, VariableName, occursIn } from "./Term";
+import { Term, Assignment, VariableName, assignTermDeeply, occursIn } from "./Term";
 
 export type EquationId = string
 export type Equation = [Term, Term]
@@ -9,20 +9,22 @@ export interface UnificationResult {
     equationIsSatisfied: Map<EquationId, boolean>
 }
 
+function assignDeeplyIfCreatesNoCycles(assignment: Assignment, v: VariableName, term: Term): boolean {
+    const fullyAssignedTerm = assignTermDeeply(term, assignment)
+    if (occursIn(v, fullyAssignedTerm, assignment)) {
+        return false
+    } else {
+        assignment.assign(v, fullyAssignedTerm)
+        return true
+    }
+}
+
 function unifyVariable(currentAssignment: Assignment, v: VariableName, term: Term): boolean {
     if (currentAssignment.isAssigned(v)) {
         const value = currentAssignment.getAssignedValue(v)!
         return unifyEquation(currentAssignment, [value, term])
     } else {
-        if (occursIn(v, term)) {
-            if ("variable" in term) {
-                return true
-            } else {
-                return false
-            }
-        }
-        currentAssignment.assign(v, term)
-        return true
+        return assignDeeplyIfCreatesNoCycles(currentAssignment, v, term)
     }
 }
 

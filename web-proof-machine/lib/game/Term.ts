@@ -13,13 +13,27 @@ export function hashTerm(t: Term): number {
     return hash(JSON.stringify(t))
 }
 
-export function occursIn(v: VariableName, term: Term): boolean {
+export function occursInNaive(v: VariableName, term: Term): boolean {
     if ("variable" in term) {
         return v === term.variable
     } else {
-        const appearsInArg = term.args.map(arg => occursIn(v, arg))
+        const appearsInArg = term.args.map(arg => occursInNaive(v, arg))
         return appearsInArg.includes(true)
     }
+}
+
+function replaceWithRepresentatives(t : Term, assignment: Assignment): Term { 
+    if ("variable" in t) { 
+        return { variable: assignment.findRepresentative(t.variable) }
+    } else { 
+        return { label: t.label, args: t.args.map(arg => replaceWithRepresentatives(arg, assignment)) }
+    }
+}
+
+export function occursIn(v: VariableName, term: Term, assignment: Assignment): boolean { 
+    const vRepresentative = assignment.findRepresentative(v)
+    const termWithRepresentatives = replaceWithRepresentatives(term, assignment)
+    return occursInNaive(vRepresentative, termWithRepresentatives)
 }
 
 export type Assignment = DisjointSetWithAssignment<VariableName, Term>
@@ -50,20 +64,20 @@ export function getVariableSet(t: Term): Set<VariableName> {
     return new Set(getVariableList(t))
 }
 
-export function assignTermRecursively(t: Term, assignment: Assignment): Term {
+export function assignTermDeeply(t: Term, assignment: Assignment): Term {
     if ("variable" in t) {
         const assignedValue = assignment.getAssignedValue(t.variable);
         if (assignedValue) {
-            if (occursIn(t.variable, assignedValue)) {
+            if (occursIn(t.variable, assignedValue, assignment)) {
                 throw Error("Attempting to deeply assign the variables in a term in a cyclic way")
             } else {
-                return assignTermRecursively(assignedValue, assignment);
+                return assignTermDeeply(assignedValue, assignment);
             }
         } else {
             return t;
         }
     } else {
-        const argsAssigned: Term[] = t.args.map(arg => assignTermRecursively(arg, assignment));
+        const argsAssigned: Term[] = t.args.map(arg => assignTermDeeply(arg, assignment));
         return { label: t.label, args: argsAssigned };
     }
 }
