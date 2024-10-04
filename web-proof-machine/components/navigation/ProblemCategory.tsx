@@ -8,6 +8,14 @@ interface ProblemCategoryProps {
     category: ProblemCategory;
 }
 
+function categoryIsUnlocked(category: ProblemCategory, config: StudyConfiguration, completedProblems: string[]): boolean {
+    return true
+}
+
+function problemIsUnlocked(problem: string, problemLookAhead: number, completedProblems: string[]): boolean {
+    return true
+}
+
 export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
     const completedProblems: string[] = cookies().get("completedProblems")?.toString().split(",") || []
 
@@ -20,6 +28,8 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
     }
 
     const useFlexibleNumberOfColumns = props.config.displayNamesAs !== "number"
+    
+    const isUnlocked = categoryIsUnlocked(props.category, props.config, completedProblems)
 
     return <div className="max-w-3xl">
         <div>
@@ -32,7 +42,7 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
                         label={getButtonLabel(index, problem)}
                         href={`${props.config.name}/game/${problem}`}
                         isSolved={completedProblems.includes(problem)}
-                        isBlocked={false}
+                        isUnlocked={isUnlocked && problemIsUnlocked(problem, props.category.problemLookAhead, completedProblems)}
                         config={props.config} />
                 </div>
             })}
