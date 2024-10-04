@@ -1,6 +1,8 @@
 export type ProblemCategory = {
     name: string;
     problems: string[];
+    unlockCategoryThreshold?: number;
+    problemLookAhead: number; 
 };
 
 export interface StudyConfiguration {
@@ -15,5 +17,5 @@ export interface GameLevelButtonProps {
     label: string
     href: string
     isSolved: boolean
-    isBlocked: boolean
+    isUnlocked: boolean
 }

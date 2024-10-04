@@ -13,7 +13,7 @@ function AdjustableButton( { displayNamesAs = "", ...props }) {
 }
 
 export function GameLevelButton(props: GameLevelButtonProps) {
-    if (!props.isBlocked) {
+    if (props.isUnlocked) {
         return <div className="relative">
             <Link href={props.href}>
                 {props.isSolved ?
