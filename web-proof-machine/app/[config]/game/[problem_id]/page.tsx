@@ -4,7 +4,7 @@ import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { GameScreen } from "components/game/GameScreen";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
-import { StudyConfiguration } from "lib/study/Types";
+import { loadStudyConfiguration as loadStudyConfiguration } from "lib/study/LevelConfiguration";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
@@ -13,7 +13,7 @@ export async function generateStaticParams() {
 }
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
-    const configuration : StudyConfiguration = JSON.parse(await fs.readFile(process.cwd() + "/study_setup/" + params.config + ".json", "utf-8"))
+    const configuration = await loadStudyConfiguration(params.config)
 
     const problemFile = params.problem_id + ".pl"
     const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
