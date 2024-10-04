@@ -1,10 +1,9 @@
-import { loadAllProblemsInDirectory } from "lib/game/LoadProblems";
+import { loadAllProblemsInDirectory, loadStudyConfiguration } from "lib/game/LoadProblems";
 import { promises as fs } from "fs"
 import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { GameScreen } from "components/game/GameScreen";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
-import { loadStudyConfiguration as loadStudyConfiguration } from "lib/study/LevelConfiguration";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()

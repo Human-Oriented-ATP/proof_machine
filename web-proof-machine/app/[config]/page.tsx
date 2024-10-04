@@ -1,6 +1,5 @@
 import StudyScreen from "components/navigation/StudyScreen";
-import { loadAllProblemsInDirectory } from "lib/game/LoadProblems";
-import { loadStudyConfiguration } from "lib/study/LevelConfiguration";
+import { loadAllProblemsInDirectory, loadStudyConfiguration } from "lib/game/LoadProblems";
 
 export async function generateStaticParams() {
     let configurations = ["pilot1", "pilot2", "new-tutorial"]
