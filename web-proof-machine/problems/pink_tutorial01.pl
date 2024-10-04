@@ -1,4 +1,4 @@
-g(f(X), X).
-g(A, B) :- g(B, A).
-r(D, B) :- g(D, C), g(C, D), g(A, B).
-:-r(1, 2).
+b(f(X), X).
+b(A, B) :- b(B, A).
+r(A) :- b(B, A), b(A, B).
+:- r(1).
