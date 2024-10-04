@@ -1,5 +1,5 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
-import { Term, Assignment, VariableName, termHasVariable } from "./Term";
+import { Term, Assignment, VariableName, occursIn } from "./Term";
 
 export type EquationId = string
 export type Equation = [Term, Term]
@@ -14,7 +14,7 @@ function unifyVariable(currentAssignment: Assignment, v: VariableName, term: Ter
         const value = currentAssignment.getAssignedValue(v)!
         return unifyEquation(currentAssignment, [value, term])
     } else {
-        if (termHasVariable(term, v)) {
+        if (occursIn(v, term)) {
             if ("variable" in term) {
                 return true
             } else {

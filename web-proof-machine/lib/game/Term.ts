@@ -13,11 +13,11 @@ export function hashTerm(t: Term): number {
     return hash(JSON.stringify(t))
 }
 
-export function termHasVariable(term: Term, v: VariableName): boolean {
+export function occursIn(v: VariableName, term: Term): boolean {
     if ("variable" in term) {
         return v === term.variable
     } else {
-        const appearsInArg = term.args.map(arg => termHasVariable(arg, v))
+        const appearsInArg = term.args.map(arg => occursIn(v, arg))
         return appearsInArg.includes(true)
     }
 }
@@ -27,11 +27,7 @@ export type Assignment = DisjointSetWithAssignment<VariableName, Term>
 export function substitute(t: Term, a: Assignment): Term {
     if ("variable" in t) {
         const assigned = a.getAssignedValue(t.variable)
-        if (assigned) {
-            return assigned
-        } else {
-            return t
-        }
+        return assigned ?? t
     } else {
         const argsSubstituted = t.args.map(term => substitute(term, a))
         return { label: t.label, args: argsSubstituted }
@@ -54,6 +50,24 @@ export function getVariableSet(t: Term): Set<VariableName> {
     return new Set(getVariableList(t))
 }
 
+export function assignTermRecursively(t: Term, assignment: Assignment): Term {
+    if ("variable" in t) {
+        const assignedValue = assignment.getAssignedValue(t.variable);
+        if (assignedValue) {
+            if (occursIn(t.variable, assignedValue)) {
+                throw Error("Attempting to deeply assign the variables in a term in a cyclic way")
+            } else {
+                return assignTermRecursively(assignedValue, assignment);
+            }
+        } else {
+            return t;
+        }
+    } else {
+        const argsAssigned: Term[] = t.args.map(arg => assignTermRecursively(arg, assignment));
+        return { label: t.label, args: argsAssigned };
+    }
+}
+
 export function makeTermWithFreshVariables(t: Term, prefix: string): Term {
     const assignment: Assignment = new DisjointSetWithAssignment()
     getVariableSet(t).forEach(variable =>
@@ -67,15 +81,18 @@ export function makeAxiomWithFreshVariables(axiom: Axiom, prefix: string): Axiom
     const conclusion = makeTermWithFreshVariables(axiom.conclusion, prefix)
     return { hypotheses, conclusion }
 }
-export function colorsMatch(term1: Term, term2: Term): boolean {
+
+export function labelsMatch(term1: Term, term2: Term): boolean {
     if ("label" in term1 && "label" in term2) {
         return term1.label === term2.label;
     }
     return false;
 }
-export function sameArity(term1: Term, term2: Term): boolean {
+
+export function aritiesMatch(term1: Term, term2: Term): boolean {
     if ("args" in term1 && "args" in term2) {
         return term1.args.length === term2.args.length;
     }
     return false;
 }
+

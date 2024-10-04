@@ -17,7 +17,7 @@ import { Equation, EquationId } from '../../../lib/game/Unification';
 import { Term } from '../../../lib/game/Term';
 import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { ControlButtons } from './ControlButtons';
-import { sameArity, colorsMatch } from 'lib/game/Term';
+import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { InitialViewportSetting, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
 import { useProximityConnect } from 'lib/hooks/ProximityConnect';
@@ -270,8 +270,8 @@ export function Diagram(props: DiagramProps) {
 
     const isValidConnection = useCallback((connection: Connection) => {
         const [source, target] = getEquationFromConnection(connection)
-        const arityOk = sameArity(source, target)
-        const colorsOk = colorsMatch(source, target)
+        const arityOk = aritiesMatch(source, target)
+        const colorsOk = labelsMatch(source, target)
         const noCycle = doesNotCreateACycle(connection)
         const notYetAConection = !isInDiagram(connection)
         return colorsOk && arityOk && noCycle && notYetAConection

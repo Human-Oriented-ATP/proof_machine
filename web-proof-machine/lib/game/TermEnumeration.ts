@@ -1,7 +1,7 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Axiom } from "./Primitives";
 import { InitializationData, isGoal } from "./Initialization";
-import { Term, Assignment, getVariableSet, hashTerm, substitute, termHasVariable } from "./Term";
+import { Assignment, assignTermRecursively, getVariableSet, hashTerm, substitute, Term } from "./Term";
 
 function isConstant(t: Term) {
     return "label" in t && t.args.length === 0
@@ -66,24 +66,6 @@ function renameVariablesToEmptyString(t: Term): Term {
         assignment.assign(variable, { variable: "" })
     )
     return substitute(t, assignment)
-}
-
-function assignTermRecursively(t: Term, assignment: Assignment): Term {
-    if ("variable" in t) {
-        const assignedValue = assignment.getAssignedValue(t.variable)
-        if (assignedValue) {
-            if (termHasVariable(assignedValue, t.variable)) {
-                return t
-            } else {
-                return assignTermRecursively(assignedValue, assignment)
-            }
-        } else {
-            return t
-        }
-    } else {
-        const argsAssigned: Term[] = t.args.map(arg => assignTermRecursively(arg, assignment))
-        return { label: t.label, args: argsAssigned }
-    }
 }
 
 function removeConstants(terms: Term[]): Term[] {
