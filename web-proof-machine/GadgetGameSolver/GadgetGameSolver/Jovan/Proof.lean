@@ -43,7 +43,7 @@ def AbstractedProofTerm.instantiate (proof : AbstractedProofTerm) (subst : Array
   match proof with
   | .goal i                => subst'[i]!
   | .node name vars proofs =>
-    .node name (vars.map (instantiateExpr · subst)) (proofs.attach.map fun ⟨x, _⟩ => x.instantiate subst subst')
+    .node name (vars.map (·.instantiate subst)) (proofs.attach.map fun ⟨x, _⟩ => x.instantiate subst subst')
 
 def AbstractedProof.instantiate (proof : AbstractedProof) (subst : Array Expr) (subst' : Array Proof) : Proof :=
   proof.proof.instantiate subst subst'

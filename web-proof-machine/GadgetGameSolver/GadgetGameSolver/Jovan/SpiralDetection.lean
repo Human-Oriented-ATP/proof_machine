@@ -1,5 +1,5 @@
 import GadgetGameSolver.Jovan.Generalize
-import Batteries.Lean.HashSet
+import GadgetGameSolver.Jovan.UnifySequence
 /-!
 
 To detect spirals, we loop through all ways of getting to the new goal.
@@ -24,8 +24,7 @@ this search.
 -/
 
 namespace JovanGadgetGame
-
-
+-- #exit
 /-- starts at `none`, progresses to `some n`, and then to being removed.
 A succesfull match is with a `some n` when the depth is more than `n`. -/
 private abbrev IsSpiralState := Std.HashMap MVarId (Option Nat)
@@ -74,8 +73,9 @@ def Cell.findMVar? (c : Cell) (p : MVarId → Bool) : Option MVarId :=
 partial def isSpiral (cNode : ConsumerNode) : SearchM Bool :=
   withMCtx {} do
   let (origGoal, nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
-
-  let rec go (key : CellKey) (goal : Cell) : SearchM Bool := do
+  go cNode.key origGoal nextGoal
+where
+  go (key : CellKey) (origGoal goal : Cell) : SearchM Bool := do
     let goal ← goal.instantiateMVars
     let origGoal ← origGoal.instantiateMVars
     let mctx ← getMCtx
@@ -95,37 +95,20 @@ partial def isSpiral (cNode : ConsumerNode) : SearchM Bool :=
         let (goal', nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
         unless ← unify goal' goal do
           throw s!"goals {← goal.toString} and {← goal'.toString} don't unify"
-        go cNode.key nextGoal
-
-  go cNode.key nextGoal
-
--- partial def isLoopyKey (key originalKey : CellKey) : SearchM Bool := do
---   if originalKey == key then
---     logMessage "loop has been detected"
---     return true
---   else
---     let { waiters, .. } ← getEntry key
---     waiters.allM fun
---       | .root               => pure false
---       | .consumerNode cNode => isLoopyKey cNode.key originalKey
+        go cNode.key origGoal nextGoal
 
 
 
--- partial def checkProof' (proof : Proof) : SearchM Cell := do
---   match proof with
---   | .goal goalId => goalId.getGoal!
---   | .node name vars proofs =>
---     let gadget := (← name.getConstInfo).gadget
---     if vars.size != gadget.varNames.size then
---       throw "incorrect number of variables in proof node"
---     if proofs.size != gadget.hypotheses.size then
---       throw "incorrect number of proofs in proof node"
---     proofs.size.forM fun i => do
---       let hypType := gadget.hypotheses[i]!.instantiate vars
---       let proofType ← checkProof' proofs[i]!
---       unless ← unify proofType hypType do
---         throw s!"mismatch: a proof of {← proofType.toString} is applied to subgoal {← hypType.toString}"
---     return gadget.conclusion.instantiate vars
+/-
 
--- partial def Proof.check' (proof : Proof) : SearchM Unit :=
---   discard <| checkProof' proof
+To detect whether an implication causes a loop, we need to find out if the gadget can be applied to itself infinitely many times.
+
+To do this, we can imagine making `ℤ` freshly instantiated copies of the same gadget, and unifying them all at once.
+To differentiate the different metavariables, we give each of them an offset value in `ℤ`.
+
+This unification partially violated the occurs check. Thus we carefully mark for each variable whether it is recursive,
+and if this recursion loops up or down, and whether the recursion contains any constants (if not, then it could loop
+either up or down. In that case we let it loop down by default.)
+We don't instantiate any metavariables.
+
+-/

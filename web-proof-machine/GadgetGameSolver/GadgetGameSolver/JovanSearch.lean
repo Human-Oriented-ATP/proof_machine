@@ -74,8 +74,6 @@ def wakeUp (answer : Answer) (isLoopy : Bool) : Waiter → SearchM Unit
 
 def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
   oldAnswers.all fun oldAnswer =>
-    -- Remark: isDefEq here is too expensive. TODO: if `==` is too imprecise, add some light normalization to `resultType` at `addAnswer`
-    -- iseq ← isDefEq oldAnswer.resultType answer.resultType; pure (!iseq)
     oldAnswer.cInfo.gadget.conclusion != answer.cInfo.gadget.conclusion
 
 private def mkAnswer (goalId : GoalId) (size : Nat) : SearchM Answer := do
@@ -352,8 +350,8 @@ end JovanGadgetGame
 TODO:
 
 - globally cache all results in a discrimination tree in their most general form,
-and lookup in this in a way to not instantiate metavariables.
-If possible, allow to instantiate non-shared metavariables. (Maybe use reference counting???)
+  and lookup in this in a way to not instantiate metavariables.
+  If possible, allow to instantiate non-shared metavariables. (Maybe use reference counting???)
 
 - re-awaken spirally goals if they are needed again.
   In a table entry, besides answers there will also be the list of subgoals that have been

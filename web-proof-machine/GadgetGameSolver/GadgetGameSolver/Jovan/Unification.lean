@@ -1,4 +1,5 @@
 import GadgetGameSolver.Jovan.Variables
+import GadgetGameSolver.Jovan.Util
 
 namespace JovanGadgetGame
 
@@ -20,10 +21,7 @@ def assignUnassigned? (mvarId : MVarId) (t : Expr) : m Bool := do
 mutual
   private partial def unifyCore (s t : Expr) : m Bool := do
     match s, t with
-    | .mvar mvarId, t =>
-      match ← mvarId.getAssignment? with
-      | some s => unifyCore s t
-      | none => assignUnassigned? mvarId t
+    | .mvar mvarId, s
     | s, .mvar mvarId =>
       match ← mvarId.getAssignment? with
       | some t => unifyCore s t
@@ -34,15 +32,7 @@ mutual
   @[inline]
   private partial def unifyApp (f f' : String) (args args' : Array Expr) : m Bool := do
     if h : f = f' ∧ args.size = args'.size then
-      let rec go (i : Nat) (h : i ≤ args.size := by omega) := do
-        if h : i = args.size then
-          return true
-        else
-          if ← unifyCore args[i] args'[i] then
-            go (i + 1)
-          else
-            return false
-      go 0
+      args.size.allM' fun i => unifyCore args[i] args'[i]
     else
       return false
 end

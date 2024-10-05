@@ -72,14 +72,14 @@ structure AbstractedGadget where
 
 /-! Instantiating abstracted gadgets -/
 
-def instantiateExpr (e : AbstractedExpr) (subst : Array Expr) : Expr :=
+def AbstractedExpr.instantiate (e : AbstractedExpr) (subst : Array Expr) : Expr :=
   match e with
   | .mvar i => subst[i]!
-  | .app f args => .app f <| args.attach.map fun ⟨arg, _⟩ => instantiateExpr arg subst
+  | .app f args => .app f <| args.attach.map fun ⟨arg, _⟩ => arg.instantiate subst
 
 def AbstractedCell.instantiate (c : AbstractedCell) (subst : Array Expr) : Cell where
   f := c.f
-  args := c.args.map (instantiateExpr · subst)
+  args := c.args.map (·.instantiate subst)
 
 /-! Creating `CellKey` from `Cell` and `AbstractedGadget` from `Axiom`. -/
 

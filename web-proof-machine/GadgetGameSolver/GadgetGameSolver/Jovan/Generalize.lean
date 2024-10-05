@@ -3,28 +3,6 @@ import GadgetGameSolver.Jovan.Basic
 
 namespace JovanGadgetGame
 
-section Proving
-universe u v
-
-@[inline] def foldMNat {α : Type u} {m : Type u → Type v} [Monad m] (n : Nat) (f : (i : Nat) → α → {_ : i < n} → m α) (init : α) : m α :=
-  let rec @[specialize] loop (i : Nat) (h : i ≤ n) (a : α) :=
-    match i with
-    | 0   => pure a
-    | i+1 => @f (n-1-i) a (Nat.sub_one_sub_lt h) >>= loop i (Nat.le_of_succ_le h)
-  loop n (Nat.le_refl n) init
-
-@[inline] def forMNat {m : Type → Type u} [Monad m] (n : Nat) (f : (i : Nat) → {_ : i < n} → m Unit) : m Unit :=
-  let rec @[specialize] loop (i : Nat) (h : i ≤ n) :=
-    match i with
-    | 0   => pure ()
-    | i+1 => do @f (n-1-i) (Nat.sub_one_sub_lt h); loop i (Nat.le_of_succ_le h)
-  loop n (Nat.le_refl n)
-
-end Proving
-
-
-/-! Expanding the `Environment` -/
-
 partial def generalizeProof (proof : Proof) : SearchM Proof := do
   let (result, _) ← go proof
   return result
@@ -35,7 +13,7 @@ where
     let gadget := (← name.getConstInfo).gadget
     if h : proofs.size = gadget.hypotheses.size then
       let vars ← gadget.varNames.mapM mkFreshMVar
-      let proofs ← foldMNat proofs.size (init := #[]) fun i newProofs => do
+      let proofs ← proofs.size.foldM' (init := #[]) fun i newProofs => do
         let (newProof, proofResult, proofVars) ← go proofs[i]
         let proofResult := proofResult.instantiate proofVars
         let hypType := gadget.hypotheses[i].instantiate vars
@@ -46,6 +24,7 @@ where
     else
       throw "incorrect number of proofs in proof node"
 
+/-- Expands the `Environment` with a new proof constant. -/
 def GoalId.addFreshConstantInfo (goalId : GoalId) : SearchM ConstantInfo := do
   let some proof ← goalId.getAssignment? | throw "goalId is unassigned"
   let proof ← generalizeProof (← proof.instantiate!)
@@ -74,7 +53,7 @@ where
     let gadget := (← name.getConstInfo).gadget
     if h : proofs.size = gadget.hypotheses.size then
       let vars ← gadget.varNames.mapM mkFreshMVar
-      forMNat proofs.size fun i => do
+      proofs.size.forM' fun i => do
         let hypType := gadget.hypotheses[i].instantiate vars
         match proofs[i] with
         | .goal goalId' =>
