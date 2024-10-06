@@ -115,10 +115,11 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
   let waiter := Waiter.consumerNode cNode
   let goal ← cNode.nextSubgoalId.getInstantiatedGoal
   let key := goal.abstract
-  let config@{ fewerCasesFirst, postponeLoopSearch, postponeSpiralSearch, .. } ← getConfig
+  let config@{ fewerCasesFirst, postponeLoopSearch, postponeSpiralSearch, useOldSpiralDetect, .. } ← getConfig
   match ← findEntry? key with
   | none       =>
-    let isSpiral ← if postponeSpiralSearch then isSpiral cNode else pure false
+    let isSpiral ← if postponeSpiralSearch then if useOldSpiralDetect then isSpiralDeprecated cNode else Iterate.isSpiral cNode goal--Deprecated cNode
+      else pure false
     newSubgoal key cNode.nextSubgoalId axioms waiter priority isSpiral
   | some entry =>
     logMessage s!"found goal in table: subgoal {← goal.toString} of {← cNode.goalId.toString}."

@@ -1,169 +1,8 @@
-import GadgetGameSolver.Jovan.Variables
+import GadgetGameSolver.Jovan.Basic
 import GadgetGameSolver.Jovan.Util
-
-namespace JovanGadgetGame
-
-namespace Iterate
-
-structure MVarId where
-  id : Nat
-deriving Inhabited, BEq
-
-instance : Hashable MVarId where
-  hash mvarId := hash mvarId.id
-
-inductive Expr where
-| mvar : JovanGadgetGame.MVarId → Expr
-| imvar : MVarId → Int → Expr
-| app  : String → Array Expr → Expr
-deriving Inhabited, BEq
-
-structure Cell where
-  f    : String
-  args : Array Expr
-  deriving Inhabited
-
-def Expr.offsetByAux (e : Expr) (offset : Int) : Expr :=
-  match e with
-  | .imvar mvarId n => .imvar mvarId (n + offset)
-  | .app f args => .app f (args.attach.map fun ⟨arg, _⟩ => arg.offsetByAux offset)
-  | e => e
-
-def Expr.offsetBy (e : Expr) (offset : Int) : Expr :=
-  if offset == 0 then
-    e
-  else
-    e.offsetByAux offset
-
-end Iterate
-
-def AbstractedExpr.instantiateIterate (e : AbstractedExpr) (subst : Array Iterate.Expr) : Iterate.Expr :=
-  match e with
-  | .mvar i => subst[i]!
-  | .app f args => .app f <| args.attach.map fun ⟨arg, _⟩ => arg.instantiateIterate subst
-
-def AbstractedCell.instantiateIterate (c : AbstractedCell) (subst : Array Iterate.Expr) : Iterate.Cell where
-  f := c.f
-  args := c.args.map (·.instantiateIterate subst)
-
-namespace Iterate
-
-structure MVarDecl where
-  userName : String
-  deriving Inhabited
-
-inductive AssignmentKind where
-| noLoop : AssignmentKind
-| loop   : (up? root : Bool) → AssignmentKind
-deriving Inhabited
-
-@[inline]
-def AssignmentKind.isLoop : AssignmentKind → Bool
-| .noLoop   => false
-| .loop _ _ => true
-
-@[inline]
-def AssignmentKind.and (k k' : AssignmentKind) : Option AssignmentKind :=
-  match k, k' with
-  | .noLoop   , .noLoop    => some (.noLoop)
-  | .noLoop   , .loop up? _
-  | .loop up? _, .noLoop    => some (.loop up? false)
-  | .loop up? _, .loop up?' _ =>
-    if up? == up?' then some (.loop up? false) else none
-
-@[inline]
-def AssignmentKind.modify (k : AssignmentKind) (up? root : Bool) : Option AssignmentKind :=
-  match k with
-  | .noLoop => some (.loop up? root)
-  | .loop up?' _ => if up? == up?' then k else none
-
-/-- Structure for doing multiple `AssignmentKind.modify` operations at once. -/
-structure AssignmentKindModifier where
-  up   : Bool := false
-  down : Bool := false
-
-@[inline]
-def AssignmentKindModifier.insert (m : AssignmentKindModifier) (up? : Bool) : AssignmentKindModifier :=
-  if up? then
-    { m with up := true }
-  else
-    { m with down := true}
-
-@[inline]
-def AssignmentKindModifier.apply (m : AssignmentKindModifier) (up? isRoot : Bool) : Option AssignmentKind :=
-    if up? then
-      if m.down then none else some (.loop up? isRoot)
-    else
-      if m.up   then none else some (.loop up? isRoot)
-
-/-- Represents an assignment `aₙ₊ᵢ := value₊ᵢ` for all `i ∈ ℕ`. -/
-structure MVarAssignment where
-  n       : Int
-  value   : Expr
-  kind    : AssignmentKind
-  deriving Inhabited
-
-/-- Represents an assignment `mvarIdᵢ₊ₙ := value` for all `i ∈ ℕ`. -/
-structure PendingAssignment where
-  mvarId : MVarId
-  n      : Int
-  value  : Expr
-  deriving Inhabited
-
-structure MVarContext where
-  decls       : Std.HashMap MVarId MVarDecl       := {}
-  assignments : Std.HashMap MVarId MVarAssignment := {}
-  /-- `pending` contains unhandled assignments of loopy metavariables.
-  It should be empty at the start and end of unification. -/
-  pending     : Array PendingAssignment           := #[]
-  deriving Inhabited
-
-class MonadMCtx (m : Type → Type) where
-  getMCtx    : m MVarContext
-  modifyMCtx : (MVarContext → MVarContext) → m Unit
-
-export MonadMCtx (getMCtx modifyMCtx)
-
-instance (m) [MonadStateOf MVarContext m] : MonadMCtx m where
-  getMCtx    := get
-  modifyMCtx := modify
-
-@[always_inline]
-instance (m n) [MonadLift m n] [MonadMCtx m] : MonadMCtx n where
-  getMCtx      := liftM (getMCtx : m _)
-  modifyMCtx f := liftM (modifyMCtx f : m _)
-
-section
-
-variable {m : Type → Type} [Monad m] [MonadMCtx m] [MonadUnique m]
-
-@[inline] def setMCtx (mctx : MVarContext) : m Unit :=
-  modifyMCtx (fun _ => mctx)
-
-def mkFreshMVar (userName : String) : m Expr := do
-  let mvarId := { id := ← getUnique }
-  modifyMCtx fun mctx => { mctx with decls := mctx.decls.insert mvarId { userName } }
-  return .imvar mvarId 0
-
-def MVarId.getDecl! (mvarId : MVarId) : m MVarDecl := do
-  return (← getMCtx).decls[mvarId]!
-
-def MVarId.assign (mvarId : MVarId) (n : Int) (value : Expr) (kind : AssignmentKind) : m Unit :=
-  modifyMCtx fun mctx => { mctx with assignments := mctx.assignments.insert mvarId { n, value, kind } }
-
-def MVarId.getAssignment? (mvarId : MVarId) : m (Option MVarAssignment) := do
-  return (← getMCtx).assignments[mvarId]?
-
-@[inline]
-def pushPending (mvarId : MVarId) (n : Int) (value : Expr) : m Unit :=
-  modifyMCtx fun mctx => { mctx with pending := mctx.pending.push { mvarId, n, value } }
-
-end
 
 
 /-!
-
-
 * a₀ := f b₀
 * a₀ := f f a₁ =>
   - merge `f b₀` and `f f a₁`
@@ -241,11 +80,9 @@ example where the forced assignments require involvement of negative variables:
 * b₀ := c₋₁ `has to hold from n+1`
 * c₀ := d₋₁ `has to hold from n+1`
 * d₀ := e₋₁ `has to hold from n+1`
-NOTICE: writing these assignments the other way around is much more favourable.
 
 Then when we instantiate metavariables we notice that the supports aren't good enought for our purpose.
-So we may expand the supports to force our equation to be satisfied.
-Or we may accept the lack of support and update the unification that we're making work.
+So we may expand supports to force our equation to be satisfied.
 
 The problem with expanding the supports is that we also involve metavariables that we don't want to exist.
 Better would be to only involve the legal metavariables from the start.
@@ -264,27 +101,65 @@ Whereas the method of accepting lack of support is going to behave badly here.
 
 -/
 
-abbrev M := EStateM Unit MVarContext
+namespace JovanGadgetGame.Iterate
 
-instance : Alternative M where
-  failure := throw ()
-  orElse  := tryCatch
+abbrev M := OptionT SearchM
+
+section OccursCheck
 
 private structure OccursContext where
   mvarId  : MVarId
+  mvarIds : List IMVarId := []
+
+@[inline]
+private def OccursContext.insert (mvarId : IMVarId) (c : OccursContext) : OccursContext :=
+  { c with mvarIds := mvarId :: c.mvarIds }
+
+/-
+Fails inside `M` if occurs check failed. Returns `true` if occurs at the root.
+If other variables become loopy due to this assignment, we store that.
+-/
+partial def Expr.occursCheck (context : OccursContext) (isRoot : Bool := true) : Expr → M Bool
+  | .imvar mvarId _ => do
+      let some { value, kind, .. } ← mvarId.getAssignment? | return false
+      if kind.isLoop then
+        if context.mvarIds.contains mvarId then
+          return false
+        else
+          value.occursCheck (context.insert mvarId) isRoot
+      else
+        value.occursCheck context isRoot
+  | .app _ args  => do
+    args.forM (discard <| ·.occursCheck context false)
+    return false
+  | .mvar mvarId => do
+    match ← getMVarIdAssignment? mvarId with
+    | some value => value.occursCheck context false
+    | none =>
+      if mvarId == context.mvarId then
+        if isRoot then
+          return true -- the result is the mvar itself
+        else
+          failure -- occurs check fails
+      else
+        return false
+
+
+private structure IOccursContext where
+  mvarId  : IMVarId
   offset  : Int -- how much we should subtract from the expression
-  mvarIds : List MVarId := []
+  mvarIds : List IMVarId := []
   kindMod : AssignmentKindModifier := {}
 
 @[inline]
-private def OccursContext.insert (mvarId : MVarId) (up? : Bool) (c : OccursContext) : OccursContext :=
+private def IOccursContext.insert (mvarId : IMVarId) (up? : Bool) (c : IOccursContext) : IOccursContext :=
   { c with mvarIds := mvarId :: c.mvarIds, kindMod := c.kindMod.insert up? }
 
 /-
-Fails inside `M` if occurs check failed. Fails inside `OptionT` if it failed at the root.
-If other variables become loopy due to this assignment, we store that.
+Fails inside `M` if occurs check failed. Fails inside `OptionT` if occurs at the root.
+If other variables become loopy due to this assignment, we set them to be loopy.
 -/
-partial def Expr.occursCheck (context : OccursContext) (isRoot : Bool) : Expr → M (Option AssignmentKind)
+partial def Expr.iOccursCheck (context : IOccursContext) (isRoot : Bool := true) : Expr → M (Option AssignmentKind)
   | .imvar mvarId n' => do
     if mvarId == context.mvarId then
       match compare n' context.offset with
@@ -296,7 +171,7 @@ partial def Expr.occursCheck (context : OccursContext) (isRoot : Bool) : Expr �
       let context := { context with offset := context.offset + n - n' }
       match kind with
       | .noLoop =>
-        let some kind ← value.occursCheck context isRoot | return none
+        let some kind ← value.iOccursCheck context isRoot | return none
         /- We make sure variables part of a new loop are set to loopy. -/
         if kind.isLoop then
           mvarId.assign n value kind
@@ -305,40 +180,100 @@ partial def Expr.occursCheck (context : OccursContext) (isRoot : Bool) : Expr �
         if context.mvarIds.contains mvarId then
           return some .noLoop
         else
-          value.occursCheck (context.insert mvarId up?) isRoot
+          value.iOccursCheck (context.insert mvarId up?) isRoot
   | .app _ args =>
     some <$> args.foldlM (init := .noLoop) fun result arg => do
-      let some kind ← arg.occursCheck context false | failure
+      let some kind ← arg.iOccursCheck context false | failure
       (result.and kind).getM
-  | .mvar _ => return some .noLoop
+  | .mvar mvarId => do
+    match ← getMVarIdAssignment? mvarId with
+    | some value => value.iOccursCheck context false
+    | none => return some .noLoop
 
+end OccursCheck
+
+
+mutual
+partial def unifyPointCore (s t : Expr) : ReaderT (Lean.AssocList IMVarId Expr) M Unit := do
+  match s, t with
+  | .mvar mvarId, t
+  | t, .mvar mvarId    => tryMVarIdAssignment mvarId t
+  | .imvar mvarId n, t
+  | t, .imvar mvarId n => tryPointAssignment mvarId n t
+  | .app f args, .app f' args' => do
+    if h : f = f' ∧ args.size = args'.size then
+      args.size.forM' fun i =>
+        unifyPointCore args[i] args'[i]
+    else
+      failure
+
+partial def tryMVarIdAssignment (mvarId : MVarId) (value : Expr) : ReaderT (Lean.AssocList IMVarId Expr) M Unit := do
+  if ← value.occursCheck { mvarId } then
+    return
+  else
+    match ← getMVarIdAssignment? mvarId with
+    | some value' => unifyPointCore value value'
+    | none => assignMVarId mvarId value
+
+partial def tryPointAssignment (mvarId : IMVarId) (n : Int) (value : Expr) : ReaderT (Lean.AssocList IMVarId Expr) M Unit := do
+  let jp := do
+    match ← mvarId.getPointAssignment? n with
+    | some value' => unifyPointCore value value'
+    | none => mvarId.assignPoint n value
+  if (← value.iOccursCheck { mvarId, offset := n }).isNone then
+    return
+  else
+    match ← mvarId.getAssignment? with
+    | none => jp
+    | some { n := n', value := value', kind } =>
+      if n' > n then jp
+      else
+        let value' := value'.decrement (n' - n) -- increment
+        match kind with
+        | .loop true _ =>
+          if (← read).find? mvarId == value.decrement n then
+            dbg_trace "this edge case seems really unlikely...";
+            /- This case is very ugly. Example:
+            have `a₀ := f f a₂` and `b := a₀` and `b := f a₁`. Then the fact that `a₀ = f a₁` would propagate up infinitely.
+            Thus, we ignore that nonsense, and just set this to hold everywhere: `aₙ = f aₙ₊₁`.
+            -/
+            discard <| pushPending mvarId n value
+          else
+            withReader (·.cons mvarId (value.decrement n)) do
+              unifyPointCore value value'
+        | _ => unifyPointCore value value'
+end
+
+def IMVarId.verifyAndAssign (mvarId : IMVarId) (n : Int) (value : Expr) (kind : AssignmentKind) : M Unit := do
+  modifyMCtx fun mctx => { mctx with iassignments := mctx.iassignments.insert mvarId { n, value, kind } }
+  let pointAssignments ← mvarId.getPointAssignments!
+  pointAssignments.forM fun n' value => do
+    if n' ≥ n then
+      tryPointAssignment mvarId n value |>.run {}
+
+
+mutual
+/-- First sets the assignment at the start point. Then unifies the start point with its succesor. -/
+partial def tryMVarIdEverywhereAssignment (mvarId : MVarId) (value : Expr) : M Expr := do
+  if let .mvar mvarId' := value then
+    if mvarId == mvarId' then
+      return value
+  tryMVarIdAssignment mvarId value |>.run {}
+  mergeCore value (value.decrement (-1)) 0
 
 
 /--
-Merges assignments `aᵢ := s` and `aⱼ := t` for `i ≤ j`. We have `offset := i - j`.
+Merges assignments `aᵢ := s` and `aⱼ := t` for `i ≤ j`. We have `offset := i - j` (which is non-negative).
 
 Computes the common part of two expressions, leaving the metavariables that were at the leaves.
 The required metavariable assignments are added as `PendingAssignments` in the context.
 -/
 private partial def mergeCore (s t : Expr) (offset : Int) : M Expr := do
-  let returnMVar mvarId n t := do
-    pushPending mvarId n t
-    return .imvar mvarId n
-
   match s, t with
-  | .imvar mvarId n, .imvar mvarId' n' =>
-    let n' := n' + offset
-    /- This case split is crucial for termination of the algorithm, as it reduces
-      the index offset at mvar-to-mvar assignments. -/
-    match compare n n' with
-    | .lt => returnMVar mvarId' n' s
-    | .eq =>
-      if mvarId == mvarId' then return s
-      else returnMVar mvarId' n' s
-    | .gt =>
-      returnMVar mvarId n (.imvar mvarId' n')
-  | .imvar mvarId n, t   => returnMVar mvarId n (t.offsetBy offset)
-  | s, .imvar mvarId' n' => returnMVar mvarId' (n' + offset) s
+  | s, .imvar mvarId n => pushPending mvarId (n - offset) s
+  | .imvar mvarId n, t => pushPending mvarId n (t.decrement offset)
+  | s, .mvar mvarId => tryMVarIdEverywhereAssignment mvarId s
+  | .mvar mvarId, t => tryMVarIdEverywhereAssignment mvarId (t.decrement offset)
   | .app f args, .app f' args' => do
     if h : f = f' ∧ args.size = args'.size then
       let args ← args.size.foldM' (init := .mkEmpty args.size) fun i mergeArgs =>
@@ -346,13 +281,13 @@ private partial def mergeCore (s t : Expr) (offset : Int) : M Expr := do
       return .app f args
     else
       failure
-  | .mvar mvarId, .mvar mvarId' => if mvarId == mvarId' then return s else failure
-  | _, _ => failure
+end
 
-private partial def instantiateRootLoop (startMvarId mvarId : MVarId) (startN n : Int) : M Int := do
+/-- Returns the period of the variable that loops at the root, as a non-negative number. -/
+private partial def instantiateRootLoop (startMvarId mvarId : IMVarId) (startN n : Int) : M Int := do
   if mvarId == startMvarId then
     assert! n < startN
-    return startN - n
+    return n - startN
   else
     let some { n := assigN, value := .imvar mvarId' assigN', kind } ← mvarId.getAssignment? | unreachable!
     let n' := n + assigN' - assigN
@@ -361,21 +296,29 @@ private partial def instantiateRootLoop (startMvarId mvarId : MVarId) (startN n 
     instantiateRootLoop startMvarId mvarId' startN n'
 
 /--
-`mergeCore` jumps throught some hoops in order to ensure the algorithm terminates.
+`merge` jumps through some hoops in order to ensure the algorithm terminates.
+`ns ≤ nt`
 -/
-def merge (s t : Expr) (sKind tKind : AssignmentKind) (ns nt : Int) (mvarId : MVarId) : M Expr := do
+def merge (s t : Expr) (sKind tKind : AssignmentKind) (ns nt : Int) (mvarId : IMVarId) : M Unit := do
+  let rootLoop s t ns nt _sKind tKind := do
+    let .imvar mvarId' ns' := s | unreachable!
+    let period ← instantiateRootLoop mvarId mvarId' ns ns'
+    let value ← mergeCore (t.decrement period) t period
+    if nt - period > ns then
+      mvarId.assign ns (value.decrement ((nt - period) - ns)) tKind
+    else
+      mvarId.assign (nt - period) value tKind
+
   match sKind, tKind with
-  | .loop _ true, .loop _ true => mergeCore s t (ns - nt)
-  | .loop _ true, _ =>
-    let .imvar mvarId' n' := s | unreachable!
-    let period ← instantiateRootLoop mvarId mvarId' ns n'
-    mergeCore (t.offsetBy period) t period
-  | _, .loop _ true =>
-    let .imvar mvarId' n' := t | unreachable!
-    let period ← instantiateRootLoop mvarId mvarId' nt n'
-    mergeCore (s.offsetBy period) s period
+  | .loop _ true, .loop _ true =>
+    let value ← mergeCore s t (nt - ns)
+    mvarId.verifyAndAssign ns value sKind
+  | .loop _ true, _ => rootLoop s t ns nt sKind tKind
+  | _, .loop _ true => rootLoop t s nt ns tKind sKind
   | _, _ =>
-    mergeCore s t (ns - nt)
+    let kind ← (sKind.and tKind).getM
+    let value ← mergeCore s t (nt - ns)
+    mvarId.verifyAndAssign ns value kind
 
 partial def processPending : M Unit := do
   let { pending, .. } ← getMCtx
@@ -383,64 +326,57 @@ partial def processPending : M Unit := do
     return
   else
     let { mvarId, n := nNew, value := newValue } := pending.back
+    -- logMessage (s!"{(← mvarId.getDecl!).userName}{subscriptString nNew} := {← newValue.toString}\n{← contextString}")
     modifyMCtx ({ · with pending := pending.pop })
-    let some newKind ← newValue.occursCheck { mvarId, offset := nNew } true | return -- `value = .imvar mvarId nNew`
+    let some newKind ← newValue.iOccursCheck { mvarId, offset := nNew } | return -- `value = .imvar mvarId nNew`
     match ← mvarId.getAssignment? with
     | some { n, value, kind } =>
-      -- we assign at the smallest value of `n`. This can create too strong assignments, but that's acceptable.
+      /- we assign at the smallest value of `n`.
+      This can create stronger-than-necessary assignments, but that's acceptable. -/
       if nNew < n then
-        let value ← merge newValue value newKind kind nNew n mvarId
-        mvarId.assign nNew value kind
+        merge newValue value newKind kind nNew n mvarId
       else
-        let value ← merge value newValue kind newKind n nNew mvarId
-        mvarId.assign n value kind
+        merge value newValue kind newKind n nNew mvarId
     | none =>
-      mvarId.assign nNew newValue newKind
+      mvarId.verifyAndAssign nNew newValue newKind
 
     processPending
 
 
-partial def unifyCore (s t : Expr) : M Unit := do
-  match s, t with
-  | .imvar mvarId n, .imvar mvarId' n' =>
-    match compare n n' with
-    | .lt => pushPending mvarId' n' s
-    | .eq =>
-      if mvarId == mvarId' then return
-      else pushPending mvarId' n' s
-    | .gt =>
-      pushPending mvarId n (.imvar mvarId' n')
-  | .imvar mvarId n, t   => pushPending mvarId  n  t
-  | s, .imvar mvarId' n' => pushPending mvarId' n' s
+partial def unifyCore : (s t : Expr) → M Unit
+  | .imvar mvarId n, value
+  | value, .imvar mvarId n => discard <| pushPending mvarId n value
   | .app f args, .app f' args' => do
     if h : f = f' ∧ args.size = args'.size then
-      args.size.forM' fun i =>
-        unifyCore args[i] args'[i]
+      args.size.forM' fun i => unifyCore args[i] args'[i]
     else
       failure
   | .mvar mvarId, .mvar mvarId' => if mvarId == mvarId' then return else failure
   | _, _ => failure
 
 
-def unify (s t : Expr) : Option MVarContext := do
-  match unifyCore s t |>.run {} with
-  | .ok () ctx  => some ctx
-  | .error () _ => none
+def unifyPoint (s t : Cell) : SearchM Bool := do
+  if h : s.f = t.f ∧ s.args.size = t.args.size then
+    let mctx ← getMCtx
+    let go := do
+      s.args.size.forM' fun i => unifyPointCore s.args[i] t.args[i]
+      processPending
+    match ← go.run {} with
+    | some () => return true
+    | none    =>
+      setMCtx mctx *> return false
+  else
+    return false
 
-
-end Iterate
-
-/-
-
-Would it make sense to use a e-graph like data structure for my infinite unifications?
-
-* Term graph: all terms, represented in a way to maximize sharing.
-
-* Union-find: all equivalences on the terms.
-
-Now, the only terms that should be allowed in the union-find are variable assignments,
-and the congruences created from them, from the
-
-
-
--/
+def unify (s t : Cell) : SearchM Bool := do
+  if h : s.f = t.f ∧ s.args.size = t.args.size then
+    let mctx ← getMCtx
+    let go := do
+      s.args.size.forM' fun i => unifyCore s.args[i] t.args[i]
+      processPending
+    match ← go.run with
+    | some () => return true
+    | none    =>
+      setMCtx mctx *> return false
+  else
+    return false

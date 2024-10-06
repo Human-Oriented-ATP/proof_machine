@@ -52,7 +52,8 @@ where
   go (name : Name) (proofs : Array Proof) : StateRefT (Option Cell) SearchM Cell := do
     let gadget := (← name.getConstInfo).gadget
     if h : proofs.size = gadget.hypotheses.size then
-      let vars ← gadget.varNames.mapM mkFreshMVar
+      let append := s!"_{← getUnique}"
+      let vars ← gadget.varNames.mapM (mkFreshMVar s!"{·}{append}")
       proofs.size.forM' fun i => do
         let hypType := gadget.hypotheses[i].instantiate vars
         match proofs[i] with

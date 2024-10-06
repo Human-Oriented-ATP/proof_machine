@@ -1,4 +1,4 @@
-import Std
+import Std.Data.HashMap
 import GadgetGameSolver.Primitives
 
 namespace JovanGadgetGame
