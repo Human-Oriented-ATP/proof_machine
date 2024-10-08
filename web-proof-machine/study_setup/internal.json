@@ -12,7 +12,8 @@
                 "jacob_easy04",
                 "tim_easy01",
                 "tim_easy07"
-            ]
+            ],
+            "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Beginner",
@@ -30,7 +31,8 @@
                 "tim24",
                 "tim33",
                 "tim43"
-            ]
+            ],
+            "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Intermediate",
@@ -52,7 +54,8 @@
                 "tim41",
                 "tim42",
                 "tim44"
-            ]
+            ],
+            "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Advanced",
@@ -78,7 +81,8 @@
                 "tim32",
                 "tim34",
                 "tim37a"
-            ]
+            ],
+            "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Expert",
@@ -92,7 +96,8 @@
                 "tim31",
                 "jacob16",
                 "jacob17"
-            ]
+            ],
+            "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Legend",
@@ -100,7 +105,8 @@
                 "fredy01a",
                 "tim30",
                 "tim35"
-            ]
+            ],
+            "numberOfUnlockedProblems": 1000
         }
     ]
 }

@@ -14,7 +14,7 @@
                 "tutorial05",
                 "tutorial06"
             ],
-            "numberOfUnlockedProblems": 1
+            "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Pink tutorial",
@@ -25,8 +25,8 @@
                 "pink_tutorial04",                
                 "pink_tutorial05"
             ],
-            "categoryUnlockThreshold": 7,
-            "numberOfUnlockedProblems": 1
+            "categoryUnlockThreshold": 0,
+            "numberOfUnlockedProblems": 1000
         }
     ]
 }
