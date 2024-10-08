@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { InitializationData } from "../../lib/game/Initialization";
 import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
@@ -8,6 +8,7 @@ import { GameHelp } from "./GameHelp";
 import { Game } from "./Game";
 import { interactiveTutorialLevels } from "components/tutorial/InteractiveTutorialLevels";
 import { StudyConfiguration } from "lib/study/Types";
+import { saveLevelCompletedAsCookie } from "lib/study/CompletedProblems";
 
 interface GameScreenProps {
     initData: InitializationData
@@ -19,6 +20,11 @@ export function GameScreen(props: GameScreenProps) {
     const [levelIsCompleted, setLevelIsCompleted] = useState(false)
     const [diagramHasBrokenConnection, setDiagramHasBrokenConnection] = useState(false)
     const helpPopup = usePopup()
+
+    const markLevelAsCompleted = useCallback(() => {
+        setLevelIsCompleted(true)
+        saveLevelCompletedAsCookie(props.problemId)
+    }, [])
 
     const interactiveLevel = interactiveTutorialLevels.get(props.problemId)
     const initialDiagram = interactiveLevel?.initialDiagram
@@ -35,7 +41,7 @@ export function GameScreen(props: GameScreenProps) {
             <Game 
                 problemId={props.problemId}
                 initData={initData}
-                setLevelIsCompleted={setLevelIsCompleted}
+                markLevelAsCompleted={markLevelAsCompleted}
                 setDiagramHasBrokenConnection={setDiagramHasBrokenConnection}
                 interactiveSteps={interactiveLevel?.steps}
                 {...settings}

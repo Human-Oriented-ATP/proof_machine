@@ -5,7 +5,7 @@ import { GadgetProps, isInputPosition } from 'lib/game/Primitives';
 import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 
 interface CompletionCheckProps {
-    setProblemSolved: () => void
+    markLevelAsCompleted: () => void
     edges: Edge[]
     nodes: GadgetNode[]
 }
@@ -53,7 +53,7 @@ export function useCompletionCheck(props: CompletionCheckProps) {
         }
 
         if (isCompleted()) {
-            props.setProblemSolved()
+            props.markLevelAsCompleted()
         }
     }, [getNode, props])
 }

@@ -16,7 +16,7 @@ import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 export interface GameProps {
     initData: InitializationData
     problemId?: string
-    setLevelIsCompleted?: (levelIsCompleted: boolean) => void
+    markLevelAsCompleted?: (levelIsCompleted: boolean) => void
     setDiagramHasBrokenConnection?: (diagramHasBrokenConnection: boolean) => void
     initialViewportSetting?: InitialViewportSetting
     zoomEnabled?: boolean
@@ -146,8 +146,8 @@ export function Game(props: GameProps) {
     }, [equations, getTriggerForNextTutorialStep])
 
     const setLevelIsCompleted = useCallback((levelIsCompleted: boolean) => {
-        if (props.setLevelIsCompleted) {
-            props.setLevelIsCompleted(levelIsCompleted)
+        if (props.markLevelAsCompleted) {
+            props.markLevelAsCompleted(levelIsCompleted)
         }
     }, [])
 
@@ -191,7 +191,7 @@ export function Game(props: GameProps) {
                     addEquation={addEquation}
                     removeEquation={removeEquation}
                     isSatisfied={eqSatisfied}
-                    setLevelCompleted={setLevelCompletedAndWriteToHistory}
+                    markLevelAsCompleted={setLevelCompletedAndWriteToHistory}
                     setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
                     initialViewportSetting={initialViewportSetting}
                     proximityConnectEnabled={props.proximityConnectEnabled ?? true}

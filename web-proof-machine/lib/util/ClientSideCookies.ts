@@ -1,3 +1,5 @@
+"use client" 
+
 export const clientSideCookies = (() => {
 
     function set(name: string, value: string, days: number) {
