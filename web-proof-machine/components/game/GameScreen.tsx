@@ -46,7 +46,7 @@ export function GameScreen(props: GameScreenProps) {
                 interactiveSteps={interactiveLevel?.steps}
                 {...settings}
             />
-            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
+            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp settings={settings}/></Popup>
         </div>
     </div>
 }
