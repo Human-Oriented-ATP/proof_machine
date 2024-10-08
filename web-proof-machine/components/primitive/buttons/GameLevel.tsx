@@ -29,7 +29,8 @@ export function GameLevelButton(props: GameLevelButtonProps) {
     if (props.isUnlocked) {
         return <Link href={props.href}>
                 {props.isSolved ?
-                    <CheckCircledIcon className="w-6 h-6 float-right rounded-full bg-green absolute right-0 bottom-0 translate-x-1 translate-y-1" /> : <></>}
+                    <CheckCircledIcon className={twJoin("w-6 h-6 float-right rounded-full bg-green absolute right-0 bottom-0 translate-y-1", 
+                                                props.isSquare && " translate-x-1", !props.isSquare && " translate-x-3")} /> : <></>}
                 <AdjustableButton isSquare={props.isSquare}>{props.label}</AdjustableButton>
             </Link>
     } else {
