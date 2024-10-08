@@ -362,7 +362,7 @@ export function Diagram(props: DiagramProps) {
             onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
-            onInit={() => init(rf, props.initialViewportSetting)}
+            onInit={() => { init(rf, props.initialViewportSetting); updateEdgeAnimation() } }
             onConnectStart={onConnectStart}
             onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
