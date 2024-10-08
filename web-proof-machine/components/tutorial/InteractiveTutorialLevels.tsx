@@ -6,9 +6,11 @@ import { tutorial03 } from "./levels/tutorial03";
 import { tutorial04 } from "./levels/tutorial04";
 import { tutorial05 } from "./levels/tutorial05";
 import { tutorial06 } from "./levels/tutorial06";
-import { tutorial07 as pink_tutorial01 } from "./levels/pink_tutorial01";
-import { tutorial08 as pink_tutorial02 } from "./levels/pink_tutorial02";
-import { tutorial09 as pink_tutorial03 } from "./levels/pink_tutorial03";
+import { pink_tutorial01 } from "./levels/pink_tutorial01";
+import { pink_tutorial02 } from "./levels/pink_tutorial02";
+import { pink_tutorial03 } from "./levels/pink_tutorial03";
+import { pink_tutorial04 } from "./levels/pink_tutorial04";
+import { pink_tutorial05 } from "./levels/pink_tutorial05";
 
 export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map([
     ["tutorial01", tutorial01],
@@ -20,5 +22,7 @@ export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map(
     ["tutorial06", tutorial06],
     ["pink_tutorial01", pink_tutorial01],
     ["pink_tutorial02", pink_tutorial02],
-    ["pink_tutorial03", pink_tutorial03]
+    ["pink_tutorial03", pink_tutorial03],
+    ["pink_tutorial04", pink_tutorial04],
+    ["pink_tutorial05", pink_tutorial05]
 ])

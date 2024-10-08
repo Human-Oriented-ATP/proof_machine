@@ -1,7 +1,7 @@
 import { InteractiveLevel } from "../InteractiveLevel";
 import { DEFAULT_SETTINGS, PinkHole } from "../TutorialSetup";
 
-export const tutorial08: InteractiveLevel = {
+export const pink_tutorial02: InteractiveLevel = {
     settings: DEFAULT_SETTINGS,
     steps: [{
         content: {

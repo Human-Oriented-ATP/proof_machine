@@ -4,7 +4,7 @@
     "displayUnlistedProblems": false,
     "categories": [
         {
-            "name": "Tutorial",
+            "name": "Tutorial I",
             "problems": [
                 "tutorial01",
                 "tutorial01a",
@@ -17,7 +17,7 @@
             "numberOfUnlockedProblems": 1000
         },
         {
-            "name": "Pink tutorial",
+            "name": "Tutorial II",
             "problems": [
                 "pink_tutorial01",
                 "pink_tutorial02",
