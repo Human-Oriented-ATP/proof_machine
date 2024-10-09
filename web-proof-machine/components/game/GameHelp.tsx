@@ -58,32 +58,36 @@ function BrokenConnection() {
 export function GameHelp({ settings }: { settings?: LevelConfiguration }) {
     const gadgetDeletionEnabled = settings?.gadgetDeletionEnabled ?? true;
     const proximityConnectEnabled = settings?.proximityConnectEnabled ?? true;
+    const panEnabled = settings?.panEnabled ?? true;
 
     return <>
         <h2 className="text-xl font-bold">Game Help</h2>
         <ul className="text-left leading-10 p-5">
             <HelpSection title="Connections">
                 <HelpItem>Connect all open connectors<OpenTargetConnector />to complete the gadget machine</HelpItem>
-                <HelpItem>The machine is only complete if there are no broken <span className="break-keep">connections<BrokenConnection /></span></HelpItem>
+                <HelpItem>The machine is not complete if there are any broken <span className="break-keep">connections<BrokenConnection /></span></HelpItem>
                 <HelpItem>Draw a line from<SourceConnector />to<TargetConnector />to create a connection</HelpItem>
                 <HelpItem>Click on<TargetConnector />to remove a connection</HelpItem>
+                {proximityConnectEnabled &&
+                    <HelpItem>Move gadgets close to each other and they will connect automatically</HelpItem>}
             </HelpSection>
 
             <HelpSection title="Gadgets">
                 <HelpItem>Drag gadgets from the gadget shelf to use them in the machine</HelpItem>
-                {proximityConnectEnabled &&
-                    <HelpItem>Move gadgets close to each other and they will connect automatically</HelpItem>}
-                <HelpItem>Press shift to select multiple gadgets</HelpItem>
+                <HelpItem>Click on a gadget to select it</HelpItem>
+                <HelpItem>Hold down shift to select multiple gadgets at once</HelpItem>
                 {gadgetDeletionEnabled && <>
                     <HelpItem>Press backspace <DeleteKeyIcon /> to remove selected gadgets</HelpItem>
                     <HelpItem>You can also drag gadgets over the gadget shelf to remove them</HelpItem>
                 </>}
             </HelpSection>
 
+            {panEnabled &&
             <HelpSection title="Navigation">
+                <HelpItem>Move or resize the picture as you would with a map app</HelpItem>
                 <HelpItem>Click on the crosshair <Crosshair1Icon className="inline w-[19px] h-[19px] align-text-bottom" /> to centre your gadget machine</HelpItem>
                 <HelpItem>Click on the canvas to deselect all gadgets</HelpItem>
-            </HelpSection>
+            </HelpSection>}
         </ul>
     </>
 }
