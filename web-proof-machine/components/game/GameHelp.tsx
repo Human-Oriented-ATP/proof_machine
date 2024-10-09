@@ -75,7 +75,7 @@ export function GameHelp({ settings }: { settings?: LevelConfiguration }) {
             <HelpSection title="Gadgets">
                 <HelpItem>Drag gadgets from the gadget shelf to use them in the machine</HelpItem>
                 <HelpItem>Click on a gadget to select it</HelpItem>
-                <HelpItem>Hold down shift to select multiple gadgets at once</HelpItem>
+                <HelpItem>Hold down shift and draw a box to select multiple gadgets at once</HelpItem>
                 {gadgetDeletionEnabled && <>
                     <HelpItem>Press backspace <DeleteKeyIcon /> to remove selected gadgets</HelpItem>
                     <HelpItem>You can also drag gadgets over the gadget shelf to remove them</HelpItem>
