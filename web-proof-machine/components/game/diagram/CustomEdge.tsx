@@ -1,6 +1,7 @@
-import { Edge, EdgeProps } from '@xyflow/react';
+import { ConnectionLineComponentProps, Edge, EdgeProps, useConnection, useReactFlow } from '@xyflow/react';
 import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
 import { EquationId } from 'lib/game/Unification';
+import { getHandlePositionOnScreen } from 'lib/hooks/ProximityConnect';
 
 export type EdgeWithEquation = Edge<{ eq: EquationId }, 'edgeWithEquation'>
 
@@ -11,9 +12,21 @@ export function CustomEdge({ ...props }: EdgeProps<EdgeWithEquation>): JSX.Eleme
         fromInput: true, toOutput: true
     }
 
-    return (
-        <g className='stroke-black'>
-            {connectionPath(data, 0, 20)}
-        </g>
-    )
+    return <g className='stroke-black'>
+        {connectionPath(data, 0, 20)}
+    </g>
+
+}
+
+export function ConnectionLineComponent(props: ConnectionLineComponentProps): JSX.Element {
+    const data: ConnectionDrawingData = {
+        start: { x: props.fromX, y: props.fromY },
+        end: {x : props.toX, y: props.toY},
+        fromInput: true,
+        toOutput: true
+    }
+    
+    return <g className='stroke-black'>
+        {connectionPath(data, 0, 20)}
+    </g>
 }

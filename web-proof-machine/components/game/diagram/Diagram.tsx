@@ -7,7 +7,7 @@ import {
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { CustomEdge, EdgeWithEquation } from './CustomEdge';
+import { ConnectionLineComponent, CustomEdge, EdgeWithEquation } from './CustomEdge';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
@@ -388,6 +388,7 @@ export function Diagram(props: DiagramProps) {
             zoomOnDoubleClick={false}
             autoPanOnConnect={false}
             autoPanOnNodeDrag={false}
+            connectionLineComponent={ConnectionLineComponent}
         >
             <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
         </ReactFlow>
