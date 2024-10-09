@@ -374,6 +374,9 @@ export function Diagram(props: DiagramProps) {
             onMove={() => props.setUserIsDraggingOrNavigating(true)}
             onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
             panOnDrag={props.panEnabled}
+            zoomOnDoubleClick={false}
+            autoPanOnConnect={false}
+            autoPanOnNodeDrag={false}
         >
             <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
         </ReactFlow>
