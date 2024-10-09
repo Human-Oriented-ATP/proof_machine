@@ -1,9 +1,10 @@
 .react-flow__handle {
     top: auto;
-    width: 24px;
-    height: 20px;
+    width: 40px;
+    height: 40px;
     transform: none;
     background-color: transparent;
+    align-content: center;
 }
 
 .react-flow__handle-left {
@@ -11,7 +12,7 @@
 }
 
 .react-flow__handle-right {
-    right: -10px;
+    right: -26px;
 }
 
 .react-flow__panel.center {

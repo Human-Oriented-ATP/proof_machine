@@ -6,7 +6,7 @@ export type EdgeWithEquation = Edge<{ eq: EquationId }, 'edgeWithEquation'>
 
 export function CustomEdge({ ...props }: EdgeProps<EdgeWithEquation>): JSX.Element {
     const data: ConnectionDrawingData = {
-        start: { x: props.sourceX - 5, y: props.sourceY },
+        start: { x: props.sourceX - 21, y: props.sourceY },
         end: { x: props.targetX + 9, y: props.targetY },
         fromInput: true, toOutput: true
     }
