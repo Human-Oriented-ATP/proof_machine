@@ -18,7 +18,7 @@ import { Term } from '../../../lib/game/Term';
 import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { ControlButtons } from './ControlButtons';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
-import { InitialViewportSetting, hasTargetHandle, init } from '../../../lib/util/ReactFlow';
+import { InitialViewportSetting, hasTargetHandle, initViewport } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
 import { useProximityConnect } from 'lib/hooks/ProximityConnect';
 import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
@@ -77,12 +77,14 @@ function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps
     }
 }
 
-function makeGadgetNode(id: GadgetId, gadget: InitialDiagramGadget, deletable: boolean): GadgetNode {
+function makeGadgetNode(id: GadgetId, gadget: InitialDiagramGadget, deletable: boolean, goalNodeDraggable: boolean): GadgetNode {
+    const draggable = id === "goal_gadget" ? goalNodeDraggable : true
     return {
         id,
         type: 'gadgetNode',
         position: gadget.position,
         deletable: deletable && id !== "goal_gadget",
+        draggable,
         data: getGadgetProps(id, gadget)
     }
 }
@@ -90,7 +92,9 @@ function makeGadgetNode(id: GadgetId, gadget: InitialDiagramGadget, deletable: b
 function getInitialNodes(props: DiagramProps): GadgetNode[] {
     const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
     const deletable = props.gadgetDeletionEnabled
-    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) => makeGadgetNode(gadgetId, gadget, deletable))
+    const goalNodeDraggable = props.panEnabled
+    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) =>
+        makeGadgetNode(gadgetId, gadget, deletable, goalNodeDraggable))
     return initialNodes
 }
 
@@ -350,6 +354,11 @@ export function Diagram(props: DiagramProps) {
 
     const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 
+    const init = useCallback(() => {
+        initViewport(rf, props.initialViewportSetting)
+        updateEdgeAnimation()
+    }, [])
+
     return <>
         {props.initData.axioms.length !== 0 && <GadgetPalette {...paletteProps} />}
         <ReactFlow
@@ -362,7 +371,7 @@ export function Diagram(props: DiagramProps) {
             onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
-            onInit={() => { init(rf, props.initialViewportSetting); updateEdgeAnimation() } }
+            onInit={init}
             onConnectStart={onConnectStart}
             onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
@@ -380,6 +389,6 @@ export function Diagram(props: DiagramProps) {
         >
             <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
         </ReactFlow>
-        <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} ></ControlButtons>
+        <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} panEnabled={props.panEnabled} ></ControlButtons>
     </>
 }

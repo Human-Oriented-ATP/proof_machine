@@ -3,6 +3,7 @@ import { Crosshair1Icon, MinusIcon, PlusIcon } from '@radix-ui/react-icons'
 
 export interface CustomControlProps {
     zoomEnabled: boolean
+    panEnabled: boolean
     rf: ReactFlowInstance
 }
 
@@ -21,6 +22,8 @@ export function ControlButtons(props: CustomControlProps): JSX.Element {
                 <ControlButton className={buttonClassNames} onClick={() => props.rf.zoomOut()}><MinusIcon className={svgClassNames} /></ControlButton>
             </>
         }
-        <ControlButton className={buttonClassNames} onClick={() => fitView()}><Crosshair1Icon className={svgClassNames} /></ControlButton>
+        {props.panEnabled &&
+            <ControlButton className={buttonClassNames} onClick={() => fitView()}><Crosshair1Icon className={svgClassNames} /></ControlButton>
+        }
     </Controls >
 }

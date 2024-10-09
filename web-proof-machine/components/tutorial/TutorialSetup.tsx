@@ -25,7 +25,8 @@ export function PinkHole() {
 export const RESTRICTIVE_SETTINGS: LevelConfiguration = {
     zoomEnabled: false,
     proximityConnectEnabled: false,
-    gadgetDeletionEnabled: false
+    gadgetDeletionEnabled: false,
+    panEnabled: false
 };
 
 export const DELETE_ONLY_SETTINGS = {
