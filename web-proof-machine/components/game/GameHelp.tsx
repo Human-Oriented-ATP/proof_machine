@@ -84,7 +84,7 @@ export function GameHelp({ settings }: { settings?: LevelConfiguration }) {
 
             {panEnabled &&
             <HelpSection title="Navigation">
-                <HelpItem>Move or resize the picture as you would with a map app</HelpItem>
+                <HelpItem>Move or resize the work bench as you would with a map app</HelpItem>
                 <HelpItem>Click on the crosshair <Crosshair1Icon className="inline w-[19px] h-[19px] align-text-bottom" /> to centre your gadget machine</HelpItem>
                 <HelpItem>Click on the canvas to deselect all gadgets</HelpItem>
             </HelpSection>}
