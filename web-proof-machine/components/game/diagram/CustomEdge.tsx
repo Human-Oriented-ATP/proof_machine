@@ -1,7 +1,6 @@
 import { ConnectionLineComponentProps, Edge, EdgeProps, useConnection, useReactFlow } from '@xyflow/react';
 import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
 import { EquationId } from 'lib/game/Unification';
-import { getHandlePositionOnScreen } from 'lib/hooks/ProximityConnect';
 
 export type EdgeWithEquation = Edge<{ eq: EquationId }, 'edgeWithEquation'>
 
