@@ -1,7 +1,8 @@
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
-import { InteractiveLevel } from "../InteractiveLevel";
+import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
 import { DELETE_ONLY_SETTINGS } from "../TutorialSetup";
+import { DragIndicatorProps } from "../DragIndicator";
 
 const tutorial05InitialDiagram: InitialDiagram = {
     gadgets: new Map([
@@ -12,25 +13,33 @@ const tutorial05InitialDiagram: InitialDiagram = {
     ]),
     connections: []
 };
+
+const dragOverGadgetShelf: DragIndicatorProps<GadgetPosition> = {
+    origin: { gadget: { elementId: "initial_gadget_3" }, anchorPoint: "CENTER_MIDDLE", offset: { x: 0, y: 0 } },
+    destination: { absolutePosition: { gadget: { elementId: "gadget_palette" }, anchorPoint: "CENTER_MIDDLE", offset: { x: 0, y: 0 } } },
+    drawLine: false
+};
+
 export const tutorial05: InteractiveLevel = {
     settings: DELETE_ONLY_SETTINGS,
     initialDiagram: tutorial05InitialDiagram,
     steps: [{
         content: {
             jsx: <>What chaos! Drag gadgets over the gadget shelf to delete them.</>,
+            dragIndicator: dragOverGadgetShelf
         },
         trigger: { GadgetRemoved: {} }
     }, {
         content: {
-            jsx: <>What chaos! Drag gadgets over the gadget shelf to delete them.</>,
+            jsx: <>Well done! Remove the other gadgets in the same way.</>,
         },
         trigger: { GadgetRemoved: {} }
-    },{
+    }, {
         content: {
-            jsx: <>What chaos! Drag gadgets over the gadget shelf to delete them.</>,
+            jsx: <>Well done! Remove the other gadgets in the same way.</>,
         },
         trigger: { GadgetRemoved: {} }
-    },{
+    }, {
         content: {
             jsx: <>That's better, now solve the level!</>,
         },

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatedHand } from "./AnimatedHand";
 import { XYPosition } from "@xyflow/react";
 
-export type AnchorPoint = "BOTTOM_RIGHT" | "CENTER_RIGHT" | "CENTER_LEFT"
+export type AnchorPoint = "BOTTOM_RIGHT" | "CENTER_RIGHT" | "CENTER_LEFT" | "CENTER_MIDDLE"
 
 export interface AdjustablePosition {
     anchorPoint: AnchorPoint
@@ -25,6 +25,7 @@ function getXYPosition(rect: DOMRect, position: AnchorPoint): XYPosition {
         case "BOTTOM_RIGHT": return { x: rect.right, y: rect.bottom }
         case "CENTER_RIGHT": return { x: rect.right, y: rect.top + rect.height / 2 }
         case "CENTER_LEFT": return { x: rect.left, y: rect.top + rect.height / 2 }
+        case "CENTER_MIDDLE": return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
         default: throw Error(`Invalid position ${position}`)
     }
 }
