@@ -321,14 +321,16 @@ export function Diagram(props: DiagramProps) {
 
     const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
         if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
+            const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
             if (gadgetThatIsBeingAdded.current !== undefined) {
                 gadgetThatIsBeingAdded.current = undefined
+                deleteEquationsOfEdges(edgesToBeDeleted)
+                setNodes(nodes => nodes.filter(n => n.id !== node.id))
             } else {
                 props.removeGadget(node.id)
+                deleteEquationsOfEdges(edgesToBeDeleted)
+                setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
             }
-            const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
-            deleteEquationsOfEdges(edgesToBeDeleted)
-            setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
             setEdges(edges => edges.filter(e => node.id !== e.source && node.id !== e.target))
         } else {
             if (gadgetThatIsBeingAdded.current !== undefined) {
