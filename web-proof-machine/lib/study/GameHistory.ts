@@ -9,7 +9,8 @@ export type GameEvent = { GameCompleted: null }
     | { ConnectionRemoved: { from?: GadgetId, to?: [GadgetId, NodePosition] } };
 
 export class GameHistory {
-    public problemId: string | undefined;
+    public problemId: string | undefined
+    public config: string | undefined
 
     public startTime: Date
     public lastSynchronized: Date
@@ -17,11 +18,15 @@ export class GameHistory {
 
     public log: [GameEvent, Date][]
 
-    constructor(problemId?: string) {
+    constructor(problemId: string, config: string) {
         this.completed = false;
         this.startTime = new Date();
         this.log = [];
         this.problemId = problemId;
+        this.config = config
+        if (this.config === undefined || this.problemId === undefined) {
+            console.log("Game data is not being recorded.");
+        }
     }
 
     logEvent(event: GameEvent) {

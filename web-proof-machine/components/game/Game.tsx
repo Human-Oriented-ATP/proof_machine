@@ -16,6 +16,7 @@ import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 export interface GameProps {
     initData: InitializationData
     problemId?: string
+    config?: string
     markLevelAsCompleted?: (levelIsCompleted: boolean) => void
     setDiagramHasBrokenConnection?: (diagramHasBrokenConnection: boolean) => void
     initialViewportSetting?: InitialViewportSetting
@@ -72,7 +73,7 @@ export function Game(props: GameProps) {
 
     const enumeration = useRef<TermEnumerator>(new TermEnumerator(getMaximumNumberInGameData(props.initData)))
 
-    const history = useRef<GameHistory>(new GameHistory(props.problemId))
+    const history = useRef<GameHistory>(new GameHistory(props.problemId, props.config))
 
     const [userIsDraggingOrNavigating, setUserIsDraggingOrNavigating] = useState(false)
 

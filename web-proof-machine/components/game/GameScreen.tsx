@@ -40,6 +40,7 @@ export function GameScreen(props: GameScreenProps) {
         <div className="grow">
             <Game 
                 problemId={props.problemId}
+                config={props.configuration.name}
                 initData={initData}
                 markLevelAsCompleted={markLevelAsCompleted}
                 setDiagramHasBrokenConnection={setDiagramHasBrokenConnection}
