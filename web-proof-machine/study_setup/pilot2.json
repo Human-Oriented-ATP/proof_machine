@@ -7,32 +7,50 @@
             "name": "Tutorial",
             "problems": [
                 "tutorial01",
+                "tutorial01a",
                 "tutorial02",
                 "tutorial03",
                 "tutorial04",
                 "tutorial05",
-                "tutorial06",
-                "tutorial07",
-                "jacob_easy03",
-                "tim_easy11",
-		"tim_easy13",    
-		"tim_easy12"    
-            ]
+                "tutorial06"
+            ],
+            "numberOfUnlockedProblems": 1000
         },
         {
-            "name": "Puzzles",
+            "name": "Set I",
             "problems": [
+                "tim_easy10",
+                "tim_easy13",
                 "tim18",
+                "tim17",
+                "tim19"
+            ],
+            "categoryUnlockThreshold": 0,
+            "numberOfUnlockedProblems": 1000
+        },
+        {
+            "name": "Tutorial II",
+            "problems": [
+                "pink_tutorial01",
+                "pink_tutorial02",
+                "pink_tutorial03",
+                "pink_tutorial04",
+                "pink_tutorial05"
+            ],
+            "categoryUnlockThreshold": 0,
+            "numberOfUnlockedProblems": 1000
+        },
+        {
+            "name": "Set II",
+            "problems": [
                 "jacob_easy05",
+                "tim20",
                 "tim16",
-		"tim20",
-		"tim_easy09",
-		"tim29",
-		"tim02",
-		"tim_easy06",
-		"jacob08",
-		"tim25"
-            ]
+                "tim_easy09",
+                "tim29"
+            ],
+            "categoryUnlockThreshold": 0,
+            "numberOfUnlockedProblems": 1000
         }
     ]
 }
