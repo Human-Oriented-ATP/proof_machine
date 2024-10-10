@@ -12,13 +12,18 @@ export default function MainScreen({ allProblems }: { allProblems: string[] }) {
         <h2 className="text-xl p-4">You might find the following interesting:</h2>
         <div>
             <div className="m-1.5 inline-block">
-                <Link href="pilot1">
-                    <Button><span className="text-red">Participate in pilot 1</span></Button>
+                <Link href="new-tutorial">
+                    <Button>Interactive Tutorial</Button>
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
-                <Link href="new-tutorial">
-                    <Button>Interactive Tutorial</Button>
+                <Link href="pilot1">
+                    <Button>Pilot 1</Button>
+                </Link>
+            </div>
+            <div className="m-1.5 inline-block">
+                <Link href="pilot1">
+                    <Button>Pilot 2</Button>
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
