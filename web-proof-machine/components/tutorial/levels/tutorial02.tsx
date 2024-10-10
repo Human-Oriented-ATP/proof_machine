@@ -28,7 +28,7 @@ const tutorial02DragIndicatorDeleteConnection: DragIndicatorProps<GadgetPosition
     endWithClick: true
 };
 function ConverterGadget() {
-    return <div className="inline-block backdrop-blur scale-75 align-middle">
+    return <div className="inline-block backdrop-blur-sm scale-75 align-middle">
         <AssignmentContext.Provider value={axiomTermEnumeration}>
             <Gadget id="tutorial_explanation"
                 isAxiom={true}
