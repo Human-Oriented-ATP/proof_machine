@@ -18,7 +18,7 @@ export class GameHistory {
 
     public log: [GameEvent, Date][]
 
-    constructor(problemId: string, config: string) {
+    constructor(problemId?: string, config?: string) {
         this.completed = false;
         this.startTime = new Date();
         this.log = [];

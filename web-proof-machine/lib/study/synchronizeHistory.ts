@@ -53,13 +53,3 @@ export async function synchronizeHistory(historyString: string) {
         console.log(error);
     }
 }
-
-export async function retrieveHistory(playerId: string, problemId: string) {
-    try {
-        const x = await sql`SELECT * FROM testing_0 WHERE player_id=${playerId} AND problem_id=${problemId} ORDER BY latest DESC`
-        return x
-    } catch (error) {
-        console.log("Error retrieving history.")
-        console.log(error)
-    }
-}

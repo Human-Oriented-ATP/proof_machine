@@ -24,11 +24,6 @@ export default function MainScreen({ allProblems }: { allProblems: string[] }) {
             <div className="m-1.5 inline-block">
                 <ResetProgressButton />
             </div>
-            <div className="m-1.5 inline-block">
-                <Link href="internal/view">
-                    <Button>View Game History</Button>
-                </Link>
-            </div>
         </div>
 
         <h2 className="text-xl p-4">Choose the game you want to play:</h2>
