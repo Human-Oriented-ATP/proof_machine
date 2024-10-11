@@ -12,6 +12,14 @@ import { pink_tutorial03 } from "./levels/pink_tutorial03";
 import { pink_tutorial04 } from "./levels/pink_tutorial04";
 import { pink_tutorial05 } from "./levels/pink_tutorial05";
 
+const firstLevelAfterTutorial: InteractiveLevel = {
+    steps: [{ content: {
+            jsx: <div>
+                <p>You've finished the tutorial! Click the Help button if you get stuck.</p>
+            </div>,
+        }}]
+}
+
 export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map([
     ["tutorial01", tutorial01],
     ["tutorial01a", tutorial01a],
@@ -24,5 +32,6 @@ export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map(
     ["pink_tutorial02", pink_tutorial02],
     ["pink_tutorial03", pink_tutorial03],
     ["pink_tutorial04", pink_tutorial04],
-    ["pink_tutorial05", pink_tutorial05]
+    ["pink_tutorial05", pink_tutorial05],
+    ["tim_easy10", firstLevelAfterTutorial],
 ])

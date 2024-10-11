@@ -21,9 +21,9 @@
             "problems": [
                 "tim_easy10",
                 "tim_easy13",
-                "tim18",
                 "tim17",
-                "tim19"
+                "tim19",
+                "tim18"
             ],
             "categoryUnlockThreshold": 0,
             "numberOfUnlockedProblems": 1000
