@@ -41,9 +41,9 @@ def newSubgoal (key : CellKey) (goalId : GoalId) (axioms : Array AxiomApplicatio
   Remark: `mctx` is set using `withMCtx`.
   If it succeeds, the result is a new updated metavariable context and a new list of subgoals.
   A subgoal is created for each hypothesis of `ax`. -/
-def tryAxiom (goalId : GoalId) (ax : AxiomApplication) : SearchM (Option (Array GoalId)) := do
-  let goalString ← goalId.toString
-  if ← unify ax.gadget.conclusion (← goalId.getGoal!) then
+def tryAxiom (goalId : GoalId) (goal : Cell) (ax : AxiomApplication) : SearchM (Option (Array GoalId)) := do
+  let goalString ← goal.toString
+  if ← unify ax.gadget.conclusion goal then
     increment
     logMessage s!"applied axiom {← ax.gadget.toString} to {goalString}"
     let goals ← ax.gadget.hypotheses.mapM mkFreshGoalVar
@@ -204,6 +204,12 @@ def generate (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
     let goalId := gNode.goalId
     setMCtx gNode.mctx
     setGCtx gNode.goalctx
+
+    let goal ← goalId.getInstantiatedGoal -- instantiate to make log look better
+    -- if let some proof ← goal.findCachedProof? then
+    --   goalId.assign proof
+    --   pop
+
     /- See comment at `typeHasMVars` -/
     -- unless gNode.goalHasMVars do
     --   if let some entry := (← get).tableEntries[key]? then
@@ -225,7 +231,7 @@ def generate (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
       -- withTraceNode `Meta.synthInstance
       --   (return m!"{exceptOptionEmoji ·} apply {ax.val} to {← instantiateMVars (← inferType goal)}") do
     modify fun s => { s with tableEntries := s.tableEntries.insert key { entry with gNode.currAxiomIdx := idx }}
-    if let some subgoals ← tryAxiom goalId ax then
+    if let some subgoals ← tryAxiom goalId goal ax then
       consume goalId key subgoals 1 #[← getUnique]
 
 /--
@@ -276,17 +282,14 @@ def getPartialResult (goalId : GoalId) : SearchM ProofTree := do
   goalId.toProofTree
 
 partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree := do
+  let { stepCount, .. } ← get
+  if timeout?.any (· ≤ stepCount) then
+    getPartialResult goalId
+  else
   if (← step) then
     match (← getResult) with
     | none        =>
-      let { stepCount, .. } ← get
-      if let some timeout := timeout? then
-        if timeout ≤ stepCount then
-          getPartialResult goalId
-        else
-          synth timeout? goalId
-      else
-        synth timeout? goalId
+      synth timeout? goalId
     | some cInfo =>
       cInfo.name.toProofTree
   else

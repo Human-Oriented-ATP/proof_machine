@@ -1,5 +1,6 @@
 import Std.Data.HashMap
 import GadgetGameSolver.Primitives
+import GadgetGameSolver.Jovan.Init
 
 namespace JovanGadgetGame
 

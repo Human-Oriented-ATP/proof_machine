@@ -52,24 +52,6 @@ structure TableEntry where
   loopyWaiters : Array Waiter
   answers      : Array Answer
 
-structure Config where
-  depthFirst             : Bool
-  fewerCasesFirst        : Bool
-  -- simplerSolutionsFirst  : Bool
-  orderSubgoalsAndAxioms : Bool
-  postponeLoopSearch     : Bool
-  postponeSpiralSearch   : Bool
-  useOldSpiralDetect     : Bool
-
-def Priority.cmp (p q : Priority) (config : Config) :=
-  let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
-  -- let cmp := cmp.then <| if config.simplerSolutionsFirst then compare q.size p.size else .eq
-  cmp.then <|
-    if config.depthFirst then
-      timesCmpDFS p.times q.times
-    else
-      timesCmpBFS p.times q.times
-
 structure Context where
   maxResultSize : Option Nat
   axioms        : Std.HashMap (String × Nat) (Array ConstantInfo)
@@ -94,6 +76,12 @@ structure State where
 abbrev SearchM := ReaderT Context StateRefT State (EIO String)
 instance {α} : Inhabited (SearchM α) := ⟨throw default⟩
 
+instance : MonadUnique SearchM where
+  getUnique := modifyGet fun s => (s.uniqueNum, { s with uniqueNum := s.uniqueNum + 1 })
+
+instance : MonadConfig SearchM where
+  getConfig := return (← get).config
+
 instance : MonadMCtx SearchM where
   getMCtx      := return (← get).mctx
   modifyMCtx f := modify fun s => { s with mctx := f s.mctx }
@@ -102,16 +90,13 @@ instance : Iterate.MonadMCtx SearchM where
   getMCtx      := return (← get).imctx
   modifyMCtx f := modify fun s => { s with imctx := f s.imctx }
 
-instance : MonadGCtx SearchM where
-  getGCtx      := return (← get).gctx
-  modifyGCtx f := modify fun s => { s with gctx := f s.gctx }
-
 instance : MonadEnv SearchM where
   getEnv      := return (← get).env
   modifyEnv f := modify fun s => { s with env := f s.env}
 
-instance : MonadUnique SearchM where
-  getUnique := modifyGet fun s => (s.uniqueNum, { s with uniqueNum := s.uniqueNum + 1 })
+instance : MonadGCtx SearchM where
+  getGCtx      := return (← get).gctx
+  modifyGCtx f := modify fun s => { s with gctx := f s.gctx }
 
 @[inline] def timeit {α} (k : SearchM α) : SearchM α := do
   let t0 ← IO.monoNanosNow
@@ -119,8 +104,6 @@ instance : MonadUnique SearchM where
   let t1 ← IO.monoNanosNow
   modify fun s => { s with time := s.time + (t1 - t0) }
   pure a
-
-def getConfig : SearchM Config := return (← get).config
 
 def logMessage (msg : String) : SearchM Unit := modify fun s => { s with log := s.log.push s!"{s.stepCount}: {msg}" }
 

@@ -157,7 +157,6 @@ def insertAbstractedCell (c : AbstractedCell) (v : α) (tree : DiscrTree α) : D
 
 end Insert
 
-section
 structure PartialMatch where
   assignments : Lean.RBMap Nat Expr compare := {}
   todo        : List Expr
@@ -186,7 +185,7 @@ partial def getMatchLoop (p : PartialMatch) (results : Array α) (trie : Trie α
       let f : Function := { f, numArgs := args.size }
       match children.find? f with
       | some trie =>
-        let p := { p with todo := args.foldr (init := p.todo) fun arg todo => arg :: todo }
+        let p := { p with todo := args.toList ++ p.todo }
         getMatchLoop p results trie
       | none =>
         results
@@ -196,3 +195,12 @@ def getMatch (c : Cell) (tree : DiscrTree α) : Array α :=
   | none      => #[]
   | some trie =>
     getMatchLoop { todo := c.args.toList } #[] trie
+
+partial def Trie.size : Trie α → Nat
+| .node stars children values =>
+  let s := values.size
+  let s := stars.foldl (init := s) fun s _ t => s + t.size
+  children.foldl (init := s) fun s _ t => s + t.size
+
+def size (tree : DiscrTree α) : Nat :=
+  tree.root.fold (init := 0) fun s _ t => s + t.size

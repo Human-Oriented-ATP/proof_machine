@@ -48,7 +48,7 @@ instance ProofTree.decideIfClosed : DecidablePred ProofTree.isClosed
 
 partial def ProofTree.depth : ProofTree → Nat
   | .goal _ => 0
-  | .node _ goals => 1 + (goals.map depth).maximum?.getD 0
+  | .node _ goals => 1 + (goals.map depth).max?.getD 0
 
 abbrev ClosedProofTree := { tree : ProofTree // tree.isClosed }
 

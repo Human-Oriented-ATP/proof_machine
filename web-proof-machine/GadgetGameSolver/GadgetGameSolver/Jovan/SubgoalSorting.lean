@@ -1,4 +1,4 @@
-import GadgetGameSolver.Jovan.Basic
+import GadgetGameSolver.Jovan.SearchM
 
 /-!
 when choosing the next subgoal in a consumer node, we want to do so wisely.

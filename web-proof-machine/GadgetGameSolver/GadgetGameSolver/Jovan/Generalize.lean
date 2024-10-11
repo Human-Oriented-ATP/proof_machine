@@ -1,4 +1,4 @@
-import GadgetGameSolver.Jovan.Basic
+import GadgetGameSolver.Jovan.SearchM
 
 namespace JovanGadgetGame
 

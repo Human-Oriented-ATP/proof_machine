@@ -1,3 +1,4 @@
+import GadgetGameSolver.Jovan.Init
 
 namespace JovanGadgetGame
 
@@ -55,3 +56,12 @@ def rootPriority : Priority where
   numCases := 1
   -- size          := 0
   times         := #[]
+
+def Priority.cmp (p q : Priority) (config : Config) :=
+  let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
+  -- let cmp := cmp.then <| if config.simplerSolutionsFirst then compare q.size p.size else .eq
+  cmp.then <|
+    if config.depthFirst then
+      timesCmpDFS p.times q.times
+    else
+      timesCmpBFS p.times q.times
