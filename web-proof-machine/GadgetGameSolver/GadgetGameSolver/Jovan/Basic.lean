@@ -1,4 +1,5 @@
-import GadgetGameSolver.Jovan.Variables
+import GadgetGameSolver.Jovan.IteratedVariables
+import GadgetGameSolver.Jovan.ProofVariables
 import GadgetGameSolver.Jovan.Stack
 import GadgetGameSolver.Jovan.Priority
 
@@ -58,6 +59,7 @@ structure Config where
   orderSubgoalsAndAxioms : Bool
   postponeLoopSearch     : Bool
   postponeSpiralSearch   : Bool
+  useOldSpiralDetect     : Bool
 
 def Priority.cmp (p q : Priority) (config : Config) :=
   let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
@@ -75,6 +77,7 @@ structure Context where
 structure State where
   config         : Config -- should really be in the Context instead
   mctx           : MVarContext := {}
+  imctx          : Iterate.MVarContext := {}
   gctx           : GoalContext := {}
   env            : Environment := {}
   uniqueNum      : Nat := 1
@@ -94,6 +97,10 @@ instance {α} : Inhabited (SearchM α) := ⟨throw default⟩
 instance : MonadMCtx SearchM where
   getMCtx      := return (← get).mctx
   modifyMCtx f := modify fun s => { s with mctx := f s.mctx }
+
+instance : Iterate.MonadMCtx SearchM where
+  getMCtx      := return (← get).imctx
+  modifyMCtx f := modify fun s => { s with imctx := f s.imctx }
 
 instance : MonadGCtx SearchM where
   getGCtx      := return (← get).gctx

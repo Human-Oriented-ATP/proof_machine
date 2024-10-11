@@ -57,9 +57,8 @@ structure AbstractedCell where
   args : Array AbstractedExpr
   deriving Inhabited, BEq
 
-structure CellKey where
-  cell : AbstractedCell
-  hash : UInt64 := cell.args.foldl (init := hash cell.f) (mixHash · <| hash ·)
+structure CellKey extends AbstractedCell where
+  hash : UInt64 := args.foldl (init := hash f) (mixHash · <| hash ·)
   deriving Inhabited, BEq
 
 instance : Hashable CellKey := ⟨CellKey.hash⟩
@@ -101,9 +100,7 @@ def abstractExpr (e : Expr) : StateM MkCellKeyState AbstractedExpr := do
     return .app f args
 
 def abstractCell (c : Cell) : StateM MkCellKeyState CellKey :=
-  return {
-    cell.f    := c.f
-    cell.args := ← c.args.mapM abstractExpr }
+  return { c with args := ← c.args.mapM abstractExpr }
 
 def Cell.abstract (c : Cell) : CellKey := abstractCell c |>.run' {}
 

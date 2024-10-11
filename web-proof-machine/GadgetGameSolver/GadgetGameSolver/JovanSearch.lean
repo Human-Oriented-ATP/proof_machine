@@ -60,7 +60,7 @@ def useAnswer (answer : Answer) (goalId : GoalId) : SearchM Unit := do
   if ← unify gadget.conclusion (← goalId.getGoal!) then
     goalId.assign (.node answer.cInfo.name mvars #[])
   else
-    throw "failed to try anser"
+    throw "failed to use anser"
 
 /-- Move waiters that are waiting for the given answer to the resume stack. -/
 def wakeUp (answer : Answer) (isLoopy : Bool) : Waiter → SearchM Unit

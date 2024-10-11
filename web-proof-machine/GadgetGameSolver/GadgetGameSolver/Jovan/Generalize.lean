@@ -1,14 +1,15 @@
-import GadgetGameSolver.Jovan.Unification
 import GadgetGameSolver.Jovan.Basic
 
 namespace JovanGadgetGame
 
 partial def generalizeProof (proof : Proof) : SearchM Proof := do
   let (result, _) ← go proof
-  return result
+  result.instantiateVars! -- instantiate term metavariables
 where
   go : Proof → SearchM (Proof × AbstractedCell × Array Expr)
-  | .goal _ => throw "proof contains a hole"
+  | .goal goalId => do
+    let some proof ← goalId.getAssignment? | throw "proof contains an uninstantiated hole"
+    go proof
   | .node name _ proofs => do
     let gadget := (← name.getConstInfo).gadget
     if h : proofs.size = gadget.hypotheses.size then
@@ -27,8 +28,7 @@ where
 /-- Expands the `Environment` with a new proof constant. -/
 def GoalId.addFreshConstantInfo (goalId : GoalId) : SearchM ConstantInfo := do
   let some proof ← goalId.getAssignment? | throw "goalId is unassigned"
-  let proof ← generalizeProof (← proof.instantiate!)
-  let proof ← proof.instantiate!
+  let proof ← generalizeProof proof
   let conclusion ← proof.inferType
   let gadget : Gadget := { conclusion, hypotheses := #[] }
   let cInfo := {

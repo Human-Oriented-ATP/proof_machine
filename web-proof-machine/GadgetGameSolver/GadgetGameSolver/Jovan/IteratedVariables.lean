@@ -1,4 +1,4 @@
-import GadgetGameSolver.Jovan.Variables
+import GadgetGameSolver.Jovan.TermVariables
 
 /-! Iterating variables -/
 
