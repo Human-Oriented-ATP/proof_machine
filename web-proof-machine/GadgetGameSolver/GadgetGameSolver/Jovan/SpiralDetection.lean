@@ -51,7 +51,7 @@ where
           go depth s mvarId
         else
           let depth := depth + 1
-          (e.collectMVars {}).result.foldM (go depth) s
+          (e.collectMVars {}).arr.foldlM (go depth) s
       return s.erase mvarId
     | some (some depth') =>
       if depth = depth' then
@@ -74,29 +74,33 @@ def Cell.findMVar? (c : Cell) (p : MVarId → Bool) : Option MVarId :=
 partial def isSpiralDeprecated (cNode : ConsumerNode) : SearchM Bool :=
   withMCtx {} do
   let (origGoal, nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
-  go cNode.key origGoal nextGoal
+  go cNode.key origGoal nextGoal []
 where
-  go (key : CellKey) (origGoal goal : Cell) : SearchM Bool := do
-    let goal ← goal.instantiateMVars
-    let origGoal ← origGoal.instantiateMVars
-    let mctx ← getMCtx
-    let mvarIds := (goal.collectMVars {}).result
-    if mvarIds.isEmpty || (origGoal.findMVar? (mvarIds.contains)).isNone then
-      return false
-    if ← unifyLeft goal origGoal then
-      let r ← isSpiralingAssignment mvarIds
-      setMCtx mctx
-      if r then
-        return true
-    let { waiters, .. } ← getEntry key
-    waiters.allM fun
-    | .root               => pure false
-    | .consumerNode cNode => do
-      setMCtx mctx
-      let (goal', nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
-      unless ← unify goal' goal do
-        throw s!"goals {← goal.toString} and {← goal'.toString} don't unify"
-      go cNode.key origGoal nextGoal
+  go (key : CellKey) (origGoal goal : Cell) (stack : List CellKey) : SearchM Bool := do
+    if stack.contains key then
+      return true
+    else
+      let stack := key :: stack
+      let goal ← goal.instantiateMVars
+      let origGoal ← origGoal.instantiateMVars
+      let mctx ← getMCtx
+      let mvarIds := (goal.collectMVars {}).set
+      if mvarIds.isEmpty || (origGoal.findMVar? (mvarIds.contains)).isNone then
+        return false
+      if ← unifyLeft goal origGoal then
+        let r ← isSpiralingAssignment mvarIds
+        setMCtx mctx
+        if r then
+          return true
+      let { waiters, .. } ← getEntry key
+      waiters.allM fun
+      | .root               => pure false
+      | .consumerNode cNode => do
+        setMCtx mctx
+        let (goal', nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
+        unless ← unify goal' goal do
+          throw s!"goals {← goal.toString} and {← goal'.toString} don't unify"
+        go cNode.key origGoal nextGoal stack
 
 
 
@@ -185,33 +189,37 @@ def Cell.hasTrueDownMVars (c : Cell) : SearchM Bool :=
 
 partial def isSpiral (cNode : ConsumerNode) (goal : JovanGadgetGame.Cell) : SearchM Bool := do
   setMCtx {}
-  -- logMessage s!"Checking spirality of {← goal.toString}"
   let (origGoal, nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
-  -- logMessage s!"starting off with {← origGoal.toString} =?= {← goal.toIteratedCell.toString}"
   let origGoal := { origGoal with args := origGoal.args.map (·.decrement 1) }
   if ← unifyPoint origGoal goal.toIteratedCell then
-    go cNode origGoal nextGoal
+    go cNode.key origGoal nextGoal []
   else
     throw "generalized implication doesn't unify with its original"
 where
-  go (cNode : ConsumerNode) (origGoal goal : Cell) : SearchM Bool := do
-    let origGoal ← origGoal.instantiateMVars
-    let goal ← goal.instantiateMVars
-    let mctx ← getMCtx
-    -- logMessage s!"Unifying {← origGoal.toString} =?= {← goal.toString}"
-    if ← unify goal origGoal then
-      let isSpiral ← goal.hasTrueDownMVars
-      -- logMessage s!"succeeded, but is it a real spiral? {isSpiral}"
-      setMCtx mctx
-      if isSpiral then
-        return true
-    let { waiters, .. } ← getEntry cNode.key
-    waiters.allM fun
-    | .root               => pure false
-    | .consumerNode cNode => do
-      setMCtx mctx
-      let (goal', nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
-      -- logMessage s!"block-building: {← goal'.toString} =?= {← goal.toString}"
-      unless ← unify goal' goal do
-        return false -- throw s!"goals {← goal.toString} and {← goal'.toString} don't unify"
-      go cNode origGoal nextGoal
+  /-- We can't go through every possible implication leading to `key`, because of circles.
+      So to simplify, we only look at each `key` at most once. -/
+  go (key : CellKey) (origGoal goal : Cell) (stack : List CellKey) : SearchM Bool := do
+    if stack.contains key then
+      /- HMMM, should this be true or false? -/
+      return true
+    else
+      let stack := key :: stack
+      let origGoal ← origGoal.instantiateMVars
+      let goal ← goal.instantiateMVars
+      let mctx ← getMCtx
+      if ← unify goal origGoal then
+        let isSpiral ← goal.hasTrueDownMVars
+        setMCtx mctx
+        if isSpiral then
+          return true
+      let { waiters, .. } ← getEntry key
+      waiters.allM fun
+      | .root               => pure false
+      | .consumerNode cNode => do
+        setMCtx mctx
+        let (goal', nextGoal) ← generalizeImplication cNode.proof cNode.nextSubgoalId
+        unless ← unify goal' goal do
+          /- HMMM, should this be true or false? -/
+          throw s!"goals {← goal.toString} and {← goal'.toString} don't unify"
+          return true
+        go cNode.key origGoal nextGoal stack

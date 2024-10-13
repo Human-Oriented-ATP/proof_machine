@@ -85,18 +85,19 @@ def CellDifficulty.gt (a b : CellDifficulty) : Bool :=
 def checkAxioms (goal : Cell) : SearchM (CellDifficulty × Array AxiomApplication) := do
   let axioms ← getAxioms goal
   let filteredAxioms ← axioms.filterMapM (checkAxiom goal)
-  let difficulty := if filteredAxioms.size ≤ 1 then none else some (filteredAxioms.foldl (init := 0) (· + ·.2))
+  let difficulty := if (← getConfig).easyGoalsFirst && filteredAxioms.size ≤ 1 then none else some (filteredAxioms.foldl (init := 0) (· + ·.2))
   let filteredAxioms := filteredAxioms.qsort (·.2 > ·.2) |>.map (·.1)
+  logMessage s!"{difficulty}: {← goal.toString}"
   return (difficulty, filteredAxioms)
 
 /--
 Returns the easiest goal with its applicable axioms sorted from difficult to easy, and the remaining goals.
 Returns `.error true` if there are no goals. Returns `.error false` if some goals can't be solved. -/
-def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ Answer)) × Array GoalId)) := do
+def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ ConstantInfo)) × Array GoalId)) := do
   let some goals ← OptionT.run <| goals.mapM fun goalId => do
     let goal ← goalId.getInstantiatedGoal
-    if let some answer ← goal.getCached? then
-      return (none, goalId, .inr answer)
+    if let some cInfo ← goal.getCached? then
+      return (none, goalId, .inr cInfo)
     let (difficulty, axioms) ← checkAxioms goal
     if axioms.isEmpty then
       failure

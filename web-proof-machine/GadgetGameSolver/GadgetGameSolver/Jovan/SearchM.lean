@@ -14,6 +14,7 @@ structure AxiomApplication where
 /-- A goal in the tabled (type class) resolution. -/
 structure GeneratorNode where
   goalId       : GoalId
+  mvars        : Array MVarId
   mctx         : MVarContext
   goalctx      : GoalContext
   axioms       : Array AxiomApplication
@@ -23,13 +24,22 @@ structure GeneratorNode where
 structure ConsumerNode where
   goalId        : GoalId
   key           : CellKey
+  origMVars     : Array MVarId
+  anyAssigned   : Bool
   proof         : Proof
   mctx          : MVarContext
   goalctx       : GoalContext
   nextSubgoalId : GoalId
   laterSubgoals : Array GoalId
-  duplication   : UsedGoals
+  allSubgoals   : Std.HashMap CellKey Bool
   times         : Array Nat -- times of creating/modifying this node
+  deriving Inhabited
+
+structure ResumeEntry where
+  cNode       : ConsumerNode
+  cInfo       : ConstantInfo
+  allSubgoals : Std.HashMap CellKey Bool
+  counts?     : Bool
   deriving Inhabited
 
 inductive Waiter where
@@ -40,11 +50,20 @@ def Waiter.isRoot : Waiter → Bool
   | .consumerNode _ => false
   | .root           => true
 
+structure Answer where
+  cInfo       : ConstantInfo -- this constant must have 0 hypotheses.
+  /-- We store which goals are a part of this answer, to avoid looping answers.
+  However, we should be careful to not block loops coming from e.g. a swapper,
+  as these loops may need multiple applications before returning to the initial position,
+  at which point they are automatically stopped, due to not giving a new answer to the same goal.
+  So we store in a `Bool` whether the subgoal appears at a depth -/
+  allSubgoals : Std.HashMap CellKey Bool
+  deriving Inhabited
+
 structure TableEntry where
   gNode        : GeneratorNode
   priority     : Priority
   waiters      : Array Waiter
-  loopyWaiters : Array Waiter
   isSolved     : Bool
   answers      : Array Answer
 
@@ -61,8 +80,8 @@ structure State where
   stepCount      : Nat := 0
   result?        : Option ConstantInfo := none
   generatorStack : PriorityQueue Priority CellKey (·.cmp · config) := {}
-  resumeStack    : Array (ConsumerNode × Answer)                         := #[]
-  loopyStack     : Queue (ConsumerNode × Answer ⊕ CellKey)        := {}
+  resumeStack    : Array ResumeEntry              := #[]
+  loopyStack     : Queue (ResumeEntry ⊕ CellKey) := {}
   tableEntries   : Std.HashMap CellKey TableEntry := {}
   log            : Array String := #[]
   time           : Nat := 0
@@ -102,7 +121,7 @@ instance : MonadGCtx SearchM where
 
 def logMessage (msg : String) : SearchM Unit := modify fun s => { s with log := s.log.push s!"{s.stepCount}: {msg}" }
 
-def increment (n := 1) : SearchM Unit := modify fun s => { s with stepCount := s.stepCount + n }
+def increment : SearchM Unit := modify fun s => { s with stepCount := s.stepCount + 1 }
 
 
 def findEntry? (key : CellKey) : SearchM (Option TableEntry) := do

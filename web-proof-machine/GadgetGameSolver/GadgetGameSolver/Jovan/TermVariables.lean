@@ -36,7 +36,7 @@ instance (m n) [MonadLift m n] [MonadMCtx m] : MonadMCtx n where
   getMCtx      := liftM (getMCtx : m _)
   modifyMCtx f := liftM (modifyMCtx f : m _)
 
-variable [MonadMCtx m]
+variable [MonadMCtx m] [MonadExceptOf String m]
 
 @[inline] def setMCtx (mctx : MVarContext) : m Unit :=
   modifyMCtx (fun _ => mctx)
@@ -58,10 +58,18 @@ def MVarId.assign (mvarId : MVarId) (e : Expr) : m Unit :=
   modifyMCtx fun mctx => { mctx with assignments := mctx.assignments.insert mvarId e }
 
 def MVarId.getDecl! (mvarId : MVarId) : m MVarDecl := do
-  return (← getMCtx).decls[mvarId]!
+  match (← getMCtx).decls[mvarId]? with
+  | some decl => return decl
+  | none      => throw s!"unknown metavariable {mvarId.id}"
 
 def MVarId.getAssignment? (mvarId : MVarId) : m (Option Expr) := do
   return (← getMCtx).assignments[mvarId]?
+
+partial def MVarId.isHeadAssigned? (mvarId : MVarId) : m Bool := do
+  match ← mvarId.getAssignment? with
+  | some (.mvar mvarId) => mvarId.isHeadAssigned?
+  | some (.app ..) => return true
+  | none => return false
 
 partial def Expr.instantiateMVars (e : Expr) : m Expr := do
   match e with
@@ -97,7 +105,7 @@ structure AbstractGadgetState where
   names : Array String := #[]
   map   : Std.HashMap MVarId AbstractedExpr := {}
 
-def abstractExpr' (e : Expr) : ReaderT MVarContext (StateM AbstractGadgetState) AbstractedExpr := do
+def abstractExpr' (e : Expr) : ReaderT MVarContext (EStateM String AbstractGadgetState) AbstractedExpr := do
   match e with
   | .mvar mvarId =>
     let s ← get
@@ -105,25 +113,27 @@ def abstractExpr' (e : Expr) : ReaderT MVarContext (StateM AbstractGadgetState) 
     | some e => pure e
     | none =>
       let e := .mvar s.map.size
-      let name := (← read).decls[mvarId]!.userName
-      set { s with names := s.names.push name, map := s.map.insert mvarId e }
+      let some decl := (← read).decls[mvarId]? | throw s!"unknown metavariable {mvarId.id}"
+      set { s with names := s.names.push decl.userName, map := s.map.insert mvarId e }
       pure e
   | .app f args =>
     let args ← args.attach.mapM fun ⟨x, _⟩ => abstractExpr' x
     return .app f args
 
-def abstractCell' (c : Cell) : ReaderT MVarContext (StateM AbstractGadgetState) AbstractedCell :=
+def abstractCell' (c : Cell) : ReaderT MVarContext (EStateM String AbstractGadgetState) AbstractedCell :=
   return {
     f    := c.f
     args := ← c.args.mapM abstractExpr' }
 
 def Gadget.abstract (gadget : Gadget) : m AbstractedGadget := do
-  let go : ReaderT MVarContext (StateM AbstractGadgetState) AbstractedGadget := do
+  let go : ReaderT MVarContext (EStateM String AbstractGadgetState) AbstractedGadget := do
     return {
       conclusion := ← abstractCell' gadget.conclusion
       hypotheses := ← gadget.hypotheses.mapM abstractCell'
       varNames   := (← get).names }
-  return go.run (← getMCtx) |>.run' {}
+  match go.run (← getMCtx) |>.run {} with
+  | .ok a _    => return a
+  | .error e _ => throw e
 
 
 
@@ -146,7 +156,7 @@ def Cell.toString (c : Cell) : m String := do
 
 def Gadget.toString (gadget : Gadget) : m String := do
   if gadget.hypotheses.isEmpty then
-    gadget.conclusion.toString
+    return s!"{← gadget.conclusion.toString}."
   else
     return s!"{← gadget.conclusion.toString} :- {", ".intercalate (← gadget.hypotheses.toList.mapM Cell.toString)}."
 
@@ -170,3 +180,10 @@ instance : ToString AbstractedCell := ⟨AbstractedCell.toString⟩
 
 instance : ToString CellKey where
   toString k := toString k.toAbstractedCell
+
+def AbstractedGadget.toString (g : AbstractedGadget) : String :=
+  if g.hypotheses.isEmpty then
+    s!"{g.conclusion}."
+  else
+    let hypotheses := g.hypotheses.toList.map (·.toString)
+    s!"{g.conclusion} :- {", ".intercalate hypotheses}"

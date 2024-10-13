@@ -60,7 +60,10 @@ structure AbstractedCell where
 
 structure CellKey extends AbstractedCell where
   hash : UInt64 := args.foldl (init := hash f) (mixHash · <| hash ·)
-  deriving Inhabited, BEq
+  deriving Inhabited
+
+instance : BEq CellKey where
+  beq k k' := k.hash == k'.hash && k.f == k'.f && k.args == k'.args
 
 instance : Hashable CellKey := ⟨CellKey.hash⟩
 
@@ -138,10 +141,11 @@ def _root_.GadgetGame.Axiom.abstract (ax : GadgetGame.Axiom) : AbstractedGadget 
 /-! Collecting metavariables -/
 
 structure CollectMVarsState where
-  result : Std.HashSet MVarId := {}
+  set : Std.HashSet MVarId := {}
+  arr : Array MVarId := #[]
 
 def Expr.collectMVars : Expr → CollectMVarsState → CollectMVarsState
-  | .mvar mvarId => fun s => { s with result := s.result.insert mvarId }
+  | .mvar mvarId => fun s => { s with set := s.set.insert mvarId, arr := s.arr.push mvarId }
   | .app _ args => args.attach.foldl (fun s ⟨e, _⟩ => e.collectMVars s)
 
 def Cell.collectMVars (c : Cell) : CollectMVarsState → CollectMVarsState :=

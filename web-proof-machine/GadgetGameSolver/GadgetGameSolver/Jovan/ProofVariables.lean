@@ -24,7 +24,7 @@ instance (m n) [MonadLift m n] [MonadGCtx m] : MonadGCtx n where
   getGCtx      := liftM (getGCtx : m _)
   modifyGCtx f := liftM (modifyGCtx f : m _)
 
-variable {m : Type → Type} [Monad m] [MonadGCtx m]
+variable {m : Type → Type} [Monad m] [MonadGCtx m] [MonadExceptOf String m]
 
 abbrev setGCtx (goalCtx : GoalContext) : m Unit :=
   modifyGCtx (fun _ => goalCtx)
@@ -38,7 +38,9 @@ def GoalId.assign (goalId : GoalId) (proof : Proof) : m Unit :=
   modifyGCtx fun gctx => { gctx with assignments := gctx.assignments.insert goalId proof }
 
 def GoalId.getGoal! (goalId : GoalId) : m Cell := do
-  return (← getGCtx).decls[goalId]!.goal
+  match (← getGCtx).decls[goalId]? with
+  | some decl => return decl.goal
+  | none      => throw s!"unknown goal metavariable {goalId.id}"
 
 def GoalId.getAssignment? (goalId : GoalId) : m (Option Proof) := do
   return (← getGCtx).assignments[goalId]?
@@ -94,7 +96,7 @@ structure MkAbstractedProofState where
   goals     : Array AbstractedCell := #[]
   map       : Std.HashMap GoalId AbstractedProofTerm := {}
 
-def abstractProof (proof : Proof) : ReaderT (MVarContext × GoalContext) (StateM MkAbstractedProofState) AbstractedProofTerm := do
+def abstractProof (proof : Proof) : ReaderT (MVarContext × GoalContext) (EStateM String MkAbstractedProofState) AbstractedProofTerm := do
   match proof with
   | .goal goalId =>
     let s ← get
@@ -102,19 +104,25 @@ def abstractProof (proof : Proof) : ReaderT (MVarContext × GoalContext) (StateM
     | some proof => pure proof
     | none =>
       let goal := (← read).2.decls[goalId]!.goal
-      let (goal, exprState) := abstractCell' goal |>.run (← read).1 |>.run (← get).exprState
-      let proof := .goal s.map.size
-      set { s with exprState, goals := s.goals.push goal, map := s.map.insert goalId proof }
-      pure proof
+      match abstractCell' goal |>.run (← read).1 |>.run (← get).exprState with
+      | .error e _ => throw e
+      | .ok goal exprState =>
+        let proof := .goal s.map.size
+        set { s with exprState, goals := s.goals.push goal, map := s.map.insert goalId proof }
+        pure proof
   | .node name vars proofs =>
     let proofs ← proofs.attach.mapM fun ⟨proof, _⟩ => abstractProof proof
-    let (vars, exprState) := vars.mapM abstractExpr' |>.run (← read).1 |>.run (← get).exprState
-    modify ({ · with exprState })
-    return .node name vars proofs
+    match vars.mapM abstractExpr' |>.run (← read).1 |>.run (← get).exprState with
+    | .error e _ => throw e
+    | .ok vars exprState =>
+      modify ({ · with exprState })
+      return .node name vars proofs
 
 def Proof.abstract (proof : Proof) : m AbstractedProof := do
-  let (proof, s) := (abstractProof proof).run (← getMCtx, ← getGCtx) |>.run {}
-  return { proof, varNames := s.exprState.names, goals := s.goals }
+  match (abstractProof proof).run (← getMCtx, ← getGCtx) |>.run {} with
+  | .error e _  => throw e
+  | .ok proof s =>
+    return { proof, varNames := s.exprState.names, goals := s.goals }
 
 
 

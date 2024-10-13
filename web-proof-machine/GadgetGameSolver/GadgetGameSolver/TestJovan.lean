@@ -16,14 +16,14 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
     postponeSpiralSearch := true
     useOldSpiralDetect  := false
     cacheSolutions := true
-    easyGoalsFirst := true
+    easyGoalsFirst := false
   }
   logInfoAt stx m!"num steps: {numSteps}"
 
   -- logInfoAt stx m!"{proofLog}"
 
-  -- unless tree.isClosed do
-  --   throwError "The proof tree is not closed."
+  -- -- unless tree.isClosed do
+  -- --   throwError "The proof tree is not closed."
   -- let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
   -- let initData : InitializationData := {
   --   initialDiagram := initDiagram,
@@ -37,9 +37,10 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 -- #gadget_display "jacob18" 1560
 -- #gadget_display "tim01" -- 973
 
--- #gadget_display "tim03"
+-- #gadget_display "tim44"
 
-#exit 44a and 5a
+-- #exit
+-- #exit 44a and 5a
 /- after #, I changed the step counting convention. -/
 #gadget_display "tim_easy01" -- 6  - 5
 #gadget_display "tim_easy02" -- 40 - 29 | 32 # 44
@@ -58,13 +59,13 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 
 #gadget_display "tim03" -- ∞ - 42 ~ 115 # 143
 #gadget_display "tim04" -- 41 | 36 ~ 29 # 31
-#gadget_display "tim05a" -- ∞ - 299 ~ 303 / 396 # 701
+-- #gadget_display "tim05a" -- ∞ - 299 ~ 303 / 396 # 701
 #gadget_display "tim07" -- ∞ - 239 ~ 42 # 55
 #gadget_display "tim08" -- 24 | 28 ~ 29 # 33
 #gadget_display "tim10" -- 23 # 27
 #gadget_display "tim11" -- 13 ~ 15 # 16
 #gadget_display "tim12" -- 213 | 307 ~ 212 # 241
-#gadget_display "tim14" -- ∞ - 39 # 52
+-- #gadget_display "tim14" -- ∞ - 39 # 52
 #gadget_display "tim16" -- 17 | 19
 #gadget_display "tim17" -- 28 | 9 ~ 12 # 13
 #gadget_display "tim18" -- 19 | 18 ~ 14 # 14
@@ -76,25 +77,25 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 #gadget_display "tim24" -- 15 | 11 # 12
 #gadget_display "tim25" -- 84 | 45 ~ 48 # 56
 #gadget_display "tim25a" -- 32 | 34 ~ 28 # 29
-#gadget_display "tim27" -- ∞ - 565 ~ 423 # 557
+-- #gadget_display "tim27" -- ∞ - 565 ~ 423 # 557
 -- #gadget_display "tim31" -- ∞ - 1550 ~ 1538 / ∞
 #gadget_display "tim33" -- 31 | 33
 #gadget_display "tim36" -- 12 | 15
 #gadget_display "tim43" -- 11 ~ 10
 #gadget_display "tim44" -- ∞ - 115 ~ 98 # 129
-#gadget_display "tim44a" -- ∞ - 143 ~ 83 # 94
+-- #gadget_display "tim44a" -- ∞ - 143 ~ 83 # 94
 #gadget_display "tim46" -- 123 | 90 # 133
 
+-- #exit
+-- #gadget_display "mirek_crazy4" -- 631 # 1020
 
-#gadget_display "mirek_crazy4" -- 631 # 1020
-
-#gadget_display "tim01" -- 973 # 1625
-#gadget_display "tim05" -- 746 # 1299
+-- #gadget_display "tim01" -- 973 # 1625
+-- #gadget_display "tim05" -- 746 # 1299
 #gadget_display "tim06" -- 556 #  676
 #gadget_display "tim22b" -- 729 # 1489
 
 #gadget_display "jacob01" -- 57 # 62
-#gadget_display "jacob04" -- 50 # 52
+-- #gadget_display "jacob04" -- 50 # 52
 #gadget_display "jacob05" -- 8
 #gadget_display "jacob06" -- 99 # 126
 #gadget_display "jacob07" -- 55 # 65

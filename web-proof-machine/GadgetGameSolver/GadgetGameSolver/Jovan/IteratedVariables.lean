@@ -145,7 +145,7 @@ instance (m n) [MonadLift m n] [MonadMCtx m] : MonadMCtx n where
   getMCtx      := liftM (getMCtx : m _)
   modifyMCtx f := liftM (modifyMCtx f : m _)
 
-variable {m : Type → Type} [Monad m] [MonadMCtx m] [MonadUnique m]
+variable {m : Type → Type} [Monad m] [MonadMCtx m] [MonadUnique m] [MonadExceptOf String m]
 
 @[inline] def setMCtx (mctx : MVarContext) : m Unit :=
   modifyMCtx (fun _ => mctx)
@@ -156,7 +156,9 @@ def mkFreshMVar (n : Nat) (userName : String) : m Expr := do
   return .imvar mvarId n
 
 def IMVarId.getDecl! (mvarId : IMVarId) : m MVarDecl := do
-  return (← getMCtx).decls[mvarId]!
+  match (← getMCtx).decls[mvarId]? with
+  | some decl => return decl
+  | none      => throw s!"unknown iterated metavariable {mvarId.id}"
 
 @[inline]
 def IMVarId.getPointAssignments! (mvarId : IMVarId) : m (Lean.AssocList Int Expr) := do
