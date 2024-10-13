@@ -1,6 +1,7 @@
 import GadgetGameSolver.Jovan.SubGoalSorting
 import GadgetGameSolver.Jovan.SpiralDetection
 import Lean
+import Batteries.Data.Sum.Basic
 
 namespace JovanGadgetGame
 
@@ -21,10 +22,12 @@ def mkGeneratorNode (goalId : GoalId) (axioms : Array AxiomApplication) : Search
 /--
   Create a new generator node for `mvar` and add `waiter` as its waiter.
   `key` must be `mkTableKey mctx mvarType`. -/
-def newSubgoal (key : CellKey) (goalId : GoalId) (axioms : Array AxiomApplication) (waiter : Waiter) (priority : Priority) (isSpiral : Bool) : SearchM Unit := do
+def newSubgoal (key : CellKey) (goalId : GoalId) (axioms : Array AxiomApplication)
+    (waiter : Waiter) (priority : Priority) (isSpiral : Bool) : SearchM Unit := do
   let gNode ← mkGeneratorNode goalId axioms
-  let entry := { gNode, waiters := #[waiter], loopyWaiters := #[], answers := #[], priority }
-  logMessage s!"new{if isSpiral then " spiral" else ""} goal {← goalId.toString}, with goalId {goalId.id} and importance 1/{priority.numCases} and times {priority.times}"
+  let entry := { gNode, waiters := #[waiter], loopyWaiters := #[], answers := #[], priority, isSolved := false }
+  logMessage <| s!"new{if isSpiral then " spiral" else ""} goal {← goalId.toString}," ++
+    s!" with goalId {goalId.id} and importance 1/{priority.numCases} and times {priority.times}"
   if !isSpiral then
     if (← get).generatorStack.find? priority |>.isSome then
       throw s! "OHNO duplicate {priority.times}"
@@ -76,27 +79,32 @@ def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
   oldAnswers.all fun oldAnswer =>
     oldAnswer.cInfo.gadget.conclusion != answer.cInfo.gadget.conclusion
 
-private def mkAnswer (goalId : GoalId) (size : Nat) : SearchM Answer := do
-  return { cInfo := ← goalId.addFreshConstantInfo, size }
+def tellAnswer (key : CellKey) (answer : Answer) (addToEnv := false) : SearchM Unit := do
+  let entry ← getEntry key
+  if entry.isSolved then
+    throw "oops"
+  if isNewAnswer entry.answers answer then
+    let newEntry := { entry with answers := entry.answers.push answer }
+    modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
+    entry.waiters.forM (wakeUp answer false)
+    entry.loopyWaiters.forM (wakeUp answer true)
+    (entry.waiters.size - 1 ).forM fun _ => increment
+    (entry.loopyWaiters.size).forM fun _ => increment
+    if addToEnv then
+      answer.addToEnv
+  else
+    if addToEnv then
+      logMessage s!"answer {answer.cInfo.gadget.conclusion} isn't new"
 
 /--
   Create a new answer after `cNode` resolved all subgoals.
   That is, `cNode.subgoals == []`.
   And then, store it in the tabled entries map, and wakeup waiters. -/
-def addAnswer (goalId : GoalId) (key : CellKey) (size : Nat) : SearchM Unit := do
-  if (← read).maxResultSize.any (size ≥ ·) then
-    logMessage s!"{← goalId.toString} has size {size}, which is big"
-  else
-    let answer ← mkAnswer goalId size
-    -- Remark: `answer` does not contain assignable or assigned metavariables.
-    let entry ← getEntry key
-    if isNewAnswer entry.answers answer then
-      let newEntry := { entry with answers := entry.answers.push answer }
-      modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
-      entry.waiters.forM (wakeUp answer false)
-      entry.loopyWaiters.forM (wakeUp answer true)
-    else
-      logMessage s!"answer {answer.cInfo.gadget.conclusion} isn't new"
+def addAnswer (goalId : GoalId) (key : CellKey) (duplication : UsedGoals) : SearchM Unit := do
+  let duplication := duplication.push key
+  let hasDup := duplication.hasDuplicate
+  let answer ← goalId.mkAnswer duplication
+  tellAnswer key answer true
 
 /--
 Checks whether `originalKey` can be reached from `key` during result propagation.
@@ -123,6 +131,9 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
     newSubgoal key cNode.nextSubgoalId axioms waiter priority isSpiral
   | some entry =>
     logMessage s!"found goal in table: subgoal {← goal.toString} of {← cNode.goalId.toString}."
+    if entry.isSolved then
+      throw "whoopsies"
+    else
     let isLoopy ←
       if postponeLoopSearch then
         isLoopyKey cNode.key key
@@ -152,30 +163,46 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (pri
     modify fun s => { s with tableEntries := s.tableEntries.insert key entry }
 
 /-- Process the next subgoal in the given consumer node. -/
-def consume (goalId : GoalId) (key : CellKey) (subgoals : Array GoalId) (size : Nat) (times : Array Nat) : SearchM Unit := do
+def consume (goalId : GoalId) (key : CellKey) (subgoals : Array GoalId) (duplication : UsedGoals) (times : Array Nat) : SearchM Unit := do
   let { orderSubgoalsAndAxioms, .. } ← getConfig
   match ← if orderSubgoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
   | .error true =>
     logMessage s!"adding answer to goal {← goalId.toString}"
-    addAnswer goalId key size
+    addAnswer goalId key duplication
   | .error false =>
     logMessage s!"goal {← goalId.toString} is now unsolvable"
-  | .ok ((nextSubgoalId, axioms), laterSubgoals) =>
-
+  | .ok ((nextSubgoalId, todo), laterSubgoals) =>
     let proof   ← goalId.getInstantiatedAssignment
     let mctx    ← getMCtx
     let goalctx ← getGCtx
-    let cNode := { goalId, key, proof, mctx, goalctx, nextSubgoalId, laterSubgoals, size, times }
+    let cNode := { goalId, key, proof, mctx, goalctx, nextSubgoalId, laterSubgoals, duplication, times }
+    match todo with
+    | .inr answer =>
+      let goal ← cNode.nextSubgoalId.getInstantiatedGoal
+      let key := goal.abstract
+      if let some entry ← findEntry? key then
+        unless entry.isSolved do
+          let entry := { entry with isSolved := true }
+          modify fun s => { s with tableEntries := s.tableEntries.insert key entry }
+          entry.waiters.forM (wakeUp answer false)
+          increment (entry.waiters.size - 1)
+          entry.loopyWaiters.forM (wakeUp answer true)
+          increment entry.loopyWaiters.size
 
-    let { priority := { numCases, times := allTimes }, .. } ← getEntry key
-    let priority := {
-      numCases := numCases * (laterSubgoals.size + 1)
-      -- size     := totalSize + size
-      times    := allTimes.push times
-    }
-    processSubgoal cNode axioms priority
+      wakeUp answer false (.consumerNode cNode)
+      increment
+
+    | .inl axioms =>
+      let { priority := { numCases, times := allTimes, .. }, .. } ← getEntry key
+      let priority := {
+        isEZ     := axioms.size = 1
+        numCases := numCases * (laterSubgoals.size + 1)
+        -- size     := totalSize + size
+        times    := allTimes.push times
+      }
+      processSubgoal cNode axioms priority
 where
-  bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × Array AxiomApplication) × Array GoalId)) := do
+  bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ Answer)) × Array GoalId)) := do
     if h : goals.size = 0 then
       return .error true
     else
@@ -190,26 +217,22 @@ where
           return some { gadget, name := cInfo.name, mvars : AxiomApplication }
         else
           return none
-      return .ok ((goalId, axioms), goals[1:])
+      return .ok ((goalId, .inl axioms), goals[1:])
 
 /-- Try the next instance in the node on the top of the generator stack. -/
 @[specialize]
 def generate (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
-  let entry@{ gNode, .. } ← getEntry key
+  let entry@{ gNode, isSolved := false , .. } ← getEntry key | pop
   if gNode.currAxiomIdx == 0  then
     pop
   else
-    let idx    := gNode.currAxiomIdx - 1
-    let ax     := gNode.axioms.get! idx
-    let goalId := gNode.goalId
+    let idx      := gNode.currAxiomIdx - 1
+    let ax       := gNode.axioms.get! idx
+    let goalId   := gNode.goalId
     setMCtx gNode.mctx
     setGCtx gNode.goalctx
 
-    let goal ← goalId.getInstantiatedGoal -- instantiate to make log look better
-    -- if let some proof ← goal.findCachedProof? then
-    --   goalId.assign proof
-    --   pop
-
+    let goal ← goalId.getInstantiatedGoal -- instantiate to make the log look better
     /- See comment at `typeHasMVars` -/
     -- unless gNode.goalHasMVars do
     --   if let some entry := (← get).tableEntries[key]? then
@@ -232,18 +255,26 @@ def generate (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
       --   (return m!"{exceptOptionEmoji ·} apply {ax.val} to {← instantiateMVars (← inferType goal)}") do
     modify fun s => { s with tableEntries := s.tableEntries.insert key { entry with gNode.currAxiomIdx := idx }}
     if let some subgoals ← tryAxiom goalId goal ax then
-      consume goalId key subgoals 1 #[← getUnique]
+      consume goalId key subgoals {} #[← getUnique]
 
 /--
   Given `(cNode, answer)` on the top of the resume stack, continue execution by using `answer` to solve the
   next subgoal. -/
 def resume (pair : ConsumerNode × Answer) : SearchM Unit := do
   let (cNode, answer) := pair
+  if (← getEntry cNode.key).isSolved then
+    return
   setMCtx cNode.mctx
   setGCtx cNode.goalctx
-  useAnswer answer cNode.nextSubgoalId
-  logMessage s! "propagating answer {answer.cInfo.gadget.conclusion} to subgoal {← cNode.nextSubgoalId.toString} of {← cNode.goalId.toString}"
-  consume cNode.goalId cNode.key cNode.laterSubgoals (cNode.size + answer.size) (cNode.times.push (← getUnique))
+  let goalId        := cNode.goalId
+  let key           := cNode.key
+  let nextSubgoalId := cNode.nextSubgoalId
+  let laterSubgoals := cNode.laterSubgoals
+  let duplication   := cNode.duplication.union answer.duplication
+  let times         := cNode.times
+  useAnswer answer nextSubgoalId
+  logMessage s! "propagating answer {answer.cInfo.gadget.conclusion} to subgoal {← nextSubgoalId.toString} of {← goalId.toString}"
+  consume goalId key laterSubgoals duplication (times.push (← getUnique))
 
 def step : SearchM Bool := do
   let s ← get
@@ -258,6 +289,7 @@ def step : SearchM Bool := do
     return true
   else if let some (x, loopyStack) := s.loopyStack.uncons? then
     increment
+    -- throw "LOOP LOOP"
     logMessage "doing a loopy case"
     match x with
     | .inl r =>
@@ -336,7 +368,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
     --     logMessage s!"error getting partial result: {e}"
     --     pure default
   let ref ← IO.mkRef { config }
-  let r ← (action.run { maxResultSize := none, axioms := {} }) ref |>.toBaseIO
+  let r ← (action.run { axioms := {} }) ref |>.toBaseIO
   let state ← ref.get
   pure (r, state.stepCount, state.log)
 

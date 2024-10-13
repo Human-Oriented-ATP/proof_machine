@@ -9,7 +9,8 @@ structure Config where
   postponeLoopSearch     : Bool
   postponeSpiralSearch   : Bool
   useOldSpiralDetect     : Bool
-  -- cacheSolutions         : Bool
+  cacheSolutions         : Bool
+  easyGoalsFirst         : Bool
 
 class MonadConfig (m : Type → Type) where
   getConfig : m Config

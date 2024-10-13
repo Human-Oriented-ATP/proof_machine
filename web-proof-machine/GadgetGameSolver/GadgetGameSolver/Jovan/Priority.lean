@@ -43,7 +43,10 @@ def timesCmpBFS (t t' : Times) : Ordering :=
   ArrayOrderingBFS t t' fun t t' =>
     ArrayOrderingBFS t t' compare
 
+/-- Priority of a generator node. -/
 structure Priority where
+  /-- Whether this goal has only one axiom applicable. -/
+  isEZ : Bool
   /-- The inverse importance is a number at least 1, with 1 being the highest importance. -/
   numCases : Nat
   -- /-- The size of the solution so far -/
@@ -53,12 +56,14 @@ structure Priority where
   deriving Inhabited
 
 def rootPriority : Priority where
+  isEZ := false
   numCases := 1
   -- size          := 0
-  times         := #[]
+  times := #[]
 
 def Priority.cmp (p q : Priority) (config : Config) :=
-  let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
+  let cmp := if config.easyGoalsFirst then compare p.isEZ q.isEZ else .eq
+  let cmp := cmp.then <| if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
   -- let cmp := cmp.then <| if config.simplerSolutionsFirst then compare q.size p.size else .eq
   cmp.then <|
     if config.depthFirst then

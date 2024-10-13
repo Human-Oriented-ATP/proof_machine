@@ -5,7 +5,7 @@ import GadgetGameSolver.GUIExport
 open GadgetGame
 
 open Lean Elab Meta Term Elab Command in
-elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : command => runTermElabM fun _ => do
+elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fun _ => do
   let problemState ← parsePrologFile s!"../problems/{name.getString}.pl"
   let (tree, numSteps, proofLog) ← JovanGadgetGame.runJovanSearch problemState (timeout?.map TSyntax.getNat) {
     depthFirst := true
@@ -14,77 +14,112 @@ elab stx:"#gadget_display" axioms?:("with_axioms")? name:str timeout?:(num)? : c
     orderSubgoalsAndAxioms := true
     postponeLoopSearch := true
     postponeSpiralSearch := true
-    useOldSpiralDetect  := true
-    -- cacheSolutions := true
+    useOldSpiralDetect  := false
+    cacheSolutions := true
+    easyGoalsFirst := true
   }
   logInfoAt stx m!"num steps: {numSteps}"
 
-  logInfoAt stx m!"{proofLog}"
+  -- logInfoAt stx m!"{proofLog}"
 
-  if timeout?.isNone && !tree.isClosed then
-    throwError "The proof tree is not closed."
-  let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
-  let initData : InitializationData := {
-    initialDiagram := initDiagram,
-    axioms := if axioms?.isSome then problemState.axioms else .empty
-  }
-  let jsonProps := Lean.toJson initData
-  Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
-    (return jsonProps) stx
+  -- unless tree.isClosed do
+  --   throwError "The proof tree is not closed."
+  -- let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
+  -- let initData : InitializationData := {
+  --   initialDiagram := initDiagram,
+  --   axioms := problemState.axioms -- .empty
+  -- }
+  -- let jsonProps := Lean.toJson initData
+  -- Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
+  --   (return jsonProps) stx
 
 
-#gadget_display with_axioms "tim_easy01" 1
+-- #gadget_display "jacob18" 1560
+-- #gadget_display "tim01" -- 973
+
+-- #gadget_display "tim03"
 
 #exit 44a and 5a
+/- after #, I changed the step counting convention. -/
+#gadget_display "tim_easy01" -- 6  - 5
+#gadget_display "tim_easy02" -- 40 - 29 | 32 # 44
+#gadget_display "tim_easy03" -- 40 - 11 - 13 - 5
+#gadget_display "tim_easy04" -- ∞  - 10 - 11 # 12
+#gadget_display "tim_easy05" -- ∞  - 59 ~ 38 # 42
+#gadget_display "tim_easy06" -- ∞  - 109 ~ 112 # 126
+#gadget_display "tim_easy07" -- 8  - 5
+#gadget_display "tim_easy08" -- ∞  - 42 - 15 | 36 - 96 ~ 39 # 40
+#gadget_display "tim_easy09" -- ∞  - 29 - ∞ - 34 - 36 - 34 | 40 - 28
+#gadget_display "tim_easy10" -- 14 - 8  - 5
+#gadget_display "tim_easy11" -- 3
+#gadget_display "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21 | 28 ~ 21 # 22
+#gadget_display "tim_easy13" -- 5  - 4
 
-#gadget_display with_axioms "tim_easy01" -- 6  - 5
-#gadget_display with_axioms "tim_easy02" -- 40 - 29 | 32
-#gadget_display with_axioms "tim_easy03" -- 40 - 11 - 13 - 5
-#gadget_display with_axioms "tim_easy04" -- ∞  - 10 - 11
-#gadget_display with_axioms "tim_easy05" -- ∞  - 59
-#gadget_display with_axioms "tim_easy06" -- ∞  - 109
-#gadget_display with_axioms "tim_easy07" -- 8  - 5
-#gadget_display with_axioms "tim_easy08" -- ∞  - 42 - 15 | 36 - 96
-#gadget_display with_axioms "tim_easy09" -- ∞  - 29 - ∞ - 34 - 36 - 34 | 40 - 28
-#gadget_display with_axioms "tim_easy10" -- 14 - 8  - 5
-#gadget_display with_axioms "tim_easy11" -- 3
-#gadget_display with_axioms "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21 | 28
-#gadget_display with_axioms "tim_easy13" -- 5  - 4
 
--- #gadget_display with_axioms "jovan_easy02" -- 20
+#gadget_display "tim03" -- ∞ - 42 ~ 115 # 143
+#gadget_display "tim04" -- 41 | 36 ~ 29 # 31
+#gadget_display "tim05a" -- ∞ - 299 ~ 303 / 396 # 701
+#gadget_display "tim07" -- ∞ - 239 ~ 42 # 55
+#gadget_display "tim08" -- 24 | 28 ~ 29 # 33
+#gadget_display "tim10" -- 23 # 27
+#gadget_display "tim11" -- 13 ~ 15 # 16
+#gadget_display "tim12" -- 213 | 307 ~ 212 # 241
+#gadget_display "tim14" -- ∞ - 39 # 52
+#gadget_display "tim16" -- 17 | 19
+#gadget_display "tim17" -- 28 | 9 ~ 12 # 13
+#gadget_display "tim18" -- 19 | 18 ~ 14 # 14
+#gadget_display "tim19" -- 12 ~ 9
+#gadget_display "tim20" -- ∞ - 364 ~ 368 # 440
+#gadget_display "tim22a" -- ∞ - 116 ~ 96 # 99
+#gadget_display "tim22c" -- ∞ - 116 ~ 96 # 99
+#gadget_display "tim23" -- 25 ~ 26 # 30
+#gadget_display "tim24" -- 15 | 11 # 12
+#gadget_display "tim25" -- 84 | 45 ~ 48 # 56
+#gadget_display "tim25a" -- 32 | 34 ~ 28 # 29
+#gadget_display "tim27" -- ∞ - 565 ~ 423 # 557
+-- #gadget_display "tim31" -- ∞ - 1550 ~ 1538 / ∞
+#gadget_display "tim33" -- 31 | 33
+#gadget_display "tim36" -- 12 | 15
+#gadget_display "tim43" -- 11 ~ 10
+#gadget_display "tim44" -- ∞ - 115 ~ 98 # 129
+#gadget_display "tim44a" -- ∞ - 143 ~ 83 # 94
+#gadget_display "tim46" -- 123 | 90 # 133
 
--- #gadget_display with_axioms "tim44a"
 
--- #exit
-#gadget_display with_axioms "tim03" -- ∞ - 42
-#gadget_display with_axioms "tim04" -- 41 | 36
-#gadget_display with_axioms "tim05a" -- ∞ - 299
-#gadget_display with_axioms "tim07" -- ∞ - 239
-#gadget_display with_axioms "tim08" -- 24 | 28
-#gadget_display with_axioms "tim10" -- 23
-#gadget_display with_axioms "tim11" -- 13
-#gadget_display with_axioms "tim12" -- 213 | 307
-#gadget_display with_axioms "tim14" -- ∞ - 39
-#gadget_display with_axioms "tim16" -- 17 | 19
-#gadget_display with_axioms "tim17" -- 28 | 9
-#gadget_display with_axioms "tim18" -- 19 | 18
-#gadget_display with_axioms "tim19" -- 12
-#gadget_display with_axioms "tim20" -- ∞ - 364
-#gadget_display with_axioms "tim22a" -- ∞ - 116
-#gadget_display with_axioms "tim22c" -- ∞ - 116
-#gadget_display with_axioms "tim23" -- 25
-#gadget_display with_axioms "tim24" -- 15 | 11
-#gadget_display with_axioms "tim25" -- 84 | 45
-#gadget_display with_axioms "tim25a" -- 32 | 34
-#gadget_display with_axioms "tim27" -- ∞ - 565
-#gadget_display with_axioms "tim31" -- ∞ - 1550
-#gadget_display with_axioms "tim33" -- 31 | 33
-#gadget_display with_axioms "tim36" -- 12 | 15
-#gadget_display with_axioms "tim43" -- 11
-#gadget_display with_axioms "tim44" -- ∞ - 115
-#gadget_display with_axioms "tim44a" -- ∞ - 143
-#gadget_display with_axioms "tim46" -- 123 | 90
+#gadget_display "mirek_crazy4" -- 631 # 1020
 
+#gadget_display "tim01" -- 973 # 1625
+#gadget_display "tim05" -- 746 # 1299
+#gadget_display "tim06" -- 556 #  676
+#gadget_display "tim22b" -- 729 # 1489
+
+#gadget_display "jacob01" -- 57 # 62
+#gadget_display "jacob04" -- 50 # 52
+#gadget_display "jacob05" -- 8
+#gadget_display "jacob06" -- 99 # 126
+#gadget_display "jacob07" -- 55 # 65
+#gadget_display "jacob07a" -- 50 # 60
+#gadget_display "jacob08" -- 142 # 154
+#gadget_display "jacob08a" -- 109 # 121
+#gadget_display "jacob09" -- 327 # 348
+#gadget_display "jacob09a" -- 327 # 348
+#gadget_display "jacob12a" -- 41 # 48
+#gadget_display "jacob12b" -- 32 # 33
+#gadget_display "jacob14" -- 63 # 67
+#gadget_display "jacob18a" -- 161 # 177
+#gadget_display "jacob20" -- 49
+#gadget_display "jacob21" -- 138 # 139
+#gadget_display "jacob22" -- 159 # 189
+#gadget_display "jacob23" -- 35 # 47
+#gadget_display "jacob26" -- 151 # 179
+
+
+#gadget_display "jovan_easy01" -- 19 # 23
+#gadget_display "jovan_easy02" -- 21 # 22
+#gadget_display "jovan01" -- 13
+#gadget_display "jovan02" -- 49 # 64
+
+-- jacob03 jacob18 stack overflow
 /-
 results:
 tim01: ∞
@@ -138,91 +173,3 @@ tim46: 123
 
 jacob25: 1439 - 329 - ∞
 -/
-end GadgetGame
-
-
-/-
-
-157: new spiral goal g(7, xg(2, xg(4, 1)), 7)
-183: new spiral goal g(7, xg(7, xg(2, xg(4, 1))), 7)
-201: new spiral goal g(7, 7, xg(xg(2, xg(4, 1)), 7))
-239: new spiral goal g(F, xg(xg(2, xg(4, 1)), B), C)
-240: new spiral goal g(7, xg(xg(2, xg(4, 1)), B), C)
-263: new spiral goal g(7, xg(7, xg(xg(2, 4), 1)), 7)
-276: new spiral goal g(7, 7, xg(xg(xg(2, 4), 1), 7))
-296: new spiral goal g(7, 7, xg(1, xg(2, 4)))
-297: new spiral goal g(7, xg(1, xg(2, 4)), 7)
-
-
--/
-
-
-/-
-
-33: new spiral goal g(xg(2, 4), A, F)
-42: new spiral goal g(xg(2, 4), D, 7)
-48: new spiral goal g(xg(2, 4), D, 5)
-68: new spiral goal g(F, 6, xg(5, 3))
-111: new spiral goal g(7, xg(6, xg(5, 3)), 7)
-112: new spiral goal g(7, 7, xg(6, xg(5, 3)))
-116: new spiral goal g(F, 7, xg(5, 3))
-119: new spiral goal g(xg(6, xg(5, 3)), D, C)
-126: new spiral goal g(F, B, xg(5, 3))
-142: new spiral goal g(xg(6, xg(5, 3)), B, 7)
-143: new spiral goal g(7, B, xg(6, xg(5, 3)))
-176: new spiral goal g(7, 7, xg(xg(6, 5), 3))
-231: new spiral goal g(F, B, xg(6, 5))
-253: new spiral goal g(7, xg(xg(xg(6, 5), 1), 2), 7)
-259: new spiral goal g(F, B, xg(xg(xg(6, 5), 1), 2))
-270: new spiral goal g(7, xg(xg(6, 5), 1), B)
-289: new spiral goal g(7, B, xg(xg(5, 3), 6))
-295: new spiral goal g(F, B, xg(xg(5, 3), 6))
-317: new spiral goal g(7, xg(7, xg(xg(xg(6, 5), 1), 2)), 7)
-330: new spiral goal g(7, 7, xg(xg(xg(xg(6, 5), 1), 2), 7))
-353: new spiral goal g(7, 7, xg(2, xg(xg(6, 5), 1)))
-372: new spiral goal g(F, B, xg(xg(6, 5), 1))
-381: new spiral goal g(7, xg(2, xg(xg(6, 5), 1)), 7)
-383: new spiral goal g(7, xg(2, xg(xg(6, 5), 1)), B)
-385: new spiral goal g(xg(2, xg(xg(6, 5), 1)), D, C)
-398: new spiral goal g(7, xg(xg(2, xg(6, 5)), 1), B)
-399: new spiral goal g(7, 7, xg(xg(2, xg(6, 5)), 1))
-
---
-`A₁ := A₀`, `A₁ := f B₀` => `A₀ := f B₀` => `A₀ := A₋₁` `A₋₁ := f B₀`
-`A₁ := f A₀`, `B₁ := f B₀`, `A₁ := f B₀`
-`A₁ := A₀`, `B₁ := B₀`, `A₁ := B₀`
-
-`f B₀` =?= `f B₋₁`
-
-`A₀ := f f f A₃` and `A₂ := f A₃`.
-`A₁ := f f A₃`
-nodes  `x₀ := {A₃}`, `x₁ := {A₂, f x₀}` and `x₂ := {A₀, f f x₁}`
-`x := {A₀, f f (x+2), f (x+1)}`
-
-
-
-I implemented the above described unification algorithm.
-
-One tricky thing is that I had to take more care to ensure that the unification algorithm terminated. For example, if we have `A₁ := A₀` and `A₁ := f B₀` (`Xᵢ` should be read as  `Xₙ₊ᵢ`, with `n` universally quantified over `ℕ`) , merging these assignments gives `A₁ := A₀` and `A₀ := f B₀`, which gives `A₀ := A₋₁` and `A₋₁ := f B₀`, which keeps going. But, I found a way around this: if a variable is assigned to itself, and we merge a 'normal' assignment, then instead we unify the 'normal' assignment with its own shifted version, so in this case we get `A₀ := f B₀` and `f B₁` =?= `f B₀`.
-
-A bigger problem lies in keeping track of the boundary conditions, i.e. for which values of `n` does the assignment hold? We don't really want to consider variables with a negative index. That is because we only want to consider gadgets `n` for natural numbers `n`. (The specific unifications are the conclusion of the `n+1`th gadget with the hypothesis of the `n`th gadget, and the conclusion of the `0`th gadget with the current goal). But in some cases this algorithm does extend the range to negatives, in particular when merging two assignments that hold in a different range. For example if `A₀ := f 5` and `A₁ := f B₀`, instead of simply assigning `B₀ := 5`, in order to merge it will also assign `A₀ := f B₋₁`. I'm still thinking about the best way to fix this.
-
-In the meantime, I tested the new algorithm on some problems. It didn't change anything for most problems. However, the number of steps to solve tim5a surprisingly went up from 299 to 391. Taking a closer look, we can see why. I attached a screenshot of the position after 33 steps. Here, the algorithm focusses of the goal `g(xg(2, 4), _, _)` (where `9 = xg(2, 4)`). The argument that created this from the original goal  `g(4, 6, 5)` generalizes to an argument that turns a goal `g(A, 6, _)` into a goal `g(xg(2, A), _, _)`. So, the new loop detection is able to see this as a spiral. Unfortunately, This search branch is actually correct, and that goal should be closed with a simple `g(xg(2, 4), 2, 4)`. Instead my program does some other search. Fortunately though, at a later point the same goal is found in a different place and therefore it will still be considered, so the goal does get solved, but with some delay.
-
-
-
-
-
-The algorithm could be modified to improve the behaviour on this, but the fundamental problem persists. Ideally, we would have an algorithm which can perfectly keep track of the range in which an equality is forced to hold, instead of being forced to guess that the range is bigger. To illustrate why this doesn't work in general, let's look at the assignments `A₀ := f f A₂` and `A₁ := f A₂`. My algorithm would first have to guess to lower the second condition to `A₀ := f A₁`. What a human would do instead is to notice that we can do a rewrite in order to prove that `A₀ := f A₁`. This is the kind of reasoning that we need: rewriting one equality in another one.
-
-To solve this problem, we might do the unification in a way that ignores the boundary conditions, and afterwards, do a proof search to prove where the assignments must hold. The only issue with this is that a variable might have different assignments near the boundary (e.g `A₀ := f f A₂` and `Aₙ := f Aₙ₊₁` for `n ≥ 1`), but I think this isn't possible when working with just one boundary condition (i.e. not on an interval bounded from both sides). I think such an approach might work.
-
-However, a more ambitious goal is to not just find the possibility of a spiral, but also to understand the general form of the spiral. This would require solving the unification with 2 boundary conditions: there is a first and a last
-
-
-
-
-
-Luckily, there exists a data structure that supports this kind of reasoning: e-graphs. So I think e-graphs are the better way of dealing with this problem. When using an e-graph, instead of storing an equivalence relation on ground terms (normal expressions), it stores an equivalence relation on e-nodes (a function application in which the arguments are equivalence classes (e-classes) instead of ground terms). So in this example, naively creating the e-graph of the terms we've been given would result in the nodes nodes  `x₀ := {A₃}`, `x₁ := {A₂, f x₀}` and `x₂ := {A₀, f f x₁}`, from which it is obvious to see that `A₀ := f f A₂`. However, this naive approach doesn't take shifts into account. And you might have spotted already that by concluding `A₁ := f f A₃`, we are able to rewrite our way to the final result of `A₀ := f A₁`. So we need to have an e-graph with support for adding an integer to its e-classes. in that case, we would get a single e-class `x := {A₀, f f (x+2), f (x+1)}`, which would get transformed into
-
-Whereas before, we were only able to reason using the rules of transitivity (a=b & b=c => a=c) and injectivity (f(a,b) = f(c,d) => a=c & b=d), e-graphs now also give the power of congruence (or `congrArg` in Lean jargon): a=c & b=d => f(a,b) = f(c,d). And my hypothesis is that using these rules is sufficient for these kinds of unification problems. A key feature of e-graphs that I'm also using here is their ability to keep track of proofs, or other pieces of explanation related to a proved equality. In this case, that piece of explanation is the range in which an equality holds.

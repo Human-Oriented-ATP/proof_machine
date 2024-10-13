@@ -26,7 +26,7 @@ where
       throw "incorrect number of proofs in proof node"
 
 /-- Expands the `Environment` with a new proof constant. -/
-def GoalId.addFreshConstantInfo (goalId : GoalId) : SearchM ConstantInfo := do
+def GoalId.mkAnswer (goalId : GoalId) (duplication : UsedGoals) : SearchM Answer := do
   let some proof ← goalId.getAssignment? | throw "goalId is unassigned"
   let proof ← generalizeProof proof
   let conclusion ← proof.inferType
@@ -35,8 +35,7 @@ def GoalId.addFreshConstantInfo (goalId : GoalId) : SearchM ConstantInfo := do
     name.name := ← getUnique
     gadget := ← gadget.abstract
     definition := .inr (← proof.abstract) }
-  cInfo.addToEnv
-  return cInfo
+  return { cInfo, duplication }
 
 
 /--

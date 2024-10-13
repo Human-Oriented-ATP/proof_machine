@@ -28,7 +28,7 @@ structure ConsumerNode where
   goalctx       : GoalContext
   nextSubgoalId : GoalId
   laterSubgoals : Array GoalId
-  size          : Nat -- number of gadgets used so far
+  duplication   : UsedGoals
   times         : Array Nat -- times of creating/modifying this node
   deriving Inhabited
 
@@ -40,20 +40,15 @@ def Waiter.isRoot : Waiter → Bool
   | .consumerNode _ => false
   | .root           => true
 
-structure Answer where
-  cInfo : ConstantInfo -- this constant must have 0 hypotheses.
-  size  : Nat
-  deriving Inhabited
-
 structure TableEntry where
   gNode        : GeneratorNode
   priority     : Priority
   waiters      : Array Waiter
   loopyWaiters : Array Waiter
+  isSolved     : Bool
   answers      : Array Answer
 
 structure Context where
-  maxResultSize : Option Nat
   axioms        : Std.HashMap (String × Nat) (Array ConstantInfo)
 
 structure State where
@@ -107,7 +102,7 @@ instance : MonadGCtx SearchM where
 
 def logMessage (msg : String) : SearchM Unit := modify fun s => { s with log := s.log.push s!"{s.stepCount}: {msg}" }
 
-def increment : SearchM Unit := modify fun s => { s with stepCount := s.stepCount + 1 }
+def increment (n := 1) : SearchM Unit := modify fun s => { s with stepCount := s.stepCount + n }
 
 
 def findEntry? (key : CellKey) : SearchM (Option TableEntry) := do
