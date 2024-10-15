@@ -21,8 +21,8 @@ structure MVarDecl where
   deriving Inhabited
 
 structure MVarContext where
-  decls       : Std.HashMap MVarId MVarDecl := {}
-  assignments : Std.HashMap MVarId Expr := {}
+  decls       : Lean.PersistentHashMap MVarId MVarDecl := {}
+  assignments : Lean.PersistentHashMap MVarId Expr := {}
   deriving Inhabited
 
 class MonadMCtx (m : Type → Type) where
@@ -58,18 +58,21 @@ def MVarId.assign (mvarId : MVarId) (e : Expr) : m Unit :=
   modifyMCtx fun mctx => { mctx with assignments := mctx.assignments.insert mvarId e }
 
 def MVarId.getDecl! (mvarId : MVarId) : m MVarDecl := do
-  match (← getMCtx).decls[mvarId]? with
+  match (← getMCtx).decls[mvarId] with
   | some decl => return decl
   | none      => throw s!"unknown metavariable {mvarId.id}"
 
 def MVarId.getAssignment? (mvarId : MVarId) : m (Option Expr) := do
-  return (← getMCtx).assignments[mvarId]?
+  return (← getMCtx).assignments[mvarId]
 
-partial def MVarId.isHeadAssigned? (mvarId : MVarId) : m Bool := do
+partial def MVarId.instantiateHead (mvarId : MVarId) : OptionT m MVarId := do
   match ← mvarId.getAssignment? with
-  | some (.mvar mvarId) => mvarId.isHeadAssigned?
-  | some (.app ..) => return true
-  | none => return false
+  | some (.mvar mvarId) =>
+    let mvarId' ← mvarId.instantiateHead
+    mvarId.assign (.mvar mvarId')
+    return mvarId'
+  | some (.app ..) => failure
+  | none => return mvarId
 
 partial def Expr.instantiateMVars (e : Expr) : m Expr := do
   match e with
@@ -113,7 +116,7 @@ def abstractExpr' (e : Expr) : ReaderT MVarContext (EStateM String AbstractGadge
     | some e => pure e
     | none =>
       let e := .mvar s.map.size
-      let some decl := (← read).decls[mvarId]? | throw s!"unknown metavariable {mvarId.id}"
+      let some decl := (← read).decls[mvarId] | throw s!"unknown metavariable {mvarId.id}"
       set { s with names := s.names.push decl.userName, map := s.map.insert mvarId e }
       pure e
   | .app f args =>

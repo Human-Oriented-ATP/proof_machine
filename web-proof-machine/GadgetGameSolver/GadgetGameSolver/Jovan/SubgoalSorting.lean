@@ -82,10 +82,10 @@ def CellDifficulty.gt (a b : CellDifficulty) : Bool :=
   | some a, some b => a > b
 
 /-- Returns the difficulty of the goal, and the axioms sorted from difficult to easy. -/
-def checkAxioms (goal : Cell) : SearchM (CellDifficulty × Array AxiomApplication) := do
+def checkAxioms (goal : Cell) : SearchM (Float × Array AxiomApplication) := do
   let axioms ← getAxioms goal
   let filteredAxioms ← axioms.filterMapM (checkAxiom goal)
-  let difficulty := if (← getConfig).easyGoalsFirst && filteredAxioms.size ≤ 1 then none else some (filteredAxioms.foldl (init := 0) (· + ·.2))
+  let difficulty := filteredAxioms.foldl (init := 0) (· + ·.2)
   let filteredAxioms := filteredAxioms.qsort (·.2 > ·.2) |>.map (·.1)
   logMessage s!"{difficulty}: {← goal.toString}"
   return (difficulty, filteredAxioms)
@@ -93,7 +93,7 @@ def checkAxioms (goal : Cell) : SearchM (CellDifficulty × Array AxiomApplicatio
 /--
 Returns the easiest goal with its applicable axioms sorted from difficult to easy, and the remaining goals.
 Returns `.error true` if there are no goals. Returns `.error false` if some goals can't be solved. -/
-def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ ConstantInfo)) × Array GoalId)) := do
+def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ Answer)) × Array GoalId)) := do
   let some goals ← OptionT.run <| goals.mapM fun goalId => do
     let goal ← goalId.getInstantiatedGoal
     if let some cInfo ← goal.getCached? then
@@ -102,7 +102,7 @@ def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array
     if axioms.isEmpty then
       failure
     else
-      return (difficulty, goalId, .inl axioms)
+      return (some difficulty, goalId, .inl axioms)
     | return .error false
   let some (_, goalId, axioms) := goals.getMax? (CellDifficulty.gt ·.1 ·.1) | return .error true
   let otherGoals := goals.filterMap fun (_, goalId', _) => if goalId' == goalId then none else some goalId'

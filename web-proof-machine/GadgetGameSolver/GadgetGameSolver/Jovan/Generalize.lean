@@ -26,16 +26,15 @@ where
       throw "incorrect number of proofs in proof node"
 
 /-- Expands the `Environment` with a new proof constant. -/
-def GoalId.mkAnswer (goalId : GoalId) (allSubgoals : Std.HashMap CellKey Bool) : SearchM Answer := do
+def GoalId.mkConst (goalId : GoalId) : SearchM ConstantInfo := do
   let some proof ← goalId.getAssignment? | throw "goalId is unassigned"
   let proof ← generalizeProof proof
   let conclusion ← proof.inferType
   let gadget : Gadget := { conclusion, hypotheses := #[] }
-  let cInfo := {
+  return {
     name.name := ← getUnique
     gadget := ← gadget.abstract
     definition := .inr (← proof.abstract) }
-  return { cInfo, allSubgoals }
 
 
 /--

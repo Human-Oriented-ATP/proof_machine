@@ -1,51 +1,46 @@
 import GadgetGameSolver.Jovan.SubGoalSorting
 import GadgetGameSolver.Jovan.SpiralDetection
-import Lean
+import GadgetGameSolver.Jovan.GoalGraph
 import Batteries.Data.Sum.Basic
 
 namespace JovanGadgetGame
 
-def mkGeneratorNode (goalId : GoalId) (goal : Cell) (axioms : Array AxiomApplication) : SearchM GeneratorNode := do
-  let mctx ← getMCtx
-  let goalctx ← getGCtx
-  return {
-    goalId, mctx, goalctx, axioms
-    mvars := goal.collectMVars {} |>.arr
-    currAxiomIdx := axioms.size
-  }
-
 /--
   Create a new generator node for `mvar` and add `waiter` as its waiter.
   `key` must be `mkTableKey mctx mvarType`. -/
-def newSubgoal (key : CellKey) (goalId : GoalId) (goal : Cell) (axioms : Array AxiomApplication)
-    (waiter : Waiter) (priority : Priority) (isSpiral : Bool) : SearchM Unit := do
-  let gNode ← mkGeneratorNode goalId goal axioms
-  let entry := { gNode, waiters := #[waiter], answers := #[], priority, isSolved := false }
-  logMessage <| s!"new{if isSpiral then " spiral" else ""} goal {← goalId.toString}," ++
-    s!" with goalId {goalId.id} and importance 1/{priority.numCases} and times {priority.times}"
+def newSubgoal (gInfo : GoalInfo) (axioms : Array AxiomApplication)
+    (firstWaiter : Option ConsumerNode) (posPriority : PosPriority) (isSpiral : Bool) : SearchM Unit := do
+  let gNode    := { gInfo, axioms, currAxiomIdx := axioms.size }
+  let priority := .some posPriority
+  let waiters  := match firstWaiter with
+    | some waiter => Std.HashMap.insert {} waiter priority
+    | none => {}
+  let entry := {
+    gNode, firstWaiter, priority, waiters,
+    deadResumes := #[], waitingFor := {}, cycle := (gInfo.key, {gInfo.key}), answers := #[] }
+  setOpenEntry gInfo.key entry
+  logMessage <| s!"new{if isSpiral then " spiral" else ""} goal {← gInfo.goalId.toString}," ++
+    s!" with goalId {gInfo.goalId.id} and importance 1/{posPriority.numCases} and times {posPriority.times}"
   if !isSpiral then
-    if (← get).generatorStack.find? priority |>.isSome then
-      throw s! "OHNO duplicate {priority.times}"
+    if (← get).generatorStack.find? posPriority |>.isSome then
+      throw s! "OHNO duplicate {posPriority.times}"
     modify fun s => { s with
-      generatorStack := s.generatorStack.insert priority key
-      tableEntries   := s.tableEntries.insert key entry }
+      generatorStack := s.generatorStack.insert posPriority gInfo.key }
   else
     modify fun s => { s with
-      loopyStack   := s.loopyStack.cons (.inr key)
-      tableEntries := s.tableEntries.insert key entry }
+      loopyStack   := s.loopyStack.cons (.inr gInfo.key) }
 
 /--
   Try to synthesize metavariable `mvar` using the axiom `ax`.
   Remark: `mctx` is set using `withMCtx`.
   If it succeeds, the result is a new updated metavariable context and a new list of subgoals.
   A subgoal is created for each hypothesis of `ax`. -/
-def tryAxiom (goalId : GoalId) (goal : Cell) (ax : AxiomApplication) : SearchM (Option (Array GoalId)) := do
-  let goalString ← goal.toString
-  if ← unify ax.gadget.conclusion goal then
+def tryAxiom (gInfo : GoalInfo) (ax : AxiomApplication) : SearchM (Option (Array GoalId)) := do
+  if ← unify ax.gadget.conclusion gInfo.goal then
     increment
-    logMessage s!"applied axiom {← ax.gadget.toString} to {goalString}"
+    logMessage s!"applied axiom {← ax.gadget.toString} to {← gInfo.goal.toString}"
     let goals ← ax.gadget.hypotheses.mapM mkFreshGoalVar
-    goalId.assign (.node ax.name ax.mvars goals)
+    gInfo.goalId.assign (.node ax.name ax.mvars goals)
     return goals.map (·.goalId!)
   else
     return none
@@ -60,117 +55,103 @@ def useAnswer (cInfo : ConstantInfo) (goalId : GoalId) : SearchM Unit := do
   else
     throw "failed to use anser"
 
-/-- Move waiters that are waiting for the given answer to the resume stack. -/
-def wakeUp (answer : Answer) (counts? : Bool) : Waiter → SearchM Unit
-  | .root               => do
-    modify fun s => { s with result? := answer.cInfo }
-  | .consumerNode cNode => do
-    let { cInfo, allSubgoals } := answer
-    let entry := { cNode, cInfo, allSubgoals, counts? }
-    if allSubgoals[cNode.key]? = some true then
-      setMCtx cNode.mctx
-      setGCtx cNode.goalctx
-      logMessage s!"loopy answer {cInfo.gadget.conclusion} for subgoal of {← cNode.goalId.toString}"
-      modify fun s => { s with loopyStack := s.loopyStack.cons (.inl entry) }
-    else
-      modify fun s => { s with resumeStack := s.resumeStack.push entry }
+/-- Move waiter that is waiting for the given answer to the resume stack. -/
+def wakeUp (cNode : ConsumerNode) (answer : Answer) : SearchM Unit :=
+  modify fun s => { s with
+    resumeStack := s.resumeStack.push { cNode, answer, counts? := false } }
 
-def wakeUpWaiters (entry : TableEntry) (answer : Answer) : SearchM Unit :=
-  discard do
-  entry.waiters.foldlM (init := false) fun counts? waiter => do
-    wakeUp answer counts? waiter
-    pure true
+/-- Move waiters that are waiting for the given answer to the resume stack. -/
+def wakeUpWaiters (entry : OpenTableEntry) (answer : Answer) : SearchM Unit := do
+  let s ← get
+  let resumeStack := entry.waiters.fold (init := s.resumeStack) fun stack cNode _ =>
+    stack.push { cNode, answer, counts? := entry.firstWaiter.any (· == cNode) }
+  let s := { s with resumeStack }
+  if entry.firstWaiter.isNone then
+    if s.result?.isSome then
+      throw "there is already a result?"
+    else
+      set { s with result? := some answer.cInfo }
+  else
+    set s
+
 
 def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
-  oldAnswers.all fun oldAnswer =>
-    oldAnswer.cInfo.gadget.conclusion != answer.cInfo.gadget.conclusion
+  oldAnswers.all (·.cInfo.gadget.conclusion != answer.cInfo.gadget.conclusion)
 
 /--
   Create a new answer after `cNode` resolved all subgoals.
   That is, `cNode.subgoals == []`.
   And then, store it in the tabled entries map, and wakeup waiters. -/
-def addAnswer (goalId : GoalId) (key : CellKey) (allSubgoals : Std.HashMap CellKey Bool) : SearchM Unit := do
-  let answer ← goalId.mkAnswer allSubgoals
-  let entry ← getEntry key
-  if entry.isSolved then
-    throw "oops"
+def addAnswer (gInfo : GoalInfo) (proofKeys : List (ProofKeys × Bool)) : SearchM Unit := do
+  let cInfo ← gInfo.goalId.mkConst
+  let answer := { cInfo, proofKeys }
+  let entry ← getOpenEntry gInfo.key
   if isNewAnswer entry.answers answer then
-    answer.cInfo.addToEnv
-    let newEntry := { entry with answers := entry.answers.push answer }
-    modify fun s => { s with tableEntries := s.tableEntries.insert key newEntry }
-    discard <| entry.waiters.foldlM (init := false) fun counts? waiter => do
-      wakeUp answer counts? waiter
-      pure true
+    answer.addToEnv
+    let entry := { entry with answers := entry.answers.push answer }
+    setOpenEntry gInfo.key entry
+    wakeUpWaiters entry answer
   else
     logMessage s!"answer {answer.cInfo.gadget.conclusion} isn't new"
 
-def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (priority : Priority) : SearchM Unit := do
-  let waiter := Waiter.consumerNode cNode
-  let goal ← cNode.nextSubgoalId.getInstantiatedGoal
-  let key := goal.abstract
-  let config@{ fewerCasesFirst, postponeSpiralSearch, useOldSpiralDetect, .. } ← getConfig
+def processSubgoal (cNode : ConsumerNode) (axioms : Array AxiomApplication) (posPriority : PosPriority) : SearchM Unit := do
+  let posPriority := posPriority.modify cNode.priorityMod
+  let key := cNode.subgoalInfo.key
   match ← findEntry? key with
-  | none       =>
-    let isSpiral ← if postponeSpiralSearch then if useOldSpiralDetect then isSpiralDeprecated cNode else Iterate.isSpiral cNode goal--Deprecated cNode
+  | none =>
+    let { postponeSpiralSearch, useOldSpiralDetect, .. } ← getConfig
+    let isSpiral ← if postponeSpiralSearch then
+        if useOldSpiralDetect then isSpiralDeprecated cNode else Iterate.isSpiral cNode
       else pure false
-    newSubgoal key cNode.nextSubgoalId goal axioms waiter priority isSpiral
-  | some entry =>
-    logMessage s!"found goal in table: subgoal {← goal.toString} of {← cNode.goalId.toString}."
-    if entry.isSolved then
-      throw "whoopsies"
-    else
-    entry.answers.forM fun answer =>
-      wakeUp answer true (.consumerNode cNode)
-    let entry ← do
-      if fewerCasesFirst && (priority.cmp entry.priority config).isGT then
-        modify fun s => { s with
-          generatorStack := s.generatorStack.erase entry.priority |>.insert priority key }
-        pure { entry with priority }
-      else
-        pure entry
-    let entry := { entry with waiters := entry.waiters.push waiter }
-    modify fun s => { s with tableEntries := s.tableEntries.insert key entry }
+    newSubgoal cNode.subgoalInfo axioms cNode posPriority isSpiral
+  | some (.done answers) => answers.forM (wakeUp cNode)
+  | some (.openE entry@{ answers, cycle, .. }) =>
+    logMessage s!"found goal in table: subgoal {← cNode.subgoalInfo.goal.toString} of {← cNode.subgoalInfo.goalId.toString}."
+    answers.forM (wakeUp cNode)
+    let priority := .some posPriority
+    setOpenEntry key { entry with waiters := entry.waiters.insert cNode priority }
+    fixPriority key
+    modifyOpenEntry cNode.gInfo.key fun entry => { entry with waitingFor := entry.waitingFor.insert cNode }
+    fixCycles cycle.2
 
-/-- Process the next subgoal in the given consumer node. -/
-def consume (goalId : GoalId) (key : CellKey) (origMVars : Array MVarId)
-    (subgoals : Array GoalId) (allSubgoals : Std.HashMap CellKey Bool) (times : Array Nat) : SearchM Unit := do
-  let { orderSubgoalsAndAxioms, .. } ← getConfig
-  match ← if orderSubgoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
+/-- Process the next subgoal in the given consumer node.
+assumes that the `TableEntry` for `gInfo` is open. -/
+def consume (gInfo : GoalInfo) (proofKeys : List (ProofKeys × Bool))
+    (times : Array Nat) (posPriority : PosPriority) (instGoalMVars : Option (Array MVarId))
+    (subgoals : Array GoalId) : SearchM Unit := do
+  match ← if (← getConfig).orderSubgoalsAndAxioms then bestSubgoal subgoals else bestSubgoal' subgoals with
   | .error true =>
-    logMessage s!"adding answer to goal {← goalId.toString}"
-    addAnswer goalId key allSubgoals
+    logMessage s!"adding answer to goal {← gInfo.goal.toString}"
+    addAnswer gInfo proofKeys
   | .error false =>
-    logMessage s!"goal {← goalId.toString} is now unsolvable"
-  | .ok ((nextSubgoalId, todo), laterSubgoals) =>
-    let proof   ← goalId.getInstantiatedAssignment
-    let mctx    ← getMCtx
-    let goalctx ← getGCtx
-    let anyAssigned ← origMVars.anyM (·.isHeadAssigned?)
-    let cNode := { goalId, key, origMVars, anyAssigned, proof, mctx, goalctx, nextSubgoalId, laterSubgoals, allSubgoals, times }
+    logMessage s!"goal {← gInfo.goal.toString} is now unsolvable"
+  | .ok ((subgoalId, todo), laterSubgoals) =>
+    let subgoalInfo   ← mkGoalInfo subgoalId
+    let proof         ← gInfo.goalId.getInstantiatedAssignment
+    let instGoalMVars ← instGoalMVars.bindM (OptionT.run <| ·.mapM (·.instantiateHead))
+    let priorityMod  := { times := times.push (← getUnique), casesFactor := laterSubgoals.size + 1 }
+    let cNode := { gInfo, subgoalInfo, proof, proofKeys, laterSubgoals, instGoalMVars, priorityMod }
     match todo with
-    | .inr cInfo =>
-      let goal ← cNode.nextSubgoalId.getInstantiatedGoal
-      let key := goal.abstract
-      /- no need to worry about allSubgoals when the answer doesn't instantiate variables. -/
-      let answer := { cInfo, allSubgoals := {} }
-      if let some entry ← findEntry? key then
-        unless entry.isSolved do
-          let entry := { entry with isSolved := true }
-          modify fun s => { s with tableEntries := s.tableEntries.insert key entry }
-          entry.waiters.forM (wakeUp answer true)
-      wakeUp answer true (.consumerNode cNode)
-
     | .inl axioms =>
-      let { priority := { numCases, times := allTimes, .. }, .. } ← getEntry key
-      let priority := {
-        isEZ     := axioms.size = 1
-        numCases := numCases * (laterSubgoals.size + 1)
-        -- size     := totalSize + size
-        times    := allTimes.push times
-      }
-      processSubgoal cNode axioms priority
+      processSubgoal cNode axioms posPriority
+    | .inr answer =>
+      -- we've been given a full proof, so we can close this table entry.
+      if let some (.openE entry) ← findEntry? subgoalInfo.key then
+        wakeUpWaiters entry answer
+        let { waiters, waitingFor, cycle, .. } := entry
+        waiters.forM fun cNode _ => do
+          modifyOpenEntry cNode.gInfo.key fun entry => { entry with waitingFor := entry.waitingFor.erase cNode }
+          /- TODO: find a way to track down all answers and consumernodes that depend on
+          any alternative anwers from this entry, and kill them. -/
+        waitingFor.forM fun cNode => do
+          modifyOpenEntry cNode.subgoalInfo.key fun entry => { entry with waiters := entry.waiters.erase cNode }
+          fixPriority cNode.subgoalInfo.key
+        setDoneEntry subgoalInfo.key #[answer]
+        fixCycles cycle.2
+      wakeUp cNode answer
+
 where
-  bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ ConstantInfo)) × Array GoalId)) := do
+  bestSubgoal' (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ _)) × Array GoalId)) := do
     if h : goals.size = 0 then
       return .error true
     else
@@ -189,80 +170,114 @@ where
 
 /-- Try the next instance in the node on the top of the generator stack. -/
 @[specialize]
-def generate (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
-  let entry@{ gNode, isSolved := false , .. } ← getEntry key | pop
+def generate (posPriority : Option PosPriority) (key : CellKey) (pop : SearchM Unit) : SearchM Unit := do
+  let .openE entry@{ gNode, priority := .some posPriority', .. } ← getEntry key | pop
   if gNode.currAxiomIdx == 0  then
     pop
   else
+  if let some posPriority := posPriority then
+    match posPriority'.cmp posPriority (← getConfig) with
+    | .lt => pop
+    | .gt => throw "bad priority stack :("
+    | .eq => go entry gNode posPriority
+  else
+    go entry gNode posPriority'
+where
+  go entry gNode posPriority := do
     let idx      := gNode.currAxiomIdx - 1
     let ax       := gNode.axioms.get! idx
-    let goalId   := gNode.goalId
-    let mvars    := gNode.mvars
-    setMCtx gNode.mctx
-    setGCtx gNode.goalctx
+    setMCtx gNode.gInfo.mctx
+    setGCtx gNode.gInfo.goalctx
+    setOpenEntry key { entry with gNode.currAxiomIdx := idx }
+    if let some subgoals ← tryAxiom gNode.gInfo ax then
+      consume gNode.gInfo [] #[] posPriority gNode.gInfo.mvars subgoals
 
-    let goal ← goalId.getInstantiatedGoal -- instantiate to make the log look better
-    /- See comment at `typeHasMVars` -/
-    -- unless gNode.goalHasMVars do
-    --   if let some entry := (← get).tableEntries[key]? then
-    --     if entry.answers.any fun answer => answer.result.numMVars == 0 then
-    --       /-
-    --       We already have an answer that:
-    --         1. its result does not have metavariables.
-    --         2. its types do not have metavariables.
 
-    --       Thus, we can skip other solutions because we assume instances are "morally canonical".
-    --       We have added this optimization to address issue #3996.
+partial def relevantProofKeys (cycle : Std.HashSet CellKey) (result : Std.HashMap CellKey Bool)
+    (proofKeys : ProofKeys) (spirals? : Bool := false) : SearchM (Std.HashMap CellKey Bool) := do
+  let .node key proofs := proofKeys
+  if cycle.contains key then
+    proofs.foldlM (init := result.insert key spirals?) fun result (proofKeys, spirals?') =>
+      relevantProofKeys cycle result proofKeys (spirals? || spirals?')
+  else
+    return result
 
-    --       Remark: Condition 1 is important since root nodes only take into account results
-    --       that do **not** contain metavariables. This extra check was added to address issue #4213.
-    --       -/
-    --       modify fun s => { s with generatorStack := s.generatorStack.pop }
-    --       return
-    modify fun s => { s with tableEntries := s.tableEntries.insert key { entry with gNode.currAxiomIdx := idx }}
-    if let some subgoals ← tryAxiom goalId goal ax then
-      consume goalId key mvars subgoals (.insert {} key false) #[← getUnique]
+partial def possiblyNoLoop (cycle : Std.HashSet CellKey) (used : Std.HashMap CellKey Bool) (key : CellKey)
+    (stack : List CellKey) : SearchM Bool := do
+  if used.contains key || stack.contains key then
+    return false
+  if !cycle.contains key then
+    return true
+  let stack := key :: stack
+  let { waiters, .. } ← getOpenEntry key
+  for (cNode, _) in waiters do
+    if ← possiblyNoLoop cycle used cNode.gInfo.key stack then
+      return true
+  return false
+
+-- TODO: look at variable assignments, and only mark a loop if they return to the same place
+/-- If `possiblyNoLoop` returned false, then we check if there is a loop that moves the instanitations. -/
+partial def possiblySpiral (used : Std.HashMap CellKey Bool) (key : CellKey)
+    (stack : List CellKey) (spirals? : Bool := false) : SearchM Bool := do
+  match used[key]? with
+  | some spirals?' => return spirals? || spirals?'
+  | none =>
+
+    if stack.contains key then
+      return false
+    let stack := key :: stack
+    let { waiters, .. } ← getOpenEntry key
+    for (cNode, _) in waiters do
+      if ← possiblySpiral used cNode.gInfo.key stack spirals? then
+        return true
+    return false
 
 /--
   Given `(cNode, answer)` on the top of the resume stack, continue execution by using `answer` to solve the
   next subgoal. -/
-def resume (entry : ResumeEntry) : SearchM Unit := do
-  let { cNode, cInfo, allSubgoals, counts? } := entry
-  if (← getEntry cNode.key).isSolved then
-    return
-  if counts? then
-    increment
-  setMCtx cNode.mctx
-  setGCtx cNode.goalctx
-  let goalId        := cNode.goalId
-  let key           := cNode.key
-  let origMVars     := cNode.origMVars
-  let nextSubgoalId := cNode.nextSubgoalId
-  let laterSubgoals := cNode.laterSubgoals
-  /- we need to possibly set to true the values in allSubgoals, based on whether the variables in cNode are instantiated.-/
-  let allSubgoals   := allSubgoals.fold (init := cNode.allSubgoals) fun allSubgoals key instantiated =>
-    match allSubgoals[key]? with
-    | some instantiated' =>
-      if instantiated' || !(instantiated || cNode.anyAssigned) then
-        allSubgoals
-      else
-        allSubgoals.insert key true
-    | none =>
-      allSubgoals.insert key (instantiated || cNode.anyAssigned)
-  let times         := cNode.times
-  useAnswer cInfo nextSubgoalId
-  logMessage s! "propagating answer {cInfo.gadget.conclusion} to subgoal {← nextSubgoalId.toString} of {← goalId.toString}"
-  consume goalId key origMVars laterSubgoals allSubgoals (times.push (← getUnique))
+def resume (entry : ResumeEntry) (loopyCase : Bool) : SearchM Unit := do
+  let { cNode, answer := { cInfo, proofKeys }, counts? } := entry
+  let key := cNode.gInfo.key
+  let .openE oentry ← getEntry key | return
+  let .some posPiority := oentry.priority
+    | setOpenEntry key { oentry with deadResumes := oentry.deadResumes.push entry }
+  let answerProofKeys := .node cNode.subgoalInfo.key proofKeys
+  let propagate : SearchM Unit := do
+    if counts? then
+      increment
+    setMCtx cNode.subgoalInfo.mctx
+    setGCtx cNode.subgoalInfo.goalctx
+    let proofKeys     := (answerProofKeys, cNode.instGoalMVars.isNone) :: cNode.proofKeys
+    let laterSubgoals := cNode.laterSubgoals
+    let times         := cNode.priorityMod.times
+    useAnswer cInfo cNode.subgoalInfo.goalId
+    logMessage s! "propagating answer {cInfo.gadget.conclusion} to subgoal {← cNode.subgoalInfo.goal.toString} of {← cNode.subgoalInfo.goalId.toString}"
+    consume cNode.gInfo proofKeys times posPiority cNode.instGoalMVars laterSubgoals
+
+  if loopyCase then
+    propagate
+  else
+  let cycle ← findCycleSet key
+  let usedKeys ← relevantProofKeys cycle {} answerProofKeys
+  /- check whether resuming this waiter can lead to a non-loop. -/
+  if usedKeys.isEmpty then
+    propagate
+  else if ← possiblyNoLoop cycle usedKeys key [] then
+    propagate
+  else
+    /- if not, check that resuming this waiter can lead to a loop which instantiates variables. -/
+    if ← possiblySpiral usedKeys key [] then
+      modify fun s => { s with loopyStack := s.loopyStack.cons (.inl entry) }
 
 def step : SearchM Bool := do
   let s ← get
   if !s.resumeStack.isEmpty then
     let r := s.resumeStack.back
     modify fun s => { s with resumeStack := s.resumeStack.pop }
-    resume r
+    resume r false
     return true
   else if let some (p, top) := s.generatorStack.top then
-    generate top
+    generate p top
       (modify fun s => { s with generatorStack := s.generatorStack.erase p })
     return true
   else if let some (x, loopyStack) := s.loopyStack.uncons? then
@@ -272,10 +287,10 @@ def step : SearchM Bool := do
     match x with
     | .inl r =>
       modify fun s => { s with loopyStack }
-      resume r
+      resume r true
       return true
     | .inr gNode =>
-      generate gNode
+      generate none gNode
         (modify fun s => { s with loopyStack })
       return true
   else
@@ -323,7 +338,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
     let (goal, { varNames, .. }) := (abstractTermAsCell goal).run {}
     let goal := goal.instantiate (← varNames.mapM mkFreshMVar)
     let goalId := (← mkFreshGoalVar goal).goalId!
-    let key := goal.abstract
+    let gInfo ← mkGoalInfo goalId
     let { orderSubgoalsAndAxioms, .. } ← getConfig
     let axioms ←
       if orderSubgoalsAndAxioms then
@@ -335,7 +350,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
           return { gadget, name := cInfo.name, mvars }
     do-- try
       let t0 ← IO.monoNanosNow
-      newSubgoal key goalId goal axioms Waiter.root rootPriority false
+      newSubgoal gInfo axioms none rootPriority false
       let r ← synth timeout? goalId
       let t1 ← IO.monoNanosNow
       logMessage s!"measured time: {(← get).time/1000000}ms out of {(t1-t0)/1000000}ms"

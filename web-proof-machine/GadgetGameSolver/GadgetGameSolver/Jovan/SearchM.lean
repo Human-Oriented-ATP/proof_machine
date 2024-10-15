@@ -11,61 +11,62 @@ structure AxiomApplication where
   gadget : Gadget
   deriving Inhabited
 
+structure GoalInfo where
+  goalId  : GoalId
+  goal    : Cell
+  mvars   : Array MVarId
+  key     : CellKey
+  mctx    : MVarContext
+  goalctx : GoalContext
+  deriving Inhabited
+
 /-- A goal in the tabled (type class) resolution. -/
 structure GeneratorNode where
-  goalId       : GoalId
-  mvars        : Array MVarId
-  mctx         : MVarContext
-  goalctx      : GoalContext
+  gInfo     : GoalInfo
   axioms       : Array AxiomApplication
   currAxiomIdx : Nat
   deriving Inhabited
 
 structure ConsumerNode where
-  goalId        : GoalId
-  key           : CellKey
-  origMVars     : Array MVarId
-  anyAssigned   : Bool
-  proof         : Proof
-  mctx          : MVarContext
-  goalctx       : GoalContext
-  nextSubgoalId : GoalId
+  gInfo      : GoalInfo
+  subgoalInfo   : GoalInfo
   laterSubgoals : Array GoalId
-  allSubgoals   : Std.HashMap CellKey Bool
-  times         : Array Nat -- times of creating/modifying this node
+  proof         : Proof
+  proofKeys     : List (ProofKeys × Bool)
+  /-- `instGoalMVars` is none as soon as an MVarId gets assigned to a function application.
+  TODO: replace this -/
+  instGoalMVars : Option (Array MVarId)
+  priorityMod   : PriorityModifier
   deriving Inhabited
+
+/- A ConsumerNode is uniquely determined by `priorityMod.times.back`-/
+
+instance : BEq ConsumerNode where
+  beq c d := c.priorityMod.times.back == d.priorityMod.times.back
+instance : Hashable ConsumerNode where
+  hash c := hash c.priorityMod.times.back
+
 
 structure ResumeEntry where
-  cNode       : ConsumerNode
-  cInfo       : ConstantInfo
-  allSubgoals : Std.HashMap CellKey Bool
-  counts?     : Bool
+  cNode   : ConsumerNode
+  answer  : Answer
+  /-- Resuming counts towards the step-count whenever we don't resume the original waiter. -/
+  counts? : Bool
   deriving Inhabited
 
-inductive Waiter where
-  | consumerNode : ConsumerNode → Waiter
-  | root         : Waiter
-
-def Waiter.isRoot : Waiter → Bool
-  | .consumerNode _ => false
-  | .root           => true
-
-structure Answer where
-  cInfo       : ConstantInfo -- this constant must have 0 hypotheses.
-  /-- We store which goals are a part of this answer, to avoid looping answers.
-  However, we should be careful to not block loops coming from e.g. a swapper,
-  as these loops may need multiple applications before returning to the initial position,
-  at which point they are automatically stopped, due to not giving a new answer to the same goal.
-  So we store in a `Bool` whether the subgoal appears at a depth -/
-  allSubgoals : Std.HashMap CellKey Bool
-  deriving Inhabited
-
-structure TableEntry where
+structure OpenTableEntry where
   gNode        : GeneratorNode
-  priority     : Priority
-  waiters      : Array Waiter
-  isSolved     : Bool
+  firstWaiter  : Option ConsumerNode -- TODO: use `goalId` equality to tell appart this `ConsumerNode`.
+  priority     : Priority -- this is the max of the priorities of the waiters
+  waiters      : Std.HashMap ConsumerNode Priority
+  deadResumes  : Array ResumeEntry -- this array is only non-empty if priority.isNone.
+  waitingFor   : Std.HashSet ConsumerNode
+  cycle        : CellKey × Std.HashSet CellKey -- TODO: make this an option to avoid unnecesary storage space
   answers      : Array Answer
+
+inductive TableEntry where
+| openE : OpenTableEntry → TableEntry
+| done  : Array Answer → TableEntry
 
 structure Context where
   axioms        : Std.HashMap (String × Nat) (Array ConstantInfo)
@@ -79,10 +80,10 @@ structure State where
   uniqueNum      : Nat := 1
   stepCount      : Nat := 0
   result?        : Option ConstantInfo := none
-  generatorStack : PriorityQueue Priority CellKey (·.cmp · config) := {}
+  generatorStack : PriorityQueue PosPriority CellKey (·.cmp · config) := {}
   resumeStack    : Array ResumeEntry              := #[]
   loopyStack     : Queue (ResumeEntry ⊕ CellKey) := {}
-  tableEntries   : Std.HashMap CellKey TableEntry := {}
+  tableEntries   : Std.HashMap CellKey TableEntry := {} -- TODO: switch to using `GoalId` for identification, as it has a faster `==`?
   log            : Array String := #[]
   time           : Nat := 0
 
@@ -128,13 +129,37 @@ def findEntry? (key : CellKey) : SearchM (Option TableEntry) := do
   return (← get).tableEntries[key]?
 
 def getEntry (key : CellKey) : SearchM TableEntry := do
-  match (← findEntry? key) with
-  | none       => throw s!"invalid key at gadget search"
+  match ← findEntry? key with
+  | none       => throw s!"invalid key"
   | some entry => pure entry
 
+def getOpenEntry (key : CellKey) : SearchM OpenTableEntry := do
+  match ← getEntry key with
+  | .openE entry => pure entry
+  | .done _      => throw s!"invalid key: entry is already solved"
+
+def setOpenEntry (key : CellKey) (entry : OpenTableEntry) : SearchM Unit := do
+  modify fun s => { s with
+    tableEntries := s.tableEntries.insert key (.openE entry) }
+
+def modifyOpenEntry (key : CellKey) (f : OpenTableEntry → OpenTableEntry) : SearchM Unit := do
+  setOpenEntry key (f (← getOpenEntry key))
+
+def setDoneEntry (key : CellKey) (answers : Array Answer) : SearchM Unit := do
+  modify fun s => { s with
+    tableEntries := s.tableEntries.insert key (.done answers) }
 
 /-- Return globals and locals instances that may unify with `goal` -/
 def getAxioms (goal : Cell) : SearchM (Array ConstantInfo) := do
   match (← read).axioms[(goal.f, goal.args.size)]? with
   | none => return #[]
   | some axioms => return axioms
+
+def mkGoalInfo (goalId : GoalId) : SearchM GoalInfo := do
+  let goal ← goalId.getInstantiatedGoal
+  return {
+    goalId, goal
+    mvars   := goal.collectMVars {} |>.arr
+    key     := goal.abstract
+    mctx    := ← getMCtx
+    goalctx := ← getGCtx }

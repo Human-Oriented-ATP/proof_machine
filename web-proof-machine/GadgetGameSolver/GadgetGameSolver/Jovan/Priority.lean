@@ -44,29 +44,57 @@ def timesCmpBFS (t t' : Times) : Ordering :=
     ArrayOrderingBFS t t' compare
 
 /-- Priority of a generator node. -/
-structure Priority where
-  /-- Whether this goal has only one axiom applicable. -/
-  isEZ : Bool
+structure PosPriority where
   /-- The inverse importance is a number at least 1, with 1 being the highest importance. -/
   numCases : Nat
   -- /-- The size of the solution so far -/
   -- size          : Nat
   /-- The times of the axiom applications that lead to this goal -/
   times         : Times
-  deriving Inhabited
+  deriving Inhabited, BEq
 
-def rootPriority : Priority where
-  isEZ := false
+/-- The priority related to a goal. It is `useless` when the goal shouldn't be worked on. -/
+inductive Priority where
+| some    : PosPriority → Priority
+| useless : Priority
+deriving BEq
+
+def rootPriority : PosPriority where
   numCases := 1
-  -- size          := 0
   times := #[]
 
-def Priority.cmp (p q : Priority) (config : Config) :=
-  let cmp := if config.easyGoalsFirst then compare p.isEZ q.isEZ else .eq
-  let cmp := cmp.then <| if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
+def PosPriority.cmp (p q : PosPriority) (config : Config) : Ordering :=
+  let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
   -- let cmp := cmp.then <| if config.simplerSolutionsFirst then compare q.size p.size else .eq
   cmp.then <|
     if config.depthFirst then
       timesCmpDFS p.times q.times
     else
       timesCmpBFS p.times q.times
+
+def Priority.cmp (p q : Priority) (config : Config) : Ordering :=
+  match p, q with
+  | .useless, .useless => .eq
+  | .some _ , .useless => .gt
+  | .useless, .some _  => .lt
+  | .some p , .some q  => p.cmp q config
+
+def Priority.max (p q : Priority) (config : Config) : Priority :=
+  if p.cmp q config |>.isLT then q else p
+
+/-- When computing the priority of a subgoal from that of the main goal, we use a
+modifier.-/
+structure PriorityModifier where
+  casesFactor : Nat
+  times       : Array Nat
+  deriving Inhabited
+
+/-- Applying a `PriorityModifier` may not be order preserving. -/
+def PosPriority.modify (mod : PriorityModifier) (p : PosPriority) : PosPriority where
+  numCases := p.numCases * mod.casesFactor
+  times    := p.times.push mod.times
+
+def Priority.modify (mod : PriorityModifier) (p : Priority) : Priority :=
+  match p with
+  | .useless => .useless
+  | .some p  => .some (p.modify mod)

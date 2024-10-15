@@ -9,8 +9,8 @@ structure GoalDecl where
   deriving Inhabited
 
 structure GoalContext where
-  decls       : Std.HashMap GoalId GoalDecl := {}
-  assignments : Std.HashMap GoalId Proof := {}
+  decls       : Lean.PersistentHashMap GoalId GoalDecl := {}
+  assignments : Lean.PersistentHashMap GoalId Proof := {}
   deriving Inhabited
 
 class MonadGCtx (m : Type → Type) where
@@ -38,12 +38,12 @@ def GoalId.assign (goalId : GoalId) (proof : Proof) : m Unit :=
   modifyGCtx fun gctx => { gctx with assignments := gctx.assignments.insert goalId proof }
 
 def GoalId.getGoal! (goalId : GoalId) : m Cell := do
-  match (← getGCtx).decls[goalId]? with
+  match (← getGCtx).decls[goalId] with
   | some decl => return decl.goal
   | none      => throw s!"unknown goal metavariable {goalId.id}"
 
 def GoalId.getAssignment? (goalId : GoalId) : m (Option Proof) := do
-  return (← getGCtx).assignments[goalId]?
+  return (← getGCtx).assignments[goalId]
 
 variable [MonadMCtx m] [MonadExceptOf String m]
 
@@ -103,7 +103,8 @@ def abstractProof (proof : Proof) : ReaderT (MVarContext × GoalContext) (EState
     match s.map[goalId]? with
     | some proof => pure proof
     | none =>
-      let goal := (← read).2.decls[goalId]!.goal
+      let some decl := (← read).2.decls[goalId] | throw s!"unkown goal variable {goalId.id}"
+      let goal := (← read).2.decls[goalId].get!.goal
       match abstractCell' goal |>.run (← read).1 |>.run (← get).exprState with
       | .error e _ => throw e
       | .ok goal exprState =>
