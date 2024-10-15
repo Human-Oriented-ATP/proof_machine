@@ -120,7 +120,7 @@ export function Gadget({ ...props }: GadgetProps) {
 
     return (
         <div className="text-center relative">
-            {/* <span style={{ color: "grey" }}>{props.id}</span> */}
+            <span style={{ color: "grey" }}>{props.id}</span>
             <div className={twMerge("flex", hasInputNodes() && "space-x-8")} id={props.id}>
                 <div className="flex flex-col items-start">
                     {makeInputNodes()}

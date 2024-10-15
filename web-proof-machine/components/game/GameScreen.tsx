@@ -16,7 +16,7 @@ interface GameScreenProps {
     problemId: string
 }
 
-export function GameScreen(props: GameScreenProps) {
+export default function GameScreen(props: GameScreenProps) {
     const [levelIsCompleted, setLevelIsCompleted] = useState(false)
     const [diagramHasBrokenConnection, setDiagramHasBrokenConnection] = useState(false)
     const helpPopup = usePopup()

@@ -2,14 +2,16 @@ import { loadAllProblemsInDirectory, loadStudyConfiguration } from "lib/game/Loa
 import { promises as fs } from "fs"
 import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
-import { GameScreen } from "components/game/GameScreen";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
+import dynamic from "next/dynamic";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
     const problemIds = problems.map(problem => ({ problem_id: problem }))
     return problemIds
 }
+
+const DynamicGameScreen = dynamic(() => import("components/game/GameScreen"), { ssr: false })
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     const configuration = await loadStudyConfiguration(params.config)
@@ -21,7 +23,7 @@ export default async function Page({ params }: { params: { config: string, probl
         const problemFileData = parseProblem(problemData.trim())
         const initData = makeInitializationDataFromProblemFileData(problemFileData)
         return <Suspense>
-            <GameScreen configuration={configuration} initData={initData} problemId={params.problem_id} />
+            <DynamicGameScreen configuration={configuration} initData={initData} problemId={params.problem_id} />
         </Suspense>
     } catch (e) {
         return <div>
