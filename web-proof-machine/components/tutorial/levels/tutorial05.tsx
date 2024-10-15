@@ -1,7 +1,7 @@
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
-import { DELETE_ONLY_SETTINGS } from "../TutorialSetup";
+import { DELETE_ONLY_SETTINGS } from "../InteractiveLevel";
 import { DragIndicatorProps } from "../DragIndicator";
 
 const tutorial05InitialDiagram: InitialDiagram = {

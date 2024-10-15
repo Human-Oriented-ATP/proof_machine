@@ -1,6 +1,6 @@
 import { DragIndicatorProps } from "../DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
-import { RESTRICTIVE_SETTINGS } from "../TutorialSetup";
+import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
 
 const redGadgetDragIndicator: DragIndicatorProps<GadgetPosition> = {
     origin: { gadget: { elementId: "axiom_1" }, anchorPoint: "BOTTOM_RIGHT", offset: { x: -20, y: -20 } },

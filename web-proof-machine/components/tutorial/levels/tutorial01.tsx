@@ -1,6 +1,7 @@
 import { DragIndicatorProps } from "../DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
-import { RESTRICTIVE_SETTINGS, SourceConnector, TargetConnector } from "../TutorialSetup";
+import { SourceConnector, TargetConnector } from "../TutorialSetup";
+import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
 
 const firstAxiomDragPoint: GadgetPosition = {
     gadget: { elementId: "axiom_1" },

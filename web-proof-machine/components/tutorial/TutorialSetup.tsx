@@ -1,5 +1,4 @@
 import { Connector } from "components/game/gadget/Connector";
-import { LevelConfiguration } from "./InteractiveLevel";
 import { BasicHole } from "components/game/gadget/Hole";
 
 export function SourceConnector() {
@@ -18,27 +17,6 @@ export function OpenTargetConnector() {
     return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} isOpen={true} /></div>;
 }
 
-export function PinkHole() { 
+export function PinkHole() {
     return <div className="inline-block"><BasicHole value={"?"} isFunctionHole={true} /></div>;
 }
-
-export const RESTRICTIVE_SETTINGS: LevelConfiguration = {
-    zoomEnabled: false,
-    panEnabled: false,
-    proximityConnectEnabled: false,
-    gadgetDeletionEnabled: false,
-};
-
-export const DELETE_ONLY_SETTINGS = {
-    zoomEnabled: false,
-    panEnabled: false,
-    proximityConnectEnabled: false,
-    gadgetDeletionEnabled: true
-};
-
-export const DEFAULT_SETTINGS = {
-    zoomEnabled: true,
-    panEnabled: true,
-    proximityConnectEnabled: true,
-    gadgetDeletionEnabled: true
-};

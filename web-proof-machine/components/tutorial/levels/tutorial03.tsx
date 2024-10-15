@@ -1,5 +1,6 @@
 import { InteractiveLevel } from "../InteractiveLevel";
-import { RESTRICTIVE_SETTINGS, OpenTargetConnector } from "../TutorialSetup";
+import { OpenTargetConnector } from "../TutorialSetup";
+import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
 
 export const tutorial03: InteractiveLevel = {
     settings: RESTRICTIVE_SETTINGS,
