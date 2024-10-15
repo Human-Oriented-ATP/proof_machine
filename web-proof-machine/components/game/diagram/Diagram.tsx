@@ -1,15 +1,16 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import {
     useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, getOutgoers, useStore, XYPosition, ReactFlow, OnConnectStartParams,
+    EdgeTypes, Edge, getOutgoers, XYPosition, ReactFlow, OnConnectStartParams,
     Background,
-    BackgroundVariant
+    BackgroundVariant,
+    useStore as useReactFlowStore
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
 import { ConnectionLineComponent, CustomEdge, EdgeWithEquation } from './CustomEdge';
 import { useShallow } from 'zustand/react/shallow';
-
+import { useStore } from 'zustand';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
@@ -28,12 +29,13 @@ import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
 import { useOpenHandleHighlighting } from 'lib/hooks/OpenHandleHighlighting';
-import { initialNode } from './store';
+import { GameContext } from 'lib/state/StateContextProvider';
+// import useGameStore, { initialNode } from '../../../lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
 
-interface DiagramProps {
+export interface DiagramProps {
     initData: InitializationData
     addGadget: (gadgetId: string, axiom: Axiom) => void
     removeGadget: (gadgetId: string) => void
@@ -67,107 +69,46 @@ function isAbovePalette(position: XYPosition): boolean {
     return containsPoint(paletteRect, position)
 }
 
-function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
-    if (isAxiom(gadget.statement)) {
-        return axiomToGadget(gadget.statement.axiom, id)
-    } else {
-        return {
-            id,
-            terms: new Map([[0, gadget.statement.goal]]),
-            isAxiom: false,
-            displayHoleFocus: true
-        }
-    }
-}
-
-function makeGadgetNode(id: GadgetId, gadget: InitialDiagramGadget, deletable: boolean, goalNodeDraggable: boolean): GadgetNode {
-    const draggable = id === "goal_gadget" ? goalNodeDraggable : true
-    return {
-        id,
-        type: 'gadgetNode',
-        position: gadget.position,
-        deletable: deletable && id !== "goal_gadget",
-        draggable,
-        data: getGadgetProps(id, gadget)
-    }
-}
-
-function getInitialNodes(props: DiagramProps): GadgetNode[] {
-    const initialGadgetsArray = Array.from(props.initData.initialDiagram.gadgets)
-    const deletable = props.gadgetDeletionEnabled
-    const goalNodeDraggable = props.panEnabled
-    const initialNodes: GadgetNode[] = initialGadgetsArray.map(([gadgetId, gadget]) =>
-        makeGadgetNode(gadgetId, gadget, deletable, goalNodeDraggable))
-    return initialNodes
-}
-
 const selector = (state) => ({
     nodes: state.nodes,
     edges: state.edges,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
-    somestate: state.somestate
+    setNodes: state.setNodes,
+    addNode: state.addNode,
+    removeNode: state.removeNode,
 });
 
 export function Diagram(props: DiagramProps) {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, somestate } = useStore(useShallow(selector));
-
-    // const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>([initialNode]);
-    // const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>([]);
-
-    console.log("nodes", nodes)
-    console.log("somestate", somestate)
+    const store = useContext(GameContext)
+    if (!store) throw new Error('Missing GameContext.Provider in the tree')
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, removeNode } = useStore(store, useShallow(selector));
 
     const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
 
-    // const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
+    const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
 
-    // const getInitialEdge = useCallback((connection: InitialDiagramConnection, label: string): EdgeWithEquation => {
-    //     return {
-    //         id: label,
-    //         source: connection.from,
-    //         sourceHandle: getHandleId(OUTPUT_POSITION, connection.from),
-    //         target: connection.to[0],
-    //         targetHandle: getHandleId(connection.to[1], connection.to[0]),
-    //         type: 'edgeWithEquation',
-    //         animated: true,
-    //         data: { eq: getEquationId(connection.from, connection.to) }
-    //     }
-    // }, [])
+    const [generateGadgetId] = useIdGenerator("gadget_")
 
-    // const getInitialEdges = useCallback((initialDiagram: InitialDiagram): EdgeWithEquation[] => {
-    //     return initialDiagram.connections.map((edge, idx) => getInitialEdge(edge, `edge_${idx}`))
-    // }, [])
+    const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
 
+    const numberOfNodes = useReactFlowStore(nodesLengthSelector)
 
-    // const [nodes, setNodes, onNodesChange] = useNodesState<GadgetNode>(getInitialNodes(props));
-    // const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeWithEquation>(initialEdges);
-
-    // const getNode = rf.getNode
-    // const getNodes = rf.getNodes
-    // const getEdges = rf.getEdges
-
-    // const [generateGadgetId] = useIdGenerator("gadget_")
-
-    // const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
-
-    // const numberOfNodes = useStore(nodesLengthSelector)
-
-    // useEffect(() => {
-    //     if (dragStartInfo.current !== undefined) {
-    //         const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
-    //         props.setUserIsDraggingOrNavigating(true)
-    //         nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
-    //             bubbles: true,
-    //             cancelable: true,
-    //             view: window,
-    //             clientX: dragStartInfo.current.position.x,
-    //             clientY: dragStartInfo.current.position.y,
-    //         }))
-    //     }
-    //     dragStartInfo.current = undefined
-    // }, [numberOfNodes])
+    useEffect(() => {
+        if (dragStartInfo.current !== undefined) {
+            const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
+            props.setUserIsDraggingOrNavigating(true)
+            nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                clientX: dragStartInfo.current.position.x,
+                clientY: dragStartInfo.current.position.y,
+            }))
+        }
+        dragStartInfo.current = undefined
+    }, [numberOfNodes])
 
     // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
     // useOpenHandleHighlighting({ nodes, edges })
@@ -239,29 +180,31 @@ export function Diagram(props: DiagramProps) {
     //     });
     // }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
-    // function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
-    //     const id = generateGadgetId()
-    //     const flowNode: GadgetNode = {
-    //         id: id,
-    //         type: 'gadgetNode',
-    //         position: rf.screenToFlowPosition(axiomPosition),
-    //         dragging: true,
-    //         deletable: props.gadgetDeletionEnabled,
-    //         data: axiomToGadget(axiom, id)
-    //     }
-    //     gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
-    //     setNodes((nodes) => nodes.concat(flowNode));
-    //     dragStartInfo.current = { id, position: axiomPosition }
-    // }
+    function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
+        const id = generateGadgetId()
+        const flowNode: GadgetNode = {
+            id: id,
+            type: 'gadgetNode',
+            position: rf.screenToFlowPosition(axiomPosition),
+            dragging: true,
+            deletable: props.gadgetDeletionEnabled,
+            data: axiomToGadget(axiom, id)
+        }
+        gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
+        addNode(flowNode);
+        dragStartInfo.current = { id, position: axiomPosition }
+    }
 
-    // const paletteProps: GadgetPaletteProps = {
-    //     axioms: props.initData.axioms,
-    //     makeGadget: makeGadget,
-    //     abortAddingGadget: () => {
-    //         setNodes(nodes => nodes.filter(node => node.id !== gadgetThatIsBeingAdded.current?.gadgetId))
-    //         gadgetThatIsBeingAdded.current = undefined
-    //     }
-    // }
+    const paletteProps: GadgetPaletteProps = {
+        axioms: props.initData.axioms,
+        makeGadget: makeGadget,
+        abortAddingGadget: () => {
+            if (gadgetThatIsBeingAdded.current) {
+                removeNode(gadgetThatIsBeingAdded.current.gadgetId)
+            }
+            gadgetThatIsBeingAdded.current = undefined
+        }
+    }
 
     // const disableHoleFocus = useCallback(() => {
     //     setNodes(nodes => nodes.map(node => {
@@ -384,13 +327,13 @@ export function Diagram(props: DiagramProps) {
     console.log("number of nodes:", nodes.length)
 
     return <>
-        {/* {props.initData.axioms.length !== 0 && <GadgetPalette {...paletteProps} />} */}
+        {props.initData.axioms.length !== 0 && <GadgetPalette {...paletteProps} />}
         <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            // onConnect={onConnect}
+            onConnect={onConnect}
             // onEdgesDelete={onEdgesDelete}
             // onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}

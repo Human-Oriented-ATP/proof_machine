@@ -4,6 +4,8 @@ import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
 import dynamic from "next/dynamic";
+import { GameNew } from "components/game/GameNew";
+import { DEFAULT_SETTINGS, LevelConfiguration } from "components/tutorial/InteractiveLevel";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
@@ -22,8 +24,15 @@ export default async function Page({ params }: { params: { config: string, probl
     try {
         const problemFileData = parseProblem(problemData.trim())
         const initData = makeInitializationDataFromProblemFileData(problemFileData)
+        const settings = DEFAULT_SETTINGS
         return <Suspense>
-            <DynamicGameScreen configuration={configuration} initData={initData} problemId={params.problem_id} />
+            <GameNew
+                initialDiagram={initData.initialDiagram}
+                axioms={initData.axioms}
+                settings={settings}
+                problemId={params.problem_id}
+                configuration={configuration}
+            />
         </Suspense>
     } catch (e) {
         return <div>
