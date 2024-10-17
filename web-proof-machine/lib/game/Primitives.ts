@@ -1,14 +1,7 @@
 import { Term } from "./Term"
 
-export interface Focus<T> {
-    isFocussed: (t: T) => boolean
-    focus: (t: T) => void
-    resetFocus: () => void
-}
-
 export interface HoleProps {
     term: Term
-    focus?: Focus<string>
 }
 
 export interface AbstractNodeProps {
@@ -31,9 +24,7 @@ export interface NodeDisplayProps extends AbstractNodeProps {
     position: NodePosition
     gadgetId: GadgetId
     useDummyHandle: boolean
-    holeFocus: Focus<string>
     isGoalNode: boolean
-    openHandles?: string[]
 }
 
 export type GadgetId = string
@@ -42,8 +33,6 @@ export type GadgetProps = {
     id: GadgetId
     terms: Map<NodePosition, Term>
     isAxiom: boolean
-    displayHoleFocus: boolean
-    openHandles?: string[]
 }
 
 export interface Axiom {

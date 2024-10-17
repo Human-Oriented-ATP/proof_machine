@@ -14,7 +14,7 @@ export function getGadgetTerms(axiom: Axiom, id: GadgetId): Map<NodePosition, Te
 
 export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     const terms = getGadgetTerms(axiom, id)
-    return { terms, id, isAxiom: false, displayHoleFocus: true }
+    return { terms, id, isAxiom: false }
 }
 
 export function axiomTermEnumeration(t: Term): string {

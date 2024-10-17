@@ -16,8 +16,7 @@ function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps
         return {
             id,
             terms: new Map([[0, gadget.statement.goal]]),
-            isAxiom: false,
-            displayHoleFocus: true
+            isAxiom: false
         }
     }
 }

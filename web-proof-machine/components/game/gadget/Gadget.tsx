@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from 'react'
 import { Node } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
-import { GadgetProps, NodeDisplayProps, GadgetId, Focus, isInputPosition, OUTPUT_POSITION, isOutputPosition }
+import { GadgetProps, NodeDisplayProps, GadgetId, isInputPosition, OUTPUT_POSITION, isOutputPosition }
     from '../../../lib/game/Primitives'
 import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/ConnectionsFromTerms'
 import { twMerge } from 'tailwind-merge'
@@ -42,13 +42,6 @@ export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): P
 export function Gadget({ ...props }: GadgetProps) {
     const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
     const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
-    const [focussedHole, setFocussedHole] = useState("")
-
-    const focus: Focus<string> = {
-        isFocussed: hole => hole === focussedHole && props.displayHoleFocus,
-        focus: hole => setFocussedHole(hole),
-        resetFocus: () => setFocussedHole("")
-    }
 
     function hasOutputNode(): boolean {
         const positions = Array.from(props.terms.keys())
@@ -84,10 +77,8 @@ export function Gadget({ ...props }: GadgetProps) {
                 term,
                 position: position,
                 gadgetId: props.id,
-                holeFocus: focus,
                 useDummyHandle: props.isAxiom,
                 isGoalNode: props.id === "goal_gadget",
-                openHandles: props.openHandles ?? []
             }
             if (isInputPosition(position)) {
                 buffer.push(<Node key={position} {...nodeDisplayProps}></Node>)

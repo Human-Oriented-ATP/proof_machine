@@ -33,8 +33,7 @@ function ConverterGadget() {
         <AssignmentContext.Provider value={axiomTermEnumeration}>
             <Gadget id="tutorial_explanation"
                 isAxiom={true}
-                terms={new Map([[0, parseTerm("r(A, B)")], [-1, parseTerm("r(B, A)")]])}
-                displayHoleFocus={false} />
+                terms={new Map([[0, parseTerm("r(A, B)")], [-1, parseTerm("r(B, A)")]])} />
         </AssignmentContext.Provider>
     </div>;
 }

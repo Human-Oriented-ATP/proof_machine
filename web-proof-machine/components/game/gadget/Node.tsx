@@ -65,9 +65,6 @@ export function Node(props: NodeDisplayProps) {
         if (!props.useDummyHandle) {
             const handleId = makeHandleId(props.position, props.gadgetId)
             const handleProps = getHandleProps(handleId)
-            if (props.openHandles && props.openHandles.includes(handleId)) {
-                return <Handle {...handleProps}><Connector type={handleProps.type} isOpen={true} /></Handle>
-            }
             return <Handle {...handleProps}><Connector type={handleProps.type} isOpen={false} /></Handle>
         } else {
             const position = (isInputPosition(props.position)) ? "target" : "source"
@@ -83,7 +80,7 @@ export function Node(props: NodeDisplayProps) {
         return (
             <div className="flex items-center">
                 <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", background, props.isGoalNode && "outline outline-offset-2 outline-2")}>
-                    {props.term.args.map((arg, idx) => <Hole key={idx} term={arg} focus={props.holeFocus}></Hole>)}
+                    {props.term.args.map((arg, idx) => <Hole key={idx} term={arg}></Hole>)}
                 </div>
                 {renderHandle()}
             </div>

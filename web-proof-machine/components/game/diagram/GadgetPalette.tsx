@@ -47,7 +47,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
             terms.set(i, hypothesis)
         })
         terms.set(OUTPUT_POSITION, axiom.conclusion)
-        return { terms, id: getAxiomId(), isAxiom: true, displayHoleFocus: true }
+        return { terms, id: getAxiomId(), isAxiom: true }
     }
 
     return (
@@ -55,8 +55,8 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
             <AssignmentContext.Provider value={axiomTermEnumeration}>
                 <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
                     {props.axioms.map(axiom => {
-                        return <InsertGadgetButton key={JSON.stringify(axiom)} makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)} 
-                                                    abortAddingGadget={props.abortAddingGadget}>
+                        return <InsertGadgetButton key={JSON.stringify(axiom)} makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)}
+                            abortAddingGadget={props.abortAddingGadget}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>
                         </InsertGadgetButton>
                     })}
