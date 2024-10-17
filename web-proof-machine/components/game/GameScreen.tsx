@@ -30,15 +30,11 @@ export default function GameScreen(props: GameScreenProps) {
     const initialDiagram = interactiveLevel?.initialDiagram
     const initData = initialDiagram ? { ...props.initData, initialDiagram } : props.initData
     const settings = interactiveLevel?.settings
-    const showBrokenConnectionStatusBarMessage = settings?.showBrokenConnectionStatusBarMessage ?? true
 
     return <div className='h-dvh flex flex-col'>
-        <div><MenuBar levelIsCompleted={levelIsCompleted} 
-                      diagramHasBrokenConnection={showBrokenConnectionStatusBarMessage ? diagramHasBrokenConnection : false} 
-                      showHelpWindow={helpPopup.open}
-                      configuration={props.configuration} /></div>
+        <div><MenuBar configuration={props.configuration} /></div>
         <div className="grow">
-            <Game 
+            <Game
                 problemId={props.problemId}
                 config={props.configuration.name}
                 initData={initData}
@@ -47,7 +43,7 @@ export default function GameScreen(props: GameScreenProps) {
                 interactiveSteps={interactiveLevel?.steps}
                 {...settings}
             />
-            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp settings={settings}/></Popup>
+            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp settings={settings} /></Popup>
         </div>
     </div>
 }

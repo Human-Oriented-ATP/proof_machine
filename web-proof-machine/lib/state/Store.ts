@@ -1,8 +1,19 @@
 import { createStore } from 'zustand'
 
 import { FlowSlice, flowSlice, FlowState } from './slices/Flow';
+import { StudyConfiguration } from 'lib/study/Types';
+import { InteractiveStep, LevelConfiguration } from 'components/tutorial/InteractiveLevel';
 
-export type GameState = FlowState
+export type ReadonlyGameSetup = {
+    problemId: string
+    configuration: StudyConfiguration
+    settings: LevelConfiguration
+    tutorialSteps?: InteractiveStep[]
+}
+
+export type GameState = FlowState & {
+    setup?: ReadonlyGameSetup
+}
 
 export interface GameSlice extends FlowSlice {
 };

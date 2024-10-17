@@ -11,12 +11,13 @@ function getProblemFromPathname(pathname: string): string {
 }
 
 interface MenuButtonsProps {
-    levelCompleted: boolean;
-    showHelpWindow: () => void;
     configuration: StudyConfiguration
 }
 
-export function MenuButtons({ levelCompleted, showHelpWindow, configuration }: MenuButtonsProps) {
+export function MenuButtons({ configuration }: MenuButtonsProps) {
+    const levelCompleted = false
+    const showHelpWindow = () => { }
+
     const router = useRouter();
     const path = usePathname();
 

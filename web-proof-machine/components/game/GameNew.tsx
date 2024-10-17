@@ -9,7 +9,7 @@ import { useRef } from 'react'
 import GameScreen from './GameScreen'
 import { InteractiveStep, LevelConfiguration } from 'components/tutorial/InteractiveLevel'
 import { Axiom } from 'lib/game/Primitives'
-import { ReactFlow, ReactFlowProvider, useReactFlow } from '@xyflow/react'
+import { ReactFlowProvider, useReactFlow } from '@xyflow/react'
 
 export interface GameNewProps {
   initialDiagram: InitialDiagram
