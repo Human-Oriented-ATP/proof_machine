@@ -16,54 +16,57 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
     postponeSpiralSearch := true
     useOldSpiralDetect  := false
     cacheSolutions := true
-    easyGoalsFirst := false
   }
   logInfoAt stx m!"num steps: {numSteps}"
+  if false then
+  logInfoAt stx m!"{proofLog}"
 
-  -- logInfoAt stx m!"{proofLog}"
-
-  -- -- unless tree.isClosed do
-  -- --   throwError "The proof tree is not closed."
-  -- let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
-  -- let initData : InitializationData := {
-  --   initialDiagram := initDiagram,
-  --   axioms := problemState.axioms -- .empty
-  -- }
-  -- let jsonProps := Lean.toJson initData
-  -- Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
-  --   (return jsonProps) stx
+  -- unless tree.isClosed do
+  --   throwError "The proof tree is not closed."
+  let initDiagram := ProofResult.getGadgetGraph ⟨problemState.target, tree⟩
+  let initData : InitializationData := {
+    initialDiagram := initDiagram,
+    axioms := problemState.axioms -- .empty
+  }
+  let jsonProps := Lean.toJson initData
+  Widget.savePanelWidgetInfo (hash GadgetGraph.javascript)
+    (return jsonProps) stx
 
 
--- #gadget_display "jacob18" 1560
--- #gadget_display "tim01" -- 973
+-- #gadget_display "jacob07a"
+-- #gadget_display "tim08" -- 973
+-- #gadget_display "tim18" -- 973
 
 -- #gadget_display "tim44"
 
--- #exit
--- #exit 44a and 5a
+-- #gadget_display "tim_easy12" 12
+#gadget_display "tim10" 6-- 23 # 27
+
+-- #gadget_display "tim_easy09" 29-- ∞  - 29 - ∞ - 34 - 36 - 34 | 40 - 28
+#exit 44a and 5a
 /- after #, I changed the step counting convention. -/
 #gadget_display "tim_easy01" -- 6  - 5
-#gadget_display "tim_easy02" -- 40 - 29 | 32 # 44
+#gadget_display "tim_easy02" -- 40 - 29 | 32 # 44 @ 33
 #gadget_display "tim_easy03" -- 40 - 11 - 13 - 5
-#gadget_display "tim_easy04" -- ∞  - 10 - 11 # 12
-#gadget_display "tim_easy05" -- ∞  - 59 ~ 38 # 42
-#gadget_display "tim_easy06" -- ∞  - 109 ~ 112 # 126
+#gadget_display "tim_easy04" -- ∞  - 10 - 11 # 12 @ 11
+#gadget_display "tim_easy05" -- ∞  - 59 ~ 38 # 42 @ 56
+#gadget_display "tim_easy06" -- ∞  - 109 ~ 112 # 126 @ 124
 #gadget_display "tim_easy07" -- 8  - 5
-#gadget_display "tim_easy08" -- ∞  - 42 - 15 | 36 - 96 ~ 39 # 40
+#gadget_display "tim_easy08" -- ∞  - 42 - 15 | 36 - 96 ~ 39 # 40 @ 39
 #gadget_display "tim_easy09" -- ∞  - 29 - ∞ - 34 - 36 - 34 | 40 - 28
 #gadget_display "tim_easy10" -- 14 - 8  - 5
 #gadget_display "tim_easy11" -- 3
-#gadget_display "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21 | 28 ~ 21 # 22
+#gadget_display "tim_easy12" -- ∞  - 24 - 21 - 31 - 21 - 25 - 21 | 28 ~ 21 # 22 @ 34
 #gadget_display "tim_easy13" -- 5  - 4
+-- #exit
 
-
-#gadget_display "tim03" -- ∞ - 42 ~ 115 # 143
-#gadget_display "tim04" -- 41 | 36 ~ 29 # 31
--- #gadget_display "tim05a" -- ∞ - 299 ~ 303 / 396 # 701
-#gadget_display "tim07" -- ∞ - 239 ~ 42 # 55
-#gadget_display "tim08" -- 24 | 28 ~ 29 # 33
-#gadget_display "tim10" -- 23 # 27
-#gadget_display "tim11" -- 13 ~ 15 # 16
+#gadget_display "tim03" -- ∞ - 42 ~ 115 # 143 @ 39
+#gadget_display "tim04" -- 41 | 36 ~ 29 # 31 @ 37
+#gadget_display "tim05a" -- ∞ - 299 ~ 303 / 396 # 701 @ 654
+#gadget_display "tim07" -- ∞ - 239 ~ 42 # 55 @ ×
+#gadget_display "tim08" -- 24 | 28 ~ 29 # 33 @ 31
+#gadget_display "tim10" -- 23 # 27 @ 13
+#gadget_display "tim11" #exit-- 13 ~ 15 # 16 @ 13
 #gadget_display "tim12" -- 213 | 307 ~ 212 # 241
 -- #gadget_display "tim14" -- ∞ - 39 # 52
 #gadget_display "tim16" -- 17 | 19
@@ -92,7 +95,7 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 -- #gadget_display "tim01" -- 973 # 1625
 -- #gadget_display "tim05" -- 746 # 1299
 #gadget_display "tim06" -- 556 #  676
-#gadget_display "tim22b" -- 729 # 1489
+-- #gadget_display "tim22b" -- 729 # 1489
 
 #gadget_display "jacob01" -- 57 # 62
 -- #gadget_display "jacob04" -- 50 # 52

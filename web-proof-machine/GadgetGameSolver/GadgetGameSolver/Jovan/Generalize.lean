@@ -44,7 +44,7 @@ Returns the hypothesis and conclusion types of the implication.
 partial def generalizeImplication (proof : Proof) (goalId : GoalId) : SearchM (Cell × Cell) := do
   let .node name _ proofs := proof | throw "implication proof is a hole"
   let (result, some hyp) ← go name proofs |>.run none
-    | throw "given goal doesn't appear in proof"
+    | throw "generalize: given goal doesn't appear in proof"
   pure (hyp, result)
 where
   go (name : Name) (proofs : Array Proof) : StateRefT (Option Cell) SearchM Cell := do

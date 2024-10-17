@@ -138,12 +138,13 @@ Returns the hypothesis and conclusion types of the implication.
 partial def generalizeImplication (proof : Proof) (goalId : GoalId) : SearchM (Iterate.Cell × Iterate.Cell) := do
   let .node name _ proofs := proof | throw "implication proof is a hole"
   let (result, some hyp) ← go name proofs |>.run none
-    | throw "given goal doesn't appear in proof"
+    | throw "spiral detect: given goal doesn't appear in proof"
   pure (hyp, result)
 where
   /-- Iterates though the proof, returns the conclusion, and collects the hypothesis in the state. -/
   go (name : Name) (proofs : Array Proof) : StateRefT (Option Iterate.Cell) SearchM Iterate.Cell := do
     let gadget := (← name.getConstInfo).gadget
+    logMessage s!"{gadget.toString}"
     if h : proofs.size = gadget.hypotheses.size then
       let append := s!"_{← getUnique}"
       let vars ← gadget.varNames.mapM (mkFreshMVar 1 s!"{·}{append}")

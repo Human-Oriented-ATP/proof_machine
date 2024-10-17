@@ -61,7 +61,7 @@ deriving BEq
 
 def rootPriority : PosPriority where
   numCases := 1
-  times := #[]
+  times    := #[]
 
 def PosPriority.cmp (p q : PosPriority) (config : Config) : Ordering :=
   let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq

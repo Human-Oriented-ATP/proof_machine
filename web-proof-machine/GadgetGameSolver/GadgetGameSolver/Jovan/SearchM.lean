@@ -5,12 +5,6 @@ import GadgetGameSolver.Jovan.Priority
 
 namespace JovanGadgetGame
 
-structure AxiomApplication where
-  name   : Name
-  mvars  : Array Expr
-  gadget : Gadget
-  deriving Inhabited
-
 structure GoalInfo where
   goalId  : GoalId
   goal    : Cell
@@ -22,8 +16,8 @@ structure GoalInfo where
 
 /-- A goal in the tabled (type class) resolution. -/
 structure GeneratorNode where
-  gInfo     : GoalInfo
-  axioms       : Array AxiomApplication
+  gInfo        : GoalInfo
+  axioms       : Array ConstantInfo
   currAxiomIdx : Nat
   deriving Inhabited
 
@@ -61,7 +55,7 @@ structure OpenTableEntry where
   waiters      : Std.HashMap ConsumerNode Priority
   deadResumes  : Array ResumeEntry -- this array is only non-empty if priority.isNone.
   waitingFor   : Std.HashSet ConsumerNode
-  cycle        : CellKey × Std.HashSet CellKey -- TODO: make this an option to avoid unnecesary storage space
+  cycle        : Std.HashSet CellKey -- TODO: make this an option to avoid unnecesary storage space
   answers      : Array Answer
 
 inductive TableEntry where
@@ -80,8 +74,8 @@ structure State where
   uniqueNum      : Nat := 1
   stepCount      : Nat := 0
   result?        : Option ConstantInfo := none
-  generatorStack : PriorityQueue PosPriority CellKey (·.cmp · config) := {}
-  resumeStack    : Array ResumeEntry              := #[]
+  resumeStack    : Array ResumeEntry := #[]
+  generatorStack : PriorityQueue PosPriority CellKey     (·.cmp · config) := {}
   loopyStack     : Queue (ResumeEntry ⊕ CellKey) := {}
   tableEntries   : Std.HashMap CellKey TableEntry := {} -- TODO: switch to using `GoalId` for identification, as it has a faster `==`?
   log            : Array String := #[]
@@ -154,6 +148,18 @@ def getAxioms (goal : Cell) : SearchM (Array ConstantInfo) := do
   match (← read).axioms[(goal.f, goal.args.size)]? with
   | none => return #[]
   | some axioms => return axioms
+
+def getApplicableAxioms (goal : Cell) : SearchM (Array ConstantInfo) := do
+  let axioms ← getAxioms goal
+  axioms.filterMapM fun cInfo => do
+    let (_, gadget) ← cInfo.gadget.instantiateFresh
+    let mctx ← getMCtx
+    if ← unify gadget.conclusion goal then
+      setMCtx mctx
+      return some cInfo
+    else
+      return none
+
 
 def mkGoalInfo (goalId : GoalId) : SearchM GoalInfo := do
   let goal ← goalId.getInstantiatedGoal

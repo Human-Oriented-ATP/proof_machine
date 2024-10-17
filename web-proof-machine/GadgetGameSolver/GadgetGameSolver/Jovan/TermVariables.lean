@@ -67,8 +67,8 @@ def MVarId.getAssignment? (mvarId : MVarId) : m (Option Expr) := do
 
 partial def MVarId.instantiateHead (mvarId : MVarId) : OptionT m MVarId := do
   match ← mvarId.getAssignment? with
-  | some (.mvar mvarId) =>
-    let mvarId' ← mvarId.instantiateHead
+  | some (.mvar mvarId') =>
+    let mvarId' ← mvarId'.instantiateHead
     mvarId.assign (.mvar mvarId')
     return mvarId'
   | some (.app ..) => failure
@@ -116,7 +116,7 @@ def abstractExpr' (e : Expr) : ReaderT MVarContext (EStateM String AbstractGadge
     | some e => pure e
     | none =>
       let e := .mvar s.map.size
-      let some decl := (← read).decls[mvarId] | throw s!"unknown metavariable {mvarId.id}"
+      let some decl := (← read).decls[mvarId] | throw s!"abstracting: unknown metavariable {mvarId.id}"
       set { s with names := s.names.push decl.userName, map := s.map.insert mvarId e }
       pure e
   | .app f args =>

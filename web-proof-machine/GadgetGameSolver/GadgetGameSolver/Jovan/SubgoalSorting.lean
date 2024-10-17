@@ -56,20 +56,19 @@ def difficulty (c : Cell) : Float :=
     2 - c.args.foldl (init := 0) (fun spec arg => spec + specificity arg) / c.args.size.toFloat
 
 /-- Returns `none` if `ax` doesn't work. Returns the difficulty -/
-def checkAxiom (goal : Cell) (cInfo : ConstantInfo) : SearchM (Option (AxiomApplication × Float)) := do
-  let (mvars, gadget) ← cInfo.gadget.instantiateFresh
-  let axiomApp := { gadget, name := cInfo.name, mvars }
+def checkAxiom (goal : Cell) (cInfo : ConstantInfo) : SearchM (Option (ConstantInfo × Float)) := do
+  let (_, gadget) ← cInfo.gadget.instantiateFresh
   let mctx ← getMCtx
   if ← unify gadget.conclusion goal then
     if gadget.hypotheses.isEmpty then
       setMCtx mctx
-      return some (axiomApp, 1/2)
+      return some (cInfo, 1/2)
     else
       let d ← gadget.hypotheses.foldlM (init := 0) fun d subGoal => do
         let subGoal ← subGoal.instantiateMVars
         return d + (difficulty subGoal)
       setMCtx mctx
-      return some (axiomApp, d)
+      return some (cInfo, d)
   else
    return none
 
@@ -82,18 +81,17 @@ def CellDifficulty.gt (a b : CellDifficulty) : Bool :=
   | some a, some b => a > b
 
 /-- Returns the difficulty of the goal, and the axioms sorted from difficult to easy. -/
-def checkAxioms (goal : Cell) : SearchM (Float × Array AxiomApplication) := do
+def checkAxioms (goal : Cell) : SearchM (Float × Array ConstantInfo) := do
   let axioms ← getAxioms goal
   let filteredAxioms ← axioms.filterMapM (checkAxiom goal)
   let difficulty := filteredAxioms.foldl (init := 0) (· + ·.2)
   let filteredAxioms := filteredAxioms.qsort (·.2 > ·.2) |>.map (·.1)
-  logMessage s!"{difficulty}: {← goal.toString}"
   return (difficulty, filteredAxioms)
 
 /--
 Returns the easiest goal with its applicable axioms sorted from difficult to easy, and the remaining goals.
 Returns `.error true` if there are no goals. Returns `.error false` if some goals can't be solved. -/
-def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array AxiomApplication ⊕ Answer)) × Array GoalId)) := do
+def bestSubgoal (goals : Array GoalId) : SearchM (Except Bool ((GoalId × (Array ConstantInfo ⊕ Answer)) × Array GoalId)) := do
   let some goals ← OptionT.run <| goals.mapM fun goalId => do
     let goal ← goalId.getInstantiatedGoal
     if let some cInfo ← goal.getCached? then

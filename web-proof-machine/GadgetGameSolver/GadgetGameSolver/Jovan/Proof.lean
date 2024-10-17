@@ -126,11 +126,11 @@ def _root_.GadgetGame.Axiom.addFreshConstantInfo (ax : GadgetGame.Axiom) : m Con
 def Cell.getCached? (c : Cell) : m (Option Answer) := do
   return ((← getEnv).discrTree.getMatch c)[0]?
 
-/-- Finds the cached proof of a `Cell` if it is available. Uses a discrimination tree. -/
-def Cell.findCachedProof? [MonadMCtx m] [MonadExceptOf String m] (c : Cell) : m (Option (Proof × Answer)) := do
-  let some answer ← c.getCached? | return none
-  let (mvars, gadget) ← answer.cInfo.gadget.instantiateFresh
-  if ← unify gadget.conclusion c then
-    return some (.node answer.cInfo.name mvars #[], answer)
-  else
-    throw "failed to use cached anser"
+-- /-- Finds the cached proof of a `Cell` if it is available. Uses a discrimination tree. -/
+-- def Cell.findCachedProof? [MonadMCtx m] [MonadExceptOf String m] (c : Cell) : m (Option (Proof × Answer)) := do
+--   let some answer ← c.getCached? | return none
+--   let (mvars, gadget) ← answer.cInfo.gadget.instantiateFresh
+--   if ← unify gadget.conclusion c then
+--     return some (.node answer.cInfo.name mvars #[], answer)
+--   else
+--     throw "failed to use cached anser"
