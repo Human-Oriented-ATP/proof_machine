@@ -59,8 +59,8 @@ function checkFieldsMatch(event: GameEvent, trigger: GameEvent): boolean {
     for (const key in triggerValue) {
         if (triggerValue[key] === undefined) {
             continue;
-        } else if (JSON.stringify(triggerValue[key]).replace(/\s+/g, '') 
-                    !== JSON.stringify(eventValue[key]).replace(/\s+/g, '')) {
+        } else if (JSON.stringify(triggerValue[key]).replace(/\s+/g, '')
+            !== JSON.stringify(eventValue[key]).replace(/\s+/g, '')) {
             return false;
         }
     }
@@ -101,16 +101,16 @@ export function Game(props: GameProps) {
         }
     }, [props.setDiagramHasBrokenConnection])
 
-    const [termEnumeration, eqSatisfied] = useMemo(() => {
-        const unificationResult = unifyEquations(equations)
-        enumeration.current.updateEnumeration(unificationResult.assignment)
-        const termEnumeration = enumeration.current.getHoleValueAssignment(unificationResult.assignment)
-        return [termEnumeration, unificationResult.equationIsSatisfied]
-    }, [equations])
+    // const [termEnumeration, eqSatisfied] = useMemo(() => {
+    //     const unificationResult = unifyEquations(equations)
+    //     enumeration.current.updateEnumeration(unificationResult.assignment)
+    //     const termEnumeration = enumeration.current.getHoleValueAssignment(unificationResult.assignment)
+    //     return [termEnumeration, unificationResult.equationIsSatisfied]
+    // }, [equations])
 
-    useEffect(() => {
-        setDiagramHasBrokenConnection(eqSatisfied)
-    }, [eqSatisfied])
+    // useEffect(() => {
+    //     setDiagramHasBrokenConnection(eqSatisfied)
+    // }, [eqSatisfied])
 
     const addGadget = useCallback((gadgetId: string, axiom: Axiom) => {
         const event: GameEvent = { GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } }
@@ -183,25 +183,14 @@ export function Game(props: GameProps) {
     const initialViewportSetting = props.initialViewportSetting || "ORIGIN_AT_RIGHT"
 
     return <>
-        <AssignmentContext.Provider value={termEnumeration}>
-            <ReactFlowProvider>
-                <Diagram
-                    initData={props.initData}
-                    addGadget={addGadget}
-                    removeGadget={removeGadget}
-                    addEquation={addEquation}
-                    removeEquation={removeEquation}
-                    isSatisfied={eqSatisfied}
-                    markLevelAsCompleted={setLevelCompletedAndWriteToHistory}
-                    setUserIsDraggingOrNavigating={setUserIsDraggingOrNavigating}
-                    initialViewportSetting={initialViewportSetting}
-                    proximityConnectEnabled={props.proximityConnectEnabled ?? true}
-                    zoomEnabled={props.zoomEnabled ?? true}
-                    gadgetDeletionEnabled={props.gadgetDeletionEnabled ?? true}
-                    panEnabled={props.panEnabled ?? true}
-                ></Diagram>
-            </ReactFlowProvider>
-        </AssignmentContext.Provider>
+        <ReactFlowProvider>
+            <Diagram
+                initData={props.initData}
+                initialViewportSetting={initialViewportSetting}
+                zoomEnabled={props.zoomEnabled ?? true}
+                panEnabled={props.panEnabled ?? true}
+            ></Diagram>
+        </ReactFlowProvider>
         {props.interactiveSteps &&
             <InteractiveOverlay
                 interactiveSteps={props.interactiveSteps}

@@ -1,10 +1,9 @@
 import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import {
-    useNodesState, useEdgesState, addEdge, NodeTypes, Connection, useReactFlow, Node as ReactFlowNode,
+    NodeTypes, useReactFlow, Node as ReactFlowNode,
     EdgeTypes, Edge, getOutgoers, XYPosition, ReactFlow, OnConnectStartParams,
     Background,
     BackgroundVariant,
-    useStore as useReactFlowStore
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
@@ -37,26 +36,9 @@ const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
 
 export interface DiagramProps {
     initData: InitializationData
-    addGadget: (gadgetId: string, axiom: Axiom) => void
-    removeGadget: (gadgetId: string) => void
-    addEquation: (from: GadgetId, to: [GadgetId, NodePosition], equation: Equation) => void
-    removeEquation: (from: GadgetId, to: [GadgetId, NodePosition]) => void
-    isSatisfied: Map<EquationId, boolean>
-    markLevelAsCompleted: () => void
-    setUserIsDraggingOrNavigating: (isInteracting: boolean) => void
-    proximityConnectEnabled: boolean
     zoomEnabled: boolean
-    gadgetDeletionEnabled: boolean
     panEnabled: boolean
     initialViewportSetting: InitialViewportSetting
-}
-
-const nodesLengthSelector = (state) =>
-    Array.from(state.nodeLookup.values()).length || 0;
-
-interface GadgetDragStartInfo {
-    id: string,
-    position: XYPosition
 }
 
 function containsPoint(rect: DOMRect, point: XYPosition): boolean {
@@ -83,8 +65,6 @@ const selector = (state) => ({
 export function Diagram(props: DiagramProps) {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode } = useGameStateContext(useShallow(selector));
     const rf = useReactFlow<GadgetNode, EdgeWithEquationId>();
-
-    const [generateGadgetId] = useIdGenerator("gadget_")
 
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
 

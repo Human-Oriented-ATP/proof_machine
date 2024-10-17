@@ -1,15 +1,17 @@
 import { GadgetConnection, historySlice, HistorySlice, HistoryState } from "./History";
 import { GetState, SetState } from "../Types";
 import { unifyEquations } from "lib/game/Unification";
+import { Term } from "lib/game/Term";
+import { ValueMap } from "lib/util/ValueMap";
 
 export type TermEnumeration = Map<string, string>
 
 export type UnificationState = {
-    termEnumeration: TermEnumeration
+    termEnumeration: ValueMap<Term, string>
 }
 
 export type UnificationActions = {
-    runUnification: () => Map<GadgetConnection, boolean>
+    runUnification: () => ValueMap<GadgetConnection, boolean>
 }
 
 export type UnificationSlice = HistorySlice & UnificationState & UnificationActions
@@ -17,12 +19,12 @@ export type UnificationSlice = HistorySlice & UnificationState & UnificationActi
 export const unificationSlice = (set: SetState<UnificationSlice>, get: GetState<UnificationSlice>): UnificationSlice => {
     return {
         ...historySlice(set, get),
-        termEnumeration: new Map(),
+        termEnumeration: new ValueMap(),
 
         runUnification: () => {
             const equations = get().getCurrentEquations()
             console.log("equations", equations)
-            const { assignment, equationIsSatisfied } = unifyEquations(equations)
+            const { assignment, equationIsSatisfied } = unifyEquations<GadgetConnection>(equations)
             return equationIsSatisfied
         }
     }

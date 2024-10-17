@@ -1,3 +1,4 @@
+import { ValueMap } from "lib/util/ValueMap";
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Term, Assignment, VariableName, assignTermDeeply, occursIn } from "./Term";
 
@@ -6,7 +7,7 @@ export type Equation = [Term, Term]
 
 export interface UnificationResult<T> {
     assignment: Assignment
-    equationIsSatisfied: Map<T, boolean>
+    equationIsSatisfied: ValueMap<T, boolean>
 }
 
 function assignDeeplyIfCreatesNoCycles(assignment: Assignment, v: VariableName, term: Term): boolean {
@@ -77,8 +78,8 @@ function unifyEquation(currentAssignment: Assignment, equation: Equation): boole
     }
 }
 
-export function unifyEquations<T>(equations: Map<T, Equation>): UnificationResult<T> {
-    const equationIsSatisfied = new Map<T, boolean>()
+export function unifyEquations<T>(equations: ValueMap<T, Equation>): UnificationResult<T> {
+    const equationIsSatisfied = new ValueMap<T, boolean>()
     const assignment: Assignment = new DisjointSetWithAssignment()
     equations.forEach((equation, key) => {
         const unifiedSuccessfully = unifyEquation(assignment, equation)

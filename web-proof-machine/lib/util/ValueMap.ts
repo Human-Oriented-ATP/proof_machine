@@ -6,7 +6,7 @@
  * @template K - The type of keys, which should be serializable by JSON.
  * @template V - The type of values stored in the map.
  */
-class ValueMap<K, V> {
+export class ValueMap<K, V> {
     private map: Map<string, V>;
 
     constructor(entries?: [K, V][]) {

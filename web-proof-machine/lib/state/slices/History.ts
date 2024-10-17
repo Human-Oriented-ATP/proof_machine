@@ -2,8 +2,8 @@ import { getGadgetTerms } from "lib/game/GameLogic";
 import { GetState, SetState } from "../Types"
 import { Axiom, GadgetId, NodePosition, OUTPUT_POSITION } from "lib/game/Primitives"
 import { Equation } from "lib/game/Unification";
-import { parseAxiom } from "lib/parsing/Semantics";
 import { Term } from "lib/game/Term";
+import { ValueMap } from "lib/util/ValueMap";
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, NodePosition] }
 
@@ -33,7 +33,7 @@ export type HistoryActions = {
     getCurrentConnections: () => GadgetConnection[]
     getTermsOfGadget: (gadgetId: GadgetId) => Map<NodePosition, Term>
     getEquationOfConnection: (connection: GadgetConnection) => Equation
-    getCurrentEquations: () => Map<GadgetConnection, Equation>
+    getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
 }
 
 export type HistorySlice = HistoryState & HistoryActions
@@ -96,7 +96,7 @@ export const historySlice = (set: SetState<HistorySlice>, get: GetState<HistoryS
             console.log("connections", connections)
             const connectionsWithEquations: Array<[GadgetConnection, Equation]> = connections.map((connection) =>
                 [connection, get().getEquationOfConnection(connection)])
-            return new Map(connectionsWithEquations)
+            return new ValueMap(connectionsWithEquations)
         }
     }
 }
