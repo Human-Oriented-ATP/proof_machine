@@ -9,8 +9,14 @@
 class ValueMap<K, V> {
     private map: Map<string, V>;
 
-    constructor() {
+    constructor(entries?: [K, V][]) {
         this.map = new Map<string, V>();
+
+        if (entries) {
+            for (const [key, value] of entries) {
+                this.set(key, value);
+            }
+        }
     }
 
     private getKey(key: K): string {
