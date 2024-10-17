@@ -29,7 +29,7 @@ function backgroundFromColorAbbreviation(abbreviation: string) {
     }
 }
 
-export function getHandleId(position: NodePosition, gadgetId: string): string {
+export function makeHandleId(position: NodePosition, gadgetId: string): string {
     return `handle_${JSON.stringify(position)}_of_${gadgetId}`
 }
 
@@ -63,7 +63,7 @@ export function Node(props: NodeDisplayProps) {
 
     function renderHandle(): JSX.Element {
         if (!props.useDummyHandle) {
-            const handleId = getHandleId(props.position, props.gadgetId)
+            const handleId = makeHandleId(props.position, props.gadgetId)
             const handleProps = getHandleProps(handleId)
             if (props.openHandles && props.openHandles.includes(handleId)) {
                 return <Handle {...handleProps}><Connector type={handleProps.type} isOpen={true} /></Handle>

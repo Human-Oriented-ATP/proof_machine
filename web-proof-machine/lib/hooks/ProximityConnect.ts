@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react"
 import { XYPosition, Node, Connection, ReactFlowInstance } from "@xyflow/react"
 import { getCenter } from "../util/Point"
 import { GadgetProps, isOutputPosition } from "lib/game/Primitives"
-import { getHandleId } from "components/game/gadget/Node"
+import { makeHandleId } from "components/game/gadget/Node"
 import { GadgetNode } from "components/game/diagram/GadgetFlowNode"
 
 const MIN_DISTANCE = 60
@@ -27,7 +27,7 @@ export function useProximityConnect(rf: ReactFlowInstance,
         const gadgetProps = node.data
         let handleInfos: HandleInfo[] = []
         for (const [position, term] of gadgetProps.terms) {
-            const handleId = getHandleId(position, gadgetProps.id)
+            const handleId = makeHandleId(position, gadgetProps.id)
             handleInfos.push({ nodeId: node.id, handleId, isSource: isOutputPosition(position) })
         }
         return handleInfos

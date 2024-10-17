@@ -8,7 +8,7 @@ import {
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { ConnectionLineComponent, CustomEdge, EdgeWithEquation } from './CustomEdge';
+import { ConnectionLineComponent, CustomEdge, EdgeWithEquationId } from './CustomEdge';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from 'zustand';
 
@@ -24,12 +24,12 @@ import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { InitialViewportSetting, hasTargetHandle, initViewport } from '../../../lib/util/ReactFlow';
 import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
 import { useProximityConnect } from 'lib/hooks/ProximityConnect';
-import { getHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
+import { makeHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { getEquationId } from '../Game';
 import { useOpenHandleHighlighting } from 'lib/hooks/OpenHandleHighlighting';
-import { GameContext } from 'lib/state/StateContextProvider';
+import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider';
 // import useGameStore, { initialNode } from '../../../lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
@@ -76,39 +76,17 @@ const selector = (state) => ({
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
     setNodes: state.setNodes,
-    addNode: state.addNode,
-    removeNode: state.removeNode,
+    addGadgetNode: state.addGadgetNode,
+    removeGadgetNode: state.removeGadgetNode,
 });
 
 export function Diagram(props: DiagramProps) {
-    const store = useContext(GameContext)
-    if (!store) throw new Error('Missing GameContext.Provider in the tree')
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, removeNode } = useStore(store, useShallow(selector));
-
-    const rf = useReactFlow<GadgetNode, EdgeWithEquation>();
-
-    const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode } = useGameStateContext(useShallow(selector));
+    const rf = useReactFlow<GadgetNode, EdgeWithEquationId>();
 
     const [generateGadgetId] = useIdGenerator("gadget_")
 
-    const dragStartInfo = useRef<GadgetDragStartInfo | undefined>(undefined)
-
-    const numberOfNodes = useReactFlowStore(nodesLengthSelector)
-
-    useEffect(() => {
-        if (dragStartInfo.current !== undefined) {
-            const nodeToBeDragged = document.querySelector(`[data-id='${dragStartInfo.current.id}']`)
-            props.setUserIsDraggingOrNavigating(true)
-            nodeToBeDragged?.dispatchEvent(new MouseEvent("mousedown", {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                clientX: dragStartInfo.current.position.x,
-                clientY: dragStartInfo.current.position.y,
-            }))
-        }
-        dragStartInfo.current = undefined
-    }, [numberOfNodes])
+    const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
 
     // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
     // useOpenHandleHighlighting({ nodes, edges })
@@ -180,27 +158,12 @@ export function Diagram(props: DiagramProps) {
     //     });
     // }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
-    function makeGadget(axiom: Axiom, axiomPosition: XYPosition): void {
-        const id = generateGadgetId()
-        const flowNode: GadgetNode = {
-            id: id,
-            type: 'gadgetNode',
-            position: rf.screenToFlowPosition(axiomPosition),
-            dragging: true,
-            deletable: props.gadgetDeletionEnabled,
-            data: axiomToGadget(axiom, id)
-        }
-        gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
-        addNode(flowNode);
-        dragStartInfo.current = { id, position: axiomPosition }
-    }
-
     const paletteProps: GadgetPaletteProps = {
         axioms: props.initData.axioms,
-        makeGadget: makeGadget,
+        makeGadget: addGadgetNode,
         abortAddingGadget: () => {
             if (gadgetThatIsBeingAdded.current) {
-                removeNode(gadgetThatIsBeingAdded.current.gadgetId)
+                removeGadgetNode(gadgetThatIsBeingAdded.current.gadgetId)
             }
             gadgetThatIsBeingAdded.current = undefined
         }
@@ -313,18 +276,12 @@ export function Diagram(props: DiagramProps) {
     //     deleteEquationsOfEdges(edges)
     // }, [])
 
-    // const onNodesDelete = useCallback((nodes: GadgetNode[]) => {
-    //     nodes.map(node => props.removeGadget(node.id))
-    // }, [props.removeGadget])
-
     // const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 
     // const init = useCallback(() => {
     //     initViewport(rf, props.initialViewportSetting)
     //     updateEdgeAnimation()
     // }, [])
-
-    console.log("number of nodes:", nodes.length)
 
     return <>
         {props.initData.axioms.length !== 0 && <GadgetPalette {...paletteProps} />}
@@ -335,7 +292,7 @@ export function Diagram(props: DiagramProps) {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             // onEdgesDelete={onEdgesDelete}
-            // onNodesDelete={onNodesDelete}
+            onNodesDelete={removeGadgetNode}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             // onInit={init}

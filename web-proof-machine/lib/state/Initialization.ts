@@ -1,12 +1,13 @@
 import { GadgetNode } from "components/game/diagram/GadgetFlowNode";
 import { GameNewProps } from "components/game/GameNew";
-import { GameInitialState } from "./Store";
-import { EdgeWithEquation } from "components/game/diagram/CustomEdge";
+import { GameState } from "./Store";
+import { EdgeWithEquationId } from "components/game/diagram/CustomEdge";
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
-import { getHandleId } from "components/game/gadget/Node";
+import { makeHandleId } from "components/game/gadget/Node";
 import { GadgetId, GadgetProps, OUTPUT_POSITION } from "lib/game/Primitives";
 import { getEquationId } from "components/game/Game";
 import { axiomToGadget } from "lib/game/GameLogic";
+import { ReactFlowInstance } from "@xyflow/react";
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
     if (isAxiom(gadget.statement)) {
@@ -42,29 +43,27 @@ function getInitialNodes(props: GameNewProps): GadgetNode[] {
     return initialNodes
 }
 
-function getInitialEdge(connection: InitialDiagramConnection, label: string): EdgeWithEquation {
+function getInitialEdge(connection: InitialDiagramConnection, label: string): EdgeWithEquationId {
     return {
         id: label,
         source: connection.from,
-        sourceHandle: getHandleId(OUTPUT_POSITION, connection.from),
+        sourceHandle: makeHandleId(OUTPUT_POSITION, connection.from),
         target: connection.to[0],
-        targetHandle: getHandleId(connection.to[1], connection.to[0]),
+        targetHandle: makeHandleId(connection.to[1], connection.to[0]),
         type: 'edgeWithEquation',
         animated: true,
-        data: { eq: getEquationId(connection.from, connection.to) }
+        data: { equationId: getEquationId(connection.from, connection.to) }
     }
 }
 
-function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquation[] {
+function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquationId[] {
     return initialDiagram.connections.map((edge, idx) => getInitialEdge(edge, `edge_${idx}`))
 }
 
-export function getInitialState(props: GameNewProps): GameInitialState {
+export function getInitialState(props: GameNewProps, rf: ReactFlowInstance): GameState {
     return {
         nodes: getInitialNodes(props),
         edges: getInitialEdges(props.initialDiagram),
-        gameIsCompleted: false,
-        holeFocusVisible: true,
-        tutorialStep: 0
+        rf
     }
 }

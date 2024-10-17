@@ -4,9 +4,9 @@ import { Term, Assignment, VariableName, assignTermDeeply, occursIn } from "./Te
 export type EquationId = string
 export type Equation = [Term, Term]
 
-export interface UnificationResult {
+export interface UnificationResult<T> {
     assignment: Assignment
-    equationIsSatisfied: Map<EquationId, boolean>
+    equationIsSatisfied: Map<T, boolean>
 }
 
 function assignDeeplyIfCreatesNoCycles(assignment: Assignment, v: VariableName, term: Term): boolean {
@@ -77,8 +77,8 @@ function unifyEquation(currentAssignment: Assignment, equation: Equation): boole
     }
 }
 
-export function unifyEquations(equations: Map<EquationId, Equation>): UnificationResult {
-    const equationIsSatisfied = new Map()
+export function unifyEquations<T>(equations: Map<T, Equation>): UnificationResult<T> {
+    const equationIsSatisfied = new Map<T, boolean>()
     const assignment: Assignment = new DisjointSetWithAssignment()
     equations.forEach((equation, key) => {
         const unifiedSuccessfully = unifyEquation(assignment, equation)

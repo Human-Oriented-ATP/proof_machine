@@ -3,7 +3,7 @@ import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/rea
 import { useCallback, useEffect, useRef } from 'react';
 import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 import { GadgetProps } from 'lib/game/Primitives';
-import { getHandleId, isTargetHandle } from 'components/game/gadget/Node';
+import { makeHandleId, isTargetHandle } from 'components/game/gadget/Node';
 
 interface CompletionCheckProps {
     nodes: GadgetNode[],
@@ -12,7 +12,7 @@ interface CompletionCheckProps {
 
 function getHandleIds(gadget: GadgetProps) {
     const positions = Array.from(gadget.terms.keys())
-    return positions.map(position => getHandleId(position, gadget.id))
+    return positions.map(position => makeHandleId(position, gadget.id))
 }
 
 export function useOpenHandleHighlighting(props: CompletionCheckProps) {
