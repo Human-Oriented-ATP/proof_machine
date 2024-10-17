@@ -1,4 +1,4 @@
-
+import Std.Data.HashMap
 
 universe u v
 
@@ -25,3 +25,41 @@ universe u v
       | true  => loop i' (le_of_succ_le h)
       | false => pure false
   loop n (Nat.le_refl n)
+
+@[inline] def Nat.anyM' {m : Type → Type u} [Monad m] (n : Nat) (p : (i : Nat) → {_ : i < n} → m Bool) : m Bool :=
+  let rec @[specialize] loop (i : Nat) (h : i ≤ n) :=
+    match h':i with
+    | 0   => pure false
+    | i'+1 => do
+      match ← @p (n-(i'.succ)) (by omega) with
+      | true  => pure true
+      | false => loop i' (le_of_succ_le h)
+  loop n (Nat.le_refl n)
+
+variable {α : Type u} {β : Type v} {_ : BEq α} {_ : Hashable α}
+
+@[inline] def Std.HashMap.modify (m : HashMap α β) (a : α) (f : β → β) : HashMap α β :=
+  match m[a]? with
+  | some b =>
+    let m := m.erase a
+    m.insert a (f b)
+  | none => m
+
+@[inline] def Std.HashMap.modify' (m : HashMap α β) (a : α) (f : Option β → β) : HashMap α β :=
+  let b := m[a]?
+  let m := if b.isSome then m.erase a else m
+  m.insert a (f b)
+
+variable {β : Type u} {m : Type u → Type u} [Monad m]
+
+@[inline] def Std.HashMap.modifyM (map : HashMap α β) (a : α) (f : β → m β) : m (HashMap α β) := do
+  match map[a]? with
+  | some b =>
+    let map := map.erase a
+    return map.insert a (← f b)
+  | none => return map
+
+@[inline] def Std.HashMap.modifyM' (map : HashMap α β) (a : α) (f : Option β → m β) : m (HashMap α β) := do
+  let b := map[a]?
+  let map := if b.isSome then map.erase a else map
+  return map.insert a (← f b)
