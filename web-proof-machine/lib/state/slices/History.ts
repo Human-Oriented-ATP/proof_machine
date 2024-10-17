@@ -40,12 +40,14 @@ export type HistorySlice = HistoryState & HistoryActions
 
 export const historySlice = (set: SetState<HistorySlice>, get: GetState<HistorySlice>): HistorySlice => {
     return {
-        // Need to initialize history with goal gadget and any other gadgets appearing in the initial diagram! 
+        // TODO: Initialize history with goal gadget and any other gadgets appearing in the initial diagram 
         log: [],
         logEvents: (events: GameEvent[]) => {
-            set({
-                log: [...get().log, ...events]
-            })
+            const { log } = get()
+            const newLog = [...log, ...events]
+            set({ log: newLog })
+            // TODO: Synchronize history with server
+            // synchronizeHistory(JSON.stringify(newLog))
         },
         getAddedGadgets: () => {
             return get().log

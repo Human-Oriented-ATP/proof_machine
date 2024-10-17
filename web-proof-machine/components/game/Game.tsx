@@ -112,40 +112,6 @@ export function Game(props: GameProps) {
     //     setDiagramHasBrokenConnection(eqSatisfied)
     // }, [eqSatisfied])
 
-    const addGadget = useCallback((gadgetId: string, axiom: Axiom) => {
-        const event: GameEvent = { GadgetAdded: { gadgetId, axiom: axiomToString(axiom) } }
-        advanceTutorialIfIsCorrectEvent(event)
-        history.current.logEvent(event)
-        synchronizeHistory(JSON.stringify(history.current))
-    }, [getTriggerForNextTutorialStep])
-
-    const removeGadget = useCallback((gadgetId: string) => {
-        const event: GameEvent = { GadgetRemoved: { gadgetId } }
-        advanceTutorialIfIsCorrectEvent(event)
-        history.current.logEvent(event)
-        synchronizeHistory(JSON.stringify(history.current))
-    }, [getTriggerForNextTutorialStep])
-
-    const addEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition], newEquation: Equation) => {
-        const event: GameEvent = { ConnectionAdded: { from, to } }
-        advanceTutorialIfIsCorrectEvent(event)
-        history.current.logEvent(event)
-        const newEquations = new Map(equations)
-        newEquations.set(getEquationId(from, to), newEquation)
-        setEquations(equations => (new Map(equations)).set(getEquationId(from, to), newEquation))
-    }, [equations, getTriggerForNextTutorialStep])
-
-    const removeEquation = useCallback((from: GadgetId, to: [GadgetId, NodePosition]) => {
-        const event: GameEvent = { ConnectionRemoved: { from, to } }
-        advanceTutorialIfIsCorrectEvent(event)
-        history.current.logEvent(event)
-        setEquations(equations => {
-            const newEquations = new Map(equations)
-            newEquations.delete(getEquationId(from, to))
-            return newEquations
-        })
-    }, [equations, getTriggerForNextTutorialStep])
-
     const setLevelIsCompleted = useCallback((levelIsCompleted: boolean) => {
         if (props.markLevelAsCompleted) {
             props.markLevelAsCompleted(levelIsCompleted)

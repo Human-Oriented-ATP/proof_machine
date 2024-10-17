@@ -93,7 +93,6 @@ export function Gadget({ ...props }: GadgetProps) {
                 term: props.terms.get(OUTPUT_POSITION)!,
                 position: OUTPUT_POSITION,
                 gadgetId: props.id,
-                holeFocus: focus,
                 useDummyHandle: props.isAxiom,
                 isGoalNode: false
             }
