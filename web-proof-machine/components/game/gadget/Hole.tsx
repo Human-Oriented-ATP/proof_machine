@@ -1,20 +1,21 @@
-import { useContext } from 'react'
 import { HoleProps } from '../../../lib/game/Primitives'
-import { AssignmentContext } from '../../../lib/game/AssignmentContext'
 import { twMerge } from 'tailwind-merge'
+import { useGameStateContext } from 'lib/state/StateContextProvider'
+import { Term } from 'lib/game/Term'
 
 type BasicHoleProps = {
     value: string
     isFunctionHole: boolean
-    termAsString?: string
+    isFocussed?: boolean
 }
 
 export function BasicHole(props: BasicHoleProps) {
+    const isFocussed = props.isFocussed ?? false
     return (
         <div className={twMerge(
             "bg-white w-6 h-6 m-1 border-black border-2 rounded-full select-none relative z-50 text-base",
             props.isFunctionHole && "bg-pink",
-            //isFocussed && "scale-110 bg-yellow-highlight"
+            isFocussed && "scale-110 bg-yellow-highlight"
         )}
         //onMouseEnter={() => focus(props.termAsString ?? "")}
         //onMouseLeave={() => resetFocus()}
@@ -24,19 +25,18 @@ export function BasicHole(props: BasicHoleProps) {
     )
 }
 
-export function Hole(props: HoleProps) {
-    const termAsString = JSON.stringify(props.term)
-
-    const assignment = useContext(AssignmentContext)
-    const value = assignment(props.term)
-
-    const isFunctionHole = () => {
-        if ("variable" in props.term) {
-            return false
-        } else {
-            return props.term.args.length !== 0
-        }
+function isFunctionHole(term: Term) {
+    if ("variable" in term) {
+        return false
+    } else {
+        return term.args.length !== 0
     }
+}
 
-    return <BasicHole value={value} isFunctionHole={isFunctionHole()} termAsString={termAsString} />
+export function Hole(props: HoleProps) {
+    const getAssignedValue = useGameStateContext((state) => state.getAssignedValue)
+
+    const value = getAssignedValue(props.term)
+
+    return <BasicHole value={value} isFunctionHole={isFunctionHole(props.term)} isFocussed={false} />
 }

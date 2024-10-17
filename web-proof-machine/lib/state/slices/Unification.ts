@@ -12,6 +12,7 @@ export type UnificationState = {
 
 export type UnificationActions = {
     runUnification: () => ValueMap<GadgetConnection, boolean>
+    getAssignedValue: (term: Term) => string
 }
 
 export type UnificationSlice = HistorySlice & UnificationState & UnificationActions
@@ -26,6 +27,10 @@ export const unificationSlice = (set: SetState<UnificationSlice>, get: GetState<
             console.log("equations", equations)
             const { assignment, equationIsSatisfied } = unifyEquations<GadgetConnection>(equations)
             return equationIsSatisfied
+        },
+        getAssignedValue: (term: Term) => {
+            const value = get().termEnumeration.get(term)
+            return value ?? "-"
         }
     }
 }
