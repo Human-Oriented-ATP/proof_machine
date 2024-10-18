@@ -8,6 +8,7 @@ import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenera
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice } from './Unification';
+import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 
 export type FlowState = NodeState & EdgeState & {
     rf: ReactFlowInstance;
@@ -88,13 +89,14 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             get().updateLogicalState([...removalEvents, { ConnectionAdded: gadgetConnection }])
         },
 
-        isValidConnection: (connection) => {
-            // const arityOk = aritiesMatch(source, target)
-            // const colorsOk = labelsMatch(source, target)
-            // const noCycle = doesNotCreateACycle(connection)
-            // const notYetAConection = !isInDiagram(connection)
-            // return colorsOk && arityOk && noCycle && notYetAConection
-            return true
+        isValidConnection: (connection: Connection) => {
+            const gadgetConnection = connectionToGadgetConnection(connection)
+            const [lhs, rhs] = get().getEquationOfConnection(gadgetConnection)
+            const arityOk = aritiesMatch(lhs, rhs)
+            const colorsOk = labelsMatch(lhs, rhs)
+            const createsNoCycle = get().doesNotCreateACycle(connection)
+            const doesNotYetExist = !get().connectionExists(connection)
+            return colorsOk && arityOk && createsNoCycle && doesNotYetExist
         }
     }
 }

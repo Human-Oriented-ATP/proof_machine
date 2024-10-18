@@ -30,6 +30,7 @@ import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, Initial
 import { getEquationId } from '../Game';
 import { useOpenHandleHighlighting } from 'lib/hooks/OpenHandleHighlighting';
 import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider';
+import { isValidConnection } from 'lib/state/slices/Edges';
 // import useGameStore, { initialNode } from '../../../lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
@@ -61,10 +62,11 @@ const selector = (state) => ({
     setNodes: state.setNodes,
     addGadgetNode: state.addGadgetNode,
     removeGadgetNode: state.removeGadgetNode,
+    isValidConnection: state.isValidConnection,
 });
 
 export function Diagram(props: DiagramProps) {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode } = useGameStateContext(useShallow(selector));
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode, isValidConnection } = useGameStateContext(useShallow(selector));
     const rf = useReactFlow<GadgetNode, Edge>();
 
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
@@ -273,7 +275,7 @@ export function Diagram(props: DiagramProps) {
             // onInit={init}
             // onConnectStart={onConnectStart}
             // onConnectEnd={onConnectEnd}
-            // isValidConnection={isValidConnection}
+            isValidConnection={isValidConnection}
             // {...zoomProps}
             // onNodeDrag={onNodeDrag}
             // onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
