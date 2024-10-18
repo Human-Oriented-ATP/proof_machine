@@ -16,7 +16,7 @@ const tutorial05InitialDiagram: InitialDiagram = {
 
 const dragOverGadgetShelf: DragIndicatorProps<GadgetPosition> = {
     origin: { gadget: { elementId: "initial_gadget_3" }, anchorPoint: "CENTER_MIDDLE", offset: { x: 0, y: 0 } },
-    destination: { absolutePosition: { gadget: { elementId: "gadget_palette" }, anchorPoint: "CENTER_MIDDLE", offset: { x: 0, y: 0 } } },
+    destination: { absolutePosition: { gadget: { elementId: "gadget_shelf" }, anchorPoint: "CENTER_MIDDLE", offset: { x: 0, y: 0 } } },
     drawLine: false
 };
 

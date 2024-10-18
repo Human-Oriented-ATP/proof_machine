@@ -1,12 +1,7 @@
 import React, { useRef } from 'react';
-import {
-    NodeTypes, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, XYPosition, ReactFlow,
-    Background,
-    BackgroundVariant,
-} from '@xyflow/react';
+import { NodeTypes, useReactFlow, EdgeTypes, Edge, XYPosition, ReactFlow, Background, BackgroundVariant } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
-import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
+import { GadgetShelf, GadgetShelfProps } from './GadgetShelf';
 import { CustomEdge } from './CustomEdge';
 import { ConnectionLineComponent } from './ConnectionLineComponent';
 import { useShallow } from 'zustand/react/shallow';
@@ -26,7 +21,7 @@ function containsPoint(rect: DOMRect, point: XYPosition): boolean {
 }
 
 function isAbovePalette(position: XYPosition): boolean {
-    const paletteElement = document.getElementById("gadget_palette")!
+    const paletteElement = document.getElementById("gadget_shelf")!
     const paletteRect = paletteElement?.getBoundingClientRect()
     return containsPoint(paletteRect, position)
 }
@@ -45,8 +40,8 @@ const selector = (state: GameSlice) => ({
 });
 
 export function Flow() {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onConnectStart, removeGadgetNode, onNodesDelete, isValidConnection, settings } = useGameStateContext(useShallow(selector));
-    const rf = useReactFlow<GadgetNode, Edge>();
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onConnectStart,
+        removeGadgetNode, onNodesDelete, isValidConnection, settings } = useGameStateContext(useShallow(selector));
 
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
 
@@ -100,7 +95,7 @@ export function Flow() {
     //     });
     // }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
-    const paletteProps: GadgetPaletteProps = {
+    const paletteProps: GadgetShelfProps = {
         abortAddingGadget: () => {
             if (gadgetThatIsBeingAdded.current) {
                 removeGadgetNode(gadgetThatIsBeingAdded.current.gadgetId)
@@ -192,7 +187,7 @@ export function Flow() {
     // }, [])
 
     return <>
-        <GadgetPalette {...paletteProps} />
+        <GadgetShelf {...paletteProps} />
         <ReactFlow
             nodes={nodes}
             edges={edges}

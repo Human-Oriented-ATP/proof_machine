@@ -1,13 +1,12 @@
-import { Panel, XYPosition } from '@xyflow/react';
+import { Panel } from '@xyflow/react';
 import { Gadget } from '../gadget/Gadget'
 import { Axiom, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { GadgetProps } from '../../../lib/game/Primitives';
-import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 
-export interface GadgetPaletteProps {
+export interface GadgetShelfProps {
     abortAddingGadget: () => void
 }
 
@@ -35,30 +34,28 @@ export function InsertGadgetButton({ axiom, abortAddingGadget, children }: Inser
     </div>
 }
 
-export function GadgetPalette({ ...props }: GadgetPaletteProps) {
-    const [getAxiomId, resetIdGenerator] = useIdGenerator("axiom_")
-    resetIdGenerator()
+export function GadgetShelf({ ...props }: GadgetShelfProps) {
+    const axioms = useGameStateContext((state) => state.setup.axioms)
 
-    function makeAxiomGadget(axiom: Axiom): GadgetProps {
+    function makeAxiomGadget(axiom: Axiom, key: number): GadgetProps {
         let terms = new Map<NodePosition, Term>()
         axiom.hypotheses.forEach((hypothesis, i) => {
             terms.set(i, hypothesis)
         })
         terms.set(OUTPUT_POSITION, axiom.conclusion)
-        return { terms, id: getAxiomId(), isAxiom: true }
+        return { terms, id: `axiom_${key}`, isAxiom: true }
     }
 
-    const axioms = useGameStateContext((state) => state.setup.axioms)
 
     if (axioms.length === 0) {
         return <></>
     } else {
         return <Panel position='top-center'>
-            <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
-                {axioms.map(axiom => {
+            <div id="gadget_shelf" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
+                {axioms.map((axiom, key) => {
                     return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}
                         abortAddingGadget={props.abortAddingGadget}>
-                        <Gadget {...makeAxiomGadget(axiom)}></Gadget>
+                        <Gadget {...makeAxiomGadget(axiom, key)}></Gadget>
                     </InsertGadgetButton>
                 })}
             </div>

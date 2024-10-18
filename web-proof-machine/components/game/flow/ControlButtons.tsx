@@ -1,13 +1,7 @@
-import { ControlButton, Controls, ReactFlowInstance } from "@xyflow/react";
+import { ControlButton, Controls } from "@xyflow/react";
 import { Crosshair1Icon, MinusIcon, PlusIcon } from '@radix-ui/react-icons'
 import { useGameStateContext } from "lib/state/StateContextProvider";
 import { GameSlice } from "lib/state/Store";
-
-export interface CustomControlProps {
-    zoomEnabled: boolean
-    panEnabled: boolean
-    rf: ReactFlowInstance
-}
 
 const selector = (state: GameSlice) => ({
     zoomEnabled: state.setup.settings.zoomEnabled,
@@ -17,6 +11,7 @@ const selector = (state: GameSlice) => ({
 
 export function ControlButtons(): JSX.Element {
     const { rf, zoomEnabled, panEnabled } = useGameStateContext(selector)
+
     function fitView() {
         rf.fitView({ padding: 0.5 })
     }

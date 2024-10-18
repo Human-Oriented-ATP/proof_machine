@@ -1,7 +1,6 @@
 import { ConnectionLineComponentProps } from "@xyflow/react";
 import { ConnectionDrawingData, connectionPath } from "../gadget/ConnectionSvg";
 
-
 export function ConnectionLineComponent(props: ConnectionLineComponentProps): JSX.Element {
     const data: ConnectionDrawingData = {
         start: { x: props.fromX, y: props.fromY },

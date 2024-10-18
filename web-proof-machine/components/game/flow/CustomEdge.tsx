@@ -1,4 +1,4 @@
-import { Connection, EdgeProps } from '@xyflow/react';
+import { EdgeProps } from '@xyflow/react';
 import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
 import { toGadgetConnection } from 'lib/state/slices/Edges';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
@@ -27,4 +27,3 @@ export function CustomEdge({ ...props }: EdgeProps): JSX.Element {
         {connectionPath(drawingData, 0, 20)}
     </g>
 }
-
