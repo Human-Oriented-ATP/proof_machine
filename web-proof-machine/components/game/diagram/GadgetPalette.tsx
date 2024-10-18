@@ -10,17 +10,17 @@ import { useRef } from 'react';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 
 export interface GadgetPaletteProps {
-    makeGadget: (a: Axiom, axiomPosition: XYPosition) => void
     abortAddingGadget: () => void
 }
 
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
-    makeGadget: (axiomPosition: XYPosition) => void
+    axiom: Axiom
     abortAddingGadget: () => void
 }
 
-export function InsertGadgetButton({ makeGadget, abortAddingGadget, children }: InsertGadgetButtonProps):
+export function InsertGadgetButton({ axiom, abortAddingGadget, children }: InsertGadgetButtonProps):
     JSX.Element {
+    const addGadgetNode = useGameStateContext((state) => state.addGadgetNode)
     const ref = useRef<HTMLDivElement>(null)
 
     function getPosition() {
@@ -29,7 +29,7 @@ export function InsertGadgetButton({ makeGadget, abortAddingGadget, children }: 
     }
 
     function onMouseDown(e: React.MouseEvent) {
-        makeGadget(getPosition())
+        addGadgetNode(axiom, getPosition())
     }
 
     return <div ref={ref} className="flex justify-center px-1" onMouseDown={onMouseDown} onClick={abortAddingGadget}>
@@ -59,7 +59,7 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
             <AssignmentContext.Provider value={axiomTermEnumeration}>
                 <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
                     {axioms.map(axiom => {
-                        return <InsertGadgetButton key={JSON.stringify(axiom)} makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)}
+                        return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}
                             abortAddingGadget={props.abortAddingGadget}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>
                         </InsertGadgetButton>

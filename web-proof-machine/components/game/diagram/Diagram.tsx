@@ -29,6 +29,7 @@ import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider';
 import { GameSlice } from 'lib/state/Store';
+import { Gadget } from '../gadget/Gadget';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
@@ -113,7 +114,6 @@ export function Flow() {
     // }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
     const paletteProps: GadgetPaletteProps = {
-        makeGadget: addGadgetNode,
         abortAddingGadget: () => {
             if (gadgetThatIsBeingAdded.current) {
                 removeGadgetNode(gadgetThatIsBeingAdded.current.gadgetId)
@@ -213,6 +213,7 @@ export function Flow() {
     // }, [])
 
     return <>
+        <GadgetPalette {...paletteProps} />
         <ReactFlow
             nodes={nodes}
             edges={edges}

@@ -12,12 +12,8 @@ export function GameContainer(props: GameProps) {
     const rf = useReactFlow();
     const initialState: GameState = getInitialState(props, rf);
     const store = useRef(createGameStore(initialState)).current;
-    const initData = {
-        initialDiagram: props.initialDiagram,
-        axioms: props.axioms,
-    };
 
     return <GameContext.Provider value={store}>
-        <FlowWithMenuBar initData={initData} />
+        <FlowWithMenuBar />
     </GameContext.Provider>;
 }

@@ -7,11 +7,7 @@ import MenuBar from "components/navigation/MenuBar";
 import { GameHelp } from "./GameHelp";
 import { Flow } from "./diagram/Diagram";
 
-interface GameScreenProps {
-    initData: InitializationData
-}
-
-export default function FlowWithMenuBar(props: GameScreenProps) {
+export default function FlowWithMenuBar() {
     const [levelIsCompleted, setLevelIsCompleted] = useState(false)
     const [diagramHasBrokenConnection, setDiagramHasBrokenConnection] = useState(false)
     const helpPopup = usePopup()
