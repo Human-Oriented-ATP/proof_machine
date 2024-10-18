@@ -1,5 +1,5 @@
 import Std.Data.HashMap
-
+import Lean
 universe u v
 
 @[inline] def Nat.foldM' {α : Type u} {m : Type u → Type v} [Monad m] (n : Nat) (f : (i : Nat) → α → {_ : i < n} → m α) (init : α) : m α :=
@@ -63,3 +63,26 @@ variable {β : Type u} {m : Type u → Type u} [Monad m]
   let b := map[a]?
   let map := if b.isSome then map.erase a else map
   return map.insert a (← f b)
+
+-- syntax:1000000 ident "%~" term : term
+
+-- macro:max field:ident "%~" f:term:max : term => `(fun struct => { struct with $field:ident := $f struct.$field})
+
+
+open Lean.Parser in
+@[term_parser] def structMod := leading_parser:argPrec
+  "%%." >> checkNoWsBefore >> (fieldIdx <|> rawIdent) >> termParser leadPrec
+
+macro_rules
+| `(%%.$field:ident    $f) => `(fun struct => { struct with $field:ident    := $f struct.$field})
+| `(%%.$field:fieldIdx $f) => `(fun struct => { struct with $field:fieldIdx := $f struct.$field})
+
+
+variable (x : Nat × Nat) (y : (Nat × Nat → Nat × Nat) → Int)
+
+
+
+-- #check y %%.fst Nat.add 1
+-- #check %%.fst Nat.add 1 <| x
+-- #check x |> %%.fst Nat.add 1
+-- #check x |> %%.1 Nat.add 1

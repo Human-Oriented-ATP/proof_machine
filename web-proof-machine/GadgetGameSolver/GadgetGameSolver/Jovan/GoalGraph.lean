@@ -4,22 +4,21 @@ namespace JovanGadgetGame
 
 
 partial def fixPriority (key : CellKey) : SearchM Unit := do
-  let entry ← getOpenEntry key
+  let .openE entry@{ firstWaiter := some _, .. } ← getEntry key | return
   let priority := entry.priority
   let cfg ← getConfig
   let priority' := entry.waiters.fold (init := .useless) fun priority _ priority' => priority.max priority' cfg
-  if priority != priority' then
+  if (priority.properCmp priority' (← getConfig)).isNe then
     if let .some posPriority := priority' then
-      modify fun s => { s with generatorStack := s.generatorStack.insert posPriority key}
+      modify %%.generatorStack (·.insert posPriority key)
     setOpenEntry key { entry with priority := priority' }
     entry.waitingFor.forM fun cNode => do
       let priority := priority.modify cNode.priorityMod
       let key      := cNode.subgoalInfo.key
-      let entry     ← getOpenEntry key
+      let .openE entry ← getEntry key | return
       unless entry.waiters.contains cNode do
-        throw "uh oh"
-      let waiters := entry.waiters.insert cNode priority
-      setOpenEntry key { entry with waiters }
+        throw s!"uh oh {← cNode.toString}"
+      modifyOpenEntry key %%.waiters (·.insert cNode priority)
       fixPriority key
 
 

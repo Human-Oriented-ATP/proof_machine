@@ -1,5 +1,4 @@
 import GadgetGameSolver.Jovan.TermVariables
-import GadgetGameSolver.Jovan.Util
 
 namespace JovanGadgetGame
 

@@ -101,11 +101,11 @@ def Name.getConstInfo (name : Name) : m ConstantInfo := do
   return (← getEnv).proofs[name]!
 
 def ConstantInfo.addToEnv (cInfo : ConstantInfo) : m Unit := do
-  modifyEnv fun env => { env with proofs := env.proofs.insert cInfo.name cInfo }
+  modifyEnv %%.proofs (·.insert cInfo.name cInfo)
 
 def Answer.cacheIt (answer : Answer) : m Unit := do
   if (← getConfig).cacheSolutions then
-    modifyEnv fun env => { env with discrTree := env.discrTree.insertAbstractedCell answer.cInfo.gadget.conclusion answer }
+    modifyEnv %%.discrTree (·.insertAbstractedCell answer.cInfo.gadget.conclusion answer)
 
 def Answer.addToEnv (answer : Answer) : m Unit := do
   answer.cInfo.addToEnv

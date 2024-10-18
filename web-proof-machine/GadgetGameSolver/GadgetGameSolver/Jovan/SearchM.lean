@@ -22,7 +22,7 @@ structure GeneratorNode where
   deriving Inhabited
 
 structure ConsumerNode where
-  gInfo      : GoalInfo
+  gInfo        : GoalInfo
   subgoalInfo   : GoalInfo
   laterSubgoals : Array GoalId
   proof         : Proof
@@ -81,6 +81,8 @@ structure State where
   log            : Array String := #[]
   time           : Nat := 0
 
+  currspiralState: Bool × Iterate.Cell × Iterate.Cell × GoalInfo
+
 
 abbrev SearchM := ReaderT Context StateRefT State (EIO String)
 instance {α} : Inhabited (SearchM α) := ⟨throw default⟩
@@ -93,30 +95,30 @@ instance : MonadConfig SearchM where
 
 instance : MonadMCtx SearchM where
   getMCtx      := return (← get).mctx
-  modifyMCtx f := modify fun s => { s with mctx := f s.mctx }
+  modifyMCtx f := modify %%.mctx f
 
 instance : Iterate.MonadMCtx SearchM where
   getMCtx      := return (← get).imctx
-  modifyMCtx f := modify fun s => { s with imctx := f s.imctx }
+  modifyMCtx f := modify %%.imctx f
 
 instance : MonadEnv SearchM where
   getEnv      := return (← get).env
-  modifyEnv f := modify fun s => { s with env := f s.env}
+  modifyEnv f := modify %%.env f
 
 instance : MonadGCtx SearchM where
   getGCtx      := return (← get).gctx
-  modifyGCtx f := modify fun s => { s with gctx := f s.gctx }
+  modifyGCtx f := modify %%.gctx f
 
 @[inline] def timeit {α} (k : SearchM α) : SearchM α := do
   let t0 ← IO.monoNanosNow
   let a ← k
   let t1 ← IO.monoNanosNow
-  modify fun s => { s with time := s.time + (t1 - t0) }
+  modify %%.time (· + (t1 - t0))
   pure a
 
 def logMessage (msg : String) : SearchM Unit := modify fun s => { s with log := s.log.push s!"{s.stepCount}: {msg}" }
 
-def increment : SearchM Unit := modify fun s => { s with stepCount := s.stepCount + 1 }
+def increment : SearchM Unit := modify %%.stepCount (· + 1)
 
 
 def findEntry? (key : CellKey) : SearchM (Option TableEntry) := do
@@ -133,11 +135,12 @@ def getOpenEntry (key : CellKey) : SearchM OpenTableEntry := do
   | .done _      => throw s!"invalid key: entry is already solved"
 
 def setOpenEntry (key : CellKey) (entry : OpenTableEntry) : SearchM Unit := do
-  modify fun s => { s with
-    tableEntries := s.tableEntries.insert key (.openE entry) }
+  modify %%.tableEntries (·.insert key (.openE entry))
 
 def modifyOpenEntry (key : CellKey) (f : OpenTableEntry → OpenTableEntry) : SearchM Unit := do
-  setOpenEntry key (f (← getOpenEntry key))
+  let .openE entry ← getEntry key | return
+  modify %%.tableEntries (·.erase key) -- for linearity
+  setOpenEntry key (f entry)
 
 def setDoneEntry (key : CellKey) (answers : Array Answer) : SearchM Unit := do
   modify fun s => { s with
@@ -169,3 +172,10 @@ def mkGoalInfo (goalId : GoalId) : SearchM GoalInfo := do
     key     := goal.abstract
     mctx    := ← getMCtx
     goalctx := ← getGCtx }
+
+def GoalInfo.toString (gInfo : GoalInfo) : SearchM String := do
+  withMCtx gInfo.mctx do
+    gInfo.goal.toString
+
+def ConsumerNode.toString (cNode : ConsumerNode) : SearchM String := do
+  return s!"{← cNode.subgoalInfo.toString} -> {← cNode.gInfo.toString}"

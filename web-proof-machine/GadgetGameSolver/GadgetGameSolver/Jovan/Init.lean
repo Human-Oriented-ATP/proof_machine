@@ -10,6 +10,7 @@ structure Config where
   postponeSpiralSearch   : Bool
   useOldSpiralDetect     : Bool
   cacheSolutions         : Bool
+  fewerConstantsFirst    : Bool
 
 class MonadConfig (m : Type → Type) where
   getConfig : m Config

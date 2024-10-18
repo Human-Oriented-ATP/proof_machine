@@ -45,32 +45,45 @@ def timesCmpBFS (t t' : Times) : Ordering :=
 
 /-- Priority of a generator node. -/
 structure PosPriority where
+  numConsts : Nat
   /-- The inverse importance is a number at least 1, with 1 being the highest importance. -/
   numCases : Nat
   -- /-- The size of the solution so far -/
   -- size          : Nat
   /-- The times of the axiom applications that lead to this goal -/
   times         : Times
-  deriving Inhabited, BEq
+  deriving Inhabited, BEq, Repr
 
 /-- The priority related to a goal. It is `useless` when the goal shouldn't be worked on. -/
 inductive Priority where
 | some    : PosPriority → Priority
 | useless : Priority
-deriving BEq
+deriving BEq, Repr
 
 def rootPriority : PosPriority where
+  numConsts := 0
   numCases := 1
   times    := #[]
 
-def PosPriority.cmp (p q : PosPriority) (config : Config) : Ordering :=
-  let cmp := if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
-  -- let cmp := cmp.then <| if config.simplerSolutionsFirst then compare q.size p.size else .eq
+def PosPriority.properCmp (p q : PosPriority) (config : Config) : Ordering :=
+  let cmp := if config.fewerConstantsFirst then compare q.numConsts p.numConsts else .eq
   cmp.then <|
+  if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
+
+
+def PosPriority.cmp (p q : PosPriority) (config : Config) : Ordering :=
+  (p.properCmp q config).then <|
     if config.depthFirst then
       timesCmpDFS p.times q.times
     else
       timesCmpBFS p.times q.times
+
+def Priority.properCmp (p q : Priority) (config : Config) : Ordering :=
+  match p, q with
+  | .useless, .useless => .eq
+  | .some _ , .useless => .gt
+  | .useless, .some _  => .lt
+  | .some p , .some q  => p.properCmp q config
 
 def Priority.cmp (p q : Priority) (config : Config) : Ordering :=
   match p, q with
@@ -85,6 +98,7 @@ def Priority.max (p q : Priority) (config : Config) : Priority :=
 /-- When computing the priority of a subgoal from that of the main goal, we use a
 modifier.-/
 structure PriorityModifier where
+  numConsts   : Nat
   casesFactor : Nat
   times       : Array Nat
   deriving Inhabited
@@ -93,6 +107,7 @@ structure PriorityModifier where
 def PosPriority.modify (mod : PriorityModifier) (p : PosPriority) : PosPriority where
   numCases := p.numCases * mod.casesFactor
   times    := p.times.push mod.times
+  numConsts := mod.numConsts
 
 def Priority.modify (mod : PriorityModifier) (p : Priority) : Priority :=
   match p with

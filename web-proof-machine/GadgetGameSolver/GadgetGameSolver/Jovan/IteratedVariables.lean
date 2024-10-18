@@ -152,7 +152,7 @@ variable {m : Type → Type} [Monad m] [MonadMCtx m] [MonadUnique m] [MonadExcep
 
 def mkFreshMVar (n : Nat) (userName : String) : m Expr := do
   let mvarId := { id := ← getUnique }
-  modifyMCtx fun mctx => { mctx with decls := mctx.decls.insert mvarId { userName, pointAssignments := {} } }
+  modifyMCtx %%.decls (·.insert mvarId { userName, pointAssignments := {} })
   return .imvar mvarId n
 
 def IMVarId.getDecl! (mvarId : IMVarId) : m MVarDecl := do
@@ -168,18 +168,17 @@ def IMVarId.getPointAssignment? (mvarId : IMVarId) (n : Int) : m (Option Expr) :
   return (← mvarId.getPointAssignments!).find? n
 
 def IMVarId.assignPoint (mvarId : IMVarId) (n : Int) (value : Expr) : m Unit := do
-  let decl ← mvarId.getDecl!
-  let decl := { decl with pointAssignments := decl.pointAssignments.insert n value }
-  modifyMCtx fun mctx => { mctx with decls := mctx.decls.insert mvarId decl}
+  let decl := (← mvarId.getDecl!) |> %%.pointAssignments (·.insert n value)
+  modifyMCtx %%.decls (·.insert mvarId decl)
 
 def IMVarId.assign (mvarId : IMVarId) (n : Int) (value : Expr) (kind : AssignmentKind) : m Unit :=
-  modifyMCtx fun mctx => { mctx with iassignments := mctx.iassignments.insert mvarId { n, value, kind } }
+  modifyMCtx %%.iassignments (·.insert mvarId { n, value, kind })
 
 def IMVarId.getAssignment? (mvarId : IMVarId) : m (Option IMVarAssignment) := do
   return (← getMCtx).iassignments[mvarId]?
 
 def assignMVarId (mvarId : MVarId) (value : Expr) : m Unit :=
-  modifyMCtx fun mctx => { mctx with assignments := mctx.assignments.insert mvarId value }
+  modifyMCtx %%.assignments (·.insert mvarId value)
 
 def getMVarIdAssignment? (mvarId : MVarId) : m (Option Expr) := do
   return (← getMCtx).assignments[mvarId]?
@@ -187,7 +186,7 @@ def getMVarIdAssignment? (mvarId : MVarId) : m (Option Expr) := do
 
 @[inline]
 def pushPendingOrdered (mvarId : IMVarId) (n : Int) (value : Expr) : m Unit :=
-  modifyMCtx fun mctx => { mctx with pending := mctx.pending.push { mvarId, n, value } }
+  modifyMCtx %%.pending (·.push { mvarId, n, value })
 
 @[inline]
 def pushPending (mvarId : IMVarId) (n : Int) (value : Expr) : m Expr := do

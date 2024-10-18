@@ -1,6 +1,7 @@
 import Std.Data.HashMap
 import GadgetGameSolver.Primitives
 import GadgetGameSolver.Jovan.Init
+import GadgetGameSolver.Jovan.Util
 
 namespace JovanGadgetGame
 
@@ -31,6 +32,13 @@ structure Gadget where
   conclusion : Cell
   hypotheses : Array Cell
   deriving Inhabited
+
+def Expr.size : Expr → Nat → Nat
+  | .mvar mvarId => (· + 1)
+  | .app _ args => args.attach.foldr (fun ⟨arg, _⟩ => arg.size) ∘ (· + 1)
+
+def Cell.size (c : Cell) : Nat :=
+  c.args.foldr (·.size) 0
 
 def Expr.toTerm (e : Expr) : GadgetGame.Term :=
   match e with
@@ -97,7 +105,7 @@ def abstractExpr (e : Expr) : StateM MkCellKeyState AbstractedExpr := do
     | some e => pure e
     | none =>
       let e := .mvar s.map.size
-      set { s with map := s.map.insert mvarId e }
+      modify %%.map (·.insert mvarId e)
       pure e
   | .app f args =>
     let args ← args.attach.mapM fun ⟨x, _⟩ => abstractExpr x

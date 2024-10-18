@@ -144,7 +144,6 @@ where
   /-- Iterates though the proof, returns the conclusion, and collects the hypothesis in the state. -/
   go (name : Name) (proofs : Array Proof) : StateRefT (Option Iterate.Cell) SearchM Iterate.Cell := do
     let gadget := (← name.getConstInfo).gadget
-    logMessage s!"{gadget.toString}"
     if h : proofs.size = gadget.hypotheses.size then
       let append := s!"_{← getUnique}"
       let vars ← gadget.varNames.mapM (mkFreshMVar 1 s!"{·}{append}")
@@ -194,7 +193,7 @@ partial def isSpiral (cNode : ConsumerNode) : SearchM Bool := do
   setMCtx {}
   let goal := cNode.subgoalInfo.goal
   let (origGoal, nextGoal) ← generalizeImplication cNode.proof cNode.subgoalInfo.goalId
-  let origGoal := { origGoal with args := origGoal.args.map (·.decrement 1) }
+  let origGoal := origGoal |> %%.args (·.map (·.decrement 1))
   if ← unifyPoint origGoal goal.toIteratedCell then
     go cNode.gInfo.key origGoal nextGoal []
   else
@@ -210,6 +209,7 @@ where
       let stack := key :: stack
       let origGoal ← origGoal.instantiateMVars
       let goal ← goal.instantiateMVars
+      modify %%.currspiralState fun _ => (true, origGoal, goal, cNode.subgoalInfo)
       let mctx ← getMCtx
       if ← unify goal origGoal then
         let isSpiral ← goal.hasTrueDownMVars
@@ -222,6 +222,7 @@ where
       for (cNode, _) in waiters do
         setMCtx mctx
         let (goal', nextGoal) ← generalizeImplication cNode.proof cNode.subgoalInfo.goalId
+        modify %%.currspiralState fun _ => (false, origGoal, goal, cNode.subgoalInfo)
         unless ← unify goal' goal do
           /- HMMM, should this be true or false? -/
           throw s!"goals {← goal.toString} and {← goal'.toString} don't unify"

@@ -51,11 +51,11 @@ variable [MonadMCtx m] [MonadExceptOf String m]
 
 def mkFreshMVar [MonadUnique m] (userName : String) : m Expr := do
   let mvarId := { id := ← getUnique }
-  modifyMCtx fun mctx => { mctx with decls := mctx.decls.insert mvarId { userName } }
+  modifyMCtx %%.decls (·.insert mvarId { userName })
   return .mvar mvarId
 
 def MVarId.assign (mvarId : MVarId) (e : Expr) : m Unit :=
-  modifyMCtx fun mctx => { mctx with assignments := mctx.assignments.insert mvarId e }
+  modifyMCtx %%.assignments (·.insert mvarId e)
 
 def MVarId.getDecl! (mvarId : MVarId) : m MVarDecl := do
   match (← getMCtx).decls[mvarId] with
@@ -117,7 +117,8 @@ def abstractExpr' (e : Expr) : ReaderT MVarContext (EStateM String AbstractGadge
     | none =>
       let e := .mvar s.map.size
       let some decl := (← read).decls[mvarId] | throw s!"abstracting: unknown metavariable {mvarId.id}"
-      set { s with names := s.names.push decl.userName, map := s.map.insert mvarId e }
+      modify %%.names (·.push decl.userName)
+      modify %%.map   (·.insert mvarId e)
       pure e
   | .app f args =>
     let args ← args.attach.mapM fun ⟨x, _⟩ => abstractExpr' x

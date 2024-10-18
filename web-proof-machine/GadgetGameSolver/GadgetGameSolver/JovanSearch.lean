@@ -12,9 +12,13 @@ def newSubgoal (gInfo : GoalInfo) (axioms : Array ConstantInfo)
     (firstWaiter : Option ConsumerNode) (posPriority : PosPriority) (isSpiral : Bool) : SearchM Unit := do
   let gNode    := { gInfo, axioms, currAxiomIdx := axioms.size }
   let priority := .some posPriority
-  let waiters  := match firstWaiter with
-    | some waiter => Std.HashMap.insert {} waiter priority
-    | none => {}
+  let waiters ← match firstWaiter with
+    | some waiter =>
+      logMessage s!"inserted {← waiter.toString}"
+      modifyOpenEntry waiter.gInfo.key %%.waitingFor (·.insert waiter)
+      pure <| Std.HashMap.insert {} waiter priority
+    | none =>
+      pure {}
   let entry := {
     gNode, firstWaiter, priority, waiters,
     deadResumes := #[], waitingFor := {}, cycle := {gInfo.key}, answers := #[] }
@@ -67,19 +71,43 @@ def wakeUpWaiters (entry : OpenTableEntry) (answer : Answer) : SearchM Unit := d
     let entry := { cNode, answer, counts? := entry.firstWaiter.all (· != cNode) }
     match priority with
     | .some _ =>
-      modify fun s => { s with resumeStack := s.resumeStack.push entry }
+      modify %%.resumeStack (·.push entry)
     | .useless =>
-      modifyOpenEntry cNode.gInfo.key fun oentry => { oentry with deadResumes := oentry.deadResumes.push entry }
+      modifyOpenEntry cNode.gInfo.key %%.deadResumes (·.push entry)
   if entry.firstWaiter.isNone then
     if (← get).result?.isSome then
       throw "there is already a result?"
     else
-      modify fun s => { s with result? := some answer.cInfo }
+      modify ({ · with result? := some answer.cInfo })
 
 
 
 def isNewAnswer (oldAnswers : Array Answer) (answer : Answer) : Bool :=
   oldAnswers.all (·.cInfo.gadget.conclusion != answer.cInfo.gadget.conclusion)
+
+def AbstractedExpr.subsumes (s : AbstractedExpr) (t : Expr) (map : Lean.AssocList Nat Expr) : Option (Lean.AssocList Nat Expr) := do
+  match s with
+  | .mvar mvarId =>
+    match map.find? mvarId with
+    | some t' => guard (t == t'); pure map
+    | none => pure (map.cons mvarId t)
+  | .app f args =>
+    match t with
+    | .mvar _ => failure
+    | .app f' args' =>
+      if h : f = f' ∧ args.size = args'.size then
+        args.size.foldM' (init := map) fun i map =>
+          args[i].subsumes args'[i] map
+      else
+        unreachable!
+
+def AbstractedCell.subsumes (a : AbstractedCell) (c : Cell) : Bool :=
+  if h : a.f = c.f ∧ a.args.size = c.args.size then
+    Option.isSome do
+    a.args.size.foldM' (init := Lean.AssocList.nil) fun i map =>
+      a.args[i].subsumes c.args[i] map
+  else
+    unreachable!
 
 /--
   Create a new answer after `cNode` resolved all subgoals.
@@ -91,9 +119,22 @@ def addAnswer (gInfo : GoalInfo) (proofKeys : List (ProofKeys × Bool)) : Search
   let entry ← getOpenEntry gInfo.key
   if isNewAnswer entry.answers answer then
     answer.addToEnv
-    let entry := { entry with answers := entry.answers.push answer }
-    setOpenEntry gInfo.key entry
     wakeUpWaiters entry answer
+    if cInfo.gadget.conclusion.subsumes gInfo.goal then
+      setDoneEntry gInfo.key #[answer]
+      entry.waiters.forM fun cNode _ => do
+        logMessage s!"erased 4 {← cNode.toString}"
+        modifyOpenEntry cNode.gInfo.key %%.waitingFor (·.erase cNode)
+        /- TODO: find a way to track down all answers and consumernodes that depend on
+        any alternative anwers from this entry, and kill them. -/
+      entry.waitingFor.forM fun cNode => do
+        logMessage s!"erased 3 {← cNode.toString}"
+        modifyOpenEntry cNode.subgoalInfo.key %%.waiters (·.erase cNode)
+        fixPriority cNode.subgoalInfo.key
+      logMessage "fixing cycle"
+      fixCycles entry
+    else
+      modifyOpenEntry gInfo.key %%.answers (·.push answer)
   else
     logMessage s!"answer {answer.cInfo.gadget.conclusion} isn't new"
 
@@ -106,15 +147,18 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array ConstantInfo) (posPrio
         if useOldSpiralDetect then isSpiralDeprecated cNode else Iterate.isSpiral cNode
       else pure false
     newSubgoal cNode.subgoalInfo axioms cNode posPriority isSpiral
-  | some (.done answers) => answers.forM (wakeUp cNode)
+  | some (.done answers) =>
+    logMessage s!"found finished goal in table. Answers: {answers.map (·.cInfo.gadget.conclusion)}"
+    answers.forM (wakeUp cNode)
   | some (.openE entry) =>
-    logMessage s!"found goal in table: subgoal {← cNode.subgoalInfo.goalId.toString} of {← cNode.subgoalInfo.goalId.toString}. Answers: {entry.answers.map (·.cInfo.gadget.conclusion)}"
+    logMessage s!"found goal in table: subgoal {← cNode.subgoalInfo.goalId.toString} of {← cNode.gInfo.goalId.toString}. Answers: {entry.answers.map (·.cInfo.gadget.conclusion)}"
     entry.answers.forM (wakeUp cNode)
     let priority := .some posPriority
-    setOpenEntry key { entry with waiters := entry.waiters.insert cNode priority }
+    logMessage s!"inserted {← cNode.toString}"
+    modifyOpenEntry key %%.waiters (·.insert cNode priority)
+    modifyOpenEntry cNode.gInfo.key %%.waitingFor (·.insert cNode)
     fixPriority key
-    modifyOpenEntry cNode.gInfo.key fun entry => { entry with waitingFor := entry.waitingFor.insert cNode }
-    fixCycles entry
+    fixCycles (← getOpenEntry key)
 
 /-- Process the next subgoal in the given consumer node.
 assumes that the `TableEntry` for `gInfo` is open. -/
@@ -129,9 +173,10 @@ def consume (gInfo : GoalInfo) (proofKeys : List (ProofKeys × Bool))
     logMessage s!"goal {← gInfo.goal.toString} is now unsolvable"
   | .ok ((subgoalId, todo), laterSubgoals) =>
     let subgoalInfo   ← mkGoalInfo subgoalId
+    let numConsts    := subgoalInfo.goal.size
     let proof         ← gInfo.goalId.getInstantiatedAssignment
     let instGoalMVars ← instGoalMVars.bindM (OptionT.run <| ·.mapM (·.instantiateHead))
-    let priorityMod  := { times := times.push (← getUnique), casesFactor := laterSubgoals.size + 1 }
+    let priorityMod  := { numConsts, times := times.push (← getUnique), casesFactor := laterSubgoals.size + 1 }
     let cNode := { gInfo, subgoalInfo, proof, proofKeys, laterSubgoals, instGoalMVars, priorityMod }
     let posPriority := posPriority.modify priorityMod
     match todo with
@@ -143,14 +188,14 @@ def consume (gInfo : GoalInfo) (proofKeys : List (ProofKeys × Bool))
       -- we've been given a full proof, so we can close this table entry.
       if let some (.openE entry) ← findEntry? subgoalInfo.key then
         wakeUpWaiters entry answer
+        setDoneEntry subgoalInfo.key #[answer]
         entry.waiters.forM fun cNode _ => do
-          modifyOpenEntry cNode.gInfo.key fun entry => { entry with waitingFor := entry.waitingFor.erase cNode }
+          modifyOpenEntry cNode.gInfo.key %%.waitingFor (·.erase cNode)
           /- TODO: find a way to track down all answers and consumernodes that depend on
           any alternative anwers from this entry, and kill them. -/
         entry.waitingFor.forM fun cNode => do
-          modifyOpenEntry cNode.subgoalInfo.key fun entry => { entry with waiters := entry.waiters.erase cNode }
+          modifyOpenEntry cNode.subgoalInfo.key %%.waiters (·.erase cNode)
           fixPriority cNode.subgoalInfo.key
-        setDoneEntry subgoalInfo.key #[answer]
         fixCycles entry
 
 where
@@ -200,7 +245,10 @@ partial def relevantProofKeys (cycle : Std.HashSet CellKey) (result : Std.HashMa
 partial def possiblyNoLoop (cycle : Std.HashSet CellKey) (used : Std.HashMap CellKey Bool) (key : CellKey)
     (stack : List CellKey) : SearchM Bool := do
   if used.contains key || stack.contains key then
+    logMessage s!"poor {key}"
     return false
+  -- else
+  --   return true
   if !cycle.contains key then
     return true
   let stack := key :: stack
@@ -233,9 +281,9 @@ partial def possiblySpiral (used : Std.HashMap CellKey Bool) (key : CellKey)
 def resume (entry : ResumeEntry) (loopyCase : Bool) : SearchM Unit := do
   let { cNode, answer := { cInfo, proofKeys }, counts? } := entry
   let key := cNode.gInfo.key
-  let .openE oentry ← getEntry key | return
+  let .openE oentry ← getEntry key | logMessage s!"propagating a result for {key} is unnecessary"
   let .some posPiority := oentry.priority
-    | setOpenEntry key { oentry with deadResumes := oentry.deadResumes.push entry }
+    | modifyOpenEntry key %%.deadResumes (·.push entry)
   let gInfo := cNode.subgoalInfo
   let answerProofKeys := .node gInfo.key proofKeys
   let propagate : SearchM Unit := do
@@ -247,7 +295,7 @@ def resume (entry : ResumeEntry) (loopyCase : Bool) : SearchM Unit := do
     let laterSubgoals := cNode.laterSubgoals
     let times         := cNode.priorityMod.times
     useAnswer cInfo gInfo.goalId
-    logMessage s! "propagating answer {cInfo.gadget.conclusion} to subgoal {← gInfo.goal.toString} of {← gInfo.goalId.toString}"
+    logMessage s! "propagating answer {cInfo.gadget.conclusion} to subgoal {← gInfo.goalId.toString} of {← cNode.gInfo.goalId.toString}"
     consume cNode.gInfo proofKeys times posPiority cNode.instGoalMVars laterSubgoals
 
   if loopyCase then
@@ -263,18 +311,18 @@ def resume (entry : ResumeEntry) (loopyCase : Bool) : SearchM Unit := do
   else
     /- if not, check that resuming this waiter can lead to a loop which instantiates variables. -/
     if ← possiblySpiral usedKeys key [] then
-      modify fun s => { s with loopyStack := s.loopyStack.cons (.inl entry) }
+      modify %%.loopyStack (·.cons (.inl entry))
 
 def step : SearchM Bool := do
   let s ← get
   if !s.resumeStack.isEmpty then
     let r := s.resumeStack.back
-    modify fun s => { s with resumeStack := s.resumeStack.pop }
+    modify %%.resumeStack .pop
     resume r false
     return true
   else if let some (p, top) := s.generatorStack.top then
     generate p top
-      (modify fun s => { s with generatorStack := s.generatorStack.erase p })
+      (modify %%.generatorStack (·.erase p))
     return true
   else if let some (x, loopyStack) := s.loopyStack.uncons? then
     increment
@@ -282,12 +330,12 @@ def step : SearchM Bool := do
     logMessage "doing a loopy case"
     match x with
     | .inl r =>
-      modify fun s => { s with loopyStack }
+      modify ({ · with loopyStack })
       resume r true
       return true
     | .inr gNode =>
       generate none gNode
-        (modify fun s => { s with loopyStack })
+        (modify ({ · with loopyStack }))
       return true
   else
     return false
@@ -356,7 +404,7 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
     --   catch e =>
     --     logMessage s!"error getting partial result: {e}"
     --     pure default
-  let ref ← IO.mkRef { config }
+  let ref ← IO.mkRef { config, currspiralState := default }
   let r ← (action.run { axioms := {} }) ref |>.toBaseIO
   let state ← ref.get
   pure (r, state.stepCount, state.log)
