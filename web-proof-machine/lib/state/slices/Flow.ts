@@ -1,6 +1,5 @@
 import { CreateStateWithInitialValue } from '../Types';
 import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnEdgesChange, OnNodesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
-import { EdgeWithEquationId } from 'components/game/diagram/CustomEdge';
 import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
 import { connectionToGadgetConnection, EdgeSlice, edgeSlice, EdgeState, isValidConnection } from './Edges';
 import { NodeSlice, nodeSlice, NodeState } from './Nodes';
@@ -36,8 +35,8 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
 
         updateLogicalState(events: GameEvent[]) {
             get().logEvents(events)
-            const equationIsSatisfied = get().runUnification()
-            // update edges, handles and nodes
+            get().runUnification()
+            // update handles and nodes
             // check completeness
             // synchronize history
         },
@@ -73,7 +72,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             get().updateLogicalState([{ GadgetRemoved: { gadgetId: nodeId } }])
         },
 
-        onEdgesChange: (changes: EdgeChange<EdgeWithEquationId>[]) => {
+        onEdgesChange: (changes: EdgeChange<Edge>[]) => {
             set({ edges: applyEdgeChanges(changes, get().edges), });
         },
 
@@ -81,7 +80,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             if (!isValidConnection(connection)) throw Error(`Connection is not valid ${connection}`)
             const removedEdges = get().removeEdgesConnectedToHandle(connection.targetHandle)
             set({
-                edges: addEdge(connection, get().edges),
+                edges: addEdge({ ...connection, type: 'customEdge' }, get().edges),
             });
             const gadgetConnection = connectionToGadgetConnection(connection)
             const removedGadgetConnections = removedEdges.map((edge) => connectionToGadgetConnection(edge as Connection))

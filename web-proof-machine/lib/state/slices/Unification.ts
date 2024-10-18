@@ -3,10 +3,11 @@ import { GetState, SetState } from "../Types";
 import { Equation, unifyEquations } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
-import { enumerateTerms, isNumericalConstant, toHoleValue } from "lib/game/TermEnumeration";
+import { toHoleValue } from "lib/game/TermEnumeration";
 
 export type UnificationState = {
     termEnumeration: ValueMap<Term, string>
+    equationIsSatisfied: ValueMap<GadgetConnection, boolean>
 }
 
 export type UnificationActions = {
@@ -19,10 +20,10 @@ export const unificationSlice = (set: SetState<UnificationSlice>, get: GetState<
     return {
         ...historySlice(set, get),
         termEnumeration: new ValueMap<Term, string>(),
+        equationIsSatisfied: new ValueMap<GadgetConnection, boolean>(),
 
         runUnification: () => {
             const equations = get().getCurrentEquations()
-            console.log("equations", equations)
             const { assignment, equationIsSatisfied } = unifyEquations<GadgetConnection>(equations)
             const terms: Term[] = equations.values().flatMap((eq: Equation) => [eq[0], eq[1]])
             const holeTerms = terms.flatMap((term => {
@@ -36,9 +37,7 @@ export const unificationSlice = (set: SetState<UnificationSlice>, get: GetState<
             for (const term of holeTerms) {
                 newTermEnumeration.set(term, toHoleValue(term, assignment))
             }
-            console.log(holeTerms)
-            console.log("newTermEnumeration", newTermEnumeration)
-            set({ termEnumeration: newTermEnumeration })
+            set({ equationIsSatisfied: equationIsSatisfied, termEnumeration: newTermEnumeration })
             return equationIsSatisfied
         }
     }

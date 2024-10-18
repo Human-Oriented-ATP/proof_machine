@@ -39,14 +39,19 @@ module.exports = {
           '50%': { stroke: 'transparent' },
           '100%': { stroke: '#3d3d3d' },
         },
+        dashdraw: {
+          '0%': { 'stroke-dashoffset': '100' },
+          '100%': { 'stroke-dashoffset': '0' },
+        },
+      },
+      animation: {
+        'svg-stroke-glow-red': 'svgStrokeGlowRed 2s linear infinite',
+        'svg-stroke-blink': 'svgStrokeBlink 1s infinite',
+        'dashdraw': 'dashdraw 0.5s linear infinite',
       },
       backgroundImage: {
         "striped": "url('/diagonal-stripes.svg')",
       },
-      animation: {
-        'svg-stroke-glow-red': 'svgStrokeGlowRed 2s linear infinite',
-        'svg-stroke-blink': 'svgStrokeBlink 1s infinite'
-      }
     }
   },
   plugins: [],

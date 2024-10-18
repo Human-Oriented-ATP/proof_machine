@@ -7,7 +7,8 @@ import {
 } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
 import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
-import { ConnectionLineComponent, CustomEdge, EdgeWithEquationId } from './CustomEdge';
+import { CustomEdge } from './CustomEdge';
+import { ConnectionLineComponent } from './ConnectionLineComponent';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from 'zustand';
 
@@ -32,7 +33,7 @@ import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider
 // import useGameStore, { initialNode } from '../../../lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
-const edgeTypes: EdgeTypes = { 'edgeWithEquation': CustomEdge }
+const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
 
 export interface DiagramProps {
     initData: InitializationData
@@ -64,7 +65,7 @@ const selector = (state) => ({
 
 export function Diagram(props: DiagramProps) {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode } = useGameStateContext(useShallow(selector));
-    const rf = useReactFlow<GadgetNode, EdgeWithEquationId>();
+    const rf = useReactFlow<GadgetNode, Edge>();
 
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
 
@@ -131,7 +132,7 @@ export function Diagram(props: DiagramProps) {
     //     setEdges((edges) => {
     //         return addEdge({
     //             ...connection,
-    //             type: 'edgeWithEquation',
+    //             type: 'customEdge',
     //             animated: true,
     //             data: { eq: getEquationId(connectionInfo.from, connectionInfo.to) }
     //         }, edges)
@@ -246,7 +247,7 @@ export function Diagram(props: DiagramProps) {
     //     // enableHoleFocus()
     // }, [])
 
-    // const onEdgesDelete = useCallback((edges: EdgeWithEquation[]) => {
+    // const onEdgesDelete = useCallback((edges: Edge[]) => {
     //     deleteEquationsOfEdges(edges)
     // }, [])
 

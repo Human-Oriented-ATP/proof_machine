@@ -1,31 +1,30 @@
-import { ConnectionLineComponentProps, Edge, EdgeProps, useConnection, useReactFlow } from '@xyflow/react';
+import { Connection, EdgeProps } from '@xyflow/react';
 import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
-import { EquationId } from 'lib/game/Unification';
+import { connectionToGadgetConnection } from 'lib/state/slices/Edges';
+import { useGameStateContext } from 'lib/state/StateContextProvider';
+import { twJoin } from 'tailwind-merge';
+import { GadgetConnection } from 'lib/state/slices/History';
 
-export type EdgeWithEquationId = Edge<{ equationId: EquationId }, 'edgeWithEquation'>
+function getGadgetConnection(props: EdgeProps): GadgetConnection {
+    if (!props.sourceHandleId || !props.targetHandleId)
+        throw Error('CustomEdge: sourceHandleId and targetHandleId must be defined')
+    const connection = { source: props.source, target: props.target, sourceHandle: props.sourceHandleId, targetHandle: props.targetHandleId }
+    return connectionToGadgetConnection(connection)
+}
 
-export function CustomEdge({ ...props }: EdgeProps<EdgeWithEquationId>): JSX.Element {
-    const data: ConnectionDrawingData = {
+export function CustomEdge({ ...props }: EdgeProps): JSX.Element {
+    const equationIsSatisfied = useGameStateContext((state) => state.equationIsSatisfied)
+    const gadgetConnection = getGadgetConnection(props)
+    const isSatisfied = equationIsSatisfied.get(gadgetConnection) ?? false
+
+    const drawingData: ConnectionDrawingData = {
         start: { x: props.sourceX - 21, y: props.sourceY },
         end: { x: props.targetX + 9, y: props.targetY },
         fromInput: true, toOutput: true
     }
 
-    return <g className='stroke-black'>
-        {connectionPath(data, 0, 20)}
-    </g>
-
-}
-
-export function ConnectionLineComponent(props: ConnectionLineComponentProps): JSX.Element {
-    const data: ConnectionDrawingData = {
-        start: { x: props.fromX, y: props.fromY },
-        end: { x: props.toX, y: props.toY },
-        fromInput: true,
-        toOutput: true
-    }
-
-    return <g className='stroke-black'>
-        {connectionPath(data, 0, 20)}
+    return <g className={twJoin("stroke-black", !isSatisfied && "animate-dashdraw")} strokeDasharray={isSatisfied ? 0 : 5}>
+        {connectionPath(drawingData, 0, 20)}
     </g>
 }
+

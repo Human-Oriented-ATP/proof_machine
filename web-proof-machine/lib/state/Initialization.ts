@@ -1,13 +1,12 @@
 import { GadgetNode } from "components/game/diagram/GadgetFlowNode";
 import { GameNewProps } from "components/game/GameNew";
 import { GameState } from "./Store";
-import { EdgeWithEquationId } from "components/game/diagram/CustomEdge";
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
 import { makeHandleId } from "components/game/gadget/Node";
 import { GadgetId, GadgetProps, OUTPUT_POSITION } from "lib/game/Primitives";
 import { getEquationId } from "components/game/Game";
 import { axiomToGadget } from "lib/game/GameLogic";
-import { ReactFlowInstance } from "@xyflow/react";
+import { Edge, ReactFlowInstance } from "@xyflow/react";
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
     if (isAxiom(gadget.statement)) {
@@ -42,20 +41,20 @@ function getInitialNodes(props: GameNewProps): GadgetNode[] {
     return initialNodes
 }
 
-function getInitialEdge(connection: InitialDiagramConnection, label: string): EdgeWithEquationId {
+function getInitialEdge(connection: InitialDiagramConnection, label: string): Edge {
     return {
         id: label,
         source: connection.from,
         sourceHandle: makeHandleId(OUTPUT_POSITION, connection.from),
         target: connection.to[0],
         targetHandle: makeHandleId(connection.to[1], connection.to[0]),
-        type: 'edgeWithEquation',
+        type: 'customEdge',
         animated: true,
         data: { equationId: getEquationId(connection.from, connection.to) }
     }
 }
 
-function getInitialEdges(initialDiagram: InitialDiagram): EdgeWithEquationId[] {
+function getInitialEdges(initialDiagram: InitialDiagram): Edge[] {
     return initialDiagram.connections.map((edge, idx) => getInitialEdge(edge, `edge_${idx}`))
 }
 
