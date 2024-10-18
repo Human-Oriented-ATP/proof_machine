@@ -25,7 +25,6 @@ import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
 import { useProximityConnect } from 'lib/hooks/ProximityConnect';
 import { makeHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
 import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider';
 import { GameSlice } from 'lib/state/Store';
 import { Gadget } from '../gadget/Gadget';

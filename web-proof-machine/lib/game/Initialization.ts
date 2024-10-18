@@ -1,3 +1,4 @@
+import { GadgetConnection } from "lib/state/slices/History";
 import { Axiom, GadgetId, NodePosition } from "./Primitives";
 import { Term, makeTermWithFreshVariables } from "./Term";
 import { Equation } from "./Unification";
@@ -33,14 +34,9 @@ export type InitialDiagramGadget = {
     position: { x: number; y: number }
 }
 
-export interface InitialDiagramConnection {
-    from: GadgetId
-    to: [GadgetId, NodePosition]
-}
-
 export interface InitialDiagram {
     gadgets: Map<GadgetId, InitialDiagramGadget>
-    connections: InitialDiagramConnection[]
+    connections: GadgetConnection[]
 }
 
 export interface InitializationData {
@@ -63,7 +59,7 @@ export function makeInitializationDataFromProblemFileData(problemFileData: Probl
     }
 }
 
-export function getEquationFromInitialConnection(connection: InitialDiagramConnection, initialDiagram: InitialDiagram): Equation {
+export function getEquationFromInitialConnection(connection: GadgetConnection, initialDiagram: InitialDiagram): Equation {
     try {
         const sourceGadget = initialDiagram.gadgets.get(connection.from)!
         const targetGadget = initialDiagram.gadgets.get(connection.to[0])!

@@ -1,9 +1,10 @@
 import { getGadgetTerms } from "lib/game/GameLogic";
-import { GetState, SetState } from "../Types"
+import { CreateStateWithInitialValue, GetState, SetState } from "../Types"
 import { Axiom, GadgetId, NodePosition, OUTPUT_POSITION } from "lib/game/Primitives"
 import { Equation } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
+import { SetupReadonlyState, setupSlice } from "./Setup";
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, NodePosition] }
 
@@ -19,7 +20,7 @@ export type GameEvent = { GameCompleted: null }
     | { GadgetRemoved: { gadgetId: GadgetId } }
     | { ConnectionRemoved: GadgetConnection };
 
-export type HistoryState = {
+export type HistoryState = SetupReadonlyState & {
     log: GameEvent[]
 }
 
@@ -35,10 +36,11 @@ export type HistoryActions = {
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
 }
 
-export type HistorySlice = HistoryState & HistoryActions
+export type HistorySlice = HistoryState & SetupReadonlyState & HistoryActions
 
-export const historySlice = (set: SetState<HistorySlice>, get: GetState<HistorySlice>): HistorySlice => {
+export const historySlice: CreateStateWithInitialValue<HistoryState, HistorySlice> = (initialState, set, get): HistorySlice => {
     return {
+        ...setupSlice(initialState),
         // TODO: Initialize history with goal gadget and any other gadgets appearing in the initial diagram 
         log: [],
         logEvents: (events: GameEvent[]) => {
@@ -59,16 +61,17 @@ export const historySlice = (set: SetState<HistorySlice>, get: GetState<HistoryS
                 .map((event) => event.GadgetRemoved.gadgetId)
         },
         getCurrentGadgets: () => {
+            const initialGadgets = get().setup.initialDiagram.gadgets.keys()
             const addedGadgets = get().getAddedGadgets()
             const removedGadgets = get().getRemovedGadgets()
-            return addedGadgets.filter((gadgetId) => !removedGadgets.includes(gadgetId))
+            return [...initialGadgets, ...addedGadgets].filter((gadgetId) => !removedGadgets.includes(gadgetId))
         },
         getConnectionEvents: () => {
             return get().log.filter((event): event is { ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection } =>
                 "ConnectionAdded" in event || "ConnectionRemoved" in event)
         },
         getCurrentConnections: () => {
-            let connections: GadgetConnection[] = []
+            let connections: GadgetConnection[] = get().setup.initialDiagram.connections
             const events = get().getConnectionEvents()
             for (const event of events) {
                 if ("ConnectionAdded" in event) {

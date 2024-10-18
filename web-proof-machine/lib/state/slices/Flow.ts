@@ -3,14 +3,14 @@ import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnC
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { connectionToGadgetConnection, EdgeSlice, edgeSlice, EdgeState, isValidConnection } from './Edges';
 import { NodeSlice, nodeSlice, NodeState } from './Nodes';
-import { GameEvent } from './History';
+import { GameEvent, HistoryState } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom } from 'lib/game/Primitives';
-import { unificationSlice, UnificationSlice } from './Unification';
+import { unificationSlice, UnificationSlice, UnificationState } from './Unification';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 
-export type FlowState = NodeState & EdgeState & {
+export type FlowState = UnificationState & NodeState & EdgeState & {
     rf: ReactFlowInstance;
 }
 
@@ -32,7 +32,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
     return {
         ...edgeSlice(initialState, set, get),
         ...nodeSlice(initialState, set, get),
-        ...unificationSlice(set, get),
+        ...unificationSlice(initialState, set, get),
         ...gadgetIdGeneratorSlice(set, get),
         rf: initialState.rf,
 

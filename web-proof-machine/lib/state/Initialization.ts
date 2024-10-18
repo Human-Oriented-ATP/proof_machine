@@ -1,12 +1,15 @@
 import { GadgetNode } from "components/game/flow/GadgetFlowNode";
 import { GameProps } from "components/game/Game";
-import { GameState, ReadonlyGameSetup } from "./Store";
-import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
+import { GameState } from "./Store";
+import { ReadonlyGameSetup } from './slices/Setup';
+import { InitialDiagram, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
 import { makeHandleId } from "components/game/gadget/Node";
 import { GadgetId, GadgetProps, OUTPUT_POSITION } from "lib/game/Primitives";
 import { axiomToGadget } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
+import { ValueMap } from "lib/util/ValueMap";
+import { GadgetConnection } from "./slices/History";
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
     if (isAxiom(gadget.statement)) {
@@ -41,7 +44,7 @@ function getInitialNodes(props: GameProps): GadgetNode[] {
     return initialNodes
 }
 
-function getInitialEdge(connection: InitialDiagramConnection, label: string): Edge {
+function getInitialEdge(connection: GadgetConnection, label: string): Edge {
     return {
         id: label,
         source: connection.from,
@@ -65,6 +68,9 @@ export function getInitialState(props: GameProps, rf: ReactFlowInstance): GameSt
         nodes: getInitialNodes(propsWithDefaults),
         edges: getInitialEdges(propsWithDefaults.initialDiagram),
         rf,
+        log: [],
+        termEnumeration: new ValueMap(),
+        equationIsSatisfied: new ValueMap(),
         setup
     }
 }
