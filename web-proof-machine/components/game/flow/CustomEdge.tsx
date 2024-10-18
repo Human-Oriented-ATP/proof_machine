@@ -1,6 +1,6 @@
 import { Connection, EdgeProps } from '@xyflow/react';
 import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
-import { connectionToGadgetConnection } from 'lib/state/slices/Edges';
+import { toGadgetConnection } from 'lib/state/slices/Edges';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { twJoin } from 'tailwind-merge';
 import { GadgetConnection } from 'lib/state/slices/History';
@@ -9,7 +9,7 @@ function getGadgetConnection(props: EdgeProps): GadgetConnection {
     if (!props.sourceHandleId || !props.targetHandleId)
         throw Error('CustomEdge: sourceHandleId and targetHandleId must be defined')
     const connection = { source: props.source, target: props.target, sourceHandle: props.sourceHandleId, targetHandle: props.targetHandleId }
-    return connectionToGadgetConnection(connection)
+    return toGadgetConnection(connection)
 }
 
 export function CustomEdge({ ...props }: EdgeProps): JSX.Element {

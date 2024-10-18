@@ -4,6 +4,8 @@ import { Equation, unifyEquations } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { toHoleValue } from "lib/game/TermEnumeration";
+import { Connection, Edge } from "@xyflow/react";
+import { toGadgetConnection } from "./Edges";
 
 export type UnificationState = HistoryState & {
     termEnumeration: ValueMap<Term, string>
@@ -12,6 +14,7 @@ export type UnificationState = HistoryState & {
 
 export type UnificationActions = {
     runUnification: () => ValueMap<GadgetConnection, boolean>
+    edgeIsSatisfied: (edge: Edge) => boolean
 }
 
 export type UnificationSlice = HistorySlice & UnificationState & UnificationActions
@@ -39,6 +42,13 @@ export const unificationSlice: CreateStateWithInitialValue<UnificationState, Uni
             }
             set({ equationIsSatisfied: equationIsSatisfied, termEnumeration: newTermEnumeration })
             return equationIsSatisfied
-        }
+        },
+
+        edgeIsSatisfied: (edge: Edge) => {
+            const gadgetConnection = toGadgetConnection(edge as Connection)
+            const isSatisfied = get().equationIsSatisfied.get(gadgetConnection)
+            if (isSatisfied === undefined) throw Error(`Edge is not in the equationIsSatisfied map ${JSON.stringify(edge)}`)
+            return isSatisfied
+        },
     }
 }

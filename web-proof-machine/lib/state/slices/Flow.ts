@@ -1,9 +1,9 @@
 import { CreateStateWithInitialValue } from '../Types';
-import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, OnNodesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
+import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
-import { connectionToGadgetConnection, EdgeSlice, edgeSlice, EdgeState, isValidConnection } from './Edges';
+import { toGadgetConnection as toGadgetConnection, EdgeSlice, edgeSlice, EdgeState, isValidConnection } from './Edges';
 import { NodeSlice, nodeSlice, NodeState } from './Nodes';
-import { GameEvent, HistoryState } from './History';
+import { GameEvent } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom } from 'lib/game/Primitives';
@@ -35,6 +35,23 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
         ...unificationSlice(initialState, set, get),
         ...gadgetIdGeneratorSlice(set, get),
         rf: initialState.rf,
+
+        // TODO: 
+        // checkCompletion: () => {
+        //     let hasInvalidEdge = false
+        //     let currentLayer = ["goal_gadget"]
+        //     while (true) {
+        //         const incomingEdges = get().edges.filter(edge => currentLayer.includes(edge.target))
+        //         const areSatisfied = incomingEdges.map(edge => get().edgeIsSatisfied(edge))
+        //         if (areSatisfied.includes(false)) {
+        //             hasInvalidEdge = true
+        //         }
+        //         if (incomingEdges.length === 0) {
+        //             break
+        //         }
+        //     }
+        //     // return !hasInvalidEdge
+        // },
 
         updateLogicalState(events: GameEvent[]) {
             get().logEvents(events)
@@ -89,12 +106,12 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             set({
                 edges: addEdge({ ...connection, type: 'customEdge' }, get().edges),
             });
-            const gadgetConnection = connectionToGadgetConnection(connection)
+            const gadgetConnection = toGadgetConnection(connection)
             get().updateLogicalState([...edgeRemovalEvents, { ConnectionAdded: gadgetConnection }])
         },
 
         isValidConnection: (connection: Connection) => {
-            const gadgetConnection = connectionToGadgetConnection(connection)
+            const gadgetConnection = toGadgetConnection(connection)
             const [lhs, rhs] = get().getEquationOfConnection(gadgetConnection)
             const arityOk = aritiesMatch(lhs, rhs)
             const colorsOk = labelsMatch(lhs, rhs)

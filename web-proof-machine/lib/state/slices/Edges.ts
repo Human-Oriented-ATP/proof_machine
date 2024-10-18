@@ -9,7 +9,6 @@ export interface EdgeState {
 }
 
 export interface EdgeActions {
-    isSatisfied: (edgeId: string) => boolean
     removeEdgesConnectedToNode: (nodeId: string) => GameEvent[];
     removeEdgesConnectedToHandle: (handleId: string) => GameEvent[];
     getHandlesOfEdge: (edgeId: string) => { sourceHandle: string, targetHandle: string };
@@ -19,15 +18,11 @@ export interface EdgeActions {
 
 export type EdgeSlice = EdgeState & EdgeActions
 
-function isSatisfied(edge: Edge) {
-    return !edge.animated;
-}
-
 export function isValidConnection(connection: Connection): connection is { source: string, target: string, sourceHandle: string; targetHandle: string } {
     return connection.sourceHandle !== null && connection.targetHandle !== null;
 }
 
-export function connectionToGadgetConnection(connection: Connection): GadgetConnection {
+export function toGadgetConnection(connection: Connection): GadgetConnection {
     if (!isValidConnection(connection)) throw Error(`Connection is not valid ${JSON.stringify(connection)}`)
     const sourcePosition = getNodePositionFromHandle(connection.sourceHandle)
     const targetPosition = getNodePositionFromHandle(connection.targetHandle)
@@ -47,11 +42,6 @@ export function connectionToGadgetConnection(connection: Connection): GadgetConn
 export const edgeSlice: CreateStateWithInitialValue<EdgeState, EdgeSlice> = (initialState, set, get) => {
     return {
         edges: initialState.edges,
-        isSatisfied: (edgeId: string) => {
-            const edge = get().edges.find((edge) => edge.id === edgeId);
-            if (edge === undefined) throw Error(`Trying to look for edge that does not exist: ${edgeId}`);
-            return isSatisfied(edge);
-        },
         getHandlesOfEdge: (edgeId: string) => {
             const edge = get().edges.find((edge) => edge.id === edgeId);
             if (edge === undefined) throw Error(`Trying to look for edge that does not exist: ${edgeId}`);
@@ -64,7 +54,7 @@ export const edgeSlice: CreateStateWithInitialValue<EdgeState, EdgeSlice> = (ini
         },
         removeEdgesConnectedToNode: (nodeId: string) => {
             const edgesToBeRemoved = get().edges.filter((edge) => edge.source === nodeId || edge.target === nodeId);
-            const removedGadgetConnections = edgesToBeRemoved.map((edge) => connectionToGadgetConnection(edge as Connection))
+            const removedGadgetConnections = edgesToBeRemoved.map((edge) => toGadgetConnection(edge as Connection))
             const events: GameEvent[] = removedGadgetConnections.map((connection) => ({ ConnectionRemoved: connection }))
             set({
                 edges: get().edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
@@ -73,7 +63,7 @@ export const edgeSlice: CreateStateWithInitialValue<EdgeState, EdgeSlice> = (ini
         },
         removeEdgesConnectedToHandle: (handleId: string) => {
             const edgesToBeRemoved = get().edges.filter((edge) => edge.sourceHandle === handleId || edge.targetHandle === handleId);
-            const removedGadgetConnections = edgesToBeRemoved.map((edge) => connectionToGadgetConnection(edge as Connection))
+            const removedGadgetConnections = edgesToBeRemoved.map((edge) => toGadgetConnection(edge as Connection))
             const events: GameEvent[] = removedGadgetConnections.map((connection) => ({ ConnectionRemoved: connection }))
             set({
                 edges: get().edges.filter((edge) => edge.sourceHandle !== handleId && edge.targetHandle !== handleId),
