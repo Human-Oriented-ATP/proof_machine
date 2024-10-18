@@ -25,7 +25,7 @@ export class GameHistory {
         this.problemId = problemId;
         this.config = config
         if (this.config === undefined || this.problemId === undefined) {
-            console.log("Game data is not being recorded.");
+            console.warn("Game data is not being recorded.");
         }
     }
 

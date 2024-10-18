@@ -49,7 +49,7 @@ export async function synchronizeHistory(historyString: string) {
                 WHERE study_data.completed=false;`
         }
     } catch (error) {
-        console.log("Error synchronizing history.")
-        console.log(error);
+        console.error("Error synchronizing history.")
+        console.error(error);
     }
 }

@@ -13,16 +13,17 @@ export class PrologParser extends CstParser {
         this.AT_LEAST_ONE_SEP({
             SEP: Comma,
             DEF: () => {
-            this.SUBRULE(this.argument, { LABEL: "args" })
-        }})
+                this.SUBRULE(this.argument, { LABEL: "args" })
+            }
+        })
         this.CONSUME(RightParen)
     })
 
     argument = this.RULE("argument", () => {
         this.OR([
-            { ALT: () => this.CONSUME(Number)},
-            { ALT: () => this.CONSUME(Variable)},
-            { ALT: () => this.SUBRULE(this.compoundTerm)}
+            { ALT: () => this.CONSUME(Number) },
+            { ALT: () => this.CONSUME(Variable) },
+            { ALT: () => this.SUBRULE(this.compoundTerm) }
         ])
     })
 
@@ -33,7 +34,8 @@ export class PrologParser extends CstParser {
             this.MANY_SEP({
                 SEP: Comma,
                 DEF: () => { this.SUBRULE1(this.compoundTerm, { LABEL: "hypotheses" }) }
-        })})
+            })
+        })
         this.CONSUME(FullStop)
     })
 
@@ -51,7 +53,7 @@ export function parseTermCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.argument()
 
-    parser.errors.map(console.log)
+    parser.errors.map(console.error)
 
     if (parser.errors.length > 0) {
         const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
@@ -65,7 +67,7 @@ export function parseStatementCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.statement()
 
-    parser.errors.map(console.log)
+    parser.errors.map(console.error)
 
     if (parser.errors.length > 0) {
         const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
@@ -79,7 +81,7 @@ export function parseProblemCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.problem()
 
-    parser.errors.map(console.log)
+    parser.errors.map(console.error)
 
     if (parser.errors.length > 0) {
         const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
