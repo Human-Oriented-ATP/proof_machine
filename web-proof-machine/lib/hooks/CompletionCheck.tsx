@@ -2,7 +2,7 @@ import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/rea
 
 import { useEffect } from 'react';
 import { GadgetProps, isInputPosition } from 'lib/game/Primitives';
-import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
+import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 
 interface CompletionCheckProps {
     markLevelAsCompleted: () => void

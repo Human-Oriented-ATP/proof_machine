@@ -1,6 +1,6 @@
 import { CreateStateWithInitialValue } from '../Types';
 import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnEdgesChange, OnNodesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
-import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
+import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { connectionToGadgetConnection, EdgeSlice, edgeSlice, EdgeState, isValidConnection } from './Edges';
 import { NodeSlice, nodeSlice, NodeState } from './Nodes';
 import { GameEvent } from './History';

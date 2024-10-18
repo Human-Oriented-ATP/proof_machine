@@ -1,5 +1,5 @@
 import { applyNodeChanges, Connection, NodeChange, OnNodesChange } from '@xyflow/react';
-import { GadgetNode } from '../../../components/game/diagram/GadgetFlowNode';
+import { GadgetNode } from '../../../components/game/flow/GadgetFlowNode';
 import { CreateStateWithInitialValue } from '../Types';
 import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice, GadgetDndFromShelfState } from './DragGadgetFromShelf';
 import { Term } from 'lib/game/Term';

@@ -5,7 +5,7 @@ import { InitializationData } from "../../lib/game/Initialization";
 import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
 import { GameHelp } from "./GameHelp";
-import { Flow } from "./diagram/Diagram";
+import { Flow } from "./flow/Flow";
 
 export default function FlowWithMenuBar() {
     const [levelIsCompleted, setLevelIsCompleted] = useState(false)

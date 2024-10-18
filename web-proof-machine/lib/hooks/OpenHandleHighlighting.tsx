@@ -1,7 +1,7 @@
 import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/react';
 
 import { useCallback, useEffect, useRef } from 'react';
-import { GadgetNode } from 'components/game/diagram/GadgetFlowNode';
+import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { GadgetProps } from 'lib/game/Primitives';
 import { makeHandleId, isTargetHandle } from 'components/game/gadget/Node';
 
