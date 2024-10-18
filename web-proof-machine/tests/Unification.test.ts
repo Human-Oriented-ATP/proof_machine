@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
-import { Equation, unifyEquations } from "../../lib/game/Unification";
-import { parseTerm } from '../../lib/parsing/Semantics';
-import { ValueMap } from '../../lib/util/ValueMap';
+import { Equation, unifyEquations } from "../lib/game/Unification";
+import { parseTerm } from '../lib/parsing/Semantics';
+import { ValueMap } from '../lib/util/ValueMap';
 
 type EquationId = string
 

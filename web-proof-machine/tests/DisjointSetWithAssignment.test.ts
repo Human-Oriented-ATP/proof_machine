@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { DisjointSetWithAssignment } from "../../lib/util/DisjointSetWithAssignment"
+import { DisjointSetWithAssignment } from "../lib/util/DisjointSetWithAssignment"
 
 test("Adding a new element", () => {
     const x = new DisjointSetWithAssignment<number, number>()
