@@ -1,6 +1,4 @@
 import { Gadget } from "components/game/gadget/Gadget";
-import { AssignmentContext } from "lib/game/AssignmentContext";
-import { axiomTermEnumeration } from "lib/game/GameLogic";
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
 import { DragIndicatorProps } from "../DragIndicator";
@@ -18,6 +16,7 @@ const tutorial02InitialDiagram: InitialDiagram = {
         to: ["goal_gadget", 0]
     }]
 };
+
 const tutorial02DragIndicatorDeleteConnection: DragIndicatorProps<GadgetPosition> = {
     origin: {
         gadget: { elementId: "goal_gadget" },
@@ -28,15 +27,15 @@ const tutorial02DragIndicatorDeleteConnection: DragIndicatorProps<GadgetPosition
     drawLine: false,
     endWithClick: true
 };
+
 function ConverterGadget() {
     return <div className="inline-block backdrop-blur-sm scale-75 align-middle">
-        <AssignmentContext.Provider value={axiomTermEnumeration}>
-            <Gadget id="tutorial_explanation"
-                isAxiom={true}
-                terms={new Map([[0, parseTerm("r(A, B)")], [-1, parseTerm("r(B, A)")]])} />
-        </AssignmentContext.Provider>
+        <Gadget id="tutorial_explanation"
+            isAxiom={true}
+            terms={new Map([[0, parseTerm("r(A, B)")], [-1, parseTerm("r(B, A)")]])} />
     </div>;
 }
+
 export const tutorial02: InteractiveLevel = {
     settings: { ...RESTRICTIVE_SETTINGS, initialViewportSetting: "FIT_INITIAL_DIAGRAM", showBrokenConnectionStatusBarMessage: false },
     initialDiagram: tutorial02InitialDiagram,

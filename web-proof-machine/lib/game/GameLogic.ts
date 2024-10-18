@@ -17,18 +17,6 @@ export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     return { terms, id, isAxiom: false }
 }
 
-export function axiomTermEnumeration(t: Term): string {
-    if ("variable" in t) {
-        return ""
-    } else {
-        if (t.args.length === 0) { // constant
-            return t.label
-        } else {
-            return "?"
-        }
-    }
-}
-
 function termToString(t: Term): string {
     if ("variable" in t) {
         return t.variable

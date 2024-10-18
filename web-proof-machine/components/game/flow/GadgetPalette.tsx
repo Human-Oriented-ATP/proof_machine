@@ -1,9 +1,7 @@
 import { Panel, XYPosition } from '@xyflow/react';
 import { Gadget } from '../gadget/Gadget'
-import { axiomTermEnumeration } from '../../../lib/game/GameLogic';
 import { Axiom, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { GadgetProps } from '../../../lib/game/Primitives';
-import { AssignmentContext } from '../../../lib/game/AssignmentContext';
 import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
@@ -56,16 +54,14 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
         return <></>
     } else {
         return <Panel position='top-center'>
-            <AssignmentContext.Provider value={axiomTermEnumeration}>
-                <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
-                    {axioms.map(axiom => {
-                        return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}
-                            abortAddingGadget={props.abortAddingGadget}>
-                            <Gadget {...makeAxiomGadget(axiom)}></Gadget>
-                        </InsertGadgetButton>
-                    })}
-                </div>
-            </AssignmentContext.Provider>
+            <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
+                {axioms.map(axiom => {
+                    return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}
+                        abortAddingGadget={props.abortAddingGadget}>
+                        <Gadget {...makeAxiomGadget(axiom)}></Gadget>
+                    </InsertGadgetButton>
+                })}
+            </div>
         </Panel >
     }
 }
