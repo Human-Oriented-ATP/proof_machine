@@ -7,15 +7,24 @@
  * @template V - The type of values stored in the map.
  */
 export class ValueMap<K, V> {
-    private map: Map<string, V>;
+    private data: Map<string, V>;
 
-    constructor(entries?: [K, V][]) {
-        this.map = new Map<string, V>();
+    constructor(entries?: [K, V][]);
+    constructor(otherMap?: ValueMap<K, V>);
 
-        if (entries) {
-            for (const [key, value] of entries) {
+    constructor(arg?: [K, V][] | ValueMap<K, V>) {
+        this.data = new Map<string, V>();
+
+        if (Array.isArray(arg)) {
+            for (const [key, value] of arg) {
                 this.set(key, value);
             }
+        }
+
+        else if (arg instanceof ValueMap) {
+            arg.forEach((value, key) => {
+                this.set(key, value);
+            });
         }
     }
 
@@ -25,50 +34,69 @@ export class ValueMap<K, V> {
 
     set(key: K, value: V): this {
         const keyString = this.getKey(key);
-        this.map.set(keyString, value);
+        this.data.set(keyString, value);
         return this;
     }
 
     get(key: K): V | undefined {
         const keyString = this.getKey(key);
-        return this.map.get(keyString);
+        return this.data.get(keyString);
     }
 
     has(key: K): boolean {
         const keyString = this.getKey(key);
-        return this.map.has(keyString);
+        return this.data.has(keyString);
     }
 
     delete(key: K): boolean {
         const keyString = this.getKey(key);
-        return this.map.delete(keyString);
+        return this.data.delete(keyString);
     }
 
     clear(): void {
-        this.map.clear();
+        this.data.clear();
     }
 
     forEach(callback: (value: V, key: K, map: ValueMap<K, V>) => void): void {
-        this.map.forEach((value, keyString) => {
+        this.data.forEach((value, keyString) => {
             const key = JSON.parse(keyString) as K;
             callback(value, key, this);
         });
     }
 
     keys(): K[] {
-        return Array.from(this.map.keys()).map(keyString => JSON.parse(keyString) as K);
+        return Array.from(this.data.keys()).map(keyString => JSON.parse(keyString) as K);
     }
 
     values(): V[] {
-        return Array.from(this.map.values());
+        return Array.from(this.data.values());
     }
 
     entries(): [K, V][] {
-        return Array.from(this.map.entries()).map(([keyString, value]) =>
+        return Array.from(this.data.entries()).map(([keyString, value]) =>
             [JSON.parse(keyString) as K, value]);
     }
 
+    map<U>(callback: (value: V, key: K) => U): ValueMap<K, U> {
+        const newMap = new ValueMap<K, U>();
+        this.forEach((value, key) => {
+            newMap.set(key, callback(value, key));
+        });
+        return newMap;
+    }
+
+    flatMap<U>(callback: (value: V, key: K) => [K, U][]): ValueMap<K, U> {
+        const newMap = new ValueMap<K, U>();
+        this.forEach((value, key) => {
+            const newEntries = callback(value, key);
+            newEntries.forEach(([newKey, newValue]) => {
+                newMap.set(newKey, newValue);
+            });
+        });
+        return newMap;
+    }
+
     get size(): number {
-        return this.map.size;
+        return this.data.size;
     }
 }
