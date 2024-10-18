@@ -1,5 +1,5 @@
 import { GadgetNode } from "components/game/flow/GadgetFlowNode";
-import { GameProps } from "components/game/GameNew";
+import { GameProps } from "components/game/Game";
 import { GameState, ReadonlyGameSetup } from "./Store";
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
 import { makeHandleId } from "components/game/gadget/Node";

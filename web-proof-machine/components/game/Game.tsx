@@ -1,11 +1,10 @@
 "use client"
 
 import { InitialDiagram } from 'lib/game/Initialization'
-import { StudyConfiguration } from 'lib/study/Types'
 import { InteractiveStep, LevelConfiguration } from 'components/tutorial/InteractiveLevel'
 import { Axiom } from 'lib/game/Primitives'
 import { ReactFlowProvider } from '@xyflow/react'
-import { GameContainer } from './GameContainer'
+import { FlowContainer } from './FlowContainer'
 
 export interface GameProps {
   initialDiagram: InitialDiagram
@@ -19,6 +18,6 @@ export interface GameProps {
 
 export function Game(props: GameProps) {
   return <ReactFlowProvider>
-    <GameContainer {...props} />
+    <FlowContainer {...props} />
   </ReactFlowProvider>
 }

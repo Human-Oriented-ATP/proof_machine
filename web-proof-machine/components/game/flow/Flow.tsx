@@ -18,7 +18,6 @@ import { axiomToGadget } from '../../../lib/game/GameLogic';
 import { Axiom, GadgetId, GadgetProps, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
 import { Equation, EquationId } from '../../../lib/game/Unification';
 import { Term } from '../../../lib/game/Term';
-import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { ControlButtons } from './ControlButtons';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { InitialViewportSetting, hasTargetHandle, initViewport } from '../../../lib/util/ReactFlow';
@@ -50,7 +49,7 @@ const selector = (state: GameSlice) => ({
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
-    addGadgetNode: state.addGadgetNode,
+    onConnectStart: state.onConnectStart,
     removeGadgetNode: state.removeGadgetNode,
     isValidConnection: state.isValidConnection,
     settings: state.setup.settings,
@@ -58,7 +57,7 @@ const selector = (state: GameSlice) => ({
 });
 
 export function Flow() {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode, onNodesDelete, isValidConnection, settings } = useGameStateContext(useShallow(selector));
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onConnectStart, removeGadgetNode, onNodesDelete, isValidConnection, settings } = useGameStateContext(useShallow(selector));
     const rf = useReactFlow<GadgetNode, Edge>();
 
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
@@ -121,14 +120,6 @@ export function Flow() {
             gadgetThatIsBeingAdded.current = undefined
         }
     }
-
-    // const onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void = useCallback((event, params) => {
-    //     if (params.handleType === "target") {
-    //         removeEdgesConnectedToHandle(params.handleId!)
-    //     }
-    //     // disableHoleFocus()
-    //     props.setUserIsDraggingOrNavigating(true)
-    // }, [removeEdgesConnectedToHandle])
 
     // const enableHoleFocus = useCallback(() => {
     //     setNodes(nodes => nodes.map(node => {
@@ -225,7 +216,7 @@ export function Flow() {
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             // onInit={init}
-            // onConnectStart={onConnectStart}
+            onConnectStart={onConnectStart}
             // onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
             // {...zoomProps}

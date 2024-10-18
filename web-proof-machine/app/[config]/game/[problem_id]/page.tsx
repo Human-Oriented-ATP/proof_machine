@@ -3,17 +3,14 @@ import { promises as fs } from "fs"
 import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
-import dynamic from "next/dynamic";
-import { Game } from "components/game/GameNew";
-import { DEFAULT_SETTINGS, LevelConfiguration } from "components/tutorial/InteractiveLevel";
+import { Game } from "components/game/Game";
+import { getNextProblem } from "lib/study/LevelConfiguration";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
     const problemIds = problems.map(problem => ({ problem_id: problem }))
     return problemIds
 }
-
-const DynamicGameScreen = dynamic(() => import("components/game/FlowWithMenuBar"), { ssr: false })
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     const configuration = await loadStudyConfiguration(params.config)
@@ -23,14 +20,15 @@ export default async function Page({ params }: { params: { config: string, probl
 
     try {
         const problemFileData = parseProblem(problemData.trim())
-        const initData = makeInitializationDataFromProblemFileData(problemFileData)
-        const settings = DEFAULT_SETTINGS
+        const { initialDiagram, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
+        const nextProblem = getNextProblem(configuration, params.problem_id)
+        // TODO: Retrieve tutorial data 
         return <Suspense>
             <Game
-                initialDiagram={initData.initialDiagram}
-                axioms={initData.axioms}
-                settings={settings}
+                initialDiagram={initialDiagram}
+                axioms={axioms}
                 problemId={params.problem_id}
+                nextProblem={nextProblem}
                 configurationIdentifier={configuration.name}
             />
         </Suspense>

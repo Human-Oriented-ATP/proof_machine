@@ -27,9 +27,8 @@ export type HistoryActions = {
     logEvents: (events: GameEvent[]) => void;
     getAddedGadgets: () => GadgetId[]
     getRemovedGadgets: () => GadgetId[]
-    getAddedConnections: () => GadgetConnection[]
-    getRemovedConnections: () => GadgetConnection[]
     getCurrentGadgets: () => GadgetId[]
+    getConnectionEvents: () => ({ ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection })[]
     getCurrentConnections: () => GadgetConnection[]
     getTermsOfGadget: (gadgetId: GadgetId) => Map<NodePosition, Term>
     getEquationOfConnection: (connection: GadgetConnection) => Equation
@@ -59,26 +58,29 @@ export const historySlice = (set: SetState<HistorySlice>, get: GetState<HistoryS
                 .filter((event): event is { GadgetRemoved: { gadgetId: GadgetId } } => "GadgetRemoved" in event)
                 .map((event) => event.GadgetRemoved.gadgetId)
         },
-        getAddedConnections: () => {
-            return get().log
-                .filter((event): event is { ConnectionAdded: GadgetConnection } => "ConnectionAdded" in event)
-                .map((event) => event.ConnectionAdded)
-        },
-        getRemovedConnections: () => {
-            return get().log
-                .filter((event): event is { ConnectionRemoved: GadgetConnection } => "ConnectionRemoved" in event)
-                .map((event) => event.ConnectionRemoved)
-        },
         getCurrentGadgets: () => {
             const addedGadgets = get().getAddedGadgets()
             const removedGadgets = get().getRemovedGadgets()
             return addedGadgets.filter((gadgetId) => !removedGadgets.includes(gadgetId))
         },
+        getConnectionEvents: () => {
+            return get().log.filter((event): event is { ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection } =>
+                "ConnectionAdded" in event || "ConnectionRemoved" in event)
+        },
         getCurrentConnections: () => {
-            const addedConnections = get().getAddedConnections()
-            const removedConnections = get().getRemovedConnections()
-            return addedConnections.filter((connection) => !removedConnections.some((removedConnection) =>
-                isEqualConnection(connection, removedConnection)))
+            let connections: GadgetConnection[] = []
+            const events = get().getConnectionEvents()
+            for (const event of events) {
+                if ("ConnectionAdded" in event) {
+                    connections.push(event.ConnectionAdded)
+                } else {
+                    const index = connections.findIndex((connection) => isEqualConnection(connection, event.ConnectionRemoved))
+                    if (index === -1) throw Error(`Invalid history log: Connection that is to be removed has not been added before 
+                                                    ${JSON.stringify(event.ConnectionRemoved)}`)
+                    connections.splice(index, 1)
+                }
+            }
+            return connections
         },
         getTermsOfGadget: (gadgetId: GadgetId) => {
             const event = get().log.find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
