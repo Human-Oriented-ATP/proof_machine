@@ -1,5 +1,5 @@
-import { CstNode, CstParser } from "chevrotain"
-import { Atom, Comma, Entails, FullStop, LeftParen, NewLine, Number, RightParen, Variable, WhiteSpace, allTokens, tokenize } from "./Lexer"
+import { CstNode, CstParser, IRecognitionException } from "chevrotain"
+import { Atom, Comma, Entails, FullStop, LeftParen, NewLine, Number, RightParen, Variable, allTokens, tokenize } from "./Lexer"
 
 export class PrologParser extends CstParser {
     constructor() {
@@ -49,44 +49,30 @@ export class PrologParser extends CstParser {
 
 export const parser: PrologParser = new PrologParser()
 
+function handleErrors(errors: IRecognitionException[]) {
+    if (errors.length > 0) {
+        const msg = errors.map((error) => `[${error.name}] ${error.message}`).join('\n')
+        throw new Error(msg)
+    }
+}
+
 export function parseTermCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.argument()
-
-    parser.errors.map(console.error)
-
-    if (parser.errors.length > 0) {
-        const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
-        throw new Error(msg)
-    }
-
+    handleErrors(parser.errors)
     return cst
 }
 
 export function parseStatementCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.statement()
-
-    parser.errors.map(console.error)
-
-    if (parser.errors.length > 0) {
-        const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
-        throw new Error(msg)
-    }
-
+    handleErrors(parser.errors)
     return cst
 }
 
 export function parseProblemCst(text: string): CstNode {
     parser.input = tokenize(text)
     const cst = parser.problem()
-
-    parser.errors.map(console.error)
-
-    if (parser.errors.length > 0) {
-        const msg = parser.errors.map((error) => `[${error.name}] ${error.message}`).join(', ')
-        throw new Error(msg)
-    }
-
+    handleErrors(parser.errors)
     return cst
 }

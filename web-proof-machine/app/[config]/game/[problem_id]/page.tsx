@@ -1,6 +1,6 @@
 import { loadAllProblemsInDirectory, loadStudyConfiguration } from "lib/game/LoadProblems";
 import { promises as fs } from "fs"
-import { parseProblem } from "lib/parsing/Semantics";
+import { parseProblemFile } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
 import { Game } from "components/game/Game";
@@ -19,7 +19,7 @@ export default async function Page({ params }: { params: { config: string, probl
     const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
 
     try {
-        const problemFileData = parseProblem(problemData.trim())
+        const problemFileData = parseProblemFile(problemData.trim())
         const { initialDiagram, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
         const nextProblem = getNextProblem(configuration, params.problem_id)
         // TODO: Retrieve tutorial data 

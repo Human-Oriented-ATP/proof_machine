@@ -1,4 +1,4 @@
-import {CstNode, IToken} from 'chevrotain';
+import { CstNode, IToken } from 'chevrotain';
 
 export interface CompoundTermNode {
     label: IToken[]

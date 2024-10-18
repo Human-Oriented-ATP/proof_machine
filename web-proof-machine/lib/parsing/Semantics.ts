@@ -88,7 +88,7 @@ export function parseAxiom(text: string): Axiom {
     }
 }
 
-export function parseProblem(text: string): ProblemFileData {
+export function parseProblemFile(text: string): ProblemFileData {
     const cst = parseProblemCst(text)
     const ast = astBuilder.visit(cst)
     return ast

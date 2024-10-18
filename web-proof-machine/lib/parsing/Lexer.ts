@@ -1,17 +1,18 @@
 import { createToken, Lexer } from "chevrotain"
+
 export const Atom = createToken({
-    name: "Atom",
-    pattern: /[a-z]\w*/
-  })
+  name: "Atom",
+  pattern: /[a-z]\w*/
+})
 
 export const Number = createToken({
-    name: "Number",
-    pattern: /\d+/
+  name: "Number",
+  pattern: /\d+/
 })
 
 export const Variable = createToken({
-    name: "Variable",
-    pattern: /[A-Z_]\w*/
+  name: "Variable",
+  pattern: /[A-Z_]\w*/
 })
 
 export const Entails = createToken({ name: "Entails", pattern: /:-/ });
@@ -25,14 +26,14 @@ export const LeftParen = createToken({ name: "LeftParen", pattern: /\(/ })
 export const RightParen = createToken({ name: "RightParen", pattern: /\)/ })
 
 export const WhiteSpace = createToken({
-    name: "WhiteSpace",
-    pattern: /[^\S\n]/,
-    group: Lexer.SKIPPED
-  })
+  name: "WhiteSpace",
+  pattern: /[^\S\n]/,
+  group: Lexer.SKIPPED
+})
 
-export const NewLine = createToken({ 
-    name: "NewLine", 
-    pattern: /\n+/,
+export const NewLine = createToken({
+  name: "NewLine",
+  pattern: /\n+/,
 })
 
 export const Comment = createToken({
@@ -42,17 +43,17 @@ export const Comment = createToken({
 })
 
 export const allTokens = [
-    Comment,    
-    WhiteSpace,
-    NewLine,
-    Entails,
-    LeftParen,
-    RightParen,
-    Comma,
-    FullStop,
-    Atom,
-    Number,
-    Variable,
+  Comment,
+  WhiteSpace,
+  NewLine,
+  Entails,
+  LeftParen,
+  RightParen,
+  Comma,
+  FullStop,
+  Atom,
+  Number,
+  Variable,
 ]
 
 export const PrologLexer = new Lexer(allTokens)
