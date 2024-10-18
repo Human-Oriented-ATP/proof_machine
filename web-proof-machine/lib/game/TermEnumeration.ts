@@ -1,7 +1,7 @@
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Axiom } from "./Primitives";
 import { InitializationData, isGoal } from "./Initialization";
-import { Assignment, assignTermDeeply, getVariableSet, hashTerm, substitute, Term } from "./Term";
+import { Assignment, assignTermDeeply, getVariableSet, substitute, Term } from "./Term";
 import { ValueMap } from "lib/util/ValueMap";
 
 function isConstant(t: Term): t is { label: string, args: [] } {

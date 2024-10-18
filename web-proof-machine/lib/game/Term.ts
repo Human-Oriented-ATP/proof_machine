@@ -1,4 +1,3 @@
-import { hash } from "../util/Hash"
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment"
 import { Axiom } from "./Primitives"
 
@@ -9,10 +8,6 @@ export type Term =
     | { variable: VariableName }
     | { label: FunctionName, args: Term[] }
 
-export function hashTerm(t: Term): number {
-    return hash(JSON.stringify(t))
-}
-
 export function occursInNaive(v: VariableName, term: Term): boolean {
     if ("variable" in term) {
         return v === term.variable
@@ -22,15 +17,15 @@ export function occursInNaive(v: VariableName, term: Term): boolean {
     }
 }
 
-function replaceWithRepresentatives(t : Term, assignment: Assignment): Term { 
-    if ("variable" in t) { 
+function replaceWithRepresentatives(t: Term, assignment: Assignment): Term {
+    if ("variable" in t) {
         return { variable: assignment.findRepresentative(t.variable) }
-    } else { 
+    } else {
         return { label: t.label, args: t.args.map(arg => replaceWithRepresentatives(arg, assignment)) }
     }
 }
 
-export function occursIn(v: VariableName, term: Term, assignment: Assignment): boolean { 
+export function occursIn(v: VariableName, term: Term, assignment: Assignment): boolean {
     const vRepresentative = assignment.findRepresentative(v)
     const termWithRepresentatives = replaceWithRepresentatives(term, assignment)
     return occursInNaive(vRepresentative, termWithRepresentatives)
