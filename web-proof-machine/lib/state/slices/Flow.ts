@@ -37,7 +37,6 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
         updateLogicalState(events: GameEvent[]) {
             get().logEvents(events)
             const equationIsSatisfied = get().runUnification()
-            console.log("eq sat", equationIsSatisfied)
             // update edges, handles and nodes
             // check completeness
             // synchronize history

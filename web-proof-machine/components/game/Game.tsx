@@ -2,7 +2,6 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { Diagram } from "./diagram/Diagram";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Equation, EquationId, unifyEquations } from "../../lib/game/Unification";
-import { TermEnumerator, getMaximumNumberInGameData } from "../../lib/game/TermEnumeration";
 import { InitializationData, getEquationFromInitialConnection } from "../../lib/game/Initialization";
 import { Axiom, GadgetId, NodePosition } from "../../lib/game/Primitives";
 import { AssignmentContext } from "../../lib/game/AssignmentContext";
@@ -12,6 +11,7 @@ import { axiomToString } from "lib/game/GameLogic";
 import { InitialViewportSetting } from "lib/util/ReactFlow";
 import { GadgetSelector, InteractiveStep } from "components/tutorial/InteractiveLevel";
 import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
+import { getMaximumNumberInGameData } from "lib/game/TermEnumeration";
 
 export interface GameProps {
     initData: InitializationData
@@ -70,8 +70,6 @@ function checkFieldsMatch(event: GameEvent, trigger: GameEvent): boolean {
 
 export function Game(props: GameProps) {
     const [equations, setEquations] = useState<Map<EquationId, Equation>>(getInitialEquations(props.initData))
-
-    const enumeration = useRef<TermEnumerator>(new TermEnumerator(getMaximumNumberInGameData(props.initData)))
 
     const history = useRef<GameHistory>(new GameHistory(props.problemId, props.config))
 

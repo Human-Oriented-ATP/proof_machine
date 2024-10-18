@@ -89,13 +89,12 @@ export const historySlice = (set: SetState<HistorySlice>, get: GetState<HistoryS
         getEquationOfConnection: (connection: GadgetConnection): Equation => {
             const lhs = get().getTermsOfGadget(connection.from).get(OUTPUT_POSITION)
             const rhs = get().getTermsOfGadget(connection.to[0]).get(connection.to[1])
-            if (lhs === undefined || rhs === undefined) throw Error(`Connection ${connection} has undefined terms`)
-            console.log("lhs", lhs, "rhs", rhs)
+            if (lhs === undefined || rhs === undefined)
+                throw Error(`Connection has undefined terms: \n${JSON.stringify(connection)}\nlhs: ${lhs}\nrhs: ${rhs}`)
             return [lhs!, rhs!]
         },
         getCurrentEquations: () => {
             const connections = get().getCurrentConnections()
-            console.log("connections", connections)
             const connectionsWithEquations: Array<[GadgetConnection, Equation]> = connections.map((connection) =>
                 [connection, get().getEquationOfConnection(connection)])
             return new ValueMap(connectionsWithEquations)

@@ -2,6 +2,7 @@ import { HoleProps } from '../../../lib/game/Primitives'
 import { twMerge } from 'tailwind-merge'
 import { useGameStateContext } from 'lib/state/StateContextProvider'
 import { Term } from 'lib/game/Term'
+import { getAssignedValue } from 'lib/game/TermEnumeration'
 
 type BasicHoleProps = {
     value: string
@@ -34,9 +35,9 @@ function isFunctionHole(term: Term) {
 }
 
 export function Hole(props: HoleProps) {
-    const getAssignedValue = useGameStateContext((state) => state.getAssignedValue)
+    const termEnumeration = useGameStateContext((state) => state.termEnumeration)
 
-    const value = getAssignedValue(props.term)
+    const value = getAssignedValue(props.term, termEnumeration)
 
     return <BasicHole value={value} isFunctionHole={isFunctionHole(props.term)} isFocussed={false} />
 }

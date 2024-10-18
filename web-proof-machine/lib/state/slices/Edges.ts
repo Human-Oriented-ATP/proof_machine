@@ -27,13 +27,13 @@ export function isValidConnection(connection: Connection): connection is { sourc
 }
 
 export function connectionToGadgetConnection(connection: Connection): GadgetConnection {
-    if (!isValidConnection(connection)) throw Error(`Connection is not valid ${connection}`)
+    if (!isValidConnection(connection)) throw Error(`Connection is not valid ${JSON.stringify(connection)}`)
     const sourcePosition = getNodePositionFromHandle(connection.sourceHandle)
     const targetPosition = getNodePositionFromHandle(connection.targetHandle)
     if (sourcePosition === OUTPUT_POSITION) {
         return {
             from: connection.source,
-            to: [connection.source, targetPosition]
+            to: [connection.target, targetPosition]
         }
     } else {
         return {
