@@ -3,12 +3,14 @@ import { createStore } from 'zustand'
 import { FlowSlice, flowSlice, FlowState } from './slices/Flow';
 import { StudyConfiguration } from 'lib/study/Types';
 import { InteractiveStep, LevelConfiguration } from 'components/tutorial/InteractiveLevel';
+import { Axiom } from 'lib/game/Primitives';
 
 export type ReadonlyGameSetup = {
     problemId: string
-    configuration: StudyConfiguration
+    configuration: StudyConfiguration // alternatively: nextProblemId, configurationName ??
     settings: LevelConfiguration
-    tutorialSteps?: InteractiveStep[]
+    axioms: Axiom[]
+    tutorialSteps: InteractiveStep[]
 }
 
 export type GameState = FlowState & {
