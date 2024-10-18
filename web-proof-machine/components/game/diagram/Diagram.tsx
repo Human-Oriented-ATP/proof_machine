@@ -27,21 +27,11 @@ import { useProximityConnect } from 'lib/hooks/ProximityConnect';
 import { makeHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
 import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
 import { InitialDiagram, InitialDiagramConnection, InitialDiagramGadget, InitializationData, isAxiom } from 'lib/game/Initialization';
-import { getEquationId } from '../Game';
-import { useOpenHandleHighlighting } from 'lib/hooks/OpenHandleHighlighting';
 import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider';
-import { isValidConnection } from 'lib/state/slices/Edges';
-// import useGameStore, { initialNode } from '../../../lib/state/Store';
+import { GameSlice } from 'lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
-
-export interface DiagramProps {
-    initData: InitializationData
-    zoomEnabled: boolean
-    panEnabled: boolean
-    initialViewportSetting: InitialViewportSetting
-}
 
 function containsPoint(rect: DOMRect, point: XYPosition): boolean {
     return rect.left <= point.x && point.x <= rect.right && rect.top <= point.y && point.y <= rect.bottom
@@ -53,20 +43,21 @@ function isAbovePalette(position: XYPosition): boolean {
     return containsPoint(paletteRect, position)
 }
 
-const selector = (state) => ({
+const selector = (state: GameSlice) => ({
     nodes: state.nodes,
     edges: state.edges,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
-    setNodes: state.setNodes,
     addGadgetNode: state.addGadgetNode,
     removeGadgetNode: state.removeGadgetNode,
     isValidConnection: state.isValidConnection,
+    settings: state.setup.settings,
+    onNodesDelete: state.onNodesDelete,
 });
 
-export function Diagram(props: DiagramProps) {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode, isValidConnection } = useGameStateContext(useShallow(selector));
+export function Flow() {
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addGadgetNode, removeGadgetNode, onNodesDelete, isValidConnection, settings } = useGameStateContext(useShallow(selector));
     const rf = useReactFlow<GadgetNode, Edge>();
 
     const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
@@ -97,26 +88,6 @@ export function Diagram(props: DiagramProps) {
     //     return equation
     // }, [getNode])
 
-    // const doesNotCreateACycle = useCallback((connection: Connection) => {
-    //     const nodes = getNodes();
-    //     const edges = getEdges();
-
-    //     const target = nodes.find((node) => node.id === connection.target)!
-    //     const hasCycle = (node: ReactFlowNode, visited = new Set()) => {
-    //         if (visited.has(node.id)) return false;
-
-    //         visited.add(node.id);
-
-    //         for (const outgoer of getOutgoers(node, nodes, edges)) {
-    //             if (outgoer.id === connection.source) return true;
-    //             if (hasCycle(outgoer, visited)) return true;
-    //         }
-    //     };
-
-    //     if (target.id === connection.source) return false;
-    //     return !hasCycle(target);
-    // }, [getNodes, getEdges]);
-
     // const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
     //     const edges = getEdges()
     //     const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
@@ -142,7 +113,6 @@ export function Diagram(props: DiagramProps) {
     // }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
     const paletteProps: GadgetPaletteProps = {
-        axioms: props.initData.axioms,
         makeGadget: addGadgetNode,
         abortAddingGadget: () => {
             if (gadgetThatIsBeingAdded.current) {
@@ -170,20 +140,6 @@ export function Diagram(props: DiagramProps) {
     //     savelyAddEdge(connection)
     // }, [savelyAddEdge])
 
-    // const isInDiagram = useCallback((connection: Connection): boolean => {
-    //     const edges = getEdges()
-    //     return edges.some(edge => edge.sourceHandle === connection.sourceHandle && edge.targetHandle === connection.targetHandle)
-    // }, [edges, getEquationFromConnection])
-
-    // const isValidConnection = useCallback((connection: Connection) => {
-    //     const [source, target] = getEquationFromConnection(connection)
-    //     const arityOk = aritiesMatch(source, target)
-    //     const colorsOk = labelsMatch(source, target)
-    //     const noCycle = doesNotCreateACycle(connection)
-    //     const notYetAConection = !isInDiagram(connection)
-    //     return colorsOk && arityOk && noCycle && notYetAConection
-    // }, [getEquationFromConnection, getEdges, getNodes]);
-
     // const isSatisfied = props.isSatisfied
     // const updateEdgeAnimation = useCallback(() => {
     //     function highlightHandle(handleId: string) {
@@ -208,10 +164,6 @@ export function Diagram(props: DiagramProps) {
     //         return { ...edge, animated: !edgeIsSatisfied }
     //     }))
     // }, [isSatisfied, setEdges])
-
-    // useEffect(() => {
-    //     updateEdgeAnimation()
-    // }, [isSatisfied, setEdges, setNodes])
 
     // const [onNodeDragProximityConnect, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
     //     useProximityConnect(rf, isValidConnection, savelyAddEdge)
@@ -261,7 +213,6 @@ export function Diagram(props: DiagramProps) {
     // }, [])
 
     return <>
-        {props.initData.axioms.length !== 0 && <GadgetPalette {...paletteProps} />}
         <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -269,7 +220,7 @@ export function Diagram(props: DiagramProps) {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             // onEdgesDelete={onEdgesDelete}
-            onNodesDelete={removeGadgetNode}
+            onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             // onInit={init}
@@ -283,7 +234,7 @@ export function Diagram(props: DiagramProps) {
             nodeOrigin={[0.5, 0.5]}
             // onMove={() => props.setUserIsDraggingOrNavigating(true)}
             // onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
-            panOnDrag={props.panEnabled}
+            panOnDrag={settings.panEnabled}
             zoomOnDoubleClick={false}
             autoPanOnConnect={false}
             autoPanOnNodeDrag={false}
@@ -291,6 +242,6 @@ export function Diagram(props: DiagramProps) {
         >
             <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
         </ReactFlow>
-        <ControlButtons rf={rf} zoomEnabled={props.zoomEnabled} panEnabled={props.panEnabled} ></ControlButtons>
+        <ControlButtons />
     </>
 }

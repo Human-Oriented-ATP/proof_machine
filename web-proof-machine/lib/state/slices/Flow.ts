@@ -22,6 +22,7 @@ export interface FlowActions {
     onConnect: OnConnect;
     isValidConnection: (connection: any) => boolean;
     updateLogicalState: (events: GameEvent[]) => void;
+    onNodesDelete: (nodes: GadgetNode[]) => void;
 };
 
 export type FlowSlice = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & FlowState & FlowActions
@@ -71,6 +72,10 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             });
             // !! Need to also log the removal of the edges
             get().updateLogicalState([{ GadgetRemoved: { gadgetId: nodeId } }])
+        },
+
+        onNodesDelete: (nodes: GadgetNode[]) => {
+            nodes.forEach((node) => get().removeGadgetNode(node.id))
         },
 
         onEdgesChange: (changes: EdgeChange<Edge>[]) => {

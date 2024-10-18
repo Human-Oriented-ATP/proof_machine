@@ -1,6 +1,7 @@
 import { Crosshair1Icon } from "@radix-ui/react-icons"
 import { Connector } from "./gadget/Connector"
 import { LevelConfiguration } from "components/tutorial/InteractiveLevel"
+import { useGameStateContext } from "lib/state/StateContextProvider"
 
 function HelpSection(props: { title: string, children: React.ReactNode }) {
     return <li className="pt-3 first:pt-0">
@@ -55,10 +56,11 @@ function BrokenConnection() {
     </div>
 }
 
-export function GameHelp({ settings }: { settings?: LevelConfiguration }) {
-    const gadgetDeletionEnabled = settings?.gadgetDeletionEnabled ?? true;
-    const proximityConnectEnabled = settings?.proximityConnectEnabled ?? true;
-    const panEnabled = settings?.panEnabled ?? true;
+export function GameHelp() {
+    const settings = useGameStateContext((state) => state.setup.settings)
+    const gadgetDeletionEnabled = settings.gadgetDeletionEnabled
+    const proximityConnectEnabled = settings.proximityConnectEnabled
+    const panEnabled = settings.panEnabled
 
     return <>
         <h2 className="text-xl font-bold">Game Help</h2>
@@ -83,11 +85,11 @@ export function GameHelp({ settings }: { settings?: LevelConfiguration }) {
             </HelpSection>
 
             {panEnabled &&
-            <HelpSection title="Navigation">
-                <HelpItem>Move or resize the work bench as you would with a map app</HelpItem>
-                <HelpItem>Click on the crosshair <Crosshair1Icon className="inline w-[19px] h-[19px] align-text-bottom" /> to centre your gadget machine</HelpItem>
-                <HelpItem>Click on the canvas to deselect all gadgets</HelpItem>
-            </HelpSection>}
+                <HelpSection title="Navigation">
+                    <HelpItem>Move or resize the work bench as you would with a map app</HelpItem>
+                    <HelpItem>Click on the crosshair <Crosshair1Icon className="inline w-[19px] h-[19px] align-text-bottom" /> to centre your gadget machine</HelpItem>
+                    <HelpItem>Click on the canvas to deselect all gadgets</HelpItem>
+                </HelpSection>}
         </ul>
     </>
 }

@@ -4,7 +4,7 @@ import { parseProblem } from "lib/parsing/Semantics";
 import { Suspense } from "react";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
 import dynamic from "next/dynamic";
-import { GameNew } from "components/game/GameNew";
+import { Game } from "components/game/GameNew";
 import { DEFAULT_SETTINGS, LevelConfiguration } from "components/tutorial/InteractiveLevel";
 
 export async function generateStaticParams() {
@@ -13,7 +13,7 @@ export async function generateStaticParams() {
     return problemIds
 }
 
-const DynamicGameScreen = dynamic(() => import("components/game/GameScreen"), { ssr: false })
+const DynamicGameScreen = dynamic(() => import("components/game/FlowWithMenuBar"), { ssr: false })
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     const configuration = await loadStudyConfiguration(params.config)
@@ -26,12 +26,12 @@ export default async function Page({ params }: { params: { config: string, probl
         const initData = makeInitializationDataFromProblemFileData(problemFileData)
         const settings = DEFAULT_SETTINGS
         return <Suspense>
-            <GameNew
+            <Game
                 initialDiagram={initData.initialDiagram}
                 axioms={initData.axioms}
                 settings={settings}
                 problemId={params.problem_id}
-                configuration={configuration}
+                configurationIdentifier={configuration.name}
             />
         </Suspense>
     } catch (e) {

@@ -3,10 +3,6 @@ import { ExclamationTriangleIcon, StarIcon } from '@radix-ui/react-icons';
 import { Connector } from 'components/game/gadget/Connector';
 import { StudyConfiguration } from 'lib/study/Types';
 
-interface MenuBarProps {
-    configuration: StudyConfiguration
-}
-
 const LEVEL_COMPLETED_MESSAGE = <>
     <StarIcon className='w-8 h-8 inline-block mr-2' />
     Level completed!
@@ -20,7 +16,7 @@ const BROKEN_CONNECTION_MESSAGE = <>
 </>
 const EMPTY_MESSAGE = <></>
 
-export default function MenuBar(props: MenuBarProps) {
+export default function MenuBar() {
     // TODO: Implement the following logic
     const levelIsCompleted = false
 
@@ -35,7 +31,7 @@ export default function MenuBar(props: MenuBarProps) {
             <div className='grow m-1 text-center text-xl'>
                 {message}
             </div>
-            <MenuButtons configuration={props.configuration} />
+            <MenuButtons />
         </div>
     </div>
 };

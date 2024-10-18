@@ -7,9 +7,9 @@ import { AssignmentContext } from '../../../lib/game/AssignmentContext';
 import { useIdGenerator } from '../../../lib/hooks/IdGenerator';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
+import { useGameStateContext } from 'lib/state/StateContextProvider';
 
 export interface GadgetPaletteProps {
-    axioms: Axiom[]
     makeGadget: (a: Axiom, axiomPosition: XYPosition) => void
     abortAddingGadget: () => void
 }
@@ -50,11 +50,15 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
         return { terms, id: getAxiomId(), isAxiom: true }
     }
 
-    return (
-        <Panel position='top-center'>
+    const axioms = useGameStateContext((state) => state.setup.axioms)
+
+    if (axioms.length === 0) {
+        return <></>
+    } else {
+        return <Panel position='top-center'>
             <AssignmentContext.Provider value={axiomTermEnumeration}>
                 <div id="gadget_palette" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
-                    {props.axioms.map(axiom => {
+                    {axioms.map(axiom => {
                         return <InsertGadgetButton key={JSON.stringify(axiom)} makeGadget={(axiomPosition) => props.makeGadget(axiom, axiomPosition)}
                             abortAddingGadget={props.abortAddingGadget}>
                             <Gadget {...makeAxiomGadget(axiom)}></Gadget>
@@ -63,5 +67,5 @@ export function GadgetPalette({ ...props }: GadgetPaletteProps) {
                 </div>
             </AssignmentContext.Provider>
         </Panel >
-    )
+    }
 }
