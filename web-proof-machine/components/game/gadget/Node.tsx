@@ -65,7 +65,7 @@ export function Node(props: NodeDisplayProps) {
         if (!props.useDummyHandle) {
             const handleId = makeHandleId(props.position, props.gadgetId)
             const handleProps = getHandleProps(handleId)
-            return <Handle {...handleProps}><Connector type={handleProps.type} isOpen={false} /></Handle>
+            return <Handle {...handleProps}><Connector type={handleProps.type} /></Handle>
         } else {
             const position = (isInputPosition(props.position)) ? "target" : "source"
             return <DummyHandle position={position}></DummyHandle>

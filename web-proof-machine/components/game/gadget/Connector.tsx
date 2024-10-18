@@ -1,11 +1,10 @@
-import { HANDLE_BROKEN_CLASSES } from "lib/Constants"
-import { twJoin } from "tailwind-merge"
+import { twMerge } from "tailwind-merge"
 
 interface ConnectorProps {
     type: "source" | "target"
-    isOpen?: boolean
+    status?: "DEFAULT" | "OPEN" | "CONNECTED" | "BROKEN"
+    isConnecting?: boolean
     isInline?: boolean
-    isBroken?: boolean
 }
 
 export function SourceConnectorPolygon() {
@@ -16,12 +15,14 @@ export function TargetConnectorPolygon() {
     return <polygon points="10,10 5,2 17,2 22,10 17,18 5,18" />
 }
 
-export function Connector({ type, isOpen: isConnected = false, isInline = false, isBroken = false }: ConnectorProps) {
+export function Connector({ type, status = "DEFAULT", isConnecting = false, isInline = false }: ConnectorProps) {
     return <svg width="24" height="20" xmlns="http://www.w3.org/2000/svg"
-        className={twJoin("stroke-[1.5px] stroke-black pointer-events-none fill-white", 
-            isInline && "inline align-text-bottom", 
-            isBroken && HANDLE_BROKEN_CLASSES)}>
+        className={twMerge("stroke-[1.5px] stroke-black pointer-events-none fill-white",
+            isInline && "inline align-text-bottom",
+            status === "BROKEN" && isConnecting === false && "animate-svg-stroke-glow-red",
+            status === "CONNECTED" && isConnecting === false && "fill-black",
+            isConnecting && "fill-green")}>
         {type === "source" ? <SourceConnectorPolygon /> : <TargetConnectorPolygon />}
-        {type === "target" && isConnected ? <polyline points="1,2 6,10 1,18" fill="none" className="stroke-black animate-svg-stroke-blink" /> : <></>}
+        {type === "target" && status === "OPEN" ? <polyline points="1,2 6,10 1,18" fill="none" className="stroke-black animate-svg-stroke-blink" /> : <></>}
     </svg>
 }
