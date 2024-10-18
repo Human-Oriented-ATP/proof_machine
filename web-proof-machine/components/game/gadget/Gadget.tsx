@@ -4,7 +4,7 @@ import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './Conn
 import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
 import { GadgetProps, NodeDisplayProps, GadgetId, isInputPosition, OUTPUT_POSITION, isOutputPosition }
     from '../../../lib/game/Primitives'
-import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/ConnectionsFromTerms'
+import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
 import { twMerge } from 'tailwind-merge'
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {

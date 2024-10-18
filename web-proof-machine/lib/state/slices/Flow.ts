@@ -80,6 +80,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             set({
                 nodes: [...get().nodes, node],
             });
+            // not quite yet: at this point we only know that the user has clicked the gadget, but maybe not yet dragged it away!
             get().updateLogicalState([{ GadgetAdded: { gadgetId: node.id, axiom } }])
         },
 

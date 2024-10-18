@@ -1,8 +1,7 @@
-import { ValueMap } from "lib/util/ValueMap";
+import { ValueMap } from "../util/ValueMap";
 import { DisjointSetWithAssignment } from "../util/DisjointSetWithAssignment";
 import { Term, Assignment, VariableName, assignTermDeeply, occursIn } from "./Term";
 
-export type EquationId = string
 export type Equation = [Term, Term]
 
 export interface UnificationResult<T> {

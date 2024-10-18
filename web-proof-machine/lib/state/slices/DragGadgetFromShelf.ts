@@ -32,6 +32,7 @@ function triggerSyntheticDragEvent(gadgetBeingDragged: GadgetDndFromShelfData): 
 export const gadgetDndFromShelfSlice = (set: SetState<GadgetDndFromShelfSlice>, get: GetState<GadgetDndFromShelfSlice>): GadgetDndFromShelfSlice => {
     return {
         gadgetBeingDraggedFromShelf: undefined,
+
         initializeSyntheticDraggging: () => {
             const { gadgetBeingDraggedFromShelf } = get();
             if (gadgetBeingDraggedFromShelf !== undefined) {
@@ -40,6 +41,7 @@ export const gadgetDndFromShelfSlice = (set: SetState<GadgetDndFromShelfSlice>, 
             }
             set({ gadgetBeingDraggedFromShelf: undefined });
         },
+
         setGadgetBeingDraggedFromShelf: (gadgetBeingDraggedFromShelf: GadgetDndFromShelfData) => {
             set({ gadgetBeingDraggedFromShelf });
         },
