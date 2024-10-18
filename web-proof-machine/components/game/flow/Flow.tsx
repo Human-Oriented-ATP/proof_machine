@@ -1,7 +1,7 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
     NodeTypes, useReactFlow, Node as ReactFlowNode,
-    EdgeTypes, Edge, getOutgoers, XYPosition, ReactFlow, OnConnectStartParams,
+    EdgeTypes, Edge, XYPosition, ReactFlow,
     Background,
     BackgroundVariant,
 } from '@xyflow/react';
@@ -10,24 +10,13 @@ import { GadgetPalette, GadgetPaletteProps } from './GadgetPalette';
 import { CustomEdge } from './CustomEdge';
 import { ConnectionLineComponent } from './ConnectionLineComponent';
 import { useShallow } from 'zustand/react/shallow';
-import { useStore } from 'zustand';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
-import { axiomToGadget } from '../../../lib/game/GameLogic';
-import { Axiom, GadgetId, GadgetProps, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
-import { Equation, EquationId } from '../../../lib/game/Unification';
-import { Term } from '../../../lib/game/Term';
+import { Axiom } from "../../../lib/game/Primitives";
 import { ControlButtons } from './ControlButtons';
-import { aritiesMatch, labelsMatch } from 'lib/game/Term';
-import { InitialViewportSetting, hasTargetHandle, initViewport } from '../../../lib/util/ReactFlow';
-import { useCompletionCheck } from 'lib/hooks/CompletionCheck';
-import { useProximityConnect } from 'lib/hooks/ProximityConnect';
-import { makeHandleId, getNodePositionFromHandle, getTermOfHandle } from '../gadget/Node';
-import { HANDLE_BROKEN_CLASSES } from 'lib/Constants';
-import { GameContext, useGameStateContext } from 'lib/state/StateContextProvider';
+import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { GameSlice } from 'lib/state/Store';
-import { Gadget } from '../gadget/Gadget';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
