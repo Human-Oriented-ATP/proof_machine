@@ -10,11 +10,11 @@ export function TargetConnector() {
 }
 
 export function BrokenTargetConnector() {
-    return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} isBroken={true} /></div>;
+    return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} status={"BROKEN"} /></div>;
 }
 
 export function OpenTargetConnector() {
-    return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} isOpen={true} /></div>;
+    return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} status={"OPEN"} /></div>;
 }
 
 export function PinkHole() {

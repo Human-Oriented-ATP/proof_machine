@@ -32,7 +32,7 @@ function TargetConnector() {
 }
 
 function OpenTargetConnector() {
-    return <div className="inline-block scale-75"><Connector type="target" isInline={true} isOpen={true} /></div>
+    return <div className="inline-block scale-75"><Connector type="target" isInline={true} status={"OPEN"} /></div>
 }
 
 function BrokenConnection() {
@@ -48,10 +48,10 @@ function BrokenConnection() {
                 className="stroke-black stroke-linecap-square stroke-2 fill-none" style={pathStyle} />
         </svg>
         <div className="absolute bottom-0 left-0">
-            <Connector type="source" isInline={true} isBroken={true} />
+            <Connector type="source" isInline={true} status={"BROKEN"} />
         </div>
         <div className="absolute bottom-0 left-[60px]">
-            <Connector type="target" isInline={true} isBroken={true} />
+            <Connector type="target" isInline={true} status={"BROKEN"} />
         </div>
     </div>
 }
