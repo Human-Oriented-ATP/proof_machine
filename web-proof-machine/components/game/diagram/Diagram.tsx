@@ -149,12 +149,6 @@ export function Diagram(props: DiagramProps) {
         }
     }
 
-    // const disableHoleFocus = useCallback(() => {
-    //     setNodes(nodes => nodes.map(node => {
-    //         return { ...node, data: { ...node.data, displayHoleFocus: false } }
-    //     }))
-    // }, [])
-
     // const onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void = useCallback((event, params) => {
     //     if (params.handleType === "target") {
     //         removeEdgesConnectedToHandle(params.handleId!)
