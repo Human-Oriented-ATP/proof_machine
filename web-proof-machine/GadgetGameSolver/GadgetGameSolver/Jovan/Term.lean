@@ -34,8 +34,8 @@ structure Gadget where
   deriving Inhabited
 
 def Expr.size : Expr → Nat → Nat
-  | .mvar mvarId => (· + 1)
-  | .app _ args => args.attach.foldr (fun ⟨arg, _⟩ => arg.size) ∘ (· + 1)
+  | .mvar _ => id
+  | .app _ args => if args.isEmpty then id else args.attach.foldr (fun ⟨arg, _⟩ => arg.size) ∘ (· + 1)
 
 def Cell.size (c : Cell) : Nat :=
   c.args.foldr (·.size) 0

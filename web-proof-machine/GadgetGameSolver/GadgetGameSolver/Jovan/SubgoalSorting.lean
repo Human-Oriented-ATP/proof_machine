@@ -80,11 +80,24 @@ def CellDifficulty.gt (a b : CellDifficulty) : Bool :=
   | some _, none   => true
   | some a, some b => a > b
 
+def Cell.hasOnlyMVars (c : Cell) : Bool := Id.run do
+  let mut vars : List MVarId := []
+  for e in c.args do
+    match e with
+    | .mvar mvarId =>
+      if vars.contains mvarId then
+        return false
+      else
+        vars := mvarId :: vars
+    | _ => return false
+  return true
+
 /-- Returns the difficulty of the goal, and the axioms sorted from difficult to easy. -/
 def checkAxioms (goal : Cell) : SearchM (Float × Array ConstantInfo) := do
   let axioms ← getAxioms goal
   let filteredAxioms ← axioms.filterMapM (checkAxiom goal)
   let difficulty := filteredAxioms.foldl (init := 0) (· + ·.2)
+  let difficulty := difficulty * if goal.hasOnlyMVars then 2 else 1
   let filteredAxioms := filteredAxioms.qsort (·.2 > ·.2) |>.map (·.1)
   return (difficulty, filteredAxioms)
 

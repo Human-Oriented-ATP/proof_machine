@@ -71,10 +71,10 @@ def Expr.findMVar? (e : Expr) (p : MVarId → Bool) : Option MVarId :=
 def Cell.findMVar? (c : Cell) (p : MVarId → Bool) : Option MVarId :=
   c.args.toList.firstM (·.findMVar? p)
 
-partial def isSpiralDeprecated (cNode : ConsumerNode) : SearchM Bool :=
+partial def isSpiralDeprecated (gInfo subgoalInfo : GoalInfo) (proof : Proof) : SearchM Bool :=
   withMCtx {} do
-  let (origGoal, nextGoal) ← generalizeImplication cNode.proof cNode.subgoalInfo.goalId
-  go cNode.gInfo.key origGoal nextGoal []
+  let (origGoal, nextGoal) ← generalizeImplication proof subgoalInfo.goalId
+  go gInfo.key origGoal nextGoal []
 where
   go (key : CellKey) (origGoal goal : Cell) (stack : List CellKey) : SearchM Bool := do
     if stack.contains key then
@@ -189,13 +189,12 @@ def Cell.hasTrueDownMVars (c : Cell) : SearchM Bool :=
   ReaderT.run (c.args.anyM (·.hasTrueDownMVars)) {}
 
 
-partial def isSpiral (cNode : ConsumerNode) : SearchM Bool := do
+partial def isSpiral (gInfo subgoalInfo : GoalInfo) (proof : Proof) : SearchM Bool := do
   setMCtx {}
-  let goal := cNode.subgoalInfo.goal
-  let (origGoal, nextGoal) ← generalizeImplication cNode.proof cNode.subgoalInfo.goalId
+  let (origGoal, nextGoal) ← generalizeImplication proof subgoalInfo.goalId
   let origGoal := origGoal |> %%.args (·.map (·.decrement 1))
-  if ← unifyPoint origGoal goal.toIteratedCell then
-    go cNode.gInfo.key origGoal nextGoal []
+  if ← unifyPoint origGoal subgoalInfo.goal.toIteratedCell then
+    go gInfo.key origGoal nextGoal []
   else
     throw "generalized implication doesn't unify with its original"
 where
@@ -209,7 +208,7 @@ where
       let stack := key :: stack
       let origGoal ← origGoal.instantiateMVars
       let goal ← goal.instantiateMVars
-      modify %%.currspiralState fun _ => (true, origGoal, goal, cNode.subgoalInfo)
+      modify %%.currspiralState fun _ => (true, origGoal, goal, subgoalInfo)
       let mctx ← getMCtx
       if ← unify goal origGoal then
         let isSpiral ← goal.hasTrueDownMVars
