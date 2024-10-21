@@ -20,7 +20,7 @@ const EMPTY_MESSAGE = <></>
 
 export default function MenuBar() {
     // TODO: Implement the following logic
-    const levelIsCompleted = useGameStateContext(state => state.gameIsCompleted)
+    const levelIsCompleted = useGameStateContext(state => state.levelIsCompleted)
 
     // const showBrokenConnectionStatusBarMessage = settings?.showBrokenConnectionStatusBarMessage ?? true
     const diagramHasBrokenConnection = false

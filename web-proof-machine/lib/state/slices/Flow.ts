@@ -14,7 +14,7 @@ import { HelpPopupSlice, helpPopupSlice } from './HelpPopup';
 
 export type FlowState = UnificationState & NodeState & EdgeState & {
     rf: ReactFlowInstance;
-    gameIsCompleted: boolean
+    levelIsCompleted: boolean
 }
 
 export interface FlowActions {
@@ -42,7 +42,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
         ...gadgetIdGeneratorSlice(set, get),
         ...helpPopupSlice(set),
         rf: initialState.rf,
-        gameIsCompleted: false,
+        levelIsCompleted: false,
 
         // TODO: 
         // checkCompletion: () => {
