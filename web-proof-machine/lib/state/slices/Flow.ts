@@ -9,21 +9,25 @@ import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState } from './Unification';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
+import { initViewport } from 'lib/util/ReactFlow';
+import { init } from 'next/dist/compiled/webpack/webpack';
 
 export type FlowState = UnificationState & NodeState & EdgeState & {
     rf: ReactFlowInstance;
 }
 
 export interface FlowActions {
+    updateLogicalState: (events: GameEvent[]) => void;
     makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
     removeGadgetNode: (nodeId: string) => void;
     onEdgesChange: OnEdgesChange;
     onConnect: OnConnect;
     isValidConnection: (connection: any) => boolean;
-    updateLogicalState: (events: GameEvent[]) => void;
     onNodesDelete: (nodes: GadgetNode[]) => void;
+    onEdgesDelete: (edges: Edge[]) => void;
     onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
+    onInit: () => void;
 };
 
 export type FlowSlice = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & FlowState & FlowActions
@@ -67,7 +71,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
                 id, type: 'gadgetNode',
                 position: get().rf.screenToFlowPosition(axiomPosition),
                 dragging: true,
-                deletable: false, // props.gadgetDeletionEnabled,
+                deletable: get().setup.settings.gadgetDeletionEnabled && id !== "goal_gadget",
                 data: axiomToGadget(axiom, id)
             }
             return gadgetNode
@@ -80,20 +84,25 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
                 nodes: [...get().nodes, node],
             });
             // not quite yet: at this point we only know that the user has clicked the gadget, but maybe not yet dragged it away!
+            // this should be moved to onNodeDragStop
             get().updateLogicalState([{ GadgetAdded: { gadgetId: node.id, axiom } }])
         },
 
         removeGadgetNode: (nodeId: string) => {
-            get().removeEdgesConnectedToNode(nodeId);
+            const connectionDeletionEvents = get().removeEdgesConnectedToNode(nodeId);
             set({
                 nodes: get().nodes.filter((node) => node.id !== nodeId),
             });
-            // !! Need to also log the removal of the edges
-            get().updateLogicalState([{ GadgetRemoved: { gadgetId: nodeId } }])
+            get().updateLogicalState([...connectionDeletionEvents, { GadgetRemoved: { gadgetId: nodeId } }])
         },
 
         onNodesDelete: (nodes: GadgetNode[]) => {
             nodes.forEach((node) => get().removeGadgetNode(node.id))
+        },
+
+        onEdgesDelete: (edges: Edge[]) => {
+            const events = edges.map(edge => ({ ConnectionRemoved: toGadgetConnection(edge as Connection) }))
+            get().updateLogicalState(events)
         },
 
         onEdgesChange: (changes: EdgeChange<Edge>[]) => {
@@ -127,6 +136,12 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
             }
             // disableHoleFocus()
             // props.setUserIsDraggingOrNavigating(true)
+        },
+
+        onInit() {
+            const initialViewPortSetting = get().setup.settings.initialViewportSetting
+            initViewport(get().rf, initialViewPortSetting)
+            get().updateLogicalState([])
         },
 
     }

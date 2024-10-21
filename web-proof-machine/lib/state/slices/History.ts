@@ -6,6 +6,7 @@ import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
 import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
+import { isAxiom } from "lib/game/Initialization";
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
 
@@ -32,6 +33,8 @@ export type HistoryActions = {
     getCurrentGadgets: () => GadgetId[]
     getConnectionEvents: () => ({ ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection })[]
     getCurrentConnections: () => GadgetConnection[]
+    getTermsOfInitialGadget: (gadgetId: GadgetId) => Map<CellPosition, Term> | undefined
+    getTermsOfAddedGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
     getTermsOfGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
     getEquationOfConnection: (connection: GadgetConnection) => Equation
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
@@ -48,8 +51,6 @@ export const historySlice: CreateStateWithInitialValue<HistoryState, HistorySlic
             const { log } = get()
             const newLog = [...log, ...events]
             set({ log: newLog })
-            // TODO: Synchronize history with server
-            // synchronizeHistory(JSON.stringify(newLog))
         },
         getAddedGadgets: () => {
             return get().log
@@ -72,7 +73,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryState, HistorySlic
                 "ConnectionAdded" in event || "ConnectionRemoved" in event)
         },
         getCurrentConnections: () => {
-            let connections: GadgetConnection[] = get().setup.initialDiagram.connections
+            let connections: GadgetConnection[] = Array.from(get().setup.initialDiagram.connections)
             const events = get().getConnectionEvents()
             for (const event of events) {
                 if ("ConnectionAdded" in event) {
@@ -80,17 +81,34 @@ export const historySlice: CreateStateWithInitialValue<HistoryState, HistorySlic
                 } else {
                     const index = connections.findIndex((connection) => isEqualConnection(connection, event.ConnectionRemoved))
                     if (index === -1) throw Error(`Invalid history log: Connection that is to be removed has not been added before 
-                                                    ${JSON.stringify(event.ConnectionRemoved)}`)
+                        ${JSON.stringify(event.ConnectionRemoved)}`)
                     connections.splice(index, 1)
                 }
             }
             return connections
         },
-        getTermsOfGadget: (gadgetId: GadgetId) => {
+        getTermsOfInitialGadget(gadgetId: GadgetId) {
+            const initialGadgets = get().setup.initialDiagram.gadgets
+            const statement = initialGadgets.get(gadgetId)?.statement
+            if (statement === undefined)
+                return undefined
+            if (isAxiom(statement))
+                return getGadgetTerms(statement.axiom, gadgetId)
+            else
+                return new Map([[0, statement.goal]])
+        },
+        getTermsOfAddedGadget: (gadgetId: GadgetId) => {
             const event = get().log.find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
             if (event === undefined) throw Error(`Gadget with id ${gadgetId} not found`)
             if (!("GadgetAdded"! in event)) throw Error(`Something very weird happened`)
             return getGadgetTerms(event.GadgetAdded.axiom, gadgetId)
+        },
+        getTermsOfGadget: (gadgetId: GadgetId) => {
+            const initialGadgetTerms = get().getTermsOfInitialGadget(gadgetId)
+            if (initialGadgetTerms !== undefined)
+                return initialGadgetTerms
+            else
+                return get().getTermsOfAddedGadget(gadgetId)
         },
         getEquationOfConnection: (connection: GadgetConnection): Equation => {
             const lhs = get().getTermsOfGadget(connection.from).get(OUTPUT_POSITION)

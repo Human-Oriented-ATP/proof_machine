@@ -32,17 +32,16 @@ const selector = (state: GameSlice) => ({
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
     onConnectStart: state.onConnectStart,
-    removeGadgetNode: state.removeGadgetNode,
     isValidConnection: state.isValidConnection,
+    onInit: state.onInit,
     settings: state.setup.settings,
     onNodesDelete: state.onNodesDelete,
+    onEdgesDelete: state.onEdgesDelete
 });
 
 export function Flow() {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onConnectStart,
-        removeGadgetNode, onNodesDelete, isValidConnection, settings } = useGameStateContext(useShallow(selector));
-
-    const gadgetThatIsBeingAdded = useRef<{ gadgetId: string, axiom: Axiom } | undefined>(undefined)
+        onNodesDelete, onEdgesDelete, isValidConnection, onInit, settings } = useGameStateContext(useShallow(selector));
 
     // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
     // useOpenHandleHighlighting({ nodes, edges })
@@ -169,12 +168,7 @@ export function Flow() {
     //     deleteEquationsOfEdges(edges)
     // }, [])
 
-    // const zoomProps = props.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
-
-    // const init = useCallback(() => {
-    //     initViewport(rf, props.initialViewportSetting)
-    //     updateEdgeAnimation()
-    // }, [])
+    const zoomProps = settings.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 
     return <>
         <ReactFlow
@@ -184,26 +178,26 @@ export function Flow() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            // onEdgesDelete={onEdgesDelete}
+            onEdgesDelete={onEdgesDelete}
             onNodesDelete={onNodesDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
-            // onInit={init}
+            onInit={onInit}
             onConnectStart={onConnectStart}
             // onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
-            // {...zoomProps}
             // onNodeDrag={onNodeDrag}
             // onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             // onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
             // onMove={() => props.setUserIsDraggingOrNavigating(true)}
             // onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
+            {...zoomProps}
             panOnDrag={settings.panEnabled}
+            connectionLineComponent={ConnectionLineComponent}
             zoomOnDoubleClick={false}
             autoPanOnConnect={false}
             autoPanOnNodeDrag={false}
-            connectionLineComponent={ConnectionLineComponent}
         >
             <Background color="#bbb" size={1.8} variant={BackgroundVariant.Dots} />
         </ReactFlow>
