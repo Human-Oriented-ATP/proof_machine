@@ -16,12 +16,13 @@ export function TargetConnectorPolygon() {
 }
 
 export function Connector({ type, status = "DEFAULT", isConnecting = false, isInline = false }: ConnectorProps) {
-    return <svg width="24" height="20" xmlns="http://www.w3.org/2000/svg"
-        className={twMerge("stroke-[1.5px] stroke-black pointer-events-none fill-white",
-            isInline && "inline align-text-bottom",
-            status === "BROKEN" && isConnecting === false && "animate-svg-stroke-glow-red",
-            status === "CONNECTED" && isConnecting === false && "fill-black",
-            isConnecting && "fill-green")}>
+    const className = twMerge("stroke-[1.5px] stroke-black pointer-events-none fill-white",
+        status === "BROKEN" && isConnecting === false && "animate-svg-stroke-glow-red",
+        status === "CONNECTED" && isConnecting === false && "fill-black",
+        isConnecting && "fill-green",
+        isInline && "inline align-text-bottom")
+
+    return <svg width="24" height="20" xmlns="http://www.w3.org/2000/svg" className={className}>
         {type === "source" ? <SourceConnectorPolygon /> : <TargetConnectorPolygon />}
         {type === "target" && status === "OPEN" ? <polyline points="1,2 6,10 1,18" fill="none" className="stroke-black animate-svg-stroke-blink" /> : <></>}
     </svg>
