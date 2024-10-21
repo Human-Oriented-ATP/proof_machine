@@ -1,8 +1,8 @@
 import { HoleProps } from '../../../lib/game/Primitives'
-import { twMerge } from 'tailwind-merge'
 import { useGameStateContext } from 'lib/state/StateContextProvider'
 import { Term } from 'lib/game/Term'
 import { getAssignedValue } from 'lib/game/TermEnumeration'
+import { StaticHole } from './StaticHole'
 
 function isFunctionHole(term: Term) {
     if ("variable" in term) {
