@@ -46,38 +46,6 @@ export function Flow() {
     // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
     // useOpenHandleHighlighting({ nodes, edges })
 
-    // const getConnectionInfo = useCallback((connection: Connection | Edge): { from: GadgetId, to: [GadgetId, NodePosition] } => {
-    //     const fromGadget = connection.source!
-    //     const toGadget = connection.target!
-    //     const toNode = getNodePositionFromHandle(connection.targetHandle!)
-    //     return { from: fromGadget, to: [toGadget, toNode] }
-    // }, [])
-
-    // const deleteEquationsOfEdges = useCallback((edges: Edge<{ eq: EquationId }>[]): void => {
-    //     edges.map(e => {
-    //         const connectionInfo = getConnectionInfo(e)
-    //         props.removeEquation(connectionInfo.from, connectionInfo.to)
-    //     })
-    // }, [edges, props])
-
-    // const getEquationFromConnection = useCallback((connection: Connection) => {
-    //     const sourceTerms = getNode(connection.source!)!.data.terms
-    //     const targetTerms = getNode(connection.target!)!.data.terms
-    //     const sourceTerm: Term = getTermOfHandle(connection.sourceHandle!, sourceTerms)!
-    //     const targetTerm: Term = getTermOfHandle(connection.targetHandle!, targetTerms)!
-    //     const equation: Equation = [sourceTerm, targetTerm]
-    //     return equation
-    // }, [getNode])
-
-    // const removeEdgesConnectedToHandle = useCallback((handleId: string) => {
-    //     const edges = getEdges()
-    //     const edgesConnectedToThisHandle = edges.filter(e => hasTargetHandle(e, handleId))
-    //     deleteEquationsOfEdges(edgesConnectedToThisHandle)
-    //     setEdges(edges => {
-    //         return edges.filter(e => !hasTargetHandle(e, handleId))
-    //     })
-    // }, [getEdges, setEdges, props])
-
     // const savelyAddEdge = useCallback((connection: Connection): void => {
     //     removeEdgesConnectedToHandle(connection.targetHandle!)
     //     const equation = getEquationFromConnection(connection)
@@ -102,31 +70,6 @@ export function Flow() {
     // const onConnect = useCallback((connection: Connection) => {
     //     savelyAddEdge(connection)
     // }, [savelyAddEdge])
-
-    // const isSatisfied = props.isSatisfied
-    // const updateEdgeAnimation = useCallback(() => {
-    //     function highlightHandle(handleId: string) {
-    //         const handle = document.querySelector(`[data-handleid="${handleId}"]`);
-    //         if (handle) {
-    //             (handle as HTMLElement).children[0].classList.add(...HANDLE_BROKEN_CLASSES)
-    //         }
-    //     }
-
-    //     document.querySelectorAll("[data-handleid]").forEach(handle => {
-    //         (handle as HTMLElement).children[0].classList.remove(...HANDLE_BROKEN_CLASSES)
-    //     })
-    //     setEdges(edges => edges.map(edge => {
-    //         const edgeIsSatisfied = isSatisfied.get(edge.data!.eq)
-    //         if (edgeIsSatisfied === undefined) {
-    //             throw new Error("There is an edge in the diagram without a corresponding equation")
-    //         }
-    //         if (edgeIsSatisfied === false) {
-    //             highlightHandle(edge.sourceHandle!)
-    //             highlightHandle(edge.targetHandle!)
-    //         }
-    //         return { ...edge, animated: !edgeIsSatisfied }
-    //     }))
-    // }, [isSatisfied, setEdges])
 
     // const [onNodeDragProximityConnect, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
     //     useProximityConnect(rf, isValidConnection, savelyAddEdge)
