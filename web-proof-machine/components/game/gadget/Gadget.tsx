@@ -30,7 +30,7 @@ function GadgetInputNodes(props: GadgetProps) {
     return <>
         {terms.map(([cellPosition, term]) => {
             if (isInputPosition(cellPosition)) {
-                return <Cell term={term} position={cellPosition} gadgetId={props.id} isOnShelf={props.isOnShelf} isGoalNode={props.id === "goal_gadget"} />
+                return <Cell key={cellPosition} term={term} position={cellPosition} gadgetId={props.id} isOnShelf={props.isOnShelf} isGoalNode={props.id === "goal_gadget"} />
             }
         })}
     </>
