@@ -10,10 +10,10 @@ import { Axiom } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState } from './Unification';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/util/ReactFlow';
-import { init } from 'next/dist/compiled/webpack/webpack';
 
 export type FlowState = UnificationState & NodeState & EdgeState & {
     rf: ReactFlowInstance;
+    isCompleted: boolean
 }
 
 export interface FlowActions {
@@ -39,6 +39,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
         ...unificationSlice(initialState, set, get),
         ...gadgetIdGeneratorSlice(set, get),
         rf: initialState.rf,
+        isCompleted: false,
 
         // TODO: 
         // checkCompletion: () => {
