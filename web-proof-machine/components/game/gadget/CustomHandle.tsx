@@ -12,7 +12,7 @@ export function CustomHandle(props: CustomHandleProps) {
         return <StaticHandle {...props} />
     }
     else {
-        const position = props.type === "source" ? Position.Left : Position.Right
+        const position = props.type === "source" ? Position.Right : Position.Left
         return <Handle type={props.type} position={position} id={props.handleId}>
             <Connector type={props.type} />
         </Handle>
