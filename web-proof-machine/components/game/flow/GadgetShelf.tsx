@@ -51,15 +51,13 @@ export function GadgetShelf({ ...props }: GadgetShelfProps) {
     if (axioms.length === 0) {
         return <></>
     } else {
-        return <Panel position='top-center'>
-            <div id="gadget_shelf" className="absolute min-w-40 h-[calc(100vh-64px)] flex flex-col left-0 top-0 p-1 overflow-y-scroll bg-palette-gray/50">
-                {axioms.map((axiom, key) => {
-                    return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}
-                        abortAddingGadget={props.abortAddingGadget}>
-                        <Gadget {...makeAxiomGadget(axiom, key)}></Gadget>
-                    </InsertGadgetButton>
-                })}
-            </div>
-        </Panel >
+        return <div id="gadget_shelf" className="absolute top-0 bottom-0 min-w-40 w-auto flex flex-col p-1 overflow-y-scroll overflow-x-hidden bg-palette-gray/50">
+            {axioms.map((axiom, key) => {
+                return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}
+                    abortAddingGadget={props.abortAddingGadget}>
+                    <Gadget {...makeAxiomGadget(axiom, key)}></Gadget>
+                </InsertGadgetButton>
+            })}
+        </div>
     }
 }

@@ -187,8 +187,8 @@ export function Flow() {
     // }, [])
 
     return <>
-        <GadgetShelf {...paletteProps} />
         <ReactFlow
+            className='relative'
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
