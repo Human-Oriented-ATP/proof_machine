@@ -2,6 +2,7 @@ import { MenuButtons } from './MenuButtons';
 import { ExclamationTriangleIcon, StarIcon } from '@radix-ui/react-icons';
 import { Connector } from 'components/game/gadget/Connector';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
+import { GameSlice } from 'lib/state/Store';
 
 const LEVEL_COMPLETED_MESSAGE = <>
     <StarIcon className='w-8 h-8 inline-block mr-2' />
@@ -18,15 +19,19 @@ const BROKEN_CONNECTION_MESSAGE = <>
 
 const EMPTY_MESSAGE = <></>
 
-export default function MenuBar() {
-    // TODO: Implement the following logic
-    const levelIsCompleted = useGameStateContext(state => state.levelIsCompleted)
+const selector = (state: GameSlice) => ({
+    levelIsCompleted: state.levelIsCompleted,
+    equationIsSatisfied: state.equationIsSatisfied,
+    showBrokenConnectionStatusBarMessage: state.setup.settings.showBrokenConnectionStatusBarMessage
+})
 
-    // const showBrokenConnectionStatusBarMessage = settings?.showBrokenConnectionStatusBarMessage ?? true
-    const diagramHasBrokenConnection = false
+export default function MenuBar() {
+    const { levelIsCompleted, equationIsSatisfied, showBrokenConnectionStatusBarMessage } = useGameStateContext(selector)
+    const existsBrokenConnection = Array.from(equationIsSatisfied.values()).some(satisfied => !satisfied)
+    const displayBrokenConnectionMessage = existsBrokenConnection && showBrokenConnectionStatusBarMessage
 
     const message = levelIsCompleted ? LEVEL_COMPLETED_MESSAGE :
-        diagramHasBrokenConnection ? BROKEN_CONNECTION_MESSAGE : EMPTY_MESSAGE
+        displayBrokenConnectionMessage ? BROKEN_CONNECTION_MESSAGE : EMPTY_MESSAGE
 
     return <div className="flex items-center justify-center z-10">
         <div className="flex items-center bg-white p-1 shadow-lg w-full text-left">

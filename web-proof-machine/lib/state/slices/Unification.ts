@@ -15,6 +15,7 @@ export type UnificationState = HistoryState & {
 export type UnificationActions = {
     runUnification: () => ValueMap<GadgetConnection, boolean>
     edgeIsSatisfied: (edge: Edge) => boolean
+    existsBrokenConnection: () => boolean
 }
 
 export type UnificationSlice = HistorySlice & UnificationState & UnificationActions
