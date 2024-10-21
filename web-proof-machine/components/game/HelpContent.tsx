@@ -1,6 +1,5 @@
 import { Crosshair1Icon } from "@radix-ui/react-icons"
 import { Connector } from "./gadget/Connector"
-import { LevelConfiguration } from "components/tutorial/InteractiveLevel"
 import { useGameStateContext } from "lib/state/StateContextProvider"
 
 function HelpSection(props: { title: string, children: React.ReactNode }) {
@@ -56,11 +55,8 @@ function BrokenConnection() {
     </div>
 }
 
-export function GameHelp() {
-    const settings = useGameStateContext((state) => state.setup.settings)
-    const gadgetDeletionEnabled = settings.gadgetDeletionEnabled
-    const proximityConnectEnabled = settings.proximityConnectEnabled
-    const panEnabled = settings.panEnabled
+export function HelpContent() {
+    const { gadgetDeletionEnabled, proximityConnectEnabled, panEnabled } = useGameStateContext((state) => state.setup.settings)
 
     return <>
         <h2 className="text-xl font-bold">Game Help</h2>

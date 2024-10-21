@@ -6,7 +6,7 @@ import { useGameStateContext } from 'lib/state/StateContextProvider';
 
 export function MenuButtons() {
     const levelCompleted = useGameStateContext((state) => state.gameIsCompleted)
-    const showHelpWindow = () => { }
+    const openHelpPopup = useGameStateContext((state) => state.openHelpPopup)
 
     const router = useRouter();
 
@@ -15,7 +15,7 @@ export function MenuButtons() {
 
     return <>
         <div className='m-1'>
-            <Button onClick={showHelpWindow}>Help</Button>
+            <Button onClick={openHelpPopup}>Help</Button>
         </div>
         <div className='m-1'>
             <Button onClick={() => router.push('../')}>Main menu</Button>

@@ -10,6 +10,7 @@ import { Axiom } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState } from './Unification';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/util/ReactFlow';
+import { HelpPopupSlice, helpPopupSlice } from './HelpPopup';
 
 export type FlowState = UnificationState & NodeState & EdgeState & {
     rf: ReactFlowInstance;
@@ -30,7 +31,8 @@ export interface FlowActions {
     onInit: () => void;
 };
 
-export type FlowSlice = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & FlowState & FlowActions
+export type FlowSlice = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & HelpPopupSlice
+    & FlowState & FlowActions
 
 export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (initialState, set, get) => {
     return {
@@ -38,6 +40,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
         ...nodeSlice(initialState, set, get),
         ...unificationSlice(initialState, set, get),
         ...gadgetIdGeneratorSlice(set, get),
+        ...helpPopupSlice(set),
         rf: initialState.rf,
         gameIsCompleted: false,
 

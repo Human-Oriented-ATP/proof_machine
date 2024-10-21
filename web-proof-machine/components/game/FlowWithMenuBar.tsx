@@ -4,9 +4,10 @@ import { useCallback, useState } from "react";
 import { InitializationData } from "../../lib/game/Initialization";
 import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
-import { GameHelp } from "./GameHelp";
+import { HelpContent } from "./HelpContent";
 import { Flow } from "./flow/Flow";
 import { GadgetShelf } from "./flow/GadgetShelf";
+import { HelpPopup } from "./HelpPopup";
 
 export default function FlowWithMenuBar() {
     const [levelIsCompleted, setLevelIsCompleted] = useState(false)
@@ -35,7 +36,7 @@ export default function FlowWithMenuBar() {
                 getGadgetElementId={getGadgetElementId} />
                 } */}
             <GadgetShelf />
-            <Popup isOpen={helpPopup.isOpen} close={helpPopup.close}><GameHelp /></Popup>
+            <HelpPopup />
         </div>
     </div>
 }
