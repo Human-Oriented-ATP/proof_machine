@@ -1,21 +1,14 @@
 "use client"
 
 import { useCallback, useState } from "react";
-import { InitializationData } from "../../lib/game/Initialization";
-import Popup, { usePopup } from "../primitive/Popup";
 import MenuBar from "components/navigation/MenuBar";
-import { HelpContent } from "./HelpContent";
 import { Flow } from "./flow/Flow";
 import { GadgetShelf } from "./flow/GadgetShelf";
 import { HelpPopup } from "./HelpPopup";
 
 export default function FlowWithMenuBar() {
-    const [levelIsCompleted, setLevelIsCompleted] = useState(false)
-    const [diagramHasBrokenConnection, setDiagramHasBrokenConnection] = useState(false)
-    const helpPopup = usePopup()
-
     const markLevelAsCompleted = useCallback(() => {
-        setLevelIsCompleted(true)
+        // setLevelIsCompleted(true)
         // saveLevelCompletedAsCookie(props.problemId)
     }, [])
 
