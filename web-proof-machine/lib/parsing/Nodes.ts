@@ -1,5 +1,4 @@
 import { CstNode, IToken } from 'chevrotain';
-import { AbstractNodeProps, NodePosition, GadgetId } from 'lib/game/Primitives';
 
 export interface CompoundTermNode {
     label: IToken[]
@@ -19,10 +18,4 @@ export interface StatementNode {
 
 export interface ProblemNode {
     statements: CstNode[]
-}
-export interface NodeDisplayProps extends AbstractNodeProps {
-    position: NodePosition
-    gadgetId: GadgetId
-    useDummyHandle: boolean
-    isGoalNode: boolean
 }

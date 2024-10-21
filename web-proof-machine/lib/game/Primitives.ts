@@ -4,10 +4,6 @@ export interface HoleProps {
     term: Term
 }
 
-export interface AbstractNodeProps {
-    term: Term
-}
-
 export type NodePosition = number
 
 export function isOutputPosition(position: NodePosition): boolean {
@@ -20,12 +16,6 @@ export function isInputPosition(position: NodePosition): boolean {
 
 export const OUTPUT_POSITION: NodePosition = -1
 
-export interface NodeDisplayProps extends AbstractNodeProps {
-    position: NodePosition
-    gadgetId: GadgetId
-    useDummyHandle: boolean
-    isGoalNode: boolean
-}
 
 export type GadgetId = string
 

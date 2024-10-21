@@ -1,10 +1,11 @@
-import { NodeDisplayProps, isInputPosition, isOutputPosition } from '../../../lib/game/Primitives';
+import { GadgetId, NodePosition, isInputPosition } from '../../../lib/game/Primitives';
 import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
 import { DummyHandle } from './DummyHandle';
 import { twMerge } from 'tailwind-merge';
 import { Connector } from './Connector';
 import { makeHandleId } from 'lib/game/Handles';
+import { Term } from 'lib/game/Term';
 
 function getBackgroundColorFromAbbreviation(abbreviation: string) {
     switch (abbreviation) {
@@ -29,7 +30,15 @@ function getBackgroundClassNameFromAbbreviation(abbreviation: string) {
     }
 }
 
-export function Node(props: NodeDisplayProps) {
+export interface NodeProps {
+    term: Term
+    position: NodePosition
+    gadgetId: GadgetId
+    useDummyHandle: boolean
+    isGoalNode: boolean
+}
+
+export function Node(props: NodeProps) {
     function getHandleProps(id: string): HandleProps {
         if (isInputPosition(props.position)) {
             return { type: "target", position: Position.Left, id }
@@ -54,13 +63,11 @@ export function Node(props: NodeDisplayProps) {
         return <></>
     } else {
         const backgroundClassName = getBackgroundClassNameFromAbbreviation(props.term.label)
-        return (
-            <div className="flex items-center">
-                <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", backgroundClassName, props.isGoalNode && "outline outline-offset-2 outline-2")}>
-                    {props.term.args.map((arg, idx) => <Hole key={idx} term={arg}></Hole>)}
-                </div>
-                {renderHandle()}
+        return <div className="flex items-center">
+            <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", backgroundClassName, props.isGoalNode && "outline outline-offset-2 outline-2")}>
+                {props.term.args.map((arg, idx) => <Hole key={idx} term={arg}></Hole>)}
             </div>
-        )
+            {renderHandle()}
+        </div>
     }
 }

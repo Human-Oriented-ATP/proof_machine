@@ -1,8 +1,8 @@
 import { useLayoutEffect, useState } from 'react'
-import { Node } from './Node'
+import { Node, NodeProps } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
-import { GadgetProps, NodeDisplayProps, GadgetId, isInputPosition, OUTPUT_POSITION, isOutputPosition }
+import { GadgetProps, GadgetId, isInputPosition, OUTPUT_POSITION, isOutputPosition }
     from '../../../lib/game/Primitives'
 import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
 import { twMerge } from 'tailwind-merge'
@@ -73,7 +73,7 @@ export function Gadget({ ...props }: GadgetProps) {
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []
         for (const [position, term] of props.terms) {
-            const nodeDisplayProps: NodeDisplayProps = {
+            const nodeProps: NodeProps = {
                 term,
                 position: position,
                 gadgetId: props.id,
@@ -81,7 +81,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 isGoalNode: props.id === "goal_gadget",
             }
             if (isInputPosition(position)) {
-                buffer.push(<Node key={position} {...nodeDisplayProps}></Node>)
+                buffer.push(<Node key={position} {...nodeProps}></Node>)
             }
         }
         return buffer
@@ -89,7 +89,7 @@ export function Gadget({ ...props }: GadgetProps) {
 
     function makeOutputNodeContainer(): JSX.Element {
         if (hasOutputNode()) {
-            const nodeDisplayProps = {
+            const nodeProps = {
                 term: props.terms.get(OUTPUT_POSITION)!,
                 position: OUTPUT_POSITION,
                 gadgetId: props.id,
@@ -97,7 +97,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 isGoalNode: false
             }
             return (<div className="flex flex-col justify-center">
-                <Node {...nodeDisplayProps}></Node>
+                <Node {...nodeProps}></Node>
             </div>)
         } else {
             return <></>
