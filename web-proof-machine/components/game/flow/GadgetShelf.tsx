@@ -1,10 +1,11 @@
 import { Panel } from '@xyflow/react';
 import { Gadget } from '../gadget/Gadget'
-import { Axiom, NodePosition, OUTPUT_POSITION } from "../../../lib/game/Primitives";
+import { Axiom } from "../../../lib/game/Primitives";
 import { GadgetProps } from '../../../lib/game/Primitives';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
+import { NodePosition, OUTPUT_POSITION } from '../gadget/Node';
 
 export interface GadgetShelfProps {
     abortAddingGadget: () => void

@@ -4,12 +4,13 @@ import { GameState } from "./Store";
 import { ReadonlyGameSetup } from './slices/Setup';
 import { InitialDiagram, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
 import { makeHandleId } from 'lib/game/Handles';
-import { GadgetId, GadgetProps, OUTPUT_POSITION } from "lib/game/Primitives";
+import { GadgetId, GadgetProps } from "lib/game/Primitives";
 import { axiomToGadget } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
 import { ValueMap } from "lib/util/ValueMap";
 import { GadgetConnection } from "./slices/History";
+import { OUTPUT_POSITION } from "components/game/gadget/Node";
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
     if (isAxiom(gadget.statement)) {

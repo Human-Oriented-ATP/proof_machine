@@ -1,4 +1,5 @@
-import { Axiom, NodePosition, OUTPUT_POSITION } from "./Primitives";
+import { NodePosition, OUTPUT_POSITION } from "components/game/gadget/Node";
+import { Axiom } from "./Primitives";
 import { GadgetId, GadgetProps } from "./Primitives";
 import { Term, makeAxiomWithFreshVariables as makeFreshVariables } from "./Term";
 

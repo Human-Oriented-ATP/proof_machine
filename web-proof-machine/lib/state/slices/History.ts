@@ -1,10 +1,11 @@
 import { getGadgetTerms } from "lib/game/GameLogic";
-import { CreateStateWithInitialValue, GetState, SetState } from "../Types"
-import { Axiom, GadgetId, NodePosition, OUTPUT_POSITION } from "lib/game/Primitives"
+import { CreateStateWithInitialValue } from "../Types"
+import { Axiom, GadgetId } from "lib/game/Primitives"
 import { Equation } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
+import { NodePosition, OUTPUT_POSITION } from "components/game/gadget/Node";
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, NodePosition] }
 

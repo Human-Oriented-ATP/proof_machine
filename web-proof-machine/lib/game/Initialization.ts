@@ -1,5 +1,5 @@
 import { GadgetConnection } from "lib/state/slices/History";
-import { Axiom, GadgetId, NodePosition } from "./Primitives";
+import { Axiom, GadgetId } from "./Primitives";
 import { Term, makeTermWithFreshVariables } from "./Term";
 import { Equation } from "./Unification";
 

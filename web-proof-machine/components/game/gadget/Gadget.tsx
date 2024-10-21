@@ -1,9 +1,8 @@
 import { useLayoutEffect, useState } from 'react'
-import { Node, NodeProps } from './Node'
+import { isInputPosition, isOutputPosition, Node, NodeProps, OUTPUT_POSITION } from './Node'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
-import { GadgetProps, GadgetId, isInputPosition, OUTPUT_POSITION, isOutputPosition }
-    from '../../../lib/game/Primitives'
+import { GadgetProps, GadgetId } from '../../../lib/game/Primitives'
 import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
 import { twMerge } from 'tailwind-merge'
 
@@ -77,7 +76,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 term,
                 position: position,
                 gadgetId: props.id,
-                useDummyHandle: props.isAxiom,
+                isOnShelf: props.isAxiom,
                 isGoalNode: props.id === "goal_gadget",
             }
             if (isInputPosition(position)) {
@@ -93,7 +92,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 term: props.terms.get(OUTPUT_POSITION)!,
                 position: OUTPUT_POSITION,
                 gadgetId: props.id,
-                useDummyHandle: props.isAxiom,
+                isOnShelf: props.isAxiom,
                 isGoalNode: false
             }
             return (<div className="flex flex-col justify-center">

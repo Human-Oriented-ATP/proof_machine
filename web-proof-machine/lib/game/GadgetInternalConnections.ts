@@ -1,7 +1,7 @@
 import { Term, VariableName, getVariableList } from "./Term";
 
-export type NodePosition = number | "output"
-export type HolePosition = [NodePosition, number]
+export type NodePositionDeprecated = number | "output"
+export type HolePosition = [NodePositionDeprecated, number]
 
 export interface InternalConnection {
     from: HolePosition

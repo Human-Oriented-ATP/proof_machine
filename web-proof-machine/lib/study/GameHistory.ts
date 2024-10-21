@@ -1,6 +1,7 @@
 "use client"
 
-import { GadgetId, NodePosition } from "../game/Primitives";
+import { NodePosition } from "components/game/gadget/Node";
+import { GadgetId } from "../game/Primitives";
 
 export type GameEvent = { GameCompleted: null }
     | { GadgetAdded: { gadgetId?: GadgetId, axiom?: string } }

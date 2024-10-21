@@ -1,11 +1,9 @@
-import { applyNodeChanges, Connection, NodeChange, OnNodesChange } from '@xyflow/react';
+import { applyNodeChanges, NodeChange, OnNodesChange } from '@xyflow/react';
 import { GadgetNode } from '../../../components/game/flow/GadgetFlowNode';
 import { CreateStateWithInitialValue } from '../Types';
-import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice, GadgetDndFromShelfState } from './DragGadgetFromShelf';
+import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice } from './DragGadgetFromShelf';
 import { Term } from 'lib/game/Term';
-import { getNodePositionFromHandle, getTermOfHandle, isTargetHandle } from 'lib/game/Handles';
-import { GadgetConnection } from './History';
-import { OUTPUT_POSITION } from 'lib/game/Primitives';
+import { getTermOfHandle } from 'lib/game/Handles';
 
 export type NodeState = {
     nodes: GadgetNode[],

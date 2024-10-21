@@ -1,4 +1,4 @@
-import { NodePosition, OUTPUT_POSITION } from './Primitives';
+import { NodePosition, OUTPUT_POSITION } from 'components/game/gadget/Node';
 import { Term } from './Term';
 
 export function makeHandleId(position: NodePosition, gadgetId: string): string {
