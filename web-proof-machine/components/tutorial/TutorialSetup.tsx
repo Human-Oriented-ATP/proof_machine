@@ -1,5 +1,5 @@
 import { Connector } from "components/game/gadget/Connector";
-import { BasicHole } from "components/game/gadget/Hole";
+import { StaticHole } from "components/game/gadget/Hole";
 
 export function SourceConnector() {
     return <div className="inline-block translate-y-[-2px]"><Connector type={"source"} isInline={true} /></div>;
@@ -18,5 +18,5 @@ export function OpenTargetConnector() {
 }
 
 export function PinkHole() {
-    return <div className="inline-block"><BasicHole value={"?"} isFunctionHole={true} /></div>;
+    return <div className="inline-block"><StaticHole value={"?"} isFunctionHole={true} /></div>;
 }
