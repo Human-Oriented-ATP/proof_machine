@@ -15,15 +15,17 @@ function makeAxiomGadgetProps(axiom: Axiom, id: number): GadgetProps {
     return { terms, id: `axiom_${id}`, isOnShelf: true }
 }
 
-export function GadgetShelf() {
+export function GadgetShelf(): JSX.Element {
     const axioms = useGameStateContext((state) => state.setup.axioms)
 
-    return axioms.length !== 0 &&
-        <div id="gadget_shelf" className="absolute top-0 bottom-0 min-w-40 w-auto flex flex-col p-1 overflow-y-scroll overflow-x-hidden bg-palette-gray/50">
-            {axioms.map((axiom, id) => {
-                return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}>
-                    <Gadget {...makeAxiomGadgetProps(axiom, id)}></Gadget>
-                </InsertGadgetButton>
-            })}
-        </div>
+    return <>
+        {axioms.length !== 0 &&
+            <div id="gadget_shelf" className="absolute top-0 bottom-0 min-w-40 w-auto flex flex-col p-1 overflow-y-scroll overflow-x-hidden bg-palette-gray/50">
+                {axioms.map((axiom, id) => {
+                    return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}>
+                        <Gadget {...makeAxiomGadgetProps(axiom, id)}></Gadget>
+                    </InsertGadgetButton>
+                })}
+            </div>}
+    </>
 }
