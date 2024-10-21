@@ -71,6 +71,7 @@ export function getInitialState(props: GameProps, rf: ReactFlowInstance): GameSt
         edges: getInitialEdges(propsWithDefaults.initialDiagram),
         rf,
         log: [],
+        gameIsCompleted: false,
         termEnumeration: new ValueMap(),
         equationIsSatisfied: new ValueMap(),
         setup

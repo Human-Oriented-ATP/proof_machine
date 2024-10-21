@@ -13,7 +13,7 @@ import { initViewport } from 'lib/util/ReactFlow';
 
 export type FlowState = UnificationState & NodeState & EdgeState & {
     rf: ReactFlowInstance;
-    isCompleted: boolean
+    gameIsCompleted: boolean
 }
 
 export interface FlowActions {
@@ -39,7 +39,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
         ...unificationSlice(initialState, set, get),
         ...gadgetIdGeneratorSlice(set, get),
         rf: initialState.rf,
-        isCompleted: false,
+        gameIsCompleted: false,
 
         // TODO: 
         // checkCompletion: () => {

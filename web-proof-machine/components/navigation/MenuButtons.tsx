@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 
 export function MenuButtons() {
-    const levelCompleted = false
+    const levelCompleted = useGameStateContext((state) => state.gameIsCompleted)
     const showHelpWindow = () => { }
 
     const router = useRouter();
