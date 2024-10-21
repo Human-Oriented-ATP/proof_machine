@@ -3,7 +3,7 @@ import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/rea
 import { useCallback, useEffect, useRef } from 'react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { GadgetProps } from 'lib/game/Primitives';
-import { makeHandleId, isTargetHandle } from 'components/game/gadget/Node';
+import { makeHandleId, isTargetHandle } from 'lib/game/Handles';
 
 interface CompletionCheckProps {
     nodes: GadgetNode[],

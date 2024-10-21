@@ -3,7 +3,7 @@ import { GameProps } from "components/game/Game";
 import { GameState } from "./Store";
 import { ReadonlyGameSetup } from './slices/Setup';
 import { InitialDiagram, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
-import { makeHandleId } from "components/game/gadget/Node";
+import { makeHandleId } from 'lib/game/Handles';
 import { GadgetId, GadgetProps, OUTPUT_POSITION } from "lib/game/Primitives";
 import { axiomToGadget } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";

@@ -3,7 +3,7 @@ import { GadgetNode } from '../../../components/game/flow/GadgetFlowNode';
 import { CreateStateWithInitialValue } from '../Types';
 import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice, GadgetDndFromShelfState } from './DragGadgetFromShelf';
 import { Term } from 'lib/game/Term';
-import { getNodePositionFromHandle, getTermOfHandle, isTargetHandle } from 'components/game/gadget/Node';
+import { getNodePositionFromHandle, getTermOfHandle, isTargetHandle } from 'lib/game/Handles';
 import { GadgetConnection } from './History';
 import { OUTPUT_POSITION } from 'lib/game/Primitives';
 

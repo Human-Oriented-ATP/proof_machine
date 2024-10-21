@@ -1,12 +1,12 @@
-import { NodeDisplayProps, NodePosition, OUTPUT_POSITION, isInputPosition, isOutputPosition } from '../../../lib/game/Primitives';
+import { NodeDisplayProps, isInputPosition, isOutputPosition } from '../../../lib/game/Primitives';
 import { Handle, HandleProps, Position } from '@xyflow/react';
 import { Hole } from './Hole';
-import { DummyHandle } from '../../primitive/DummyHandle';
+import { DummyHandle } from './DummyHandle';
 import { twMerge } from 'tailwind-merge';
-import { Term } from 'lib/game/Term';
 import { Connector } from './Connector';
+import { makeHandleId } from 'lib/game/Handles';
 
-function backgroundColorFromAbbreviation(abbreviation: string) {
+function getBackgroundColorFromAbbreviation(abbreviation: string) {
     switch (abbreviation) {
         case "r": return "bg-red";
         case "y": return "bg-yellow";
@@ -20,36 +20,13 @@ function backgroundColorFromAbbreviation(abbreviation: string) {
     }
 }
 
-function backgroundFromColorAbbreviation(abbreviation: string) {
+function getBackgroundClassNameFromAbbreviation(abbreviation: string) {
     if (abbreviation.substring(0, 8) === "striped_") {
         const color = abbreviation.substring(8)
-        return 'bg-striped ' + backgroundColorFromAbbreviation(color)
+        return 'bg-striped ' + getBackgroundColorFromAbbreviation(color)
     } else {
-        return backgroundColorFromAbbreviation(abbreviation)
+        return getBackgroundColorFromAbbreviation(abbreviation)
     }
-}
-
-export function makeHandleId(position: NodePosition, gadgetId: string): string {
-    return `handle_${JSON.stringify(position)}_of_${gadgetId}`
-}
-
-export function isTargetHandle(handleId: string): boolean {
-    return handleId.slice(0, 10) !== `handle_${OUTPUT_POSITION}_`
-}
-
-export function getTermOfHandle(handleId: string, gadgetTerms: Map<NodePosition, Term>) {
-    const position = handleId.split("_")[1]
-    for (const [termPosition, term] of gadgetTerms) {
-        if (JSON.stringify(termPosition) === position) {
-            return term
-        }
-    }
-    throw Error("Term not found for handle " + handleId)
-}
-
-export function getNodePositionFromHandle(handleId: string): NodePosition {
-    const position = handleId.split("_")[1]
-    return JSON.parse(position)
 }
 
 export function Node(props: NodeDisplayProps) {
@@ -76,10 +53,10 @@ export function Node(props: NodeDisplayProps) {
         console.error("Term cannot be rendered as node:" + props.term)
         return <></>
     } else {
-        const background = backgroundFromColorAbbreviation(props.term.label)
+        const backgroundClassName = getBackgroundClassNameFromAbbreviation(props.term.label)
         return (
             <div className="flex items-center">
-                <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", background, props.isGoalNode && "outline outline-offset-2 outline-2")}>
+                <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", backgroundClassName, props.isGoalNode && "outline outline-offset-2 outline-2")}>
                     {props.term.args.map((arg, idx) => <Hole key={idx} term={arg}></Hole>)}
                 </div>
                 {renderHandle()}

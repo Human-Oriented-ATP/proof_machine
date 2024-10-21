@@ -1,6 +1,6 @@
 import { CreateStateWithInitialValue } from '../Types';
 import { Connection, Edge } from '@xyflow/react';
-import { getNodePositionFromHandle } from 'components/game/gadget/Node';
+import { getNodePositionFromHandle } from 'lib/game/Handles';
 import { OUTPUT_POSITION } from 'lib/game/Primitives';
 import { GadgetConnection, GameEvent } from './History';
 
