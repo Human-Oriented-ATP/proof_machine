@@ -13,6 +13,7 @@ export interface NodeActions {
     onNodesChange: OnNodesChange<GadgetNode>;
     getGadgetNodeOfHandle: (handleId: string) => GadgetNode;
     getTermOfHandle: (handleId: string) => Term;
+    abortAddingGadget: () => void;
 };
 
 export type NodeSlice = GadgetDndFromShelfSlice & NodeState & NodeActions
@@ -49,5 +50,16 @@ export const nodeSlice: CreateStateWithInitialValue<NodeState, NodeSlice> = (ini
             const terms = node.data.terms
             return getTermOfHandle(handleId, terms)
         },
+        abortAddingGadget: () => {
+            const { gadgetBeingDraggedFromShelf } = get();
+            if (gadgetBeingDraggedFromShelf !== undefined) {
+                const { id } = gadgetBeingDraggedFromShelf
+                set({
+                    nodes: get().nodes.filter((node) => node.id !== id),
+                });
+            }
+            set({ gadgetBeingDraggedFromShelf: undefined });
+        }
+
     }
 }

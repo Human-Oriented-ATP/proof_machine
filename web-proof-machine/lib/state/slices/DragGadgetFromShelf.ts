@@ -4,6 +4,7 @@ import { GetState, SetState } from '../Types';
 interface GadgetDndFromShelfData {
     id: string;
     position: XYPosition;
+    status: "STILL_ABOVE_SHELF" | "MOVED_TO_WORK_BENCH";
 }
 
 export interface GadgetDndFromShelfState {
@@ -37,9 +38,12 @@ export const gadgetDndFromShelfSlice = (set: SetState<GadgetDndFromShelfSlice>, 
             const { gadgetBeingDraggedFromShelf } = get();
             if (gadgetBeingDraggedFromShelf !== undefined) {
                 triggerSyntheticDragEvent(gadgetBeingDraggedFromShelf);
+                const withUpdatedStatus: GadgetDndFromShelfData = { ...gadgetBeingDraggedFromShelf, status: "MOVED_TO_WORK_BENCH" };
+                set({ gadgetBeingDraggedFromShelf: withUpdatedStatus });
                 // props.setUserIsDraggingOrNavigating(true)
+            } else {
+                set({ gadgetBeingDraggedFromShelf: undefined });
             }
-            set({ gadgetBeingDraggedFromShelf: undefined });
         },
 
         setGadgetBeingDraggedFromShelf: (gadgetBeingDraggedFromShelf: GadgetDndFromShelfData) => {

@@ -70,13 +70,12 @@ export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (ini
                 deletable: false, // props.gadgetDeletionEnabled,
                 data: axiomToGadget(axiom, id)
             }
-            // gadgetThatIsBeingAdded.current = { gadgetId: id, axiom }
             return gadgetNode
         },
 
         addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => {
             const node = get().makeGadgetNode(axiom, axiomPosition)
-            get().setGadgetBeingDraggedFromShelf({ id: node.id, position: node.position })
+            get().setGadgetBeingDraggedFromShelf({ id: node.id, position: node.position, status: "STILL_ABOVE_SHELF" })
             set({
                 nodes: [...get().nodes, node],
             });

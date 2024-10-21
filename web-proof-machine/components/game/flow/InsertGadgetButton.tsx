@@ -8,6 +8,8 @@ interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
 
 export function InsertGadgetButton({ axiom, children }: InsertGadgetButtonProps): JSX.Element {
     const addGadgetNode = useGameStateContext((state) => state.addGadgetNode);
+    const abortAddingGadget = useGameStateContext((state) => state.abortAddingGadget);
+
     const ref = useRef<HTMLDivElement>(null);
 
     function getPosition() {
@@ -18,9 +20,6 @@ export function InsertGadgetButton({ axiom, children }: InsertGadgetButtonProps)
     function onMouseDown(e: React.MouseEvent) {
         addGadgetNode(axiom, getPosition());
     }
-
-    // TODO
-    const abortAddingGadget = () => { };
 
     return <div ref={ref} className="flex justify-center px-1" onMouseDown={onMouseDown} onClick={abortAddingGadget}>
         {children}
