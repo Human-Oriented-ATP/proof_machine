@@ -10,7 +10,7 @@ import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
 import { ValueMap } from "lib/util/ValueMap";
 import { GadgetConnection } from "./slices/History";
-import { OUTPUT_POSITION } from "components/game/gadget/Node";
+import { OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
     if (isAxiom(gadget.statement)) {

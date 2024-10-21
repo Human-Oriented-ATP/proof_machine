@@ -1,5 +1,6 @@
 import { useLayoutEffect, useState } from 'react'
-import { isInputPosition, isOutputPosition, Node, NodeProps, OUTPUT_POSITION } from './Node'
+import { Cell, CellProps } from './Node'
+import { isInputPosition, isOutputPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
 import { GadgetProps, GadgetId } from '../../../lib/game/Primitives'
@@ -72,7 +73,7 @@ export function Gadget({ ...props }: GadgetProps) {
     function makeInputNodes(): JSX.Element[] {
         let buffer: JSX.Element[] = []
         for (const [position, term] of props.terms) {
-            const nodeProps: NodeProps = {
+            const cellProps: CellProps = {
                 term,
                 position: position,
                 gadgetId: props.id,
@@ -80,7 +81,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 isGoalNode: props.id === "goal_gadget",
             }
             if (isInputPosition(position)) {
-                buffer.push(<Node key={position} {...nodeProps}></Node>)
+                buffer.push(<Cell key={position} {...cellProps}></Cell>)
             }
         }
         return buffer
@@ -88,7 +89,7 @@ export function Gadget({ ...props }: GadgetProps) {
 
     function makeOutputNodeContainer(): JSX.Element {
         if (hasOutputNode()) {
-            const nodeProps = {
+            const cellProps = {
                 term: props.terms.get(OUTPUT_POSITION)!,
                 position: OUTPUT_POSITION,
                 gadgetId: props.id,
@@ -96,7 +97,7 @@ export function Gadget({ ...props }: GadgetProps) {
                 isGoalNode: false
             }
             return (<div className="flex flex-col justify-center">
-                <Node {...nodeProps}></Node>
+                <Cell {...cellProps}></Cell>
             </div>)
         } else {
             return <></>

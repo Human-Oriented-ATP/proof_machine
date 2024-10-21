@@ -5,7 +5,7 @@ import { GadgetProps } from '../../../lib/game/Primitives';
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
-import { NodePosition, OUTPUT_POSITION } from '../gadget/Node';
+import { CellPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition';
 
 export interface GadgetShelfProps {
     abortAddingGadget: () => void
@@ -39,7 +39,7 @@ export function GadgetShelf({ ...props }: GadgetShelfProps) {
     const axioms = useGameStateContext((state) => state.setup.axioms)
 
     function makeAxiomGadget(axiom: Axiom, key: number): GadgetProps {
-        let terms = new Map<NodePosition, Term>()
+        let terms = new Map<CellPosition, Term>()
         axiom.hypotheses.forEach((hypothesis, i) => {
             terms.set(i, hypothesis)
         })

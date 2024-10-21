@@ -5,28 +5,17 @@ import { makeHandleId } from 'lib/game/Handles';
 import { Term } from 'lib/game/Term';
 import { CustomHandle } from './CustomHandle';
 import { getNodeClassNameFromAbbreviation } from 'lib/util/NodeColors';
+import { CellPosition, isOutputPosition } from '../../../lib/game/CellPosition';
 
-export type NodePosition = number
-
-export function isOutputPosition(position: NodePosition): boolean {
-    return position === -1
-}
-
-export function isInputPosition(position: NodePosition): boolean {
-    return !isOutputPosition(position)
-}
-
-export const OUTPUT_POSITION: NodePosition = -1
-
-export interface NodeProps {
+export interface CellProps {
     term: Term
     gadgetId: GadgetId
-    position: NodePosition
+    position: CellPosition
     isOnShelf: boolean
     isGoalNode: boolean
 }
 
-export function Node(props: NodeProps) {
+export function Cell(props: CellProps) {
     const handleType = isOutputPosition(props.position) ? "source" : "target"
     const handleId = !props.isOnShelf ? makeHandleId(props.position, props.gadgetId) : undefined
 

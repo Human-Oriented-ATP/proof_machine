@@ -5,9 +5,9 @@ import { Equation } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
-import { NodePosition, OUTPUT_POSITION } from "components/game/gadget/Node";
+import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 
-export type GadgetConnection = { from: GadgetId, to: [GadgetId, NodePosition] }
+export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
 
 function isEqualConnection(connection1: GadgetConnection, connection2: GadgetConnection) {
     return connection1.from === connection2.from
@@ -32,7 +32,7 @@ export type HistoryActions = {
     getCurrentGadgets: () => GadgetId[]
     getConnectionEvents: () => ({ ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection })[]
     getCurrentConnections: () => GadgetConnection[]
-    getTermsOfGadget: (gadgetId: GadgetId) => Map<NodePosition, Term>
+    getTermsOfGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
     getEquationOfConnection: (connection: GadgetConnection) => Equation
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
 }

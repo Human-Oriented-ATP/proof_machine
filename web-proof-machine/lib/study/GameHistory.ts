@@ -1,13 +1,13 @@
 "use client"
 
-import { NodePosition } from "components/game/gadget/Node";
+import { CellPosition } from 'lib/game/CellPosition';
 import { GadgetId } from "../game/Primitives";
 
 export type GameEvent = { GameCompleted: null }
     | { GadgetAdded: { gadgetId?: GadgetId, axiom?: string } }
-    | { ConnectionAdded: { from?: GadgetId, to?: [GadgetId, NodePosition] } }
+    | { ConnectionAdded: { from?: GadgetId, to?: [GadgetId, CellPosition] } }
     | { GadgetRemoved: { gadgetId?: GadgetId } }
-    | { ConnectionRemoved: { from?: GadgetId, to?: [GadgetId, NodePosition] } };
+    | { ConnectionRemoved: { from?: GadgetId, to?: [GadgetId, CellPosition] } };
 
 export class GameHistory {
     public problemId: string | undefined

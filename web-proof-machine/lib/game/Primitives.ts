@@ -1,4 +1,4 @@
-import { NodePosition } from "components/game/gadget/Node"
+import { CellPosition } from 'lib/game/CellPosition'
 import { Term } from "./Term"
 
 export interface HoleProps {
@@ -9,7 +9,7 @@ export type GadgetId = string
 
 export type GadgetProps = {
     id: GadgetId
-    terms: Map<NodePosition, Term>
+    terms: Map<CellPosition, Term>
     isAxiom: boolean
 }
 

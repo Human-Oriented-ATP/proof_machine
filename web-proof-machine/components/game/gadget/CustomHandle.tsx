@@ -1,4 +1,4 @@
-import { Handle, Position } from "@xyflow/react"
+import { Handle as ReactFlowHandle, Position } from "@xyflow/react"
 import { StaticHandle } from "./StaticHandle"
 import { Connector } from "./Connector"
 
@@ -13,8 +13,8 @@ export function CustomHandle(props: CustomHandleProps) {
     }
     else {
         const position = props.type === "source" ? Position.Right : Position.Left
-        return <Handle type={props.type} position={position} id={props.handleId}>
+        return <ReactFlowHandle type={props.type} position={position} id={props.handleId}>
             <Connector type={props.type} />
-        </Handle>
+        </ReactFlowHandle>
     }
 }

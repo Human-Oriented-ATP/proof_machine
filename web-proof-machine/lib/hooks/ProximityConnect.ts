@@ -4,7 +4,7 @@ import { getCenter } from "../util/Point"
 import { GadgetProps } from "lib/game/Primitives"
 import { makeHandleId } from 'lib/game/Handles'
 import { GadgetNode } from "components/game/flow/GadgetFlowNode"
-import { isOutputPosition } from "components/game/gadget/Node"
+import { isOutputPosition } from 'lib/game/CellPosition'
 
 const MIN_DISTANCE = 60
 
