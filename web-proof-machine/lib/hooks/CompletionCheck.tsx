@@ -1,7 +1,7 @@
 import { useReactFlow, Edge, getIncomers, getConnectedEdges, } from '@xyflow/react';
 
 import { useEffect } from 'react';
-import { GadgetProps } from 'lib/game/Primitives';
+import { GadgetProps } from "components/game/gadget/Gadget";
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { isInputPosition } from 'lib/game/CellPosition';
 

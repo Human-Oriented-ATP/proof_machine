@@ -1,4 +1,3 @@
-import { HoleProps } from '../../../lib/game/Primitives'
 import { useGameStateContext } from 'lib/state/StateContextProvider'
 import { Term } from 'lib/game/Term'
 import { getAssignedValue } from 'lib/game/TermEnumeration'
@@ -10,6 +9,10 @@ function isFunctionHole(term: Term) {
     } else {
         return term.args.length !== 0
     }
+}
+
+interface HoleProps {
+    term: Term
 }
 
 export function Hole(props: HoleProps) {

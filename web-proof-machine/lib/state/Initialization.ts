@@ -4,7 +4,8 @@ import { GameState } from "./Store";
 import { ReadonlyGameSetup } from './slices/Setup';
 import { InitialDiagram, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
 import { makeHandleId } from 'lib/game/Handles';
-import { GadgetId, GadgetProps } from "lib/game/Primitives";
+import { GadgetId } from "lib/game/Primitives";
+import { GadgetProps } from "components/game/gadget/Gadget";
 import { axiomToGadget } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
@@ -19,7 +20,7 @@ function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps
         return {
             id,
             terms: new Map([[0, gadget.statement.goal]]),
-            isAxiom: false
+            isOnShelf: false
         }
     }
 }

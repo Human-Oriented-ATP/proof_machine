@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { XYPosition, Node, Connection, ReactFlowInstance } from "@xyflow/react"
 import { getCenter } from "../util/Point"
-import { GadgetProps } from "lib/game/Primitives"
+import { GadgetProps } from "components/game/gadget/Gadget"
 import { makeHandleId } from 'lib/game/Handles'
 import { GadgetNode } from "components/game/flow/GadgetFlowNode"
 import { isOutputPosition } from 'lib/game/CellPosition'

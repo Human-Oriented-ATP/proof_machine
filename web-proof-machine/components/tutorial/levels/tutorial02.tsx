@@ -31,7 +31,7 @@ const tutorial02DragIndicatorDeleteConnection: DragIndicatorProps<GadgetPosition
 function ConverterGadget() {
     return <div className="inline-block backdrop-blur-sm scale-75 align-middle">
         <Gadget id="tutorial_explanation"
-            isAxiom={true}
+            isOnShelf={true}
             terms={new Map([[0, parseTerm("r(A, B)")], [-1, parseTerm("r(B, A)")]])} />
     </div>;
 }

@@ -1,6 +1,7 @@
 import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { Axiom } from "./Primitives";
-import { GadgetId, GadgetProps } from "./Primitives";
+import { GadgetId } from "./Primitives";
+import { GadgetProps } from "components/game/gadget/Gadget";
 import { Term, makeAxiomWithFreshVariables as makeFreshVariables } from "./Term";
 
 export function getGadgetTerms(axiom: Axiom, id: GadgetId): Map<CellPosition, Term> {
@@ -15,7 +16,7 @@ export function getGadgetTerms(axiom: Axiom, id: GadgetId): Map<CellPosition, Te
 
 export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
     const terms = getGadgetTerms(axiom, id)
-    return { terms, id, isAxiom: false }
+    return { terms, id, isOnShelf: false }
 }
 
 function termToString(t: Term): string {

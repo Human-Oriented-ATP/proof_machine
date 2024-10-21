@@ -1,52 +1,49 @@
 import { useLayoutEffect, useState } from 'react'
-import { Cell, CellProps } from './Node'
-import { isInputPosition, isOutputPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition'
+import { Cell } from './Node'
+import { CellPosition, isInputPosition, isOutputPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
-import { Point, getCenterRelativeToParent } from '../../../lib/util/Point'
-import { GadgetProps, GadgetId } from '../../../lib/game/Primitives'
-import { HolePosition, InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
-import { twMerge } from 'tailwind-merge'
+import { InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
+import { twJoin } from 'tailwind-merge'
+import { calculateHolePosition } from '../../../lib/game/calculateHolePosition'
+import { GadgetId } from 'lib/game/Primitives'
+import { Term } from 'lib/game/Term'
 
-function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
-    const outputNodeContainer = gadget.childNodes[1]
-    const outputNode = outputNodeContainer.childNodes[0].childNodes[0]
-    const holeElement = outputNode.childNodes[holeIndex]
-    return getCenterRelativeToParent(holeElement as HTMLElement)
+export type GadgetProps = {
+    id: GadgetId;
+    terms: Map<CellPosition, Term>;
+    isOnShelf: boolean;
 }
 
-function calculateInputHolePosition(gadget: HTMLElement, nodeIndex: number, holeIndex: number) {
-    const inputNodeContainer = gadget.childNodes[0]
-    const nodeElement = inputNodeContainer.childNodes[nodeIndex].childNodes[0]
-    const holeElement = nodeElement.childNodes[holeIndex]
-    return getCenterRelativeToParent(holeElement as HTMLElement)
+function hasOutputNode(terms: Map<CellPosition, Term>): boolean {
+    const positions = Array.from(terms.keys())
+    return positions.some(isOutputPosition)
 }
 
-function calculateHolePositionFromGadgetHTMLElement(gadget: HTMLElement, hole: HolePosition) {
-    const [nodeIndex, holeIndex] = hole
-    if (nodeIndex === "output") {
-        return calculateOutputHolePosition(gadget, holeIndex)
-    } else {
-        return calculateInputHolePosition(gadget, nodeIndex, holeIndex)
-    }
+function hasInputNode(terms: Map<CellPosition, Term>): boolean {
+    const positions = Array.from(terms.keys())
+    return positions.some(isInputPosition)
 }
 
-export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): Point {
-    const gadget = document.getElementById(gadgetId)
-    if (gadget) {
-        return calculateHolePositionFromGadgetHTMLElement(gadget, hole)
-    } else {
-        throw new Error("Couldn't find gadget with id " + gadgetId)
-    }
+
+function GadgetInputNodes(props: GadgetProps) {
+    const terms: [CellPosition, Term][] = Array.from(props.terms.entries())
+    return <>
+        {terms.map(([cellPosition, term]) => {
+            if (isInputPosition(cellPosition)) {
+                return <Cell term={term} position={cellPosition} gadgetId={props.id} isOnShelf={props.isOnShelf} isGoalNode={props.id === "goal_gadget"} />
+            }
+        })}
+    </>
 }
 
-export function Gadget({ ...props }: GadgetProps) {
-    const initialConnectionSetProps: ConnectionSvgProps = { connections: [] }
-    const [connectionState, setConnectionState] = useState(initialConnectionSetProps)
+function GadgetOutputNode(props: GadgetProps) {
+    const term = props.terms.get(OUTPUT_POSITION)
+    if (term === undefined) return <></>
+    return <Cell term={term} position={OUTPUT_POSITION} gadgetId={props.id} isOnShelf={props.isOnShelf} isGoalNode={false} />
+}
 
-    function hasOutputNode(): boolean {
-        const positions = Array.from(props.terms.keys())
-        return positions.some(isOutputPosition)
-    }
+export function Gadget(props: GadgetProps) {
+    const [connectionState, setConnectionState] = useState<ConnectionSvgProps>({ connections: [] })
 
     useLayoutEffect(() => {
         function calculateInternalConnectionDrawingData(internalConnection: InternalConnection):
@@ -60,7 +57,7 @@ export function Gadget({ ...props }: GadgetProps) {
             return { start, end, fromInput: from_input, toOutput: to_output }
         }
 
-        if (hasOutputNode()) {
+        if (hasOutputNode(props.terms)) {
             const inputs = Array.from(props.terms).filter(key => isInputPosition(key[0]))
             const inputTerms = inputs.map(kv => kv[1])
             const connections = makeConnections(inputTerms, props.terms.get(OUTPUT_POSITION)!)
@@ -70,54 +67,16 @@ export function Gadget({ ...props }: GadgetProps) {
 
     }, [props.terms, props.id])
 
-    function makeInputNodes(): JSX.Element[] {
-        let buffer: JSX.Element[] = []
-        for (const [position, term] of props.terms) {
-            const cellProps: CellProps = {
-                term,
-                position: position,
-                gadgetId: props.id,
-                isOnShelf: props.isAxiom,
-                isGoalNode: props.id === "goal_gadget",
-            }
-            if (isInputPosition(position)) {
-                buffer.push(<Cell key={position} {...cellProps}></Cell>)
-            }
-        }
-        return buffer
-    }
-
-    function makeOutputNodeContainer(): JSX.Element {
-        if (hasOutputNode()) {
-            const cellProps = {
-                term: props.terms.get(OUTPUT_POSITION)!,
-                position: OUTPUT_POSITION,
-                gadgetId: props.id,
-                isOnShelf: props.isAxiom,
-                isGoalNode: false
-            }
-            return (<div className="flex flex-col justify-center">
-                <Cell {...cellProps}></Cell>
-            </div>)
-        } else {
-            return <></>
-        }
-    }
-
-    function hasInputNodes(): boolean {
-        return Array.from(props.terms.keys()).some(isInputPosition)
-    }
-
-    return (
-        <div className="text-center relative">
-            <span style={{ color: "grey" }}>{props.id}</span>
-            <div className={twMerge("flex", hasInputNodes() && "space-x-8")} id={props.id}>
-                <div className="flex flex-col items-start">
-                    {makeInputNodes()}
-                </div>
-                {makeOutputNodeContainer()}
+    return <div className="text-center relative">
+        <span style={{ color: "grey" }}>{props.id}</span>
+        <div className={twJoin("flex", hasInputNode(props.terms) && "space-x-8")} id={props.id}>
+            <div className="flex flex-col items-start">
+                <GadgetInputNodes {...props} />
             </div>
-            <ConnectionSvg {...connectionState}></ConnectionSvg>
+            <div className="flex flex-col justify-center">
+                <GadgetOutputNode {...props} />
+            </div>
         </div>
-    )
+        <ConnectionSvg {...connectionState}></ConnectionSvg>
+    </div>
 }

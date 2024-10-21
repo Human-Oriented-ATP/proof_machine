@@ -1,7 +1,7 @@
 import { Panel } from '@xyflow/react';
 import { Gadget } from '../gadget/Gadget'
 import { Axiom } from "../../../lib/game/Primitives";
-import { GadgetProps } from '../../../lib/game/Primitives';
+import { GadgetProps } from "../gadget/Gadget";
 import { Term } from 'lib/game/Term';
 import { useRef } from 'react';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
@@ -44,7 +44,7 @@ export function GadgetShelf({ ...props }: GadgetShelfProps) {
             terms.set(i, hypothesis)
         })
         terms.set(OUTPUT_POSITION, axiom.conclusion)
-        return { terms, id: `axiom_${key}`, isAxiom: true }
+        return { terms, id: `axiom_${key}`, isOnShelf: true }
     }
 
 
