@@ -1,5 +1,5 @@
 import { ConnectionLineComponentProps } from "@xyflow/react";
-import { ConnectionDrawingData, connectionPath } from "../gadget/ConnectionSvg";
+import { ConnectionDrawingData, ConnectionPath } from "../gadget/ConnectionSvg";
 
 export function ConnectionLineComponent(props: ConnectionLineComponentProps): JSX.Element {
     const data: ConnectionDrawingData = {
@@ -10,6 +10,6 @@ export function ConnectionLineComponent(props: ConnectionLineComponentProps): JS
     };
 
     return <g className='stroke-black'>
-        {connectionPath(data, 0, 20)}
+        {ConnectionPath(data, 0, 20)}
     </g>;
 }

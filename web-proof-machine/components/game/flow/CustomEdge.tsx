@@ -1,5 +1,5 @@
 import { EdgeProps } from '@xyflow/react';
-import { ConnectionDrawingData, connectionPath } from '../gadget/ConnectionSvg';
+import { ConnectionDrawingData, ConnectionPath } from '../gadget/ConnectionSvg';
 import { toGadgetConnection } from 'lib/state/slices/Edges';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { twJoin } from 'tailwind-merge';
@@ -24,6 +24,6 @@ export function CustomEdge({ ...props }: EdgeProps): JSX.Element {
     }
 
     return <g className={twJoin("stroke-black", !isSatisfied && "animate-dashdraw")} strokeDasharray={isSatisfied ? 0 : 5}>
-        {connectionPath(drawingData, 0, 20)}
+        {ConnectionPath(drawingData, 0, 20)}
     </g>
 }

@@ -14,7 +14,7 @@ export interface ConnectionSvgProps {
     connections: ConnectionDrawingData[];
 }
 
-export function connectionPath(props: ConnectionDrawingData, index: number,
+export function ConnectionPath(props: ConnectionDrawingData, index: number,
     fixedOffset = CONTROL_POINT_OFFSET): JSX.Element {
     const svg_start_sequence = "M " + pointToString(props.start);
     let offset_start = props.fromInput
@@ -36,22 +36,15 @@ export function connectionPath(props: ConnectionDrawingData, index: number,
 
     const path_command = svg_start_sequence + " " + svg_curve;
 
-    return (
-        <path key={index}
-            d={path_command}
-            strokeWidth="2px"
-            fill="transparent"
-        />
-    );
+    return <path key={index}
+        d={path_command}
+        strokeWidth="2px"
+        fill="transparent"
+    />
 }
 
 export function ConnectionSvg({ ...props }: ConnectionSvgProps) {
-    function drawConnections(): JSX.Element[] {
-        const pathElements = props.connections.map((connection, index) =>
-            connectionPath(connection, index)
-        );
-        return pathElements;
-    }
-
-    return <svg className="absolute top-0 left-0 w-full h-full z-5 pointer-events-none stroke-black">{drawConnections()}</svg>;
+    return <svg className="absolute top-0 left-0 w-full h-full z-5 pointer-events-none stroke-black">
+        {props.connections.map((connection, index) => ConnectionPath(connection, index))}
+    </svg>;
 }
