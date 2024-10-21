@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { NodeTypes, useReactFlow, EdgeTypes, Edge, XYPosition, ReactFlow, Background, BackgroundVariant } from '@xyflow/react';
 import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
-import { GadgetShelf, GadgetShelfProps } from './GadgetShelf';
 import { CustomEdge } from './CustomEdge';
 import { ConnectionLineComponent } from './ConnectionLineComponent';
 import { useShallow } from 'zustand/react/shallow';
@@ -94,15 +93,6 @@ export function Flow() {
     //         }, edges)
     //     });
     // }, [props, setEdges, getEquationFromConnection, props.addEquation])
-
-    const paletteProps: GadgetShelfProps = {
-        abortAddingGadget: () => {
-            if (gadgetThatIsBeingAdded.current) {
-                removeGadgetNode(gadgetThatIsBeingAdded.current.gadgetId)
-            }
-            gadgetThatIsBeingAdded.current = undefined
-        }
-    }
 
     // const enableHoleFocus = useCallback(() => {
     //     setNodes(nodes => nodes.map(node => {
