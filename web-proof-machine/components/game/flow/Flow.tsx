@@ -25,13 +25,14 @@ const selector = (state: GameSlice) => ({
     isValidConnection: state.isValidConnection,
     onNodesDelete: state.onNodesDelete,
     onEdgesDelete: state.onEdgesDelete,
+    onNodeDrag: state.onNodeDrag,
     onNodeDragStop: state.onNodeDragStop,
     settings: state.setup.settings,
 });
 
 export function Flow() {
     const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, isValidConnection,
-        onNodesDelete, onEdgesDelete, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
+        onNodesDelete, onEdgesDelete, onNodeDrag, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
 
     // const enableHoleFocus = useCallback(() => {
     //     setNodes(nodes => nodes.map(node => {
@@ -75,7 +76,7 @@ export function Flow() {
             onConnectStart={onConnectStart}
             // onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
-            // onNodeDrag={onNodeDrag}
+            onNodeDrag={onNodeDrag}
             // onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
             onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}

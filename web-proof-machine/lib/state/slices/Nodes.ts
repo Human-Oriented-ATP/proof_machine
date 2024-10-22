@@ -3,9 +3,8 @@ import { GadgetNode } from '../../../components/game/flow/GadgetFlowNode';
 import { CreateStateWithInitialValue } from '../Types';
 import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice } from './DragGadgetFromShelf';
 import { Term } from 'lib/game/Term';
-import { getTermOfHandle, makeHandleId } from 'lib/game/Handles';
+import { getTermOfHandle, isTargetHandle, makeHandleId } from 'lib/game/Handles';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
-import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 export type NodeStateInitializedFromData = {
     nodes: GadgetNode[],
@@ -21,7 +20,7 @@ export interface NodeActions {
     getGadgetNodeOfHandle: (handleId: string) => GadgetNode;
     getTermOfHandle: (handleId: string) => Term;
     abortAddingGadget: () => void;
-    getHandlesOfNode: (nodeId: string) => Map<CellPosition, string>;
+    getHandlesOfNode: (nodeId: string) => string[];
     getInputHandlesOfNode: (nodeId: string) => string[];
     getNode(nodeId: string): GadgetNode;
     getAllHandles(): string[];
@@ -83,18 +82,16 @@ export const nodeSlice: CreateStateWithInitialValue<NodeStateInitializedFromData
             return node
         },
 
-        getHandlesOfNode: (nodeId: string): Map<CellPosition, string> => {
+        getHandlesOfNode: (nodeId: string): string[] => {
             const node = get().getNode(nodeId)
-            const handles = new Map<CellPosition, string>()
-            node.data.terms.forEach((term, position) => {
-                handles.set(position, makeHandleId(position, node.data.id))
-            })
+            const cellPositions = Array.from(node.data.terms.keys())
+            const handles = cellPositions.map((position) => makeHandleId(position, node.data.id))
             return handles
         },
 
         getInputHandlesOfNode: (nodeId: string): string[] => {
             const handles = get().getHandlesOfNode(nodeId)
-            handles.delete(OUTPUT_POSITION)
+            handles.filter((handle) => !isTargetHandle(handle))
             return Array.from(handles.values())
         },
 

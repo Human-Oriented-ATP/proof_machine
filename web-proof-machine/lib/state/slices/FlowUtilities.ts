@@ -1,14 +1,16 @@
 import { CreateStateWithInitialValue } from '../Types';
-import { ReactFlowInstance, XYPosition } from '@xyflow/react';
+import { Connection, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { EdgeSlice, edgeSlice, EdgeStateInitializedFromData } from './Edges';
 import { NodeSlice, nodeSlice, NodeState, NodeStateInitializedFromData } from './Nodes';
-import { GameEvent } from './History';
+import { GadgetConnection, GameEvent } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom, GadgetId } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState, UnificationStateInitializedFromData } from './Unification';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
+import { calculateProximityConnection, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
+import { getGadgetIdFromHandle, getNodePositionFromHandle } from 'lib/game/Handles';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -27,6 +29,8 @@ export interface FlowUtilitiesActions {
     updateLogicalState: (events: GameEvent[]) => void;
     isHandleWithBrokenConnection: (handle: string) => boolean;
     updateHandleStatus: (openHandles: string[]) => void;
+    calculatePositionOfHandles: (handles: string[]) => HandlesWithPositions;
+    getProximityConnection(nodeThatIsBeingDragged: string): Connection | null;
     calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
 };
 
@@ -127,6 +131,24 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
                 }
             }
             set({ handleStatus })
+        },
+
+        calculatePositionOfHandles(handles: string[]): HandlesWithPositions {
+            const handlesWithPositions = new Map<string, XYPosition>()
+            handles.forEach(handle => {
+                handlesWithPositions.set(handle, getPositionOfHandle(handle, get().rf))
+            })
+            return handlesWithPositions
+        },
+
+        getProximityConnection(nodeThatIsBeingDragged: string) {
+            const handlesOfNodeBeingDragged = get().getHandlesOfNode(nodeThatIsBeingDragged)
+            const otherNodes = get().nodes.filter(node => node.id !== nodeThatIsBeingDragged)
+            const handlesOfOtherNodes = otherNodes.flatMap(node => Array.from(get().getHandlesOfNode(node.id).values()))
+            const proximityConnection = calculateProximityConnection(
+                get().calculatePositionOfHandles(handlesOfNodeBeingDragged),
+                get().calculatePositionOfHandles(handlesOfOtherNodes))
+            return proximityConnection
         },
 
         calculateCompletionStatusAndOpenHandles: () => {

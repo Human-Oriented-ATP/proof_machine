@@ -1,5 +1,5 @@
 import { CreateStateWithInitialValue } from '../Types';
-import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
+import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, OnNodeDrag, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { toGadgetConnection, isValidConnection } from './Edges';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
@@ -19,6 +19,7 @@ export interface FlowActions {
     isValidConnection: (connection: any) => boolean;
     onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
     onConnect: OnConnect;
+    onNodeDrag: OnNodeDrag<GadgetNode>
     onNodeDragStop: (event: React.MouseEvent, node: GadgetNode) => void;
 };
 
@@ -74,6 +75,15 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             });
             const gadgetConnection = toGadgetConnection(connection)
             get().updateLogicalState([...edgeRemovalEvents, { ConnectionAdded: gadgetConnection }])
+        },
+
+        onNodeDrag(event: React.MouseEvent, node: GadgetNode) {
+            const proximityConnection = get().getProximityConnection(node.id)
+            if (proximityConnection) {
+                // The sourceHandle field might not be defined. Annoying!  
+                // set({ connectingHandles: [proximityConnection.sourceHandle, proximityConnection.targetHandle] })
+            }
+            console.log(proximityConnection)
         },
 
         onNodeDragStop(event, node) {

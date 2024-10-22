@@ -19,6 +19,10 @@ export function getTermOfHandle(handleId: string, gadgetTerms: Map<CellPosition,
     throw Error("Term not found for handle " + handleId);
 }
 
+export function getGadgetIdFromHandle(handleId: string): string {
+    return handleId.split("_of_")[1];
+}
+
 export function getNodePositionFromHandle(handleId: string): CellPosition {
     const position = handleId.split("_")[1];
     return JSON.parse(position);
