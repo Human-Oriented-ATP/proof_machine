@@ -21,7 +21,7 @@ export interface NodeActions {
     getTermOfHandle: (handleId: string) => Term;
     abortAddingGadget: () => void;
     getHandlesOfNode: (nodeId: string) => string[];
-    getInputHandlesOfNode: (nodeId: string) => string[];
+    getTargetHandlesOfNode: (nodeId: string) => string[];
     getNode(nodeId: string): GadgetNode;
     getAllHandles(): string[];
 };
@@ -89,10 +89,10 @@ export const nodeSlice: CreateStateWithInitialValue<NodeStateInitializedFromData
             return handles
         },
 
-        getInputHandlesOfNode: (nodeId: string): string[] => {
+        getTargetHandlesOfNode: (nodeId: string): string[] => {
             const handles = get().getHandlesOfNode(nodeId)
-            handles.filter((handle) => !isTargetHandle(handle))
-            return Array.from(handles.values())
+            const targetHandles = handles.filter((handle) => isTargetHandle(handle))
+            return targetHandles
         },
 
         getAllHandles(): string[] {

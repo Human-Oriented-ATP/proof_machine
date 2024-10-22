@@ -80,10 +80,10 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
         onNodeDrag(event: React.MouseEvent, node: GadgetNode) {
             const proximityConnection = get().getProximityConnection(node.id)
             if (proximityConnection) {
-                // The sourceHandle field might not be defined. Annoying!  
-                // set({ connectingHandles: [proximityConnection.sourceHandle, proximityConnection.targetHandle] })
+                set({ connectingHandles: [proximityConnection.sourceHandle, proximityConnection.targetHandle] })
+            } else {
+                set({ connectingHandles: [] })
             }
-            console.log(proximityConnection)
         },
 
         onNodeDragStop(event, node) {

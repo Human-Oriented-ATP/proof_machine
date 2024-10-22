@@ -75,8 +75,15 @@ function calculateProximityConnectionHandles(handlesOfNodeBeingDragged: HandlesW
     }
 }
 
+export type ConnectionWithHandles = {
+    source: string,
+    target: string,
+    sourceHandle: string,
+    targetHandle: string
+}
+
 export function calculateProximityConnection(handlesOfNodeBeingDragged: HandlesWithPositions, otherHandles: HandlesWithPositions)
-    : Connection | null {
+    : ConnectionWithHandles | null {
     const proximityConnectionHandles = calculateProximityConnectionHandles(handlesOfNodeBeingDragged, otherHandles)
     if (proximityConnectionHandles) {
         const source = getGadgetIdFromHandle(proximityConnectionHandles.sourceHandle)

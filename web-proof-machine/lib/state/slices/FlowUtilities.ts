@@ -1,16 +1,15 @@
 import { CreateStateWithInitialValue } from '../Types';
-import { Connection, ReactFlowInstance, XYPosition } from '@xyflow/react';
+import { addEdge, Connection, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
-import { EdgeSlice, edgeSlice, EdgeStateInitializedFromData } from './Edges';
+import { EdgeSlice, edgeSlice, EdgeStateInitializedFromData, toGadgetConnection } from './Edges';
 import { NodeSlice, nodeSlice, NodeState, NodeStateInitializedFromData } from './Nodes';
-import { GadgetConnection, GameEvent } from './History';
+import { GameEvent } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom, GadgetId } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState, UnificationStateInitializedFromData } from './Unification';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
-import { calculateProximityConnection, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
-import { getGadgetIdFromHandle, getNodePositionFromHandle } from 'lib/game/Handles';
+import { calculateProximityConnection, ConnectionWithHandles, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -30,7 +29,8 @@ export interface FlowUtilitiesActions {
     isHandleWithBrokenConnection: (handle: string) => boolean;
     updateHandleStatus: (openHandles: string[]) => void;
     calculatePositionOfHandles: (handles: string[]) => HandlesWithPositions;
-    getProximityConnection(nodeThatIsBeingDragged: string): Connection | null;
+    getProximityConnection(nodeThatIsBeingDragged: string): ConnectionWithHandles | null;
+    runProximityConnect(nodeId: string): GameEvent[];
     calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
 };
 
@@ -87,15 +87,18 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
         },
 
         handleGadgetDragStopAwayFromShelf(node: GadgetNode) {
+            set({ connectingHandles: [] })
             const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
-            // TODO: events = proximityConnect()
+            const proximityConnectionEvents = get().runProximityConnect(node.id)
             if (gadgetBeingDraggedFromShelf !== undefined) {
                 const { id, axiom } = gadgetBeingDraggedFromShelf
-                const event = { GadgetAdded: { gadgetId: id, axiom } }
+                const gadgetAddedEvent = { GadgetAdded: { gadgetId: id, axiom } }
                 set({ gadgetBeingDraggedFromShelf: undefined });
-                get().updateLogicalState([event]) // TODO: need to add the connection event from proximity connect as well!
+                get().updateLogicalState([gadgetAddedEvent, ...proximityConnectionEvents])
             } else {
-                // TODO: update logical state with only proximity connect event!
+                if (proximityConnectionEvents.length > 0) {
+                    get().updateLogicalState(proximityConnectionEvents)
+                }
             }
             // Set userIsDraggingOrNavigating to false
         },
@@ -108,6 +111,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             if (isCompleted) {
                 set({ levelIsCompleted: true })
             }
+            console.log("handle status", get().handleStatus)
             // synchronize history
         },
 
@@ -151,6 +155,18 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             return proximityConnection
         },
 
+        runProximityConnect(nodeId: string): GameEvent[] {
+            const proximityConnection = get().getProximityConnection(nodeId)
+            if (proximityConnection !== null) {
+                set({ edges: addEdge({ ...proximityConnection, type: 'customEdge' }, get().edges), });
+                const gadgetConnection = toGadgetConnection(proximityConnection)
+                const event: GameEvent = { ConnectionAdded: gadgetConnection }
+                return [event]
+            } else {
+                return []
+            }
+        },
+
         calculateCompletionStatusAndOpenHandles: () => {
             const openHandles: string[] = [];
             let currentLayer: GadgetId[] = ["goal_gadget"];
@@ -160,9 +176,9 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
                 return get().nodes.filter(node => layer.includes(node.id));
             };
 
-            const getInputHandlesInLayer = (layer: GadgetId[]) => {
+            const getTargetHandlesInLayer = (layer: GadgetId[]) => {
                 const gadgetNodes = getGadgetNodesInLayer(layer);
-                return gadgetNodes.map(node => get().getInputHandlesOfNode(node.id)).flat();
+                return gadgetNodes.map(node => get().getTargetHandlesOfNode(node.id)).flat();
             };
 
             const processHandle = (handle: string, nextLayer: GadgetId[]) => {
@@ -182,7 +198,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             };
 
             while (true) {
-                const inputHandlesInCurrentLayer = getInputHandlesInLayer(currentLayer);
+                const inputHandlesInCurrentLayer = getTargetHandlesInLayer(currentLayer);
                 if (inputHandlesInCurrentLayer.length === 0) break;
 
                 let nextLayer: GadgetId[] = [];
@@ -192,6 +208,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             }
 
             const isCompleted = openHandles.length === 0 && !hasInvalidEdge;
+            console.log("open handles", openHandles)
             return { isCompleted, openHandles };
         }
 
