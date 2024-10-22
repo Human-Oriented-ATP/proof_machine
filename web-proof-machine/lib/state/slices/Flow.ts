@@ -174,6 +174,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             } else {
                 // TODO: update logical state with only proximity connect event!
             }
+            // Set userIsDraggingOrNavigating to false
         },
 
         onNodeDragStop(event, node) {

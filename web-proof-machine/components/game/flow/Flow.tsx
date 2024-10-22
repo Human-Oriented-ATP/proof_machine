@@ -1,15 +1,15 @@
-import React, { useRef } from 'react';
-import { NodeTypes, useReactFlow, EdgeTypes, Edge, XYPosition, ReactFlow, Background, BackgroundVariant } from '@xyflow/react';
-import { GadgetFlowNode, GadgetNode } from './GadgetFlowNode';
+import React from 'react';
+import { NodeTypes, EdgeTypes, ReactFlow, Background, BackgroundVariant } from '@xyflow/react';
+import { useGameStateContext } from 'lib/state/StateContextProvider';
+import { GameSlice } from 'lib/state/Store';
+import { useShallow } from 'zustand/react/shallow';
+import { GadgetFlowNode } from './GadgetFlowNode';
 import { CustomEdge } from './CustomEdge';
 import { ConnectionLineComponent } from './ConnectionLineComponent';
-import { useShallow } from 'zustand/react/shallow';
+import { ControlButtons } from './ControlButtons';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
-import { ControlButtons } from './ControlButtons';
-import { useGameStateContext } from 'lib/state/StateContextProvider';
-import { GameSlice } from 'lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
@@ -17,39 +17,24 @@ const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
 const selector = (state: GameSlice) => ({
     nodes: state.nodes,
     edges: state.edges,
+    onInit: state.onInit,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
     onConnectStart: state.onConnectStart,
     isValidConnection: state.isValidConnection,
-    onInit: state.onInit,
-    settings: state.setup.settings,
     onNodesDelete: state.onNodesDelete,
     onEdgesDelete: state.onEdgesDelete,
-    onNodeDragStop: state.onNodeDragStop
+    onNodeDragStop: state.onNodeDragStop,
+    settings: state.setup.settings,
 });
 
 export function Flow() {
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onConnectStart,
-        onNodesDelete, onEdgesDelete, isValidConnection, onInit, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
+    const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, isValidConnection,
+        onNodesDelete, onEdgesDelete, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
 
     // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
     // useOpenHandleHighlighting({ nodes, edges })
-
-    // const savelyAddEdge = useCallback((connection: Connection): void => {
-    //     removeEdgesConnectedToHandle(connection.targetHandle!)
-    //     const equation = getEquationFromConnection(connection)
-    //     const connectionInfo = getConnectionInfo(connection)
-    //     props.addEquation(connectionInfo.from, connectionInfo.to, equation)
-    //     setEdges((edges) => {
-    //         return addEdge({
-    //             ...connection,
-    //             type: 'customEdge',
-    //             animated: true,
-    //             data: { eq: getEquationId(connectionInfo.from, connectionInfo.to) }
-    //         }, edges)
-    //     });
-    // }, [props, setEdges, getEquationFromConnection, props.addEquation])
 
     // const enableHoleFocus = useCallback(() => {
     //     setNodes(nodes => nodes.map(node => {
@@ -70,31 +55,9 @@ export function Flow() {
     //     props.setUserIsDraggingOrNavigating(true)
     // }, [])
 
-    // const onNodeDragStop = useCallback((event: React.MouseEvent, node: GadgetNode) => {
-    //     if (isAbovePalette({ x: event.clientX, y: event.clientY })) {
-    //         const edgesToBeDeleted = getEdges().filter(e => node.id === e.source || node.id === e.target)
-    //         if (gadgetThatIsBeingAdded.current !== undefined) {
-    //             gadgetThatIsBeingAdded.current = undefined
-    //             deleteEquationsOfEdges(edgesToBeDeleted)
-    //             setNodes(nodes => nodes.filter(n => n.id !== node.id))
-    //         } else {
-    //             props.removeGadget(node.id)
-    //             deleteEquationsOfEdges(edgesToBeDeleted)
-    //             setNodes(nodes => nodes.filter(n => n.id !== node.id || n.deletable === false))
-    //         }
-    //         setEdges(edges => edges.filter(e => node.id !== e.source && node.id !== e.target))
-    //     } else {
-    //         if (gadgetThatIsBeingAdded.current !== undefined) {
-    //             props.addGadget(gadgetThatIsBeingAdded.current.gadgetId, gadgetThatIsBeingAdded.current.axiom)
-    //         }
-    //         onNodeDragStopProximityConnect(event, node)
-    //     }
-    //     props.setUserIsDraggingOrNavigating(false)
-    // }, [props.removeGadget])
-
     // const onConnectEnd = useCallback(() => {
     //     props.setUserIsDraggingOrNavigating(false)
-    //     // enableHoleFocus()
+    //     enableHoleFocus()
     // }, [])
 
     const zoomProps = settings.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
