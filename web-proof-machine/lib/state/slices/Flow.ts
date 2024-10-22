@@ -25,7 +25,7 @@ export interface FlowActions {
     updateLogicalState: (events: GameEvent[]) => void;
     makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
-    removeGadgetNode: (nodeId: string) => void;
+    removeGadgetNode: (node: GadgetNode) => void;
     handleGadgetDraggedAboveShelf: (node: GadgetNode) => void;
     handleGadgetDragStopAwayFromShelf: (node: GadgetNode) => void;
     onEdgesChange: OnEdgesChange;
@@ -95,16 +95,16 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             // Intentionally no update of logical state here -- this happens in onNodeDragStop
         },
 
-        removeGadgetNode: (nodeId: string) => {
-            const connectionDeletionEvents = get().removeEdgesConnectedToNode(nodeId);
-            set({
-                nodes: get().nodes.filter((node) => node.id !== nodeId),
-            });
-            get().updateLogicalState([...connectionDeletionEvents, { GadgetRemoved: { gadgetId: nodeId } }])
+        removeGadgetNode: (node: GadgetNode) => {
+            if (node.deletable) {
+                const connectionDeletionEvents = get().removeEdgesConnectedToNode(node.id);
+                set({ nodes: get().nodes.filter((n) => n.id !== node.id), });
+                get().updateLogicalState([...connectionDeletionEvents, { GadgetRemoved: { gadgetId: node.id } }])
+            }
         },
 
         onNodesDelete: (nodes: GadgetNode[]) => {
-            nodes.forEach((node) => get().removeGadgetNode(node.id))
+            nodes.forEach((node) => get().removeGadgetNode(node))
         },
 
         onEdgesDelete: (edges: Edge[]) => {
@@ -154,7 +154,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
         handleGadgetDraggedAboveShelf(node: GadgetNode) {
             const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
             if (gadgetBeingDraggedFromShelf === undefined) {
-                get().removeGadgetNode(node.id)
+                get().removeGadgetNode(node)
             } else {
                 if (node.id !== gadgetBeingDraggedFromShelf.id)
                     throw Error("Impossible value for gadgetBeingDraggedFromShelf")
@@ -165,14 +165,14 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
 
         handleGadgetDragStopAwayFromShelf(node: GadgetNode) {
             const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
-            // events = proximityConnect()
+            // TODO: events = proximityConnect()
             if (gadgetBeingDraggedFromShelf !== undefined) {
                 const { id, axiom } = gadgetBeingDraggedFromShelf
                 const event = { GadgetAdded: { gadgetId: id, axiom } }
                 set({ gadgetBeingDraggedFromShelf: undefined });
-                get().updateLogicalState([event]) // need to add the connection event from proximity connect as well!
+                get().updateLogicalState([event]) // TODO: need to add the connection event from proximity connect as well!
             } else {
-                // update logical state with only proximity connect event!
+                // TODO: update logical state with only proximity connect event!
             }
         },
 
