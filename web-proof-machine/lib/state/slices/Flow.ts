@@ -6,7 +6,7 @@ import { NodeSlice, nodeSlice, NodeState, NodeStateInitializedFromData } from '.
 import { GameEvent } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
-import { Axiom } from 'lib/game/Primitives';
+import { Axiom, GadgetId } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState, UnificationStateInitializedFromData } from './Unification';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/util/ReactFlow';
@@ -23,6 +23,7 @@ export type FlowState = UnificationState & NodeState & {
 
 export interface FlowActions {
     updateLogicalState: (events: GameEvent[]) => void;
+    runCompletionCheck: () => { isCompleted: boolean, openHandles: string[] };
     makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
     removeGadgetNode: (node: GadgetNode) => void;
@@ -52,25 +53,47 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
         levelIsCompleted: false,
 
         // TODO: 
-        // checkCompletion: () => {
-        //     let hasInvalidEdge = false
-        //     let currentLayer = ["goal_gadget"]
-        //     while (true) {
-        //         const incomingEdges = get().edges.filter(edge => currentLayer.includes(edge.target))
-        //         const areSatisfied = incomingEdges.map(edge => get().edgeIsSatisfied(edge))
-        //         if (areSatisfied.includes(false)) {
-        //             hasInvalidEdge = true
-        //         }
-        //         if (incomingEdges.length === 0) {
-        //             break
-        //         }
-        //     }
-        //     // return !hasInvalidEdge
-        // },
+        runCompletionCheck: () => {
+            let openHandles = new Array()
+            let currentLayer: GadgetId[] = new Array()
+            currentLayer.push("goal_gadget")
+            let hasInvalidEdge = false
+            while (true) {
+                const gadgetNodesInCurrentLayer = get().nodes.filter(node => currentLayer.includes(node.id))
+                const inputHandlesInCurrentLayer = gadgetNodesInCurrentLayer.map(node => get().getInputHandlesOfNode(node.id)).flat()
+                if (inputHandlesInCurrentLayer.length === 0) {
+                    break
+                }
+                let nextLayer = new Array()
+                for (const handle of inputHandlesInCurrentLayer) {
+                    const incomingEdges = get().edges.filter(edge => edge.targetHandle === handle)
+                    if (incomingEdges.length === 0) {
+                        openHandles.push(handle)
+                    } else if (incomingEdges.length === 1) {
+                        const incomingEdge = incomingEdges[0]
+                        if (!get().edgeIsSatisfied(incomingEdge)) {
+                            hasInvalidEdge = true
+                        }
+                        const nextNode = incomingEdge.source
+                        nextLayer.push(nextNode)
+                    } else {
+                        throw Error(`Unexpected number of incoming edges: handle ${handle} has ${incomingEdges.length} incoming edges`)
+                    }
+                }
+                currentLayer = nextLayer
+            }
+            const isCompleted = openHandles.length === 0 && !hasInvalidEdge
+            return { isCompleted, openHandles }
+        },
 
         updateLogicalState(events: GameEvent[]) {
             get().logEvents(events)
             get().runUnification()
+            const { isCompleted, openHandles } = get().runCompletionCheck()
+            if (isCompleted) {
+                set({ levelIsCompleted: true })
+            }
+            console.log("Open handles: ", openHandles)
             // update handles
             // check completeness
             // synchronize history
@@ -78,12 +101,13 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
 
         makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => {
             const id = get().generateNewGadgetId()
+            const gadgetProps = axiomToGadget(axiom, id)
             const gadgetNode: GadgetNode = {
                 id, type: 'gadgetNode',
                 position: get().rf.screenToFlowPosition(axiomPosition),
                 dragging: true,
                 deletable: get().setup.settings.gadgetDeletionEnabled && id !== "goal_gadget",
-                data: axiomToGadget(axiom, id)
+                data: gadgetProps
             }
             return gadgetNode
         },

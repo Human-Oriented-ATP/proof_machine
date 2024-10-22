@@ -3,8 +3,9 @@ import { GadgetNode } from '../../../components/game/flow/GadgetFlowNode';
 import { CreateStateWithInitialValue } from '../Types';
 import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice } from './DragGadgetFromShelf';
 import { Term } from 'lib/game/Term';
-import { getTermOfHandle } from 'lib/game/Handles';
+import { getTermOfHandle, makeHandleId } from 'lib/game/Handles';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
+import { OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 export type NodeStateInitializedFromData = {
     nodes: GadgetNode[],
@@ -20,6 +21,8 @@ export interface NodeActions {
     getGadgetNodeOfHandle: (handleId: string) => GadgetNode;
     getTermOfHandle: (handleId: string) => Term;
     abortAddingGadget: () => void;
+    getInputHandlesOfNode: (nodeId: string) => string[];
+    getNode(nodeId: string): GadgetNode;
 };
 
 export type NodeSlice = GadgetDndFromShelfSlice & NodeStateInitializedFromData & NodeState & NodeActions
@@ -49,25 +52,40 @@ export const nodeSlice: CreateStateWithInitialValue<NodeStateInitializedFromData
                 nodes: applyNodeChanges(changes, get().nodes),
             });
         },
+
         getGadgetNodeOfHandle(handleId: string): GadgetNode {
             const node = get().nodes.find((node) => hasHandle(node, handleId));
             if (node === undefined) throw Error(`Trying to look for handle that does not exist: ${handleId}`);
             return node
         },
+
         getTermOfHandle(handleId: string): Term {
             const node = get().getGadgetNodeOfHandle(handleId)
             const terms = node.data.terms
             return getTermOfHandle(handleId, terms)
         },
+
         abortAddingGadget: () => {
             const { gadgetBeingDraggedFromShelf } = get();
             if (gadgetBeingDraggedFromShelf !== undefined) {
                 const { id } = gadgetBeingDraggedFromShelf
-                set({
-                    nodes: get().nodes.filter((node) => node.id !== id),
-                });
+                set({ nodes: get().nodes.filter((node) => node.id !== id), });
             }
             set({ gadgetBeingDraggedFromShelf: undefined });
+        },
+
+        getNode: (nodeId: string): GadgetNode => {
+            const node = get().nodes.find((node) => node.id === nodeId);
+            if (node === undefined)
+                throw Error(`Trying to look for node that does not exist: ${nodeId}`);
+            return node
+        },
+
+        getInputHandlesOfNode: (nodeId: string): string[] => {
+            const node = get().getNode(nodeId)
+            const inputPositions = Array.from(node.data.terms.keys()).filter((position) => position !== OUTPUT_POSITION)
+            const inputHandles = inputPositions.map((position) => makeHandleId(position, node.data.id))
+            return inputHandles
         }
 
     }
