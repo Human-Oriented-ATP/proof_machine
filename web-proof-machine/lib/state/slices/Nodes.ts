@@ -4,9 +4,14 @@ import { CreateStateWithInitialValue } from '../Types';
 import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice } from './DragGadgetFromShelf';
 import { Term } from 'lib/game/Term';
 import { getTermOfHandle } from 'lib/game/Handles';
+import { ConnectorStatus } from 'components/game/gadget/Connector';
+
+export type NodeStateInitializedFromData = {
+    nodes: GadgetNode[],
+}
 
 export type NodeState = {
-    nodes: GadgetNode[],
+    handleStatus: Map<string, ConnectorStatus>
 }
 
 export interface NodeActions {
@@ -16,7 +21,7 @@ export interface NodeActions {
     abortAddingGadget: () => void;
 };
 
-export type NodeSlice = GadgetDndFromShelfSlice & NodeState & NodeActions
+export type NodeSlice = GadgetDndFromShelfSlice & NodeStateInitializedFromData & NodeState & NodeActions
 
 function hasHandle(node: GadgetNode, handleId: string): boolean {
     const handles = node.handles;
@@ -28,10 +33,12 @@ function newGadgetNodeHasBeenInitialized(nodeChanges: NodeChange[]) {
     return nodeChanges.length === 1 && nodeChanges[0].type === "dimensions"
 }
 
-export const nodeSlice: CreateStateWithInitialValue<NodeState, NodeSlice> = (initialState: NodeState, set, get): NodeSlice => {
+export const nodeSlice: CreateStateWithInitialValue<NodeStateInitializedFromData, NodeSlice> = (initialState: NodeStateInitializedFromData, set, get): NodeSlice => {
     return {
         ...gadgetDndFromShelfSlice(set, get),
         nodes: initialState.nodes,
+        handleStatus: new Map<string, ConnectorStatus>(),
+
         onNodesChange: (changes) => {
             if (newGadgetNodeHasBeenInitialized(changes)) {
                 get().initializeSyntheticDraggging()

@@ -1,19 +1,22 @@
 import { CreateStateWithInitialValue } from '../Types';
 import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
-import { toGadgetConnection as toGadgetConnection, EdgeSlice, edgeSlice, EdgeState, isValidConnection } from './Edges';
-import { NodeSlice, nodeSlice, NodeState } from './Nodes';
+import { toGadgetConnection as toGadgetConnection, EdgeSlice, edgeSlice, EdgeStateInitializedFromData, isValidConnection } from './Edges';
+import { NodeSlice, nodeSlice, NodeState, NodeStateInitializedFromData } from './Nodes';
 import { GameEvent } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { Axiom } from 'lib/game/Primitives';
-import { unificationSlice, UnificationSlice, UnificationState } from './Unification';
+import { unificationSlice, UnificationSlice, UnificationState, UnificationStateInitializedFromData } from './Unification';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/util/ReactFlow';
 import { HelpPopupSlice, helpPopupSlice } from './HelpPopup';
 
-export type FlowState = UnificationState & NodeState & EdgeState & {
-    rf: ReactFlowInstance;
+export type FlowStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
+    rf: ReactFlowInstance
+}
+
+export type FlowState = UnificationState & NodeState & {
     levelIsCompleted: boolean
 }
 
@@ -31,10 +34,10 @@ export interface FlowActions {
     onInit: () => void;
 };
 
-export type FlowSlice = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & HelpPopupSlice
-    & FlowState & FlowActions
+export type DependencySlices = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & HelpPopupSlice
+export type FlowSlice = DependencySlices & FlowStateInitializedFromData & FlowState & FlowActions
 
-export const flowSlice: CreateStateWithInitialValue<FlowState, FlowSlice> = (initialState, set, get) => {
+export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData, FlowSlice> = (initialState, set, get) => {
     return {
         ...edgeSlice(initialState, set, get),
         ...nodeSlice(initialState, set, get),

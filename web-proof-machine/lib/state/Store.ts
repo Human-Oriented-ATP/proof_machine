@@ -1,13 +1,13 @@
 import { createStore } from 'zustand'
 
-import { FlowSlice, flowSlice, FlowState } from './slices/Flow';
+import { FlowSlice, flowSlice, FlowStateInitializedFromData } from './slices/Flow';
 
-export type GameState = FlowState
+export type GameStateInitializedFromData = FlowStateInitializedFromData
 export type GameSlice = FlowSlice
 
 export type GameStore = ReturnType<typeof createGameStore>
 
-export const createGameStore = (initialState: FlowState) => {
+export const createGameStore = (initialState: GameStateInitializedFromData) => {
     return createStore<GameSlice>()((set, get) => ({
         ...initialState,
         ...flowSlice(initialState, set, get),

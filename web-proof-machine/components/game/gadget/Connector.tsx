@@ -1,8 +1,10 @@
 import { twMerge } from "tailwind-merge"
 
+export type ConnectorStatus = "DEFAULT" | "OPEN" | "CONNECTED" | "BROKEN"
+
 interface ConnectorProps {
     type: "source" | "target"
-    status?: "DEFAULT" | "OPEN" | "CONNECTED" | "BROKEN"
+    status?: ConnectorStatus
     isConnecting?: boolean
     isInline?: boolean
 }

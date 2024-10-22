@@ -4,7 +4,7 @@ import { getNodePositionFromHandle } from 'lib/game/Handles';
 import { GadgetConnection, GameEvent } from './History';
 import { OUTPUT_POSITION } from 'lib/game/CellPosition';
 
-export interface EdgeState {
+export interface EdgeStateInitializedFromData {
     edges: Edge[],
 }
 
@@ -16,7 +16,7 @@ export interface EdgeActions {
     doesNotCreateACycle: (connection: Connection) => boolean;
 };
 
-export type EdgeSlice = EdgeState & EdgeActions
+export type EdgeSlice = EdgeStateInitializedFromData & EdgeActions
 
 export function isValidConnection(connection: Connection): connection is { source: string, target: string, sourceHandle: string; targetHandle: string } {
     return connection.sourceHandle !== null && connection.targetHandle !== null;
@@ -39,7 +39,7 @@ export function toGadgetConnection(connection: Connection): GadgetConnection {
     }
 }
 
-export const edgeSlice: CreateStateWithInitialValue<EdgeState, EdgeSlice> = (initialState, set, get) => {
+export const edgeSlice: CreateStateWithInitialValue<EdgeStateInitializedFromData, EdgeSlice> = (initialState, set, get) => {
     return {
         edges: initialState.edges,
         getHandlesOfEdge: (edgeId: string) => {

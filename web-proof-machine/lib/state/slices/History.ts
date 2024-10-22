@@ -22,7 +22,9 @@ export type GameEvent = { GameCompleted: null }
     | { GadgetRemoved: { gadgetId: GadgetId } }
     | { ConnectionRemoved: GadgetConnection };
 
-export type HistoryState = SetupReadonlyState & {
+export type HistoryStateInitializedFromData = SetupReadonlyState
+
+export type HistoryState = {
     log: GameEvent[]
 }
 
@@ -40,12 +42,11 @@ export type HistoryActions = {
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
 }
 
-export type HistorySlice = HistoryState & SetupReadonlyState & HistoryActions
+export type HistorySlice = SetupReadonlyState & HistoryStateInitializedFromData & HistoryState & HistoryActions
 
-export const historySlice: CreateStateWithInitialValue<HistoryState, HistorySlice> = (initialState, set, get): HistorySlice => {
+export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFromData, HistorySlice> = (initialState, set, get): HistorySlice => {
     return {
         ...setupSlice(initialState),
-        // TODO: Initialize history with goal gadget and any other gadgets appearing in the initial diagram 
         log: [],
         logEvents: (events: GameEvent[]) => {
             const { log } = get()
