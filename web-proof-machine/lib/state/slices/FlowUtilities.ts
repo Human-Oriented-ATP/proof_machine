@@ -19,15 +19,15 @@ export type FlowUtilitiesState = UnificationState & NodeState & {
 }
 
 export interface FlowUtilitiesActions {
-    updateLogicalState: (events: GameEvent[]) => void;
-    calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
-    updateHandleStatus: (openHandles: string[]) => void;
-    isHandleWithBrokenConnection: (handle: string) => boolean;
     makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
     removeGadgetNode: (node: GadgetNode) => void;
     handleGadgetDraggedAboveShelf: (node: GadgetNode) => void;
     handleGadgetDragStopAwayFromShelf: (node: GadgetNode) => void;
+    updateLogicalState: (events: GameEvent[]) => void;
+    isHandleWithBrokenConnection: (handle: string) => boolean;
+    updateHandleStatus: (openHandles: string[]) => void;
+    calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
 };
 
 export type DependencySlices = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice
@@ -41,72 +41,6 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
         ...gadgetIdGeneratorSlice(set, get),
         rf: initialState.rf,
         levelIsCompleted: false,
-
-        calculateCompletionStatusAndOpenHandles: () => {
-            let openHandles = new Array()
-            let currentLayer: GadgetId[] = new Array()
-            currentLayer.push("goal_gadget")
-            let hasInvalidEdge = false
-            while (true) {
-                const gadgetNodesInCurrentLayer = get().nodes.filter(node => currentLayer.includes(node.id))
-                const inputHandlesInCurrentLayer = gadgetNodesInCurrentLayer.map(node => get().getInputHandlesOfNode(node.id)).flat()
-                if (inputHandlesInCurrentLayer.length === 0) {
-                    break
-                }
-                let nextLayer = new Array()
-                for (const handle of inputHandlesInCurrentLayer) {
-                    const incomingEdges = get().edges.filter(edge => edge.targetHandle === handle)
-                    if (incomingEdges.length === 0) {
-                        openHandles.push(handle)
-                    } else if (incomingEdges.length === 1) {
-                        const incomingEdge = incomingEdges[0]
-                        if (!get().edgeIsSatisfied(incomingEdge)) {
-                            hasInvalidEdge = true
-                        }
-                        const nextNode = incomingEdge.source
-                        nextLayer.push(nextNode)
-                    } else {
-                        throw Error(`Unexpected number of incoming edges: handle ${handle} has ${incomingEdges.length} incoming edges`)
-                    }
-                }
-                currentLayer = nextLayer
-            }
-            const isCompleted = openHandles.length === 0 && !hasInvalidEdge
-            return { isCompleted, openHandles }
-        },
-
-        isHandleWithBrokenConnection(handle: string) {
-            const edges = get().getEdgesConnectedToHandle(handle)
-            return edges.some((edge) => !get().edgeIsSatisfied(edge))
-        },
-
-        updateHandleStatus(openHandles: string[]) {
-            const allHandles = get().getAllHandles()
-            const handleStatus = new Map<string, ConnectorStatus>()
-            for (const handle of allHandles) {
-                if (openHandles.includes(handle)) {
-                    handleStatus.set(handle, "OPEN")
-                } else if (get().isHandleWithBrokenConnection(handle)) {
-                    handleStatus.set(handle, "BROKEN")
-                } else if (get().isConnectedHandle(handle)) {
-                    handleStatus.set(handle, "CONNECTED")
-                } else {
-                    handleStatus.set(handle, "DEFAULT")
-                }
-            }
-            set({ handleStatus })
-        },
-
-        updateLogicalState(events: GameEvent[]) {
-            get().logEvents(events)
-            get().runUnification()
-            const { isCompleted, openHandles } = get().calculateCompletionStatusAndOpenHandles()
-            get().updateHandleStatus(openHandles)
-            if (isCompleted) {
-                set({ levelIsCompleted: true })
-            }
-            // synchronize history
-        },
 
         makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => {
             const id = get().generateNewGadgetId()
@@ -161,6 +95,83 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             }
             // Set userIsDraggingOrNavigating to false
         },
+
+        updateLogicalState(events: GameEvent[]) {
+            get().logEvents(events)
+            get().runUnification()
+            const { isCompleted, openHandles } = get().calculateCompletionStatusAndOpenHandles()
+            get().updateHandleStatus(openHandles)
+            if (isCompleted) {
+                set({ levelIsCompleted: true })
+            }
+            // synchronize history
+        },
+
+        isHandleWithBrokenConnection(handle: string) {
+            const edges = get().getEdgesConnectedToHandle(handle)
+            return edges.some((edge) => !get().edgeIsSatisfied(edge))
+        },
+
+        updateHandleStatus(openHandles: string[]) {
+            const allHandles = get().getAllHandles()
+            const handleStatus = new Map<string, ConnectorStatus>()
+            for (const handle of allHandles) {
+                if (openHandles.includes(handle)) {
+                    handleStatus.set(handle, "OPEN")
+                } else if (get().isHandleWithBrokenConnection(handle)) {
+                    handleStatus.set(handle, "BROKEN")
+                } else if (get().isConnectedHandle(handle)) {
+                    handleStatus.set(handle, "CONNECTED")
+                } else {
+                    handleStatus.set(handle, "DEFAULT")
+                }
+            }
+            set({ handleStatus })
+        },
+
+        calculateCompletionStatusAndOpenHandles: () => {
+            const openHandles: string[] = [];
+            let currentLayer: GadgetId[] = ["goal_gadget"];
+            let hasInvalidEdge = false;
+
+            const getGadgetNodesInLayer = (layer: GadgetId[]) => {
+                return get().nodes.filter(node => layer.includes(node.id));
+            };
+
+            const getInputHandlesInLayer = (layer: GadgetId[]) => {
+                const gadgetNodes = getGadgetNodesInLayer(layer);
+                return gadgetNodes.map(node => get().getInputHandlesOfNode(node.id)).flat();
+            };
+
+            const processHandle = (handle: string, nextLayer: GadgetId[]) => {
+                const incomingEdges = get().edges.filter(edge => edge.targetHandle === handle);
+
+                if (incomingEdges.length === 0) {
+                    openHandles.push(handle);
+                } else if (incomingEdges.length === 1) {
+                    const incomingEdge = incomingEdges[0];
+                    if (!get().edgeIsSatisfied(incomingEdge)) {
+                        hasInvalidEdge = true;
+                    }
+                    nextLayer.push(incomingEdge.source);
+                } else {
+                    throw new Error(`Unexpected number of incoming edges: handle ${handle} has ${incomingEdges.length} incoming edges`);
+                }
+            };
+
+            while (true) {
+                const inputHandlesInCurrentLayer = getInputHandlesInLayer(currentLayer);
+                if (inputHandlesInCurrentLayer.length === 0) break;
+
+                let nextLayer: GadgetId[] = [];
+                inputHandlesInCurrentLayer.forEach(handle => processHandle(handle, nextLayer));
+
+                currentLayer = nextLayer;
+            }
+
+            const isCompleted = openHandles.length === 0 && !hasInvalidEdge;
+            return { isCompleted, openHandles };
+        }
 
     }
 }
