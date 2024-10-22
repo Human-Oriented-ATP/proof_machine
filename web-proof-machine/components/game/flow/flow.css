@@ -29,7 +29,7 @@
 .react-flow__node.selectable:focus {
     box-shadow: 0px 10px 30px gray;
     border-radius: 15px;
-    @apply backdrop-blur-sm;
+    @apply bg-white;
 }
 
 .react-flow__handle.valid svg {
