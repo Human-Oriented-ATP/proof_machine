@@ -74,8 +74,8 @@ structure State where
   uniqueNum      : Nat := 1
   stepCount      : Nat := 0
   result?        : Option ConstantInfo := none
-  resumeStack    : Array ResumeEntry := #[]
-  generatorStack : PriorityQueue PosPriority CellKey     (·.cmp · config) := {}
+  resumeStack    : PriorityBucketQueue PosPriority ResumeEntry (·.cmp · config) := {}
+  generatorStack : PriorityQueue PosPriority CellKey            (·.cmp · config) := {}
   loopyStack     : Queue (ResumeEntry ⊕ CellKey) := {}
   tableEntries   : Std.HashMap CellKey TableEntry := {} -- TODO: switch to using `GoalId` for identification, as it has a faster `==`?
   log            : Array String := #[]

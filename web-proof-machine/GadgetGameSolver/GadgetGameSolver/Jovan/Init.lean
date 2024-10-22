@@ -5,7 +5,7 @@ abbrev Times := Array (Array Nat)
 
 /-- Priority of a generator node. -/
 structure PosPriority where
-  numConsts : Nat
+  numApps : Nat
   /-- The inverse importance is a number at least 1, with 1 being the highest importance. -/
   numCases : Nat
   -- /-- The size of the solution so far -/
@@ -80,7 +80,7 @@ inductive Priority where
 deriving BEq, Repr
 
 def rootPriority : PosPriority where
-  numConsts := 0
+  numApps := 0
   numCases := 1
   times    := #[]
   spiralCount := 0
@@ -96,7 +96,7 @@ local instance : Ord Float where
 
 def PosPriority.properCmp (p q : PosPriority) (config : Config) : Ordering :=
   let cmp := if let some eval := config.customPrioValue then compare (eval p) (eval q) else .eq
-  let cmp := cmp.then <| if config.fewerConstantsFirst then compare q.numConsts p.numConsts else .eq
+  let cmp := cmp.then <| if config.fewerConstantsFirst then compare q.numApps p.numApps else .eq
   cmp.then <|
     if config.fewerCasesFirst then compare q.numCases p.numCases else .eq
 
@@ -128,7 +128,7 @@ def Priority.max (p q : Priority) (config : Config) : Priority :=
 /-- When computing the priority of a subgoal from that of the main goal, we use a
 modifier.-/
 structure PriorityModifier where
-  numConsts   : Nat
+  numApps   : Nat
   casesFactor : Nat
   times       : Array Nat
   isSpiral    : Bool
@@ -138,7 +138,7 @@ structure PriorityModifier where
 def PosPriority.modify (mod : PriorityModifier) (p : PosPriority) : PosPriority where
   numCases := p.numCases * mod.casesFactor
   times    := p.times.push mod.times
-  numConsts := mod.numConsts
+  numApps := mod.numApps
   spiralCount := if mod.isSpiral then p.spiralCount + 1 else p.spiralCount
 
 def Priority.modify (mod : PriorityModifier) (p : Priority) : Priority :=

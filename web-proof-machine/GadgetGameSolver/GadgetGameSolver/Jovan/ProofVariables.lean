@@ -31,11 +31,11 @@ abbrev setGCtx (goalCtx : GoalContext) : m Unit :=
 
 def mkFreshGoalVar [MonadUnique m] (goal : Cell) : m Proof := do
   let goalId := { id := ← getUnique }
-  modifyGCtx fun gctx => { gctx with decls := gctx.decls.insert goalId { goal } }
+  modifyGCtx %%.decls (·.insert goalId { goal })
   return .goal goalId
 
 def GoalId.assign (goalId : GoalId) (proof : Proof) : m Unit :=
-  modifyGCtx fun gctx => { gctx with assignments := gctx.assignments.insert goalId proof }
+  modifyGCtx %%.assignments (·.insert goalId proof)
 
 def GoalId.getGoal! (goalId : GoalId) : m Cell := do
   match (← getGCtx).decls[goalId] with

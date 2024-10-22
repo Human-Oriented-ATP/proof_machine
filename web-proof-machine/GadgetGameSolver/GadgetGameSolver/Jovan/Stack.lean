@@ -71,3 +71,22 @@ open Lean.RBNode in
 @[inline]
 def modify (p : π) (f : α → α) (q : PriorityQueue π α cmp) : PriorityQueue π α cmp :=
   { tree := modifyNode cmp p f q.tree  }
+
+end PriorityQueue
+
+def PriorityBucketQueue (π : Type u) (α : Type v) (cmp : π → π → Ordering) := PriorityQueue π (List α) cmp
+
+namespace PriorityBucketQueue
+
+variable {π : Type u} {α : Type v} {cmp : π → π → Ordering }
+
+@[inline]
+def insert' (p : π) (a : List α) (q : PriorityBucketQueue π α cmp) : PriorityBucketQueue π α cmp :=
+  q.insert p a
+
+@[inline]
+def insert (p : π) (a : α) (q : PriorityBucketQueue π α cmp) : PriorityBucketQueue π α cmp :=
+  let rest := (q.find? p).getD []
+  { tree := q.tree.insert cmp p (a :: rest) }
+
+end PriorityBucketQueue

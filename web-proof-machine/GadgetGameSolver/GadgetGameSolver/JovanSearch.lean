@@ -57,9 +57,8 @@ def useAnswer (cInfo : ConstantInfo) (goalId : GoalId) : SearchM Unit := do
     throw "failed to use anser"
 
 /-- Move waiter that is waiting for the given answer to the resume stack. -/
-def wakeUp (cNode : ConsumerNode) (answer : Answer) : SearchM Unit :=
-  modify fun s => { s with
-    resumeStack := s.resumeStack.push { cNode, answer, counts? := false } }
+def wakeUp (cNode : ConsumerNode) (posPriority : PosPriority) (answer : Answer) : SearchM Unit := do
+  modify %%.resumeStack (·.insert posPriority { cNode, answer, counts? := false })
 
 /-- Move waiters that are waiting for the given answer to the resume stack. -/
 def wakeUpWaiters (entry : OpenTableEntry) (answer : Answer) : SearchM Unit := do
@@ -71,8 +70,8 @@ def wakeUpWaiters (entry : OpenTableEntry) (answer : Answer) : SearchM Unit := d
   entry.waiters.forM fun cNode priority =>
     let entry := { cNode, answer, counts? := entry.firstWaiter.all (· != cNode) }
     match priority with
-    | .some _ =>
-      modify %%.resumeStack (·.push entry)
+    | .some posPriority =>
+      modify %%.resumeStack (·.insert posPriority entry)
     | .useless =>
       modifyOpenEntry cNode.gInfo.key %%.deadResumes (·.push entry)
 
@@ -139,10 +138,10 @@ def processSubgoal (cNode : ConsumerNode) (axioms : Array ConstantInfo) (posPrio
     newSubgoal cNode.subgoalInfo axioms cNode posPriority
   | some (.done answers) =>
     logMessage s!"found finished goal in table. Answers: {answers.map (·.cInfo.gadget.conclusion)}"
-    answers.forM (wakeUp cNode)
+    answers.forM (wakeUp cNode posPriority)
   | some (.openE entry) =>
     logMessage s!"found goal in table: subgoal {← cNode.subgoalInfo.goalId.toString} of {← cNode.gInfo.goalId.toString}. Answers: {entry.answers.map (·.cInfo.gadget.conclusion)}"
-    entry.answers.forM (wakeUp cNode)
+    entry.answers.forM (wakeUp cNode posPriority)
     let priority := .some posPriority
     modifyOpenEntry key %%.waiters (·.insert cNode priority)
     modifyOpenEntry cNode.gInfo.key %%.waitingFor (·.insert cNode)
@@ -162,22 +161,22 @@ def consume (gInfo : GoalInfo) (proofKeys : List (ProofKeys × Bool))
     logMessage s!"goal {← gInfo.goal.toString} is now unsolvable"
   | .ok ((subgoalId, todo), laterSubgoals) =>
     let subgoalInfo   ← mkGoalInfo subgoalId
-    let numConsts    := subgoalInfo.goal.size
+    let numApps    := subgoalInfo.goal.size
     let proof         ← gInfo.goalId.getInstantiatedAssignment
     let instGoalMVars ← instGoalMVars.bindM (OptionT.run <| ·.mapM (·.instantiateHead))
     let { postponeSpiralSearch, useOldSpiralDetect, .. } ← getConfig
     let isSpiral ← if postponeSpiralSearch then
       (if useOldSpiralDetect then isSpiralDeprecated else Iterate.isSpiral) gInfo subgoalInfo proof
       else pure false
-    let priorityMod  := { numConsts, times := times.push (← getUnique), casesFactor := laterSubgoals.size + 1, isSpiral }
+    let priorityMod  := { numApps, times := times.push (← getUnique), casesFactor := laterSubgoals.size + 1, isSpiral }
     let cNode := { gInfo, subgoalInfo, proof, proofKeys, laterSubgoals, instGoalMVars, priorityMod }
+    let posPriority := posPriority.modify priorityMod
     match todo with
     | .inl axioms =>
-      let posPriority := posPriority.modify priorityMod
       processSubgoal cNode axioms posPriority
     | .inr answer =>
       increment
-      wakeUp cNode answer
+      wakeUp cNode posPriority answer
       -- we've been given a full proof, so we can close this table entry.
       if let some (.openE entry) ← findEntry? subgoalInfo.key then
         wakeUpWaiters entry answer
@@ -225,6 +224,7 @@ where
     if let some subgoals ← tryAxiom gNode.gInfo ax then
       consume gNode.gInfo [] #[] posPriority gNode.gInfo.mvars subgoals
 
+section Circles
 
 partial def relevantProofKeys (cycle : Std.HashSet CellKey) (result : Std.HashMap CellKey Bool)
     (proofKeys : ProofKeys) (spirals? : Bool := false) : SearchM (Std.HashMap CellKey Bool) := do
@@ -268,6 +268,8 @@ partial def possiblySpiral (used : Std.HashMap CellKey Bool) (key : CellKey)
         return true
     return false
 
+end Circles
+
 /--
   Given `(cNode, answer)` on the top of the resume stack, continue execution by using `answer` to solve the
   next subgoal. -/
@@ -308,11 +310,15 @@ def resume (entry : ResumeEntry) (loopyCase : Bool) : SearchM Unit := do
 
 def step : SearchM Bool := do
   let s ← get
-  if !s.resumeStack.isEmpty then
-    let r := s.resumeStack.back
-    modify %%.resumeStack .pop
-    resume r false
-    return true
+  if let some (p, top) := s.resumeStack.top then
+    match top with
+    | [] =>
+      modify %%.resumeStack (·.erase p)
+      return true
+    | top :: rest =>
+      modify %%.resumeStack (·.insert' p rest)
+      resume top false
+      return true
   else if let some (p, top) := s.generatorStack.top then
     generate p top
       (modify %%.generatorStack (·.erase p))
