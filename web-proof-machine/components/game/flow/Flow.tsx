@@ -33,9 +33,6 @@ export function Flow() {
     const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, isValidConnection,
         onNodesDelete, onEdgesDelete, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
 
-    // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
-    // useOpenHandleHighlighting({ nodes, edges })
-
     // const enableHoleFocus = useCallback(() => {
     //     setNodes(nodes => nodes.map(node => {
     //         return { ...node, data: { ...node.data, displayHoleFocus: true } }

@@ -14,6 +14,8 @@ export interface EdgeActions {
     getHandlesOfEdge: (edgeId: string) => { sourceHandle: string, targetHandle: string };
     connectionExists: (connection: Connection) => boolean;
     doesNotCreateACycle: (connection: Connection) => boolean;
+    getEdgesConnectedToHandle: (handle: string) => Edge[];
+    isConnectedHandle: (handle: string) => boolean;
 };
 
 export type EdgeSlice = EdgeStateInitializedFromData & EdgeActions
@@ -87,6 +89,14 @@ export const edgeSlice: CreateStateWithInitialValue<EdgeStateInitializedFromData
                 else
                     currentNodes = new Set<string>(incomingEdges.map((edge) => edge.source))
             }
+        },
+
+        getEdgesConnectedToHandle(handle: string) {
+            return get().edges.filter(edge => edge.sourceHandle === handle || edge.targetHandle === handle)
+        },
+
+        isConnectedHandle(handle: string) {
+            return get().getEdgesConnectedToHandle(handle).length > 0
         },
 
     }

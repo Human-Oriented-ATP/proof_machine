@@ -5,7 +5,7 @@ import { gadgetDndFromShelfSlice, GadgetDndFromShelfSlice } from './DragGadgetFr
 import { Term } from 'lib/game/Term';
 import { getTermOfHandle, makeHandleId } from 'lib/game/Handles';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
-import { OUTPUT_POSITION } from 'lib/game/CellPosition';
+import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 export type NodeStateInitializedFromData = {
     nodes: GadgetNode[],
@@ -21,8 +21,10 @@ export interface NodeActions {
     getGadgetNodeOfHandle: (handleId: string) => GadgetNode;
     getTermOfHandle: (handleId: string) => Term;
     abortAddingGadget: () => void;
+    getHandlesOfNode: (nodeId: string) => Map<CellPosition, string>;
     getInputHandlesOfNode: (nodeId: string) => string[];
     getNode(nodeId: string): GadgetNode;
+    getAllHandles(): string[];
 };
 
 export type NodeSlice = GadgetDndFromShelfSlice & NodeStateInitializedFromData & NodeState & NodeActions
@@ -81,12 +83,28 @@ export const nodeSlice: CreateStateWithInitialValue<NodeStateInitializedFromData
             return node
         },
 
-        getInputHandlesOfNode: (nodeId: string): string[] => {
+        getHandlesOfNode: (nodeId: string): Map<CellPosition, string> => {
             const node = get().getNode(nodeId)
-            const inputPositions = Array.from(node.data.terms.keys()).filter((position) => position !== OUTPUT_POSITION)
-            const inputHandles = inputPositions.map((position) => makeHandleId(position, node.data.id))
-            return inputHandles
-        }
+            const handles = new Map<CellPosition, string>()
+            node.data.terms.forEach((term, position) => {
+                handles.set(position, makeHandleId(position, node.data.id))
+            })
+            return handles
+        },
+
+        getInputHandlesOfNode: (nodeId: string): string[] => {
+            const handles = get().getHandlesOfNode(nodeId)
+            handles.delete(OUTPUT_POSITION)
+            return Array.from(handles.values())
+        },
+
+        getAllHandles(): string[] {
+            const handles = new Array<string>()
+            for (const node of get().nodes) {
+                handles.push(...Array.from(get().getHandlesOfNode(node.id).values()))
+            }
+            return handles
+        },
 
     }
 }

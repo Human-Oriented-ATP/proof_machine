@@ -12,6 +12,7 @@ import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/util/ReactFlow';
 import { HelpPopupSlice, helpPopupSlice } from './HelpPopup';
 import { isAboveGadgetShelf } from 'lib/util/Positions';
+import { ConnectorStatus } from 'components/game/gadget/Connector';
 
 export type FlowStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -23,7 +24,9 @@ export type FlowState = UnificationState & NodeState & {
 
 export interface FlowActions {
     updateLogicalState: (events: GameEvent[]) => void;
-    runCompletionCheck: () => { isCompleted: boolean, openHandles: string[] };
+    calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
+    updateHandleStatus: (openHandles: string[]) => void;
+    isHandleWithBrokenConnection: (handle: string) => boolean;
     makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
     removeGadgetNode: (node: GadgetNode) => void;
@@ -52,8 +55,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
         rf: initialState.rf,
         levelIsCompleted: false,
 
-        // TODO: 
-        runCompletionCheck: () => {
+        calculateCompletionStatusAndOpenHandles: () => {
             let openHandles = new Array()
             let currentLayer: GadgetId[] = new Array()
             currentLayer.push("goal_gadget")
@@ -86,16 +88,36 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             return { isCompleted, openHandles }
         },
 
+        isHandleWithBrokenConnection(handle: string) {
+            const edges = get().getEdgesConnectedToHandle(handle)
+            return edges.some((edge) => !get().edgeIsSatisfied(edge))
+        },
+
+        updateHandleStatus(openHandles: string[]) {
+            const allHandles = get().getAllHandles()
+            const handleStatus = new Map<string, ConnectorStatus>()
+            for (const handle of allHandles) {
+                if (openHandles.includes(handle)) {
+                    handleStatus.set(handle, "OPEN")
+                } else if (get().isHandleWithBrokenConnection(handle)) {
+                    handleStatus.set(handle, "BROKEN")
+                } else if (get().isConnectedHandle(handle)) {
+                    handleStatus.set(handle, "CONNECTED")
+                } else {
+                    handleStatus.set(handle, "DEFAULT")
+                }
+            }
+            set({ handleStatus })
+        },
+
         updateLogicalState(events: GameEvent[]) {
             get().logEvents(events)
             get().runUnification()
-            const { isCompleted, openHandles } = get().runCompletionCheck()
+            const { isCompleted, openHandles } = get().calculateCompletionStatusAndOpenHandles()
+            get().updateHandleStatus(openHandles)
             if (isCompleted) {
                 set({ levelIsCompleted: true })
             }
-            console.log("Open handles: ", openHandles)
-            // update handles
-            // check completeness
             // synchronize history
         },
 
