@@ -10,6 +10,7 @@ import { Axiom, GadgetId } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState, UnificationStateInitializedFromData } from './Unification';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
 import { calculateProximityConnection, ConnectionWithHandles, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
+import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -29,6 +30,7 @@ export interface FlowUtilitiesActions {
     isHandleWithBrokenConnection: (handle: string) => boolean;
     updateHandleStatus: (openHandles: string[]) => void;
     calculatePositionOfHandles: (handles: string[]) => HandlesWithPositions;
+    isValidConnection: (connection: Connection) => boolean;
     getProximityConnection(nodeThatIsBeingDragged: string): ConnectionWithHandles | null;
     runProximityConnect(nodeId: string): GameEvent[];
     calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
@@ -111,7 +113,6 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             if (isCompleted) {
                 set({ levelIsCompleted: true })
             }
-            console.log("handle status", get().handleStatus)
             // synchronize history
         },
 
@@ -145,6 +146,16 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             return handlesWithPositions
         },
 
+        isValidConnection: (connection: Connection) => {
+            const gadgetConnection = toGadgetConnection(connection)
+            const [lhs, rhs] = get().getEquationOfConnection(gadgetConnection)
+            const arityOk = aritiesMatch(lhs, rhs)
+            const colorsOk = labelsMatch(lhs, rhs)
+            const createsNoCycle = get().doesNotCreateACycle(connection)
+            const doesNotYetExist = !get().connectionExists(connection)
+            return colorsOk && arityOk && createsNoCycle && doesNotYetExist
+        },
+
         getProximityConnection(nodeThatIsBeingDragged: string) {
             const handlesOfNodeBeingDragged = get().getHandlesOfNode(nodeThatIsBeingDragged)
             const otherNodes = get().nodes.filter(node => node.id !== nodeThatIsBeingDragged)
@@ -152,7 +163,10 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             const proximityConnection = calculateProximityConnection(
                 get().calculatePositionOfHandles(handlesOfNodeBeingDragged),
                 get().calculatePositionOfHandles(handlesOfOtherNodes))
-            return proximityConnection
+            if (proximityConnection === null) return null
+            else if (!get().isValidConnection(proximityConnection)) return null
+            // TODO: Can fail if the gadget is newly added: In that case there is no history event and thus the term is not found for the newly added gadget
+            else return proximityConnection
         },
 
         runProximityConnect(nodeId: string): GameEvent[] {
@@ -208,7 +222,6 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             }
 
             const isCompleted = openHandles.length === 0 && !hasInvalidEdge;
-            console.log("open handles", openHandles)
             return { isCompleted, openHandles };
         }
 

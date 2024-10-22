@@ -16,7 +16,6 @@ export interface FlowActions {
     onEdgesChange: OnEdgesChange;
     onNodesDelete: (nodes: GadgetNode[]) => void;
     onEdgesDelete: (edges: Edge[]) => void;
-    isValidConnection: (connection: any) => boolean;
     onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
     onConnect: OnConnect;
     onNodeDrag: OnNodeDrag<GadgetNode>
@@ -46,16 +45,6 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
         onEdgesDelete: (edges: Edge[]) => {
             const events = edges.map(edge => ({ ConnectionRemoved: toGadgetConnection(edge as Connection) }))
             get().updateLogicalState(events)
-        },
-
-        isValidConnection: (connection: Connection) => {
-            const gadgetConnection = toGadgetConnection(connection)
-            const [lhs, rhs] = get().getEquationOfConnection(gadgetConnection)
-            const arityOk = aritiesMatch(lhs, rhs)
-            const colorsOk = labelsMatch(lhs, rhs)
-            const createsNoCycle = get().doesNotCreateACycle(connection)
-            const doesNotYetExist = !get().connectionExists(connection)
-            return colorsOk && arityOk && createsNoCycle && doesNotYetExist
         },
 
         onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => {
