@@ -7,23 +7,12 @@ import { useShallow } from 'zustand/react/shallow';
 
 import '@xyflow/react/dist/base.css';
 import './flow.css'
-import { Axiom } from "../../../lib/game/Primitives";
 import { ControlButtons } from './ControlButtons';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { GameSlice } from 'lib/state/Store';
 
 const nodeTypes: NodeTypes = { 'gadgetNode': GadgetFlowNode }
 const edgeTypes: EdgeTypes = { 'customEdge': CustomEdge }
-
-function containsPoint(rect: DOMRect, point: XYPosition): boolean {
-    return rect.left <= point.x && point.x <= rect.right && rect.top <= point.y && point.y <= rect.bottom
-}
-
-function isAbovePalette(position: XYPosition): boolean {
-    const paletteElement = document.getElementById("gadget_shelf")!
-    const paletteRect = paletteElement?.getBoundingClientRect()
-    return containsPoint(paletteRect, position)
-}
 
 const selector = (state: GameSlice) => ({
     nodes: state.nodes,
@@ -36,12 +25,13 @@ const selector = (state: GameSlice) => ({
     onInit: state.onInit,
     settings: state.setup.settings,
     onNodesDelete: state.onNodesDelete,
-    onEdgesDelete: state.onEdgesDelete
+    onEdgesDelete: state.onEdgesDelete,
+    onNodeDragStop: state.onNodeDragStop
 });
 
 export function Flow() {
     const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onConnectStart,
-        onNodesDelete, onEdgesDelete, isValidConnection, onInit, settings } = useGameStateContext(useShallow(selector));
+        onNodesDelete, onEdgesDelete, isValidConnection, onInit, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
 
     // useCompletionCheck({ markLevelAsCompleted: props.markLevelAsCompleted, nodes, edges })
     // useOpenHandleHighlighting({ nodes, edges })
@@ -107,10 +97,6 @@ export function Flow() {
     //     // enableHoleFocus()
     // }, [])
 
-    // const onEdgesDelete = useCallback((edges: Edge[]) => {
-    //     deleteEquationsOfEdges(edges)
-    // }, [])
-
     const zoomProps = settings.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 
     return <>
@@ -131,7 +117,7 @@ export function Flow() {
             isValidConnection={isValidConnection}
             // onNodeDrag={onNodeDrag}
             // onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
-            // onNodeDragStop={onNodeDragStop}
+            onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
             // onMove={() => props.setUserIsDraggingOrNavigating(true)}
             // onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}

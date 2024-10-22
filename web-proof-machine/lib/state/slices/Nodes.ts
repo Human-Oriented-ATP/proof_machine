@@ -12,6 +12,7 @@ export type NodeStateInitializedFromData = {
 
 export type NodeState = {
     handleStatus: Map<string, ConnectorStatus>
+    connectingHandles: string[]
 }
 
 export interface NodeActions {
@@ -38,6 +39,7 @@ export const nodeSlice: CreateStateWithInitialValue<NodeStateInitializedFromData
         ...gadgetDndFromShelfSlice(set, get),
         nodes: initialState.nodes,
         handleStatus: new Map<string, ConnectorStatus>(),
+        connectingHandles: [],
 
         onNodesChange: (changes) => {
             if (newGadgetNodeHasBeenInitialized(changes)) {

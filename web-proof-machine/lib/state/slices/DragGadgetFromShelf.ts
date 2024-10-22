@@ -1,9 +1,11 @@
 import { XYPosition } from '@xyflow/react';
 import { GetState, SetState } from '../Types';
+import { Axiom } from 'lib/game/Primitives';
 
 interface GadgetDndFromShelfData {
     id: string;
     position: XYPosition;
+    axiom: Axiom
     status: "STILL_ABOVE_SHELF" | "MOVED_TO_WORK_BENCH";
 }
 
@@ -12,7 +14,6 @@ export interface GadgetDndFromShelfState {
 }
 
 export interface GadgetDndFromShelfActions {
-    setGadgetBeingDraggedFromShelf: (dragFromShelfData: GadgetDndFromShelfData) => void;
     initializeSyntheticDraggging: () => void;
 }
 
@@ -44,10 +45,6 @@ export const gadgetDndFromShelfSlice = (set: SetState<GadgetDndFromShelfSlice>, 
             } else {
                 set({ gadgetBeingDraggedFromShelf: undefined });
             }
-        },
-
-        setGadgetBeingDraggedFromShelf: (gadgetBeingDraggedFromShelf: GadgetDndFromShelfData) => {
-            set({ gadgetBeingDraggedFromShelf });
         },
     };
 };

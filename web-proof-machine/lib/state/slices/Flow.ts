@@ -11,6 +11,7 @@ import { unificationSlice, UnificationSlice, UnificationState, UnificationStateI
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/util/ReactFlow';
 import { HelpPopupSlice, helpPopupSlice } from './HelpPopup';
+import { isAboveGadgetShelf } from 'lib/util/Positions';
 
 export type FlowStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -25,6 +26,8 @@ export interface FlowActions {
     makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
     removeGadgetNode: (nodeId: string) => void;
+    handleGadgetDraggedAboveShelf: (node: GadgetNode) => void;
+    handleGadgetDragStopAwayFromShelf: (node: GadgetNode) => void;
     onEdgesChange: OnEdgesChange;
     onConnect: OnConnect;
     isValidConnection: (connection: any) => boolean;
@@ -32,6 +35,7 @@ export interface FlowActions {
     onEdgesDelete: (edges: Edge[]) => void;
     onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
     onInit: () => void;
+    onNodeDragStop: (event: React.MouseEvent, node: GadgetNode) => void;
 };
 
 export type DependencySlices = NodeSlice & EdgeSlice & UnificationSlice & GadgetIdGeneratorSlice & HelpPopupSlice
@@ -86,13 +90,9 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
 
         addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => {
             const node = get().makeGadgetNode(axiom, axiomPosition)
-            get().setGadgetBeingDraggedFromShelf({ id: node.id, position: node.position, status: "STILL_ABOVE_SHELF" })
-            set({
-                nodes: [...get().nodes, node],
-            });
-            // not quite yet: at this point we only know that the user has clicked the gadget, but maybe not yet dragged it away!
-            // this should be moved to onNodeDragStop
-            get().updateLogicalState([{ GadgetAdded: { gadgetId: node.id, axiom } }])
+            set({ gadgetBeingDraggedFromShelf: { id: node.id, position: node.position, status: "STILL_ABOVE_SHELF", axiom } })
+            set({ nodes: [...get().nodes, node], });
+            // Intentionally no update of logical state here -- this happens in onNodeDragStop
         },
 
         removeGadgetNode: (nodeId: string) => {
@@ -150,6 +150,39 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             initViewport(get().rf, initialViewPortSetting)
             get().updateLogicalState([])
         },
+
+        handleGadgetDraggedAboveShelf(node: GadgetNode) {
+            const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
+            if (gadgetBeingDraggedFromShelf === undefined) {
+                get().removeGadgetNode(node.id)
+            } else {
+                if (node.id !== gadgetBeingDraggedFromShelf.id)
+                    throw Error("Impossible value for gadgetBeingDraggedFromShelf")
+                set({ nodes: get().nodes.filter((n) => n.id !== gadgetBeingDraggedFromShelf.id) });
+                set({ gadgetBeingDraggedFromShelf: undefined });
+            }
+        },
+
+        handleGadgetDragStopAwayFromShelf(node: GadgetNode) {
+            const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
+            // events = proximityConnect()
+            if (gadgetBeingDraggedFromShelf !== undefined) {
+                const { id, axiom } = gadgetBeingDraggedFromShelf
+                const event = { GadgetAdded: { gadgetId: id, axiom } }
+                set({ gadgetBeingDraggedFromShelf: undefined });
+                get().updateLogicalState([event]) // need to add the connection event from proximity connect as well!
+            } else {
+                // update logical state with only proximity connect event!
+            }
+        },
+
+        onNodeDragStop(event, node) {
+            if (isAboveGadgetShelf({ x: event.clientX, y: event.clientY })) {
+                get().handleGadgetDraggedAboveShelf(node)
+            } else {
+                get().handleGadgetDragStopAwayFromShelf(node)
+            }
+        }
 
     }
 }
