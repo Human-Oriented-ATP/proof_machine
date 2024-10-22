@@ -73,7 +73,7 @@ export const edgeSlice: CreateStateWithInitialValue<EdgeStateInitializedFromData
             return events
         },
         connectionExists(connection: Connection) {
-            return get().edges.some((edge) => edge.source === connection.source && edge.target === connection.target);
+            return get().edges.some((edge) => edge.sourceHandle === connection.sourceHandle && edge.targetHandle === connection.targetHandle);
         },
         doesNotCreateACycle: (connection: Connection) => {
             const { source, target } = connection
