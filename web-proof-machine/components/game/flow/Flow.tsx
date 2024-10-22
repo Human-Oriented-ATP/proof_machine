@@ -34,22 +34,7 @@ export function Flow() {
     const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, isValidConnection,
         onNodesDelete, onEdgesDelete, onNodeDrag, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
 
-    // const enableHoleFocus = useCallback(() => {
-    //     setNodes(nodes => nodes.map(node => {
-    //         return { ...node, data: { ...node.data, displayHoleFocus: true } }
-    //     }))
-    // }, [])
-
-    // const onConnect = useCallback((connection: Connection) => {
-    //     savelyAddEdge(connection)
-    // }, [savelyAddEdge])
-
-    // const [onNodeDragProximityConnect, onNodeDragStopProximityConnect] = props.proximityConnectEnabled ?
-    //     useProximityConnect(rf, isValidConnection, savelyAddEdge)
-    //     : [(e, n) => void 0, (e, n) => void 0]
-
     // const onNodeDrag = useCallback((event: React.MouseEvent, node: GadgetNode) => {
-    //     onNodeDragProximityConnect(event, node)
     //     props.setUserIsDraggingOrNavigating(true)
     // }, [])
 
