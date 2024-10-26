@@ -26,12 +26,15 @@ structure Config where
   cacheSolutions         : Bool
   fewerConstantsFirst    : Bool
   customPrioValue        : Option (PosPriority → Float)
+  traceConstants         : Bool
 
 class MonadConfig (m : Type → Type) where
   getConfig : m Config
 
 export MonadConfig (getConfig)
 
+instance {m n} [MonadLift m n] [MonadConfig m] : MonadConfig n where
+  getConfig := liftM (m := m) getConfig
 
 universe u
 variable {α : Type u}

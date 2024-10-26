@@ -23,6 +23,15 @@ def Expr.mvarId! : Expr → MVarId
   | mvar mvarId => mvarId
   | _ => panic! "mvar expected"
 
+structure Function where
+  f       : String
+  numArgs : Nat
+  deriving BEq, Hashable, Repr
+
+instance : Repr Function where
+  reprPrec f _ := if f.numArgs = 0 then f.f else
+    s!"{f.f}({", ".intercalate (Array.mkArray f.numArgs "_").toList})"
+
 structure Cell where
   f    : String
   args : Array Expr
@@ -48,6 +57,25 @@ def Expr.toTerm (e : Expr) : GadgetGame.Term :=
 def Cell.toTerm (c : Cell) : GadgetGame.Term :=
   .app c.f (c.args.map (·.toTerm))
 
+instance {m : Type → Type} : ForIn m Cell (Nat × Expr) where
+  forIn c := forIn c.args.enumerate
+
+structure CellColour where
+  f       : String
+  numArgs : Nat
+  deriving BEq, Hashable, Repr
+
+instance : Repr Function where
+  reprPrec f _ := if f.numArgs = 0 then f.f else
+    s!"{f.f}({", ".intercalate (Array.mkArray f.numArgs "_").toList})"
+
+class CellLike (α : Type) where
+  cellColour : α → CellColour
+export CellLike (cellColour)
+
+instance : CellLike Cell where
+  cellColour c := { f := c.f, numArgs := c.args.size }
+
 /-! Abstracted gadgets -/
 
 inductive AbstractedExpr where
@@ -66,6 +94,9 @@ structure AbstractedCell where
   args : Array AbstractedExpr
   deriving Inhabited, BEq
 
+instance {m : Type → Type} : ForIn m AbstractedCell (Nat × AbstractedExpr) where
+  forIn c := forIn c.args.enumerate
+
 structure CellKey extends AbstractedCell where
   hash : UInt64 := args.foldl (init := hash f) (mixHash · <| hash ·)
   deriving Inhabited
@@ -75,11 +106,25 @@ instance : BEq CellKey where
 
 instance : Hashable CellKey := ⟨CellKey.hash⟩
 
+instance : CellLike AbstractedCell where
+  cellColour c := { f := c.f, numArgs := c.args.size }
+
 structure AbstractedGadget where
   varNames   : Array String
   conclusion : AbstractedCell
   hypotheses : Array AbstractedCell
   deriving Inhabited
+
+@[inline]
+def AbstractedGadget.forIn {β : Type} {m : Type → Type} [Monad m] (gadget : AbstractedGadget) (init : β)
+  (f : (AbstractedCell × Bool) → β → m (ForInStep β)) : m β := do
+  match ← f (gadget.conclusion, true) init with
+  | .done b  => pure b
+  | .yield b =>
+    gadget.hypotheses.forIn b fun c => f (c, false)
+
+instance {m : Type → Type} [Monad m] : ForIn m AbstractedGadget (AbstractedCell × Bool) where
+  forIn := AbstractedGadget.forIn
 
 /-! Instantiating abstracted gadgets -/
 
@@ -160,4 +205,18 @@ def Cell.collectMVars (c : Cell) : CollectMVarsState → CollectMVarsState :=
   c.args.foldl fun s e => e.collectMVars s
 
 def Gadget.collectMVars (gadget : Gadget) : CollectMVarsState → CollectMVarsState :=
+  gadget.conclusion.collectMVars ∘ gadget.hypotheses.foldl fun s e => e.collectMVars s
+
+structure CollectAbstMVarsState where
+  set : Std.HashSet Nat := {}
+  arr : Array Nat := #[]
+
+def AbstractedExpr.collectMVars : AbstractedExpr → CollectAbstMVarsState → CollectAbstMVarsState
+  | .mvar mvarId => fun s => { s with set := s.set.insert mvarId, arr := s.arr.push mvarId }
+  | .app _ args => args.attach.foldl (fun s ⟨e, _⟩ => e.collectMVars s)
+
+def AbstractedCell.collectMVars (c : AbstractedCell) : CollectAbstMVarsState → CollectAbstMVarsState :=
+  c.args.foldl fun s e => e.collectMVars s
+
+def AbstractedGadget.collectMVars (gadget : AbstractedGadget) : CollectAbstMVarsState → CollectAbstMVarsState :=
   gadget.conclusion.collectMVars ∘ gadget.hypotheses.foldl fun s e => e.collectMVars s

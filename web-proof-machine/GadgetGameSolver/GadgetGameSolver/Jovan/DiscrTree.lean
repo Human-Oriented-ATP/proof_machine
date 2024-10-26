@@ -3,11 +3,6 @@ import GadgetGameSolver.Jovan.Term
 
 namespace JovanGadgetGame.DiscrTree
 
-structure Function where
-  f       : String
-  numArgs : Nat
-  deriving BEq
-
 inductive Key where
 | star (idx : Nat)
 | app (f : Function)
@@ -21,11 +16,6 @@ deriving Inhabited
 
 end DiscrTree
 
-structure CellColour where
-  f       : String
-  numArgs : Nat
-  deriving BEq, Hashable
-
 open DiscrTree
 
 structure DiscrTree (α : Type) where
@@ -36,11 +26,10 @@ section Encode
 
 class DiscrTreeEntry (α : Type) where
   LazyEntry  : Type
-  cellColour : α → CellColour
   init       : α → LazyEntry
   next       : LazyEntry → Option (Key × LazyEntry)
 
-export DiscrTree.DiscrTreeEntry (LazyEntry cellColour init next)
+export DiscrTree.DiscrTreeEntry (LazyEntry init next)
 
 /-- A `LazyExprEntry` represents a snapshot of the computation of encoding an `Expr` as `Array Key`.
 This is used for computing the keys one by one. -/
@@ -79,14 +68,12 @@ def LazyExprEntry.next (entry : LazyExprEntry) : Option (Key × LazyExprEntry) :
 @[inline]
 instance : DiscrTreeEntry Cell where
   LazyEntry    := LazyExprEntry
-  cellColour c := { f := c.f, numArgs := c.args.size }
   init c       := { stack := c.args.toList }
   next entry   := entry.next
 
 @[inline]
 instance : DiscrTreeEntry AbstractedCell where
   LazyEntry    := List AbstractedExpr
-  cellColour c := { f := c.f, numArgs := c.args.size }
   init c       := c.args.toList
   next
     | []                   => none
@@ -99,7 +86,7 @@ variable {α : Type}
 
 section Insert
 
-variable {β : Type} [DiscrTreeEntry β]
+variable {β : Type} [DiscrTreeEntry β] [CellLike β]
 
 @[specialize] partial def Trie.mkNew (entry : LazyEntry β) (v : α) : Trie α :=
   match next entry with

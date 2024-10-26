@@ -63,7 +63,15 @@ inductive TableEntry where
 | done  : Array Answer → TableEntry
 
 structure Context where
-  axioms        : Std.HashMap (String × Nat) (Array ConstantInfo)
+  axioms        : Std.HashMap CellColour (Array ConstantInfo)
+
+structure TracePos where
+  cellColour : CellColour
+  position   : Nat
+  direction  : Bool -- to the right is `true`
+deriving BEq, Hashable
+
+abbrev TraceCombinations := Std.HashMap TracePos (Std.HashSet Function)
 
 structure State where
   config         : Config -- should really be in the Context instead
@@ -78,6 +86,7 @@ structure State where
   generatorStack : PriorityQueue PosPriority CellKey            (·.cmp · config) := {}
   loopyStack     : Queue (ResumeEntry ⊕ CellKey) := {}
   tableEntries   : Std.HashMap CellKey TableEntry := {} -- TODO: switch to using `GoalId` for identification, as it has a faster `==`?
+  traceInfo      : TraceCombinations := {}
   log            : Array String := #[]
   time           : Nat := 0
 
@@ -148,7 +157,7 @@ def setDoneEntry (key : CellKey) (answers : Array Answer) : SearchM Unit := do
 
 /-- Return globals and locals instances that may unify with `goal` -/
 def getAxioms (goal : Cell) : SearchM (Array ConstantInfo) := do
-  match (← read).axioms[(goal.f, goal.args.size)]? with
+  match (← read).axioms[cellColour goal]? with
   | none => return #[]
   | some axioms => return axioms
 

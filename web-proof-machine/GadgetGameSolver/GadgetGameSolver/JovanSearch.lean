@@ -348,10 +348,10 @@ def getResult : SearchM (Option ConstantInfo) := return (← get).result?
 
 open GadgetGame
 
-def getPartialResult (goalId : GoalId) : SearchM ProofTree := do
-  goalId.toProofTree
+def getPartialResult (goalId : GoalId) (msg : String) : SearchM (Option String × ProofTree) := do
+  return (msg, ← goalId.toProofTree)
 
-partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree := do
+partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM (Option String × ProofTree) := do
   if ← IO.checkCanceled then
     throw "Cancel culture hits hard"
   if (← step) then
@@ -359,30 +359,29 @@ partial def synth (timeout? : Option Nat) (goalId : GoalId) : SearchM ProofTree 
     | none        =>
       let { stepCount, .. } ← get
       if timeout?.any (· ≤ stepCount) then
-        getPartialResult goalId
+        getPartialResult goalId "interrupted"
       else
       synth timeout? goalId
     | some cInfo =>
-      cInfo.name.toProofTree
+      return (none, ← cInfo.name.toProofTree)
   else
-    -- throw "finished with search :("
-    logMessage "finished with search :("
-    getPartialResult goalId
+    getPartialResult goalId "finished with search"
 
-def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config) : BaseIO (ExceptT String Id ProofTree × Nat × Array String) := do
+def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config) : BaseIO (Except String (Option String × ProofTree) × Nat × Array String) := do
   let { axioms, target := goal } := problemState
-  let action : SearchM ProofTree := do
+  let action : SearchM (Option String × ProofTree) := do
     let axioms ← axioms.foldlM (init := {}) fun axioms ax => do
       if let .app f args := ax.conclusion then
         let cInfo ← ax.addFreshConstantInfo
-        match axioms[(f, args.size)]? with
-        | none => return axioms.insert (f, args.size) #[cInfo]
-        | some axs => return axioms.insert (f, args.size) (axs.push cInfo)
+        let colour := { f, numArgs := args.size }
+        let (axioms, axs) := axioms.eraseGetD colour #[]
+        return axioms.insert colour (axs.push cInfo)
       else
         return axioms
     withReader ({ · with axioms }) do
     let (goal, { varNames, .. }) := (abstractTermAsCell goal).run {}
     let goal := goal.instantiate (← varNames.mapM mkFreshMVar)
+    setTraceInfo goal
     let goalId := (← mkFreshGoalVar goal).goalId!
     let gInfo ← mkGoalInfo goalId
     let { orderSubgoalsAndAxioms, .. } ← getConfig
@@ -412,7 +411,10 @@ def main (problemState : ProblemState) (timeout? : Option Nat) (config : Config)
 
 def runJovanSearch (problemState : ProblemState) (timeout? : Option Nat := none) (config : Config) : Lean.MetaM (ProofTree × Nat × Array String) := do
   match ← main problemState timeout? config with
-  | (.ok proof, log) => return (proof, log)
+  | (.ok (msg?, proof), log) =>
+    if let some msg := msg? then
+      Lean.logError msg
+    return (proof, log)
   | (.error e, log) =>
     Lean.logInfo m! "{log}"
     throwError "{e}"

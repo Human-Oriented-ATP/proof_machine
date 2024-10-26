@@ -1,6 +1,6 @@
 import Std.Data.HashMap
 import Lean
-universe u v
+universe u v w
 
 @[inline] def Nat.foldM' {α : Type u} {m : Type u → Type v} [Monad m] (n : Nat) (f : (i : Nat) → α → {_ : i < n} → m α) (init : α) : m α :=
   let rec @[specialize] loop (i : Nat) (h : i ≤ n) (a : α) :=
@@ -36,7 +36,15 @@ universe u v
       | false => loop i' (le_of_succ_le h)
   loop n (Nat.le_refl n)
 
+
+
+
 variable {α : Type u} {β : Type v} {_ : BEq α} {_ : Hashable α}
+
+def Std.HashMap.eraseGetD (m : HashMap α β) (a : α) (fallback : β) : HashMap α β × β :=
+  match m[a]? with
+  | some b => (m.erase a, b)
+  | none   => (m, fallback)
 
 @[inline] def Std.HashMap.modify (m : HashMap α β) (a : α) (f : β → β) : HashMap α β :=
   match m[a]? with
@@ -64,9 +72,53 @@ variable {β : Type u} {m : Type u → Type u} [Monad m]
   let map := if b.isSome then map.erase a else map
   return map.insert a (← f b)
 
--- syntax:1000000 ident "%~" term : term
 
--- macro:max field:ident "%~" f:term:max : term => `(fun struct => { struct with $field:ident := $f struct.$field})
+
+
+
+def Enumerating (α : Type u) := α
+def enumerate (a : α) : Enumerating α := a
+def Array.enumerate (arr : Array α) : Enumerating (Array α) := arr
+
+@[inline] def ArrayEnumerate.forIn {α : Type u} {β : Type v} {m : Type v → Type w} [Monad m] (as : Array α) (b : β) (f : (Nat × α) → β → m (ForInStep β)) : m β :=
+  let rec @[specialize] loop (i : Nat) (b : β) : m β := do
+    if h : i < as.size then
+      match (← f (i, as[i]) b) with
+      | ForInStep.done  b => pure b
+      | ForInStep.yield b => loop (i+1) b
+    else
+      pure b
+  termination_by as.size - i
+  loop 0 b
+
+instance : ForIn m (Enumerating (Array α)) (Nat × α) where
+  forIn := ArrayEnumerate.forIn
+
+structure WithCount (ρ : Type u) where
+  count : Nat
+  val   : ρ
+
+variable {ρ : Type u}
+
+instance [ToStream α ρ] : ToStream (Enumerating α) (WithCount ρ) where
+  toStream (r : α) := { count := 0, val := toStream r }
+
+instance [Stream ρ α] : Stream (WithCount ρ) (Nat × α) where
+  next? s :=
+    let { count, val } := s
+    match Stream.next? val with
+    | none => none
+    | some (next, nextVal) => some ((count, next), { count := count + 1, val := nextVal })
+
+instance [ToStream β ρ] [Stream ρ α] : ForIn m (Enumerating β) (Nat × α) where
+  forIn a := Stream.forIn (toStream a)
+
+-- def ha : IO Unit := do
+--   for (n, e) in enumerate [1,2,5,6] do
+--     IO.println n
+-- #eval ha
+
+
 
 
 open Lean.Parser in

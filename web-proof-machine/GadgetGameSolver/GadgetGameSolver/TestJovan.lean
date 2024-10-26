@@ -19,6 +19,7 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
     fewerConstantsFirst := true
     customPrioValue := some fun { numApps, numCases, spiralCount, times } =>
       - (2*numApps.toFloat + numCases.toFloat + 10 * spiralCount.toFloat + times.size.toFloat)
+    traceConstants := false
   }
   logInfoAt stx m!"num steps: {numSteps}"
   if false then
@@ -36,8 +37,9 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
       (return jsonProps) stx
 
 
-
--- #gadget_display "mirek_crazy4"
+-- #gadget_display "fredy01a" 10
+#gadget_display "mirek_crazy4" 100
+-- #gadget_display "jacob18"
 
 -- #exit
 

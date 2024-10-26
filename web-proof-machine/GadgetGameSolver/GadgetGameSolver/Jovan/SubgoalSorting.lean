@@ -1,4 +1,4 @@
-import GadgetGameSolver.Jovan.SearchM
+import GadgetGameSolver.Jovan.Tracing
 
 /-!
 when choosing the next subgoal in a consumer node, we want to do so wisely.
@@ -59,16 +59,19 @@ def difficulty (c : Cell) : Float :=
 def checkAxiom (goal : Cell) (cInfo : ConstantInfo) : SearchM (Option (ConstantInfo × Float)) := do
   let (_, gadget) ← cInfo.gadget.instantiateFresh
   let mctx ← getMCtx
-  if ← unify gadget.conclusion goal then
+  if ← unify gadget.conclusion goal then (· <* setMCtx mctx) do OptionT.run do
     if gadget.hypotheses.isEmpty then
-      setMCtx mctx
-      return some (cInfo, 1/2)
+      return (cInfo, 1/2)
     else
       let d ← gadget.hypotheses.foldlM (init := 0) fun d subGoal => do
         let subGoal ← subGoal.instantiateMVars
+        if (← getConfig).traceConstants then
+          let allowed : Bool ← subGoal.traceAllows
+          -- unless allowed do
+          --   logMessage s!"problem with {← subGoal.toString}"
+          guard  allowed
         return d + (difficulty subGoal)
-      setMCtx mctx
-      return some (cInfo, d)
+      return (cInfo, d)
   else
    return none
 
