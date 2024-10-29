@@ -1,7 +1,7 @@
 import { GameEvent } from "lib/study/GameHistory"
 import { AdjustablePosition, DragIndicatorProps } from "./DragIndicator";
 import { InitialDiagram } from "lib/game/Initialization";
-import { InitialViewportSetting } from "lib/util/ReactFlow";
+import { InitialViewportSetting } from "lib/game/ViewportInitialisation";
 
 export type LevelConfiguration = {
     zoomEnabled: boolean

@@ -3,7 +3,7 @@ import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnC
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { toGadgetConnection, isValidConnection } from './Edges';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
-import { initViewport } from 'lib/util/ReactFlow';
+import { initViewport } from 'lib/game/ViewportInitialisation';
 import { isAboveGadgetShelf } from 'lib/util/Positions';
 import { flowUtilitiesSlice, FlowUtilitiesSlice, FlowUtilitiesState, FlowUtilitiesStateInitializedFromData } from './FlowUtilities';
 

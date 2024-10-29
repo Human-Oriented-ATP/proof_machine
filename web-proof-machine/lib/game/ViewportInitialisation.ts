@@ -1,12 +1,4 @@
-import { Edge, ReactFlowInstance } from '@xyflow/react';
-
-export function hasTargetHandle(e: Edge, handleId: string): boolean {
-    if (e.targetHandle) {
-        return e.targetHandle === handleId;
-    } else {
-        return false;
-    }
-}
+import { ReactFlowInstance } from '@xyflow/react';
 
 export type InitialViewportSetting = "ORIGIN_AT_RIGHT" | "FIT_INITIAL_DIAGRAM"
 
