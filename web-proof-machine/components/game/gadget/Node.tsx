@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 import { makeHandleId } from 'lib/game/Handles';
 import { Term } from 'lib/game/Term';
 import { CustomHandle } from './CustomHandle';
-import { getNodeClassNameFromAbbreviation } from 'lib/util/NodeColors';
+import { getCellClassNameFromLabel } from 'lib/util/CellColors';
 import { CellPosition, isOutputPosition } from '../../../lib/game/CellPosition';
 
 export interface CellProps {
@@ -23,7 +23,7 @@ export function Cell(props: CellProps) {
         console.error("Term cannot be rendered as node:" + props.term)
         return <>???</>
     } else {
-        const backgroundClassName = getNodeClassNameFromAbbreviation(props.term.label)
+        const backgroundClassName = getCellClassNameFromLabel(props.term.label)
         return <div className="flex items-center">
             <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", backgroundClassName, props.isGoalNode && "outline outline-offset-2 outline-2")}>
                 {props.term.args.map((arg, idx) => <Hole key={idx} term={arg}></Hole>)}
