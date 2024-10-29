@@ -6,7 +6,7 @@ import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { CellPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition';
 import { InsertGadgetButton } from './InsertGadgetButton';
 
-function makeAxiomGadgetProps(axiom: Axiom, id: number): GadgetProps {
+function makeShelfGadgetProps(axiom: Axiom, id: number): GadgetProps {
     let terms = new Map<CellPosition, Term>()
     axiom.hypotheses.forEach((hypothesis, i) => {
         terms.set(i, hypothesis)
@@ -23,7 +23,7 @@ export function GadgetShelf(): JSX.Element {
             <div id="gadget_shelf" className="absolute top-0 bottom-0 min-w-40 w-auto flex flex-col p-1 overflow-y-scroll overflow-x-hidden bg-palette-gray/50">
                 {axioms.map((axiom, id) => {
                     return <InsertGadgetButton key={JSON.stringify(axiom)} axiom={axiom}>
-                        <Gadget {...makeAxiomGadgetProps(axiom, id)}></Gadget>
+                        <Gadget {...makeShelfGadgetProps(axiom, id)} />
                     </InsertGadgetButton>
                 })}
             </div>}
