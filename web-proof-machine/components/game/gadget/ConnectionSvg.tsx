@@ -1,11 +1,12 @@
-import { Point, pointToString, addOffsetX } from "../../../lib/util/Point";
+import { XYPosition } from "@xyflow/react";
+import { pointToString, addOffsetX } from 'lib/util/XYPosition';
 
 const CONTROL_POINT_OFFSET = 30;
 const CONTROL_POINT_VARIABLE_OFFSET = 10;
 
 export interface ConnectionDrawingData {
-    start: Point
-    end: Point
+    start: XYPosition
+    end: XYPosition
     fromInput: boolean
     toOutput: boolean
 }

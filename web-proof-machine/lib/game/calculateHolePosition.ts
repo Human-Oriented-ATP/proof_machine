@@ -1,6 +1,7 @@
+import { XYPosition } from "@xyflow/react";
 import { HolePosition } from "lib/game/GadgetInternalConnections";
 import { GadgetId } from "lib/game/Primitives";
-import { getCenterRelativeToParent, Point } from "lib/util/Point";
+import { getCenterRelativeToParent } from 'lib/util/XYPosition';
 
 function calculateOutputHolePosition(gadget: HTMLElement, holeIndex: number) {
     const outputNodeContainer = gadget.childNodes[1];
@@ -23,7 +24,7 @@ function calculateHolePositionFromGadgetHTMLElement(gadget: HTMLElement, hole: H
     }
 }
 
-export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): Point {
+export function calculateHolePosition(gadgetId: GadgetId, hole: HolePosition): XYPosition {
     const gadget = document.getElementById(gadgetId);
     if (gadget) {
         return calculateHolePositionFromGadgetHTMLElement(gadget, hole);

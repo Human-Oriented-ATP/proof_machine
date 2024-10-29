@@ -1,5 +1,5 @@
 import { Connection, ReactFlowInstance, XYPosition } from "@xyflow/react";
-import { getCenter } from "./Point";
+import { getCenter } from './XYPosition';
 import { getGadgetIdFromHandle, isTargetHandle } from "lib/game/Handles";
 
 const MIN_DISTANCE = 60

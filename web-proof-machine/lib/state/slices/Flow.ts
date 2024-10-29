@@ -2,9 +2,8 @@ import { CreateStateWithInitialValue } from '../Types';
 import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, OnNodeDrag, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { toGadgetConnection, isValidConnection } from './Edges';
-import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { initViewport } from 'lib/game/ViewportInitialisation';
-import { isAboveGadgetShelf } from 'lib/util/Positions';
+import { isAboveGadgetShelf } from 'lib/util/XYPosition';
 import { flowUtilitiesSlice, FlowUtilitiesSlice, FlowUtilitiesState, FlowUtilitiesStateInitializedFromData } from './FlowUtilities';
 
 export type FlowStateInitializedFromData = FlowUtilitiesStateInitializedFromData
