@@ -2,10 +2,10 @@ import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { Axiom } from "./Primitives";
 import { GadgetId } from "./Primitives";
 import { GadgetProps } from "components/game/gadget/Gadget";
-import { Term, makeAxiomWithFreshVariables as makeFreshVariables } from "./Term";
+import { Term, makeAxiomWithFreshVariables } from "./Term";
 
 export function getGadgetTerms(axiom: Axiom, id: GadgetId): Map<CellPosition, Term> {
-    const axiomWithFreshVariables = makeFreshVariables(axiom, id)
+    const axiomWithFreshVariables = makeAxiomWithFreshVariables(axiom, id)
     let terms = new Map<CellPosition, Term>()
     axiomWithFreshVariables.hypotheses.forEach((hypothesis, i) => {
         terms.set(i, hypothesis)
