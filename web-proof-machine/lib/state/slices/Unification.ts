@@ -15,7 +15,7 @@ export type UnificationState = {
 }
 
 export type UnificationActions = {
-    runUnification: () => ValueMap<GadgetConnection, boolean>
+    runUnification: () => void
     edgeIsSatisfied: (edge: Edge) => boolean
 }
 
@@ -43,7 +43,6 @@ export const unificationSlice: CreateStateWithInitialValue<UnificationStateIniti
                 newTermEnumeration.set(term, toHoleValue(term, assignment))
             }
             set({ equationIsSatisfied: equationIsSatisfied, termEnumeration: newTermEnumeration })
-            return equationIsSatisfied
         },
 
         edgeIsSatisfied: (edge: Edge) => {
