@@ -7,6 +7,7 @@ import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
 import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { isAxiom } from "lib/game/Initialization";
+import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
 
@@ -24,7 +25,7 @@ export type GameEvent = { GameCompleted: null }
 
 export type HistoryStateInitializedFromData = SetupReadonlyState
 
-export type HistoryState = {
+export type HistoryState = GadgetDndFromShelfState & {
     log: GameEvent[]
 }
 
@@ -37,16 +38,18 @@ export type HistoryActions = {
     getCurrentConnections: () => GadgetConnection[]
     getTermsOfInitialGadget: (gadgetId: GadgetId) => Map<CellPosition, Term> | undefined
     getTermsOfAddedGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
+    getTermsOfGadgetBeingAdded: (gadgetId: GadgetId) => Map<CellPosition, Term> | undefined
     getTermsOfGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
     getEquationOfConnection: (connection: GadgetConnection) => Equation
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
 }
 
-export type HistorySlice = SetupReadonlyState & HistoryStateInitializedFromData & HistoryState & HistoryActions
+export type HistorySlice = SetupReadonlyState & GadgetDndFromShelfSlice & HistoryStateInitializedFromData & HistoryState & HistoryActions
 
 export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFromData, HistorySlice> = (initialState, set, get): HistorySlice => {
     return {
         ...setupSlice(initialState),
+        ...gadgetDndFromShelfSlice(set, get),
         log: [],
         logEvents: (events: GameEvent[]) => {
             const { log } = get()
@@ -98,6 +101,14 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             else
                 return new Map([[0, statement.goal]])
         },
+        getTermsOfGadgetBeingAdded: (gadgetId: GadgetId) => {
+            const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
+            if (gadgetBeingDraggedFromShelf === undefined) return undefined
+            else {
+                const { id, axiom } = gadgetBeingDraggedFromShelf
+                return id === gadgetId ? getGadgetTerms(axiom, id) : undefined
+            }
+        },
         getTermsOfAddedGadget: (gadgetId: GadgetId) => {
             const event = get().log.find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
             if (event === undefined) throw Error(`Gadget with id ${gadgetId} not found`)
@@ -105,11 +116,13 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             return getGadgetTerms(event.GadgetAdded.axiom, gadgetId)
         },
         getTermsOfGadget: (gadgetId: GadgetId) => {
-            const initialGadgetTerms = get().getTermsOfInitialGadget(gadgetId)
-            if (initialGadgetTerms !== undefined)
-                return initialGadgetTerms
-            else
-                return get().getTermsOfAddedGadget(gadgetId)
+            const { getTermsOfInitialGadget, getTermsOfGadgetBeingAdded, getTermsOfAddedGadget } = get();
+
+            return (
+                getTermsOfInitialGadget(gadgetId) ??
+                getTermsOfGadgetBeingAdded(gadgetId) ??
+                getTermsOfAddedGadget(gadgetId)
+            );
         },
         getEquationOfConnection: (connection: GadgetConnection): Equation => {
             const lhs = get().getTermsOfGadget(connection.from).get(OUTPUT_POSITION)
