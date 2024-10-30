@@ -6,6 +6,7 @@ import { InitialDiagram, InitialDiagramGadget, isAxiom } from "lib/game/Initiali
 import { makeHandleId } from 'lib/game/Handles';
 import { GadgetId } from "lib/game/Primitives";
 import { GadgetProps } from "components/game/gadget/Gadget";
+import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { axiomToGadget } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
@@ -25,12 +26,12 @@ function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps
 }
 
 function makeGadgetNode(id: GadgetId, gadget: InitialDiagramGadget, deletable: boolean, goalNodeDraggable: boolean): GadgetNode {
-    const draggable = id === "goal_gadget" ? goalNodeDraggable : true
+    const draggable = id === GOAL_GADGET_ID ? goalNodeDraggable : true
     return {
         id,
         type: 'gadgetNode',
         position: gadget.position,
-        deletable: deletable && id !== "goal_gadget",
+        deletable: deletable && id !== GOAL_GADGET_ID,
         draggable,
         data: getGadgetProps(id, gadget)
     }

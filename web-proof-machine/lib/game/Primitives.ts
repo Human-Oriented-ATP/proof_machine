@@ -6,3 +6,4 @@ export interface Axiom {
     hypotheses: Term[]
     conclusion: Term
 }
+export const GOAL_GADGET_ID = "goal_gadget"

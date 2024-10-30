@@ -2,6 +2,7 @@ import { GadgetConnection } from "lib/state/slices/History";
 import { Axiom, GadgetId } from "./Primitives";
 import { Term, makeTermWithFreshVariables } from "./Term";
 import { Equation } from "./Unification";
+import { GOAL_GADGET_ID } from './Primitives';
 
 export type Statement = { axiom: Axiom } | { goal: Term }
 
@@ -50,7 +51,7 @@ export function makeInitializationDataFromProblemFileData(problemFileData: Probl
         position: { x: 0, y: 0 }
     }
     const initialDiagram = {
-        gadgets: new Map([["goal_gadget", goalGadget]]),
+        gadgets: new Map([[GOAL_GADGET_ID, goalGadget]]),
         connections: []
     }
     return {

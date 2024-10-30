@@ -1,4 +1,5 @@
 import { Gadget } from "components/game/gadget/Gadget";
+import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
 import { DragIndicatorProps } from "../DragIndicator";
@@ -8,18 +9,18 @@ import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
 
 const tutorial02InitialDiagram: InitialDiagram = {
     gadgets: new Map([
-        ["goal_gadget", { statement: { goal: parseTerm("r(1, 2)") }, position: { x: -300, y: 0 } }],
+        [GOAL_GADGET_ID, { statement: { goal: parseTerm("r(1, 2)") }, position: { x: -300, y: 0 } }],
         ["initial_gadget_1", { statement: { axiom: parseAxiom("r(2, 1).") }, position: { x: -600, y: -50 } }],
     ]),
     connections: [{
         from: "initial_gadget_1",
-        to: ["goal_gadget", 0]
+        to: [GOAL_GADGET_ID, 0]
     }]
 };
 
 const tutorial02DragIndicatorDeleteConnection: DragIndicatorProps<GadgetPosition> = {
     origin: {
-        gadget: { elementId: "goal_gadget" },
+        gadget: { elementId: GOAL_GADGET_ID },
         anchorPoint: "CENTER_LEFT",
         offset: { x: 25, y: 30 }
     },

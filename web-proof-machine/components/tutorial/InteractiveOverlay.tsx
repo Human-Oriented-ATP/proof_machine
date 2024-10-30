@@ -9,7 +9,7 @@ import { interactiveTutorialLevels as interactiveTutorialLevels } from "./Intera
 // }
 
 // const destination: OverlayPosition = {
-//     elementId: "goal_gadget",
+//     elementId: GOAL_GADGET_ID,
 //     anchorPoint: "CENTER_LEFT",
 //     offset: { x: 5, y: 0 }
 // }

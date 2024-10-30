@@ -2,6 +2,7 @@ import { DragIndicatorProps } from "../DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
 import { SourceConnector, TargetConnector } from "../TutorialSetup";
 import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
+import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 
 const firstAxiomDragPoint: GadgetPosition = {
     gadget: { elementId: "axiom_1" },
@@ -21,7 +22,7 @@ const connectGadgets: DragIndicatorProps<GadgetPosition> = {
     },
     destination: {
         absolutePosition: {
-            gadget: { elementId: "goal_gadget" },
+            gadget: { elementId: GOAL_GADGET_ID },
             anchorPoint: "CENTER_LEFT",
             offset: { x: 3, y: 0 }
         }

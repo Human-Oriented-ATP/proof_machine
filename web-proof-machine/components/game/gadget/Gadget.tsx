@@ -5,7 +5,7 @@ import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './Conn
 import { InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
 import { twJoin } from 'tailwind-merge'
 import { calculateHolePosition } from '../../../lib/game/calculateHolePosition'
-import { GadgetId } from 'lib/game/Primitives'
+import { GadgetId, GOAL_GADGET_ID } from 'lib/game/Primitives'
 import { Term } from 'lib/game/Term'
 
 export type GadgetProps = {
@@ -30,7 +30,12 @@ function GadgetInputNodes(props: GadgetProps) {
     return <>
         {terms.map(([cellPosition, term]) => {
             if (isInputPosition(cellPosition)) {
-                return <Cell key={cellPosition} term={term} position={cellPosition} gadgetId={props.id} isOnShelf={props.isOnShelf} isGoalNode={props.id === "goal_gadget"} />
+                return <Cell key={cellPosition}
+                    term={term}
+                    position={cellPosition}
+                    gadgetId={props.id}
+                    isOnShelf={props.isOnShelf}
+                    isGoalNode={props.id === GOAL_GADGET_ID} />
             }
         })}
     </>

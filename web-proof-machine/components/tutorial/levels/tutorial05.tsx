@@ -3,10 +3,11 @@ import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
 import { DELETE_ONLY_SETTINGS } from "../InteractiveLevel";
 import { DragIndicatorProps } from "../DragIndicator";
+import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 
 const tutorial05InitialDiagram: InitialDiagram = {
     gadgets: new Map([
-        ["goal_gadget", { statement: { goal: parseTerm("r(1, 4)") }, position: { x: 0, y: 0 } }],
+        [GOAL_GADGET_ID, { statement: { goal: parseTerm("r(1, 4)") }, position: { x: 0, y: 0 } }],
         ["initial_gadget_1", { statement: { axiom: parseAxiom("g(X, Y, Z, W) :- b(X, Y, Z, W), g(X, Z, W, Y).") }, position: { x: -60, y: -75 } }],
         ["initial_gadget_2", { statement: { axiom: parseAxiom("g(X, Y, Z, W) :- b(X, Y, Z, W), g(X, Z, W, Y).") }, position: { x: -75, y: 50 } }],
         ["initial_gadget_3", { statement: { axiom: parseAxiom("g(X, Y, Z, W) :- b(X, Y, Z, W), g(X, Z, W, Y).") }, position: { x: -90, y: -150 } }]

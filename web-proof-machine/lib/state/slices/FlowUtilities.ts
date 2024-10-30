@@ -11,6 +11,7 @@ import { unificationSlice, UnificationSlice, UnificationState, UnificationStateI
 import { ConnectorStatus } from 'components/game/gadget/Connector';
 import { calculateProximityConnection, ConnectionWithHandles, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
+import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -55,7 +56,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
                 id, type: 'gadgetNode',
                 position: get().rf.screenToFlowPosition(axiomPosition),
                 dragging: true,
-                deletable: get().setup.settings.gadgetDeletionEnabled && id !== "goal_gadget",
+                deletable: get().setup.settings.gadgetDeletionEnabled && id !== GOAL_GADGET_ID,
                 data: gadgetProps
             }
             return gadgetNode
@@ -183,7 +184,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
 
         calculateCompletionStatusAndOpenHandles: () => {
             const openHandles: string[] = [];
-            let currentLayer: GadgetId[] = ["goal_gadget"];
+            let currentLayer: GadgetId[] = [GOAL_GADGET_ID];
             let hasInvalidEdge = false;
 
             const getGadgetNodesInLayer = (layer: GadgetId[]) => {
