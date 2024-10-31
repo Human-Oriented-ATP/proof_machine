@@ -22,6 +22,7 @@ const selector = (state: GameSlice) => ({
     onEdgesChange: state.onEdgesChange,
     onConnect: state.onConnect,
     onConnectStart: state.onConnectStart,
+    onConnectEnd: state.onConnectEnd,
     isValidConnection: state.isValidConnection,
     onNodesDelete: state.onNodesDelete,
     onEdgesDelete: state.onEdgesDelete,
@@ -31,7 +32,7 @@ const selector = (state: GameSlice) => ({
 });
 
 export function Flow() {
-    const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, isValidConnection,
+    const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, onConnectEnd, isValidConnection,
         onNodesDelete, onEdgesDelete, onNodeDrag, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
 
     // const onNodeDrag = useCallback((event: React.MouseEvent, node: GadgetNode) => {
@@ -59,7 +60,7 @@ export function Flow() {
             nodeTypes={nodeTypes}
             onInit={onInit}
             onConnectStart={onConnectStart}
-            // onConnectEnd={onConnectEnd}
+            onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
             onNodeDrag={onNodeDrag}
             // onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}

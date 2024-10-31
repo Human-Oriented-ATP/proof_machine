@@ -1,7 +1,8 @@
-import { SetState } from '../Types';
+import { GetState, SetState } from '../Types';
 
 export interface HoleFocusState {
     focussedHole: string | undefined
+    showHoleFocus: boolean
 }
 
 export interface HoleFocusActions {
@@ -11,10 +12,17 @@ export interface HoleFocusActions {
 
 export type HoleFocusSlice = HoleFocusState & HoleFocusActions
 
-export const holeFocusSlice = (set: SetState<HoleFocusSlice>): HoleFocusSlice => {
+export const holeFocusSlice = (set: SetState<HoleFocusSlice>, get: GetState<HoleFocusSlice>): HoleFocusSlice => {
     return {
         focussedHole: undefined,
-        focus: (variableName: string) => set({ focussedHole: variableName }),
+        showHoleFocus: false,
+        focus: (variableName: string) => {
+            if (get().showHoleFocus) {
+                set({ focussedHole: variableName })
+            } else {
+                set({ focussedHole: undefined })
+            }
+        },
         removeFocus: () => set({ focussedHole: undefined })
     }
 }

@@ -5,6 +5,7 @@ import { toGadgetConnection, isValidConnection } from './Edges';
 import { initViewport } from 'lib/game/ViewportInitialisation';
 import { isAboveGadgetShelf } from 'lib/util/XYPosition';
 import { flowUtilitiesSlice, FlowUtilitiesSlice, FlowUtilitiesState, FlowUtilitiesStateInitializedFromData } from './FlowUtilities';
+import { HoleFocusSlice, holeFocusSlice } from './HoleFocus';
 
 export type FlowStateInitializedFromData = FlowUtilitiesStateInitializedFromData
 
@@ -16,16 +17,18 @@ export interface FlowActions {
     onNodesDelete: (nodes: GadgetNode[]) => void;
     onEdgesDelete: (edges: Edge[]) => void;
     onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
+    onConnectEnd: () => void;
     onConnect: OnConnect;
     onNodeDrag: OnNodeDrag<GadgetNode>
     onNodeDragStop: (event: React.MouseEvent, node: GadgetNode) => void;
 };
 
-export type FlowSlice = FlowUtilitiesSlice & FlowActions
+export type FlowSlice = FlowUtilitiesSlice & FlowActions & HoleFocusSlice
 
 export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData, FlowSlice> = (initialState, set, get) => {
     return {
         ...flowUtilitiesSlice(initialState, set, get),
+        ...holeFocusSlice(set, get),
 
         onInit() {
             const initialViewPortSetting = get().setup.settings.initialViewportSetting
@@ -51,8 +54,12 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
                 const events = get().removeEdgesConnectedToHandle(params.handleId!)
                 get().updateLogicalState(events)
             }
-            // disableHoleFocus()
+            set({ showHoleFocus: false })
             // props.setUserIsDraggingOrNavigating(true)
+        },
+
+        onConnectEnd: () => {
+            set({ showHoleFocus: true })
         },
 
         onConnect: (connection: Connection) => {
