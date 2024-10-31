@@ -1,13 +1,14 @@
-import { GadgetConnection, historySlice, HistorySlice, HistoryState, HistoryStateInitializedFromData } from "./History";
-import { CreateStateWithInitialValue, GetState, SetState } from "../Types";
+import { GadgetConnection } from "./History";
+import { CreateStateWithInitialValue } from "../Types";
 import { Equation, unifyEquations } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { toHoleValue } from "lib/game/TermEnumeration";
 import { Connection, Edge } from "@xyflow/react";
 import { toGadgetConnection } from "./Edges";
+import { TutorialSlice, tutorialSlice, TutorialStateInitializedFromData } from "./Tutorial";
 
-export type UnificationStateInitializedFromData = HistoryStateInitializedFromData
+export type UnificationStateInitializedFromData = TutorialStateInitializedFromData
 
 export type UnificationState = {
     termEnumeration: ValueMap<Term, string>
@@ -19,11 +20,11 @@ export type UnificationActions = {
     edgeIsSatisfied: (edge: Edge) => boolean
 }
 
-export type UnificationSlice = HistorySlice & UnificationState & UnificationActions
+export type UnificationSlice = TutorialSlice & UnificationState & UnificationActions
 
 export const unificationSlice: CreateStateWithInitialValue<UnificationStateInitializedFromData, UnificationSlice> = (initialState, set, get): UnificationSlice => {
     return {
-        ...historySlice(initialState, set, get),
+        ...tutorialSlice(initialState, set, get),
         termEnumeration: new ValueMap<Term, string>(),
         equationIsSatisfied: new ValueMap<GadgetConnection, boolean>(),
 

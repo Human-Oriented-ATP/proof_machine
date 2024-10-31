@@ -114,6 +114,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             if (isCompleted) {
                 set({ levelIsCompleted: true })
             }
+            // advance tutorial
             // synchronize history
         },
 
