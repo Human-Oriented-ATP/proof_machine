@@ -77,7 +77,7 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 #gadget_display "tim10" -- 35 HMM
 #gadget_display "tim11" -- 15
 #gadget_display "tim12" -- 106 HMM
--- #gadget_display "tim14" -- 1053 × | Requires guessing the correct order of goals
+-- #gadget_display "tim14" -- edge case | Requires guessing the correct order of goals
 #gadget_display "tim16" -- 23
 #gadget_display "tim17" -- 10 HMM
 #gadget_display "tim18" -- 18
@@ -99,11 +99,11 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 #gadget_display "tim32" -- 926
 #gadget_display "tim33" -- 26
 -- #gadget_display "tim34"
-#gadget_display "tim35" -- 67
+#gadget_display "tim35" -- finished with search
 #gadget_display "tim36" -- 15
 -- #gadget_display "tim37"
 -- #gadget_display "tim37a" -- ×
-#gadget_display "tim38" -- 21
+#gadget_display "tim38" -- finished with search
 #gadget_display "tim39" -- 563
 #gadget_display "tim40" -- 96
 #gadget_display "tim41" --158
@@ -112,16 +112,17 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 #gadget_display "tim44" -- 103
 #gadget_display "tim44a" -- 81
 #gadget_display "tim46" -- 215 HMM
-
-#gadget_display "mirek_crazy4" -- 1312 HMM
-
--- #exit
 #gadget_display "tutorial01" -- 1
 #gadget_display "tutorial02" -- 2
 #gadget_display "tutorial03" -- 3
 #gadget_display "tutorial04" -- 3
 #gadget_display "tutorial05" -- 3
 #gadget_display "tutorial06" -- 4
+
+
+-- #exit
+
+#gadget_display "mirek_crazy4" -- 1312 HMM
 
 -- #gadget_display "fredy01a"
 -- #gadget_display "fredy01"
@@ -132,8 +133,8 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 -- #gadget_display "jacob03"
 #gadget_display "jacob04" --  69
 #gadget_display "jacob05" -- 9
-#gadget_display "jacob06" -- 44
-#gadget_display "jacob06a" -- 44
+#gadget_display "jacob06" -- finished with serach
+#gadget_display "jacob06a" -- finished with serach
 #gadget_display "jacob07" -- 55
 #gadget_display "jacob07a" -- 49
 #gadget_display "jacob08" -- 111
@@ -154,13 +155,13 @@ elab stx:"#gadget_display" name:str timeout?:(num)? : command => runTermElabM fu
 -- #gadget_display "jacob_19" STACKOVERFLOW
 #gadget_display "jacob20" -- 105
 #gadget_display "jacob21" -- 102
-#gadget_display "jacob22" -- 146
+#gadget_display "jacob22" -- finished with search
 #gadget_display "jacob23" -- 33
 -- #gadget_display "jacob24"
 -- #gadget_display "jacob25" -- 414 Stack overflow
-#gadget_display "jacob26" -- 70
+#gadget_display "jacob26" -- finished with search
 
 #gadget_display "jovan_easy01" -- 21
-#gadget_display "jovan_easy02" -- 16
+#gadget_display "jovan_easy02" -- finished with search
 #gadget_display "jovan01" -- 13
 #gadget_display "jovan02" -- 31
