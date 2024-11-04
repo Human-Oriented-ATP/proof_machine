@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
 import { Game } from "components/game/Game";
 import { getNextProblem } from "lib/study/LevelConfiguration";
+import { interactiveTutorialLevels } from "components/tutorial/InteractiveTutorialLevels";
+import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
@@ -20,16 +22,22 @@ export default async function Page({ params }: { params: { config: string, probl
 
     try {
         const problemFileData = parseProblemFile(problemData.trim())
-        const { initialDiagram, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
+        const { initialDiagram: initialDiagramFromProblemFile, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
         const nextProblem = getNextProblem(configuration, params.problem_id)
-        // TODO: Retrieve tutorial data 
+
+        const interactiveLevel = interactiveTutorialLevels.get(params.problem_id)
+        const initialDiagramFromTutorialSpecification = interactiveLevel?.initialDiagram
+        const settings = interactiveLevel?.settings
+        const tutorialSteps = interactiveLevel?.steps
         return <Suspense>
             <Game
-                initialDiagram={initialDiagram}
+                initialDiagram={initialDiagramFromTutorialSpecification ?? initialDiagramFromProblemFile}
                 axioms={axioms}
                 problemId={params.problem_id}
                 nextProblem={nextProblem}
                 configurationIdentifier={configuration.name}
+                settings={settings ?? DEFAULT_SETTINGS}
+                tutorialSteps={tutorialSteps}
             />
         </Suspense>
     } catch (e) {
