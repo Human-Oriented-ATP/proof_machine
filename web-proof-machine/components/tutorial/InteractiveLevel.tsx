@@ -13,12 +13,12 @@ export type LevelConfiguration = {
     showBrokenConnectionStatusBarMessage: boolean
 }
 
-export type GadgetSelector = { gadgetId: GadgetId } | { axiom: string }
+export type GadgetSelector = { gadgetId: GadgetId } | { axiom: string } | "ANY_GADGET";
 
 export type Trigger = { GameCompleted: null }
-    | { GadgetAdded: { gadget: GadgetSelector } }
+    | { GadgetAdded: GadgetSelector }
     | { ConnectionAdded: { from?: GadgetSelector, to?: [GadgetSelector, CellPosition] } }
-    | { GadgetRemoved: { gadgetId?: GadgetSelector } }
+    | { GadgetRemoved: GadgetSelector }
     | { ConnectionRemoved: { from?: GadgetSelector, to?: [GadgetSelector, CellPosition] } };
 
 export type OverlayPosition =

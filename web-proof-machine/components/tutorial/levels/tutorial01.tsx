@@ -29,6 +29,7 @@ import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 //     },
 //     drawLine: true
 // };
+
 export const tutorial01: InteractiveLevel = {
     settings: RESTRICTIVE_SETTINGS,
     steps: [{
@@ -36,13 +37,13 @@ export const tutorial01: InteractiveLevel = {
             jsx: <>Drag the matching gadget from the shelf onto the work bench.</>,
             // dragIndicator: dragFirstAxiomOut
         },
-        // trigger: { GadgetAdded: { axiom: "r(1)" } }
+        trigger: { GadgetAdded: { axiom: "r(1)" } }
     }, {
         content: {
             jsx: <>Now draw a line between the connectors <SourceConnector /> and <TargetConnector />.</>,
             // dragIndicator: connectGadgets
         },
-        // trigger: { ConnectionAdded: {} }
+        trigger: { ConnectionAdded: {} }
     }, {
         content: {
             jsx: <>You have completed the gadget machine. Click next level to continue!</>

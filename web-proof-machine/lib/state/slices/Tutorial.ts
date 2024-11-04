@@ -23,7 +23,21 @@ export const tutorialSlice: CreateStateWithInitialValue<TutorialStateInitialized
         tutorialStep: 0,
 
         triggers: (event: GameEvent, trigger: Trigger): boolean => {
-            return false
+            const [type] = Object.keys(trigger)
+
+            switch (type) {
+                case "GameCompleted":
+                    return "GameCompleted" in event
+                case "GadgetAdded":
+                    return "GadgetAdded" in event
+                case "ConnectionAdded":
+                    return "ConnectionAdded" in event
+                case "GadgetRemoved":
+                    return "GadgetRemoved" in event
+                case "ConnectionRemoved":
+                    return "ConnectionRemoved" in event
+            }
+            throw Error(`Invalid trigger in tutorial specification: ${trigger}`)
         },
         getCurrentTrigger: () => {
             const currentStep = get().setup.tutorialSteps[get().tutorialStep]
