@@ -1,7 +1,8 @@
-import { GameEvent } from "lib/study/GameHistory"
 import { AdjustablePosition, DragIndicatorProps } from "./DragIndicator";
 import { InitialDiagram } from "lib/game/Initialization";
 import { InitialViewportSetting } from "lib/game/ViewportInitialisation";
+import { CellPosition } from "lib/game/CellPosition";
+import { GadgetId } from "lib/game/Primitives";
 
 export type LevelConfiguration = {
     zoomEnabled: boolean
@@ -12,19 +13,25 @@ export type LevelConfiguration = {
     showBrokenConnectionStatusBarMessage: boolean
 }
 
-export type GadgetSelector = { elementId: string } | { axiom: string }
+export type GadgetSelector = { gadgetId: GadgetId } | { axiom: string }
 
-export interface GadgetPosition extends AdjustablePosition {
-    gadget: GadgetSelector
-}
+export type Trigger = { GameCompleted: null }
+    | { GadgetAdded: { gadget: GadgetSelector } }
+    | { ConnectionAdded: { from?: GadgetSelector, to?: [GadgetSelector, CellPosition] } }
+    | { GadgetRemoved: { gadgetId?: GadgetSelector } }
+    | { ConnectionRemoved: { from?: GadgetSelector, to?: [GadgetSelector, CellPosition] } };
+
+export type OverlayPosition =
+    { gadget: GadgetSelector } & AdjustablePosition
+    | { elementId: string } & AdjustablePosition
 
 export type JsxAndDragIndicator = {
     jsx?: JSX.Element
-    dragIndicator?: DragIndicatorProps<GadgetPosition>
+    dragIndicator?: DragIndicatorProps<OverlayPosition>
 }
 
 export type InteractiveStep = {
-    trigger?: GameEvent
+    trigger?: Trigger
     content: JsxAndDragIndicator
 }
 

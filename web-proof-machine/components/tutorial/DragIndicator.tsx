@@ -9,7 +9,7 @@ export interface AdjustablePosition {
     offset: XYPosition
 }
 
-export interface OverlayPosition extends AdjustablePosition {
+export interface ElementPosition extends AdjustablePosition {
     elementId: string
 }
 
@@ -32,7 +32,7 @@ function getXYPosition(rect: DOMRect, position: AnchorPoint): XYPosition {
 
 const WAIT_BEFORE_ANIMATION = 1000
 
-function calculateExtent(destination: { absolutePosition: OverlayPosition } | { relativePosition: XYPosition }, originPosition: XYPosition): XYPosition {
+function calculateExtent(destination: { absolutePosition: ElementPosition } | { relativePosition: XYPosition }, originPosition: XYPosition): XYPosition {
     if ("relativePosition" in destination) {
         return destination.relativePosition
     } else {
@@ -45,7 +45,7 @@ function calculateExtent(destination: { absolutePosition: OverlayPosition } | { 
     }
 }
 
-function DragIndicator(props: DragIndicatorProps<OverlayPosition>) {
+function DragIndicator(props: DragIndicatorProps<ElementPosition>) {
     try {
         const originRect = document.getElementById(props.origin.elementId)!.getBoundingClientRect()
         const originPosition = getXYPosition(originRect, props.origin.anchorPoint)
@@ -63,7 +63,7 @@ function DragIndicator(props: DragIndicatorProps<OverlayPosition>) {
     }
 }
 
-export function DelayedDragIndicator(props: DragIndicatorProps<OverlayPosition>) {
+export function DelayedDragIndicator(props: DragIndicatorProps<ElementPosition>) {
     const [animationHasStarted, setAnimationHasStarted] = useState(false)
 
     useEffect(() => {

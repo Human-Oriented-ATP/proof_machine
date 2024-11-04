@@ -5,6 +5,7 @@ import MenuBar from "components/navigation/MenuBar";
 import { Flow } from "./flow/Flow";
 import { GadgetShelf } from "./flow/GadgetShelf";
 import { HelpPopup } from "./HelpPopup";
+import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 
 export default function FlowWithMenuBar() {
     const markLevelAsCompleted = useCallback(() => {
@@ -21,13 +22,7 @@ export default function FlowWithMenuBar() {
         <div className="w-full"><MenuBar /></div>
         <div className="relative flex flex-1">
             <Flow />
-            {/* {props.interactiveSteps &&
-                <InteractiveOverlay
-                interactiveSteps={props.interactiveSteps}
-                stepIndex={tutorialStep}
-                hideInteractiveContent={userIsDraggingOrNavigating}
-                getGadgetElementId={getGadgetElementId} />
-                } */}
+            <InteractiveOverlay />
             <GadgetShelf />
             <HelpPopup />
         </div>
