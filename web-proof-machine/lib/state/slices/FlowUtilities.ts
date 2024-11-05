@@ -12,6 +12,7 @@ import { ConnectorStatus } from 'components/game/gadget/Connector';
 import { calculateProximityConnection, ConnectionWithHandles, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
+import { parseAxiom } from 'lib/parsing/Semantics';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -22,8 +23,8 @@ export type FlowUtilitiesState = UnificationState & NodeState & {
 }
 
 export interface FlowUtilitiesActions {
-    makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => GadgetNode;
-    addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => void;
+    makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => GadgetNode;
+    addGadgetNode: (axiom: string, axiomPosition: XYPosition) => void;
     removeGadgetNode: (node: GadgetNode) => void;
     handleGadgetDraggedAboveShelf: (node: GadgetNode) => void;
     handleGadgetDragStopAwayFromShelf: (node: GadgetNode) => void;
@@ -49,7 +50,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
         rf: initialState.rf,
         levelIsCompleted: false,
 
-        makeGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => {
+        makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => {
             const id = get().generateNewGadgetId()
             const gadgetProps = axiomToGadget(axiom, id)
             const gadgetNode: GadgetNode = {
@@ -62,7 +63,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             return gadgetNode
         },
 
-        addGadgetNode: (axiom: Axiom, axiomPosition: XYPosition) => {
+        addGadgetNode: (axiom: string, axiomPosition: XYPosition) => {
             const node = get().makeGadgetNode(axiom, axiomPosition)
             set({ gadgetBeingDraggedFromShelf: { id: node.id, position: node.position, status: "STILL_ABOVE_SHELF", axiom } })
             set({ nodes: [...get().nodes, node], });

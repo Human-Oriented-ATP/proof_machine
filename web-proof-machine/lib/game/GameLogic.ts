@@ -3,18 +3,25 @@ import { Axiom } from "./Primitives";
 import { GadgetId } from "./Primitives";
 import { GadgetProps } from "components/game/gadget/Gadget";
 import { Term, makeAxiomWithFreshVariables } from "./Term";
+import { parseStatement } from 'lib/parsing/Semantics';
 
-export function getGadgetTerms(axiom: Axiom, id: GadgetId): Map<CellPosition, Term> {
-    const axiomWithFreshVariables = makeAxiomWithFreshVariables(axiom, id)
-    let terms = new Map<CellPosition, Term>()
-    axiomWithFreshVariables.hypotheses.forEach((hypothesis, i) => {
-        terms.set(i, hypothesis)
-    })
-    terms.set(OUTPUT_POSITION, axiomWithFreshVariables.conclusion)
-    return terms
+export function getGadgetTerms(statement: string, id: GadgetId): Map<CellPosition, Term> {
+    const parsed = parseStatement(statement)
+    if ("axiom" in parsed) {
+        const axiomWithFreshVariables = makeAxiomWithFreshVariables(parsed.axiom, id)
+        let terms = new Map<CellPosition, Term>()
+        axiomWithFreshVariables.hypotheses.forEach((hypothesis, i) => {
+            terms.set(i, hypothesis)
+        })
+        terms.set(OUTPUT_POSITION, axiomWithFreshVariables.conclusion)
+        return terms
+    } else {
+        return new Map<CellPosition, Term>([[0, parsed.goal]])
+    }
 }
 
-export function axiomToGadget(axiom: Axiom, id: GadgetId): GadgetProps {
+
+export function axiomToGadget(axiom: string, id: GadgetId): GadgetProps {
     const terms = getGadgetTerms(axiom, id)
     return { terms, id, isOnShelf: false }
 }
@@ -37,5 +44,9 @@ export function axiomToString(a: Axiom) {
     if (hypotheses === "") {
         return conclusion
     }
-    return conclusion + ":-" + hypotheses
+    return `${conclusion}:-${hypotheses}`
+}
+
+export function goalToString(term: Term) {
+    return `:-${termToString(term)}`
 }

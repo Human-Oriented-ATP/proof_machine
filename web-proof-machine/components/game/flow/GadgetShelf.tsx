@@ -1,19 +1,12 @@
 import { Gadget } from '../gadget/Gadget'
-import { Axiom } from "../../../lib/game/Primitives";
 import { GadgetProps } from "../gadget/Gadget";
-import { makeAxiomWithFreshVariables, Term } from 'lib/game/Term';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
-import { CellPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition';
 import { InsertGadgetButton } from './InsertGadgetButton';
+import { getGadgetTerms } from 'lib/game/GameLogic';
 
-function makeShelfGadgetProps(axiom: Axiom, id: number): GadgetProps {
+function makeShelfGadgetProps(axiom: string, id: number): GadgetProps {
     const axiomId = `axiom_${id}`
-    const axiomWithFreshVariables = makeAxiomWithFreshVariables(axiom, axiomId)
-    let terms = new Map<CellPosition, Term>()
-    axiomWithFreshVariables.hypotheses.forEach((hypothesis, i) => {
-        terms.set(i, hypothesis)
-    })
-    terms.set(OUTPUT_POSITION, axiomWithFreshVariables.conclusion)
+    const terms = getGadgetTerms(axiom, axiomId)
     return { terms, id: axiomId, isOnShelf: true }
 }
 

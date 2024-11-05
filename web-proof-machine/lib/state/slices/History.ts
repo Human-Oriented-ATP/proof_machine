@@ -1,12 +1,11 @@
 import { getGadgetTerms } from "lib/game/GameLogic";
 import { CreateStateWithInitialValue } from "../Types"
-import { Axiom, GadgetId } from "lib/game/Primitives"
+import { GadgetId } from "lib/game/Primitives"
 import { Equation } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
 import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
-import { isAxiom } from "lib/game/Initialization";
 import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
@@ -18,7 +17,7 @@ function isEqualConnection(connection1: GadgetConnection, connection2: GadgetCon
 }
 
 export type GameEvent = { GameCompleted: null }
-    | { GadgetAdded: { gadgetId: GadgetId, axiom: Axiom } }
+    | { GadgetAdded: { gadgetId: GadgetId, axiom: string } }
     | { ConnectionAdded: GadgetConnection }
     | { GadgetRemoved: { gadgetId: GadgetId } }
     | { ConnectionRemoved: GadgetConnection };
@@ -58,7 +57,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
         },
         getAddedGadgets: () => {
             return get().log
-                .filter((event): event is { GadgetAdded: { gadgetId: GadgetId, axiom: Axiom } } => "GadgetAdded" in event)
+                .filter((event): event is { GadgetAdded: { gadgetId: GadgetId, axiom: string } } => "GadgetAdded" in event)
                 .map((event) => event.GadgetAdded.gadgetId)
         },
         getRemovedGadgets: () => {
@@ -96,10 +95,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             const statement = initialGadgets.get(gadgetId)?.statement
             if (statement === undefined)
                 return undefined
-            if (isAxiom(statement))
-                return getGadgetTerms(statement.axiom, gadgetId)
-            else
-                return new Map([[0, statement.goal]])
+            return getGadgetTerms(statement, gadgetId)
         },
         getTermsOfGadgetBeingAdded: (gadgetId: GadgetId) => {
             const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf

@@ -1,11 +1,10 @@
 import { XYPosition } from '@xyflow/react';
 import { GetState, SetState } from '../Types';
-import { Axiom } from 'lib/game/Primitives';
 
 interface GadgetDndFromShelfData {
     id: string;
     position: XYPosition;
-    axiom: Axiom
+    axiom: string
     status: "STILL_ABOVE_SHELF" | "MOVED_TO_WORK_BENCH";
 }
 

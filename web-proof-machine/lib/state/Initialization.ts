@@ -7,21 +7,18 @@ import { makeHandleId } from 'lib/game/Handles';
 import { GadgetId } from "lib/game/Primitives";
 import { GadgetProps } from "components/game/gadget/Gadget";
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
-import { axiomToGadget } from "lib/game/GameLogic";
+import { getGadgetTerms } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
 import { GadgetConnection } from "./slices/History";
 import { OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {
-    if (isAxiom(gadget.statement)) {
-        return axiomToGadget(gadget.statement.axiom, id)
-    } else {
-        return {
-            id,
-            terms: new Map([[0, gadget.statement.goal]]),
-            isOnShelf: false
-        }
+    const gadgetTerms = getGadgetTerms(gadget.statement, id)
+    return {
+        id,
+        terms: gadgetTerms,
+        isOnShelf: false
     }
 }
 

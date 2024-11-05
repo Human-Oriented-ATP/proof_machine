@@ -3,7 +3,7 @@ import { useGameStateContext } from "lib/state/StateContextProvider";
 import { useRef } from "react";
 
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
-    axiom: Axiom;
+    axiom: string;
 }
 
 export function InsertGadgetButton({ axiom, children }: InsertGadgetButtonProps): JSX.Element {

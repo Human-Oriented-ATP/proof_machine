@@ -39,17 +39,17 @@ function getNumericalConstantsInAxiom(axiom: Axiom): number[] {
 }
 
 export function getNumericalConstantsInInitializationData(initData: InitializationData): number[] {
-    const initialDiagramGadgets = Array.from(initData.initialDiagram.gadgets.values())
-    const initialDiagramStatements = initialDiagramGadgets.map(gadget => gadget.statement)
-    const numericalConstantsInInitialDiagram = initialDiagramStatements.flatMap(statement => {
-        if (isGoal(statement)) {
-            return getNumericalConstantsInTerm(statement.goal)
-        } else {
-            return getNumericalConstantsInAxiom(statement.axiom)
-        }
-    })
-    const numericalConstantsInAxioms = initData.axioms.flatMap(getNumericalConstantsInAxiom)
-    return numericalConstantsInAxioms.concat(numericalConstantsInInitialDiagram);
+    // const initialDiagramGadgets = Array.from(initData.initialDiagram.gadgets.values())
+    // const initialDiagramStatements = initialDiagramGadgets.map(gadget => gadget.statement)
+    // const numericalConstantsInInitialDiagram = initialDiagramStatements.flatMap(statement => {
+    //     if (isGoal(statement)) {
+    //         return getNumericalConstantsInTerm(statement.goal)
+    //     } else {
+    //         return getNumericalConstantsInAxiom(statement.axiom)
+    //     }
+    // })
+    // const numericalConstantsInAxioms = initData.axioms.flatMap(getNumericalConstantsInAxiom)
+    return [] //numericalConstantsInAxioms.concat(numericalConstantsInInitialDiagram);
 }
 
 export function getMaximumNumberInGameData(data: InitializationData): number {

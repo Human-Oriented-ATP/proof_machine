@@ -1,10 +1,9 @@
 import { LevelConfiguration, InteractiveStep } from 'components/tutorial/InteractiveLevel';
 import { InitialDiagram } from 'lib/game/Initialization';
-import { Axiom } from 'lib/game/Primitives';
 
 export type ReadonlyGameSetup = {
     initialDiagram: InitialDiagram;
-    axioms: Axiom[];
+    axioms: string[];
     settings: LevelConfiguration;
     tutorialSteps: InteractiveStep[];
     problemId?: string;
