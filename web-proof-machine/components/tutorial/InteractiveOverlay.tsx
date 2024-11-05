@@ -2,6 +2,7 @@ import { useGameStateContext } from "lib/state/StateContextProvider";
 import { DelayedDragIndicator, DragIndicatorProps, ElementPosition } from "./DragIndicator";
 import { GadgetPosition } from "./InteractiveLevel";
 import { GameSlice } from "lib/state/Store";
+import { GadgetId } from "lib/game/Primitives";
 
 const selector = (state: GameSlice) => {
     return {
@@ -10,21 +11,28 @@ const selector = (state: GameSlice) => {
     }
 }
 
-function toElementPosition(position: GadgetPosition): ElementPosition {
+function toElementPosition(position: GadgetPosition, getSomeGadgetWithAxiom: (gadget: string) => GadgetId): ElementPosition {
     if ("elementId" in position) {
         return position
     } else {
-        // need to find the elementId of the right gadget given through gadget selector
-        const elementId = '' // props.getGadgetElementId(position.gadget)
-        return { elementId, anchorPoint: position.anchorPoint, offset: position.offset }
+        if (position.gadget === "ANY_GADGET") {
+            throw Error("Position ANY_GADGET cannot be used for drag indicator. ")
+        } else if ("axiom" in position.gadget) {
+            const gadgetId = getSomeGadgetWithAxiom(position.gadget.axiom)
+            return { elementId: gadgetId, anchorPoint: position.anchorPoint, offset: position.offset }
+        } else {
+            return { elementId: position.gadget.gadgetId, anchorPoint: position.anchorPoint, offset: position.offset }
+        }
     }
 }
 
 function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<GadgetPosition> }) {
+    const getSomeGadgetWithAxiom = useGameStateContext(state => state.getSomeGadgetWithAxiom)
+
     const props: DragIndicatorProps<ElementPosition> = {
-        origin: toElementPosition(dragIndicator.origin),
+        origin: toElementPosition(dragIndicator.origin, getSomeGadgetWithAxiom),
         destination: "absolutePosition" in dragIndicator.destination ?
-            { absolutePosition: toElementPosition(dragIndicator.destination.absolutePosition) }
+            { absolutePosition: toElementPosition(dragIndicator.destination.absolutePosition, getSomeGadgetWithAxiom) }
             : dragIndicator.destination,
         drawLine: dragIndicator.drawLine,
         endWithClick: dragIndicator.endWithClick
