@@ -33,7 +33,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "./dist/types/**/*.ts",
-    "build/types/**/*.ts"
+    "build/types/**/*.ts",
+    "vitest.config.mts"
   ],
   "exclude": [
     "node_modules"
