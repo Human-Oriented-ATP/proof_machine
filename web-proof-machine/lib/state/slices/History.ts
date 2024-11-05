@@ -35,9 +35,11 @@ export type HistoryActions = {
     getCurrentGadgets: () => GadgetId[]
     getConnectionEvents: () => ({ ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection })[]
     getCurrentConnections: () => GadgetConnection[]
-    getTermsOfInitialGadget: (gadgetId: GadgetId) => Map<CellPosition, Term> | undefined
-    getTermsOfAddedGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
-    getTermsOfGadgetBeingAdded: (gadgetId: GadgetId) => Map<CellPosition, Term> | undefined
+    getStatementOfInitialGadget: (gadgetId: GadgetId) => string | undefined
+    getAxiomOfAddedGadget: (gadgetId: GadgetId) => string
+    getAxiomOfGadgetBeingAdded: (gadgetId: GadgetId) => string | undefined
+    getStatementOfGadget: (gadgetId: GadgetId) => string
+    getSomeGadgetWithAxiom: (axiom: string) => GadgetId
     getTermsOfGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
     getEquationOfConnection: (connection: GadgetConnection) => Equation
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
@@ -90,35 +92,45 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             }
             return connections
         },
-        getTermsOfInitialGadget(gadgetId: GadgetId) {
+        getStatementOfInitialGadget(gadgetId: GadgetId) {
             const initialGadgets = get().setup.initialDiagram.gadgets
             const statement = initialGadgets.get(gadgetId)?.statement
             if (statement === undefined)
                 return undefined
-            return getGadgetTerms(statement, gadgetId)
+            return statement
         },
-        getTermsOfGadgetBeingAdded: (gadgetId: GadgetId) => {
+        getAxiomOfGadgetBeingAdded: (gadgetId: GadgetId) => {
             const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
             if (gadgetBeingDraggedFromShelf === undefined) return undefined
             else {
                 const { id, axiom } = gadgetBeingDraggedFromShelf
-                return id === gadgetId ? getGadgetTerms(axiom, id) : undefined
+                return id === gadgetId ? axiom : undefined
             }
         },
-        getTermsOfAddedGadget: (gadgetId: GadgetId) => {
+        getAxiomOfAddedGadget: (gadgetId: GadgetId) => {
             const event = get().log.find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
             if (event === undefined) throw Error(`Gadget with id ${gadgetId} not found`)
             if (!("GadgetAdded"! in event)) throw Error(`Something very weird happened`)
-            return getGadgetTerms(event.GadgetAdded.axiom, gadgetId)
+            return event.GadgetAdded.axiom
+        },
+        getStatementOfGadget: (gadgetId: GadgetId) => {
+            const { getStatementOfInitialGadget, getAxiomOfGadgetBeingAdded, getAxiomOfAddedGadget } = get();
+            const statement = getStatementOfInitialGadget(gadgetId) ?? getAxiomOfGadgetBeingAdded(gadgetId) ?? getAxiomOfAddedGadget(gadgetId);
+            return statement
+        },
+        getSomeGadgetWithAxiom: (axiom: string) => {
+            const currentGadgets = get().getCurrentGadgets()
+            for (const gadget of currentGadgets) {
+                const statement = get().getStatementOfGadget(gadget)
+                if (statement === axiom)
+                    return gadget
+            }
+            throw Error(`No gadget with axiom ${axiom} found`)
         },
         getTermsOfGadget: (gadgetId: GadgetId) => {
-            const { getTermsOfInitialGadget, getTermsOfGadgetBeingAdded, getTermsOfAddedGadget } = get();
-
-            return (
-                getTermsOfInitialGadget(gadgetId) ??
-                getTermsOfGadgetBeingAdded(gadgetId) ??
-                getTermsOfAddedGadget(gadgetId)
-            );
+            const statement = get().getStatementOfGadget(gadgetId)
+            const terms = getGadgetTerms(statement, gadgetId)
+            return terms
         },
         getEquationOfConnection: (connection: GadgetConnection): Equation => {
             const lhs = get().getTermsOfGadget(connection.from).get(OUTPUT_POSITION)
