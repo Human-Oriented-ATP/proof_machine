@@ -73,7 +73,8 @@ export function parseTerm(text: string): Term {
 }
 
 export function parseStatement(text: string): Statement {
-    const cst = parseStatementCst(text)
+    let textToBeParsed = text.trim().endsWith(".") ? text : `${text}.`
+    const cst = parseStatementCst(textToBeParsed)
     const ast = astBuilder.visit(cst)
     return ast
 }
