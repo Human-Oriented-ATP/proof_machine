@@ -1,6 +1,6 @@
 import { useGameStateContext } from "lib/state/StateContextProvider";
 import { DelayedDragIndicator, DragIndicatorProps, ElementPosition } from "./DragIndicator";
-import { JsxAndDragIndicator, InteractiveLevel, InteractiveStep, OverlayPosition, GadgetSelector } from "./InteractiveLevel";
+import { GadgetPosition } from "./InteractiveLevel";
 import { GameSlice } from "lib/state/Store";
 
 const selector = (state: GameSlice) => {
@@ -10,39 +10,33 @@ const selector = (state: GameSlice) => {
     }
 }
 
-function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<OverlayPosition> }) {
-    // function getDragIndicatorProps(dragIndicator: DragIndicatorProps<GadgetPosition>): DragIndicatorProps<OverlayPosition> {
-    //     return {
-    //         origin: toOverlayPosition(dragIndicator.origin),
-    //         destination: "absolutePosition" in dragIndicator.destination ?
-    //             { absolutePosition: toOverlayPosition(dragIndicator.destination.absolutePosition) }
-    //             : dragIndicator.destination,
-    //         drawLine: dragIndicator.drawLine,
-    //         endWithClick: dragIndicator.endWithClick
-    //     }
-    // }
+function toElementPosition(position: GadgetPosition): ElementPosition {
+    if ("elementId" in position) {
+        return position
+    } else {
+        // need to find the elementId of the right gadget given through gadget selector
+        const elementId = '' // props.getGadgetElementId(position.gadget)
+        return { elementId, anchorPoint: position.anchorPoint, offset: position.offset }
+    }
+}
 
-    //{props.content.dragIndicator && !props.hideInteractiveContent && 
-    // return <DelayedDragIndicator {...getDragIndicatorProps(props.content.dragIndicator)} />
-    return <></>
+function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<GadgetPosition> }) {
+    const props: DragIndicatorProps<ElementPosition> = {
+        origin: toElementPosition(dragIndicator.origin),
+        destination: "absolutePosition" in dragIndicator.destination ?
+            { absolutePosition: toElementPosition(dragIndicator.destination.absolutePosition) }
+            : dragIndicator.destination,
+        drawLine: dragIndicator.drawLine,
+        endWithClick: dragIndicator.endWithClick
+    }
+
+    return <DelayedDragIndicator {...props} />
 }
 
 export function InteractiveContent() {
     const { tutorialStep, tutorialSteps } = useGameStateContext(selector)
 
     const currentContent = tutorialSteps[tutorialStep]?.content
-
-    // need: content, getGadgetElementId, hideInteractiveContent
-    // function toOverlayPosition(position: GadgetPosition): OverlayPosition {
-    //     const elementId = props.getGadgetElementId(position.gadget)
-    //     if (!elementId) {
-    //         throw new Error(`Element not found for gadget ${position.gadget}`)
-    //     } else {
-    //         return { elementId, anchorPoint: position.anchorPoint, offset: position.offset }
-    //     }
-    // }
-
-    console.log({ tutorialSteps })
 
     return <div>
         {currentContent?.jsx &&

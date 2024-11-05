@@ -1,5 +1,5 @@
 import { DragIndicatorProps } from "../DragIndicator";
-import { OverlayPosition, InteractiveLevel } from "../InteractiveLevel";
+import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
 import { SourceConnector, TargetConnector } from "../TutorialSetup";
 import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';

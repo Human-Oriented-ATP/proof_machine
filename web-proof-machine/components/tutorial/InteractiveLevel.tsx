@@ -21,13 +21,13 @@ export type Trigger = { GameCompleted: null }
     | { GadgetRemoved: GadgetSelector }
     | { ConnectionRemoved: { from?: GadgetSelector, to?: [GadgetSelector, CellPosition] } };
 
-export type OverlayPosition =
+export type GadgetPosition =
     { gadget: GadgetSelector } & AdjustablePosition
     | { elementId: string } & AdjustablePosition
 
 export type JsxAndDragIndicator = {
     jsx?: JSX.Element
-    dragIndicator?: DragIndicatorProps<OverlayPosition>
+    dragIndicator?: DragIndicatorProps<GadgetPosition>
 }
 
 export type InteractiveStep = {
