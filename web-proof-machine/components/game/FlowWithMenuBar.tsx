@@ -11,8 +11,8 @@ export default function FlowWithMenuBar() {
         <div className="w-full"><MenuBar /></div>
         <div className="relative flex flex-1">
             <Flow />
-            <InteractiveOverlay />
             <GadgetShelf />
+            <InteractiveOverlay />
             <HelpPopup />
         </div>
     </div>

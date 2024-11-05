@@ -57,7 +57,7 @@ export function InteractiveContent() {
 }
 
 export function InteractiveOverlay() {
-    return <div className="fixed left-0 top-0 w-full h-full z-10 pointer-events-none">
+    return <div className="fixed left-0 top-0 w-full h-full z-50 pointer-events-none">
         <InteractiveContent />
     </div>
 }

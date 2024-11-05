@@ -1,3 +1,5 @@
+"use client"
+
 import { useLayoutEffect, useState } from 'react'
 import { Cell } from './Node'
 import { CellPosition, isInputPosition, isOutputPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition'
@@ -73,7 +75,7 @@ export function Gadget(props: GadgetProps) {
     }, [props.terms, props.id])
 
     return <div className="text-center relative">
-        <span style={{ color: "grey" }}>{props.id}</span>
+        {/* <span style={{ color: "grey" }}>{props.id}</span> */}
         <div className={twJoin("flex", hasInputNode(props.terms) && "space-x-8")} id={props.id}>
             <div className="flex flex-col items-start">
                 <GadgetInputNodes {...props} />
