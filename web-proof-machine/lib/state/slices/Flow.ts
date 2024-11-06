@@ -83,11 +83,11 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             get().hideAnimatedTutorialContent()
         },
 
-        onNodeDragStop(event: React.MouseEvent, node: GadgetNode) {
-            if (get().nodeIsAboveShelf(node)) {
-                get().handleGadgetDraggedAboveShelf(node)
+        onNodeDragStop(event: React.MouseEvent, draggedNode: GadgetNode, nodes: GadgetNode[]) {
+            if (get().nodeIsAboveShelf(draggedNode)) {
+                nodes.forEach(node => { get().handleGadgetDraggedAboveShelf(node) })
             } else {
-                get().handleGadgetDragStopAwayFromShelf(node)
+                nodes.forEach(node => { get().handleGadgetDragStopAwayFromShelf(node) })
             }
             get().showAnimatedTutorialContent()
         },
