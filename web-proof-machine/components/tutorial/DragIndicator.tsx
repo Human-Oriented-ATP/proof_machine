@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { AnimatedHand } from "./AnimatedHand";
 import { XYPosition } from "@xyflow/react";
+import { useGameStateContext } from "lib/state/StateContextProvider";
+import { stat } from "fs";
 
 export type AnchorPoint = "BOTTOM_RIGHT" | "CENTER_RIGHT" | "CENTER_LEFT" | "CENTER_MIDDLE"
 
@@ -46,6 +48,7 @@ function calculateExtent(destination: { absolutePosition: ElementPosition } | { 
 }
 
 function DragIndicator(props: DragIndicatorProps<ElementPosition>) {
+    const displayAnimatedTutorialContent = useGameStateContext(state => state.displayAnimatedTutorialContent)
     try {
         const originRect = document.getElementById(props.origin.elementId)!.getBoundingClientRect()
         const originPosition = getXYPosition(originRect, props.origin.anchorPoint)
@@ -55,7 +58,8 @@ function DragIndicator(props: DragIndicatorProps<ElementPosition>) {
         const style = { left: originPosition.x + props.origin.offset.x, top: originPosition.y + props.origin.offset.y }
 
         return <div style={style} className="absolute">
-            <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} endWithClick={props.endWithClick ?? false} />
+            {displayAnimatedTutorialContent &&
+                <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} endWithClick={props.endWithClick ?? false} />}
         </div>
     } catch (error) {
         console.error(error)

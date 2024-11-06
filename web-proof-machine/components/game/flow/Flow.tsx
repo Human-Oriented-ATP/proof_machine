@@ -28,21 +28,15 @@ const selector = (state: GameSlice) => ({
     onEdgesDelete: state.onEdgesDelete,
     onNodeDrag: state.onNodeDrag,
     onNodeDragStop: state.onNodeDragStop,
+    hideAnimatedTutorialContent: state.hideAnimatedTutorialContent,
+    showAnimatedTutorialContent: state.showAnimatedTutorialContent,
     settings: state.setup.settings,
 });
 
 export function Flow() {
-    const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, onConnectEnd, isValidConnection,
-        onNodesDelete, onEdgesDelete, onNodeDrag, onNodeDragStop, settings } = useGameStateContext(useShallow(selector));
-
-    // const onNodeDrag = useCallback((event: React.MouseEvent, node: GadgetNode) => {
-    //     props.setUserIsDraggingOrNavigating(true)
-    // }, [])
-
-    // const onConnectEnd = useCallback(() => {
-    //     props.setUserIsDraggingOrNavigating(false)
-    //     enableHoleFocus()
-    // }, [])
+    const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, onConnectEnd,
+        isValidConnection, onNodesDelete, onEdgesDelete, onNodeDrag, onNodeDragStop,
+        hideAnimatedTutorialContent, showAnimatedTutorialContent, settings } = useGameStateContext(useShallow(selector));
 
     const zoomProps = settings.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
 
@@ -63,11 +57,11 @@ export function Flow() {
             onConnectEnd={onConnectEnd}
             isValidConnection={isValidConnection}
             onNodeDrag={onNodeDrag}
-            // onNodeDragStart={() => props.setUserIsDraggingOrNavigating(true)}
+            onNodeDragStart={hideAnimatedTutorialContent}
             onNodeDragStop={onNodeDragStop}
             nodeOrigin={[0.5, 0.5]}
-            // onMove={() => props.setUserIsDraggingOrNavigating(true)}
-            // onMoveEnd={() => props.setUserIsDraggingOrNavigating(false)}
+            onMove={hideAnimatedTutorialContent}
+            onMoveEnd={showAnimatedTutorialContent}
             {...zoomProps}
             panOnDrag={settings.panEnabled}
             connectionLineComponent={ConnectionLineComponent}

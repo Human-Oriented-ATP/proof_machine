@@ -6,6 +6,7 @@ export type TutorialStateInitializedFromData = HistoryStateInitializedFromData
 
 export type TutorialState = HistoryState & {
     tutorialStep: number
+    displayAnimatedTutorialContent: boolean
 }
 
 export type TutorialActions = {
@@ -13,6 +14,8 @@ export type TutorialActions = {
     getCurrentTrigger: () => Trigger | undefined
     advanceTutorial: (event: GameEvent) => void
     advanceTutorialWithEvents: (events: GameEvent[]) => void
+    hideAnimatedTutorialContent: () => void
+    showAnimatedTutorialContent: () => void
 }
 
 export type TutorialSlice = TutorialStateInitializedFromData & HistorySlice & TutorialState & TutorialActions
@@ -21,6 +24,7 @@ export const tutorialSlice: CreateStateWithInitialValue<TutorialStateInitialized
     return {
         ...historySlice(initialState, set, get),
         tutorialStep: 0,
+        displayAnimatedTutorialContent: false,
 
         triggers: (event: GameEvent, trigger: Trigger): boolean => {
             const [type] = Object.keys(trigger)
@@ -54,5 +58,13 @@ export const tutorialSlice: CreateStateWithInitialValue<TutorialStateInitialized
         advanceTutorialWithEvents: (events: GameEvent[]) => {
             events.forEach(event => get().advanceTutorial(event))
         },
+
+        hideAnimatedTutorialContent: () => {
+            set({ displayAnimatedTutorialContent: false })
+        },
+
+        showAnimatedTutorialContent: () => {
+            set({ displayAnimatedTutorialContent: true })
+        }
     }
 }

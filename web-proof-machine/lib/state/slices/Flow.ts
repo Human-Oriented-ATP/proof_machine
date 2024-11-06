@@ -55,11 +55,12 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
                 get().updateLogicalState(events)
             }
             set({ showHoleFocus: false })
-            // props.setUserIsDraggingOrNavigating(true)
+            get().hideAnimatedTutorialContent()
         },
 
         onConnectEnd: () => {
             set({ showHoleFocus: true })
+            get().showAnimatedTutorialContent()
         },
 
         onConnect: (connection: Connection) => {
@@ -79,6 +80,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             } else {
                 set({ connectingHandles: [] })
             }
+            get().hideAnimatedTutorialContent()
         },
 
         onNodeDragStop(event, node) {
@@ -87,6 +89,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             } else {
                 get().handleGadgetDragStopAwayFromShelf(node)
             }
+            get().showAnimatedTutorialContent()
         },
 
     }
