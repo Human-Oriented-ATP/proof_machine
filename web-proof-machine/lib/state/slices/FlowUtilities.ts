@@ -25,7 +25,6 @@ export type FlowUtilitiesState = UnificationState & NodeState & {
 
 export interface FlowUtilitiesActions {
     nodeIsAboveShelf(node: GadgetNode): boolean;
-    onlyOneNodeIsDraggingAndNotAboveShelf(): boolean;
     makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: string, axiomPosition: XYPosition) => void;
     removeGadgetNode: (node: GadgetNode) => void;
@@ -58,16 +57,6 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             const { flowToScreenPosition } = get().rf
             const position = flowToScreenPosition(node.position)
             return isAboveGadgetShelf(position)
-        },
-
-        onlyOneNodeIsDraggingAndNotAboveShelf(): boolean {
-            const nodesBeingDragged = get().nodes.filter((node) => node.dragging)
-            if (nodesBeingDragged.length !== 1) {
-                return false
-            } else {
-                console.log("nodeIsAboveShelf", get().nodeIsAboveShelf(nodesBeingDragged[0]))
-                return !get().nodeIsAboveShelf(nodesBeingDragged[0])
-            }
         },
 
         makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => {
@@ -124,7 +113,6 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
                     get().updateLogicalState(proximityConnectionEvents)
                 }
             }
-            // Set userIsDraggingOrNavigating to false
         },
 
         updateLogicalState(events: GameEvent[]) {
@@ -182,8 +170,10 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
         isValidProximityConnection: (connection: ConnectionWithHandles) => {
             const proximityConnectEnabled = get().setup.settings.proximityConnectEnabled
             const isValidConnection = get().isValidConnection(connection)
-            const onlyOneNodeDraggingAndNotAboveShelf = get().onlyOneNodeIsDraggingAndNotAboveShelf()
-            return proximityConnectEnabled && isValidConnection && onlyOneNodeDraggingAndNotAboveShelf
+            const sourceNode: GadgetNode = get().getNode(connection.source)
+            const targetNode: GadgetNode = get().getNode(connection.target)
+            const notAboveShelf = !(get().nodeIsAboveShelf(sourceNode) || get().nodeIsAboveShelf(targetNode))
+            return proximityConnectEnabled && isValidConnection && notAboveShelf
         },
 
         getProximityConnection(nodeThatIsBeingDragged: string) {
@@ -194,17 +184,20 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
                 get().calculatePositionOfHandles(handlesOfNodeBeingDragged),
                 get().calculatePositionOfHandles(handlesOfOtherNodes))
             if (proximityConnection === null) return null
-            else if (!get().isValidProximityConnection(proximityConnection)) return null
+            else if (!get().isValidProximityConnection(proximityConnection)) {
+                return null
+            }
             else return proximityConnection
         },
 
         runProximityConnect(nodeId: string): GameEvent[] {
             const proximityConnection = get().getProximityConnection(nodeId)
             if (proximityConnection !== null) {
+                const removalEvents = get().removeEdgesConnectedToHandle(proximityConnection.targetHandle)
                 set({ edges: addEdge({ ...proximityConnection, type: 'customEdge' }, get().edges), });
                 const gadgetConnection = toGadgetConnection(proximityConnection)
-                const event: GameEvent = { ConnectionAdded: gadgetConnection }
-                return [event]
+                const connectionEvent: GameEvent = { ConnectionAdded: gadgetConnection }
+                return [...removalEvents, connectionEvent]
             } else {
                 return []
             }

@@ -83,7 +83,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             get().hideAnimatedTutorialContent()
         },
 
-        onNodeDragStop(event, node) {
+        onNodeDragStop(event: React.MouseEvent, node: GadgetNode) {
             if (get().nodeIsAboveShelf(node)) {
                 get().handleGadgetDraggedAboveShelf(node)
             } else {
