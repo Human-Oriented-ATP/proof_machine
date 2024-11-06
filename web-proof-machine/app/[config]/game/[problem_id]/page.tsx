@@ -14,22 +14,28 @@ export async function generateStaticParams() {
     return problemIds
 }
 
+function getTutorialProps(problemId: string) {
+    const interactiveLevel = interactiveTutorialLevels.get(problemId)
+    return {
+        initialDiagramFromTutorialSpecification: interactiveLevel?.initialDiagram,
+        settings: interactiveLevel?.settings,
+        tutorialSteps: interactiveLevel?.steps
+    }
+}
+
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     const configuration = await loadStudyConfiguration(params.config)
 
     const problemFile = params.problem_id + ".pl"
     const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
 
+    const nextProblem = getNextProblem(configuration, params.problem_id)
+    const { initialDiagramFromTutorialSpecification, settings, tutorialSteps } = getTutorialProps(params.problem_id)
+
     try {
         const problemFileData = parseProblemFile(problemData.trim())
         const { initialDiagram: initialDiagramFromProblemFile, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
-        const nextProblem = getNextProblem(configuration, params.problem_id)
-
-        const interactiveLevel = interactiveTutorialLevels.get(params.problem_id)
-        const initialDiagramFromTutorialSpecification = interactiveLevel?.initialDiagram
-        const settings = interactiveLevel?.settings
-        const tutorialSteps = interactiveLevel?.steps
-        return <Suspense>
+        return <Suspense fallback={"...loading game..."}>
             <Game
                 initialDiagram={initialDiagramFromTutorialSpecification ?? initialDiagramFromProblemFile}
                 axioms={axioms}
