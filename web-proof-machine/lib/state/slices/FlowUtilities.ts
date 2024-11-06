@@ -13,6 +13,7 @@ import { calculateProximityConnection, ConnectionWithHandles, getPositionOfHandl
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { parseAxiom } from 'lib/parsing/Semantics';
+import { isAboveGadgetShelf } from 'lib/util/XYPosition';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -23,6 +24,8 @@ export type FlowUtilitiesState = UnificationState & NodeState & {
 }
 
 export interface FlowUtilitiesActions {
+    nodeIsAboveShelf(node: GadgetNode): boolean;
+    onlyOneNodeIsDraggingAndNotAboveShelf(): boolean;
     makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: string, axiomPosition: XYPosition) => void;
     removeGadgetNode: (node: GadgetNode) => void;
@@ -33,6 +36,7 @@ export interface FlowUtilitiesActions {
     updateHandleStatus: (openHandles: string[]) => void;
     calculatePositionOfHandles: (handles: string[]) => HandlesWithPositions;
     isValidConnection: (connection: Connection) => boolean;
+    isValidProximityConnection: (connection: ConnectionWithHandles) => boolean;
     getProximityConnection(nodeThatIsBeingDragged: string): ConnectionWithHandles | null;
     runProximityConnect(nodeId: string): GameEvent[];
     calculateCompletionStatusAndOpenHandles: () => { isCompleted: boolean, openHandles: string[] };
@@ -49,6 +53,22 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
         ...gadgetIdGeneratorSlice(set, get),
         rf: initialState.rf,
         levelIsCompleted: false,
+
+        nodeIsAboveShelf(node: GadgetNode): boolean {
+            const { flowToScreenPosition } = get().rf
+            const position = flowToScreenPosition(node.position)
+            return isAboveGadgetShelf(position)
+        },
+
+        onlyOneNodeIsDraggingAndNotAboveShelf(): boolean {
+            const nodesBeingDragged = get().nodes.filter((node) => node.dragging)
+            if (nodesBeingDragged.length !== 1) {
+                return false
+            } else {
+                console.log("nodeIsAboveShelf", get().nodeIsAboveShelf(nodesBeingDragged[0]))
+                return !get().nodeIsAboveShelf(nodesBeingDragged[0])
+            }
+        },
 
         makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => {
             const id = get().generateNewGadgetId()
@@ -159,6 +179,13 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             return colorsOk && arityOk && createsNoCycle && doesNotYetExist
         },
 
+        isValidProximityConnection: (connection: ConnectionWithHandles) => {
+            const proximityConnectEnabled = get().setup.settings.proximityConnectEnabled
+            const isValidConnection = get().isValidConnection(connection)
+            const onlyOneNodeDraggingAndNotAboveShelf = get().onlyOneNodeIsDraggingAndNotAboveShelf()
+            return proximityConnectEnabled && isValidConnection && onlyOneNodeDraggingAndNotAboveShelf
+        },
+
         getProximityConnection(nodeThatIsBeingDragged: string) {
             const handlesOfNodeBeingDragged = get().getHandlesOfNode(nodeThatIsBeingDragged)
             const otherNodes = get().nodes.filter(node => node.id !== nodeThatIsBeingDragged)
@@ -167,8 +194,7 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
                 get().calculatePositionOfHandles(handlesOfNodeBeingDragged),
                 get().calculatePositionOfHandles(handlesOfOtherNodes))
             if (proximityConnection === null) return null
-            else if (!get().isValidConnection(proximityConnection)) return null
-            // TODO: Can fail if the gadget is newly added: In that case there is no history event and thus the term is not found for the newly added gadget
+            else if (!get().isValidProximityConnection(proximityConnection)) return null
             else return proximityConnection
         },
 

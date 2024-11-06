@@ -82,7 +82,7 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
         },
 
         onNodeDragStop(event, node) {
-            if (isAboveGadgetShelf({ x: event.clientX, y: event.clientY })) {
+            if (get().nodeIsAboveShelf(node)) {
                 get().handleGadgetDraggedAboveShelf(node)
             } else {
                 get().handleGadgetDragStopAwayFromShelf(node)
