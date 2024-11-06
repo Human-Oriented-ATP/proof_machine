@@ -80,7 +80,7 @@ export function Gadget(props: GadgetProps) {
             <div className="flex flex-col items-start">
                 <GadgetInputNodes {...props} />
             </div>
-            <div className="flex flex-col justify-center">
+            <div className={twJoin("flex flex-col justify-center", !hasOutputNode(props.terms) && "hidden")}>
                 <GadgetOutputNode {...props} />
             </div>
         </div>
