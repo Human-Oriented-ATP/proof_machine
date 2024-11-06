@@ -46,7 +46,7 @@ export const RESTRICTIVE_SETTINGS: LevelConfiguration = {
     proximityConnectEnabled: false,
     gadgetDeletionEnabled: false,
     initialViewportSetting: "ORIGIN_AT_RIGHT",
-    showBrokenConnectionStatusBarMessage: false
+    showBrokenConnectionStatusBarMessage: true,
 };
 
 export const DELETE_ONLY_SETTINGS: LevelConfiguration = {
@@ -55,7 +55,7 @@ export const DELETE_ONLY_SETTINGS: LevelConfiguration = {
     proximityConnectEnabled: false,
     gadgetDeletionEnabled: true,
     initialViewportSetting: "ORIGIN_AT_RIGHT",
-    showBrokenConnectionStatusBarMessage: false,
+    showBrokenConnectionStatusBarMessage: true,
 };
 
 export const DEFAULT_SETTINGS: LevelConfiguration = {
