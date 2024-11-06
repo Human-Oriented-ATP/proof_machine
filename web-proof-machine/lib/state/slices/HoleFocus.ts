@@ -15,7 +15,7 @@ export type HoleFocusSlice = HoleFocusState & HoleFocusActions
 export const holeFocusSlice = (set: SetState<HoleFocusSlice>, get: GetState<HoleFocusSlice>): HoleFocusSlice => {
     return {
         focussedHole: undefined,
-        showHoleFocus: false,
+        showHoleFocus: true,
         focus: (variableName: string) => {
             if (get().showHoleFocus) {
                 set({ focussedHole: variableName })

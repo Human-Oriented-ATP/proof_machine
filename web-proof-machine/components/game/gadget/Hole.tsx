@@ -34,11 +34,6 @@ export function Hole(props: HoleProps) {
                 isFocussed: focussedHole === term.variable,
                 onMouseEnter: () => focus(term.variable),
             }
-        } else if (term.args.length == 0) {
-            return {
-                isFocussed: focussedHole === term.label,
-                onMouseEnter: () => focus(term.label)
-            }
         } else {
             return undefined
         }
