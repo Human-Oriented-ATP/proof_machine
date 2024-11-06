@@ -1,5 +1,4 @@
 import { InitialDiagram } from "lib/game/Initialization";
-import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
 import { DELETE_ONLY_SETTINGS } from "../InteractiveLevel";
 import { DragIndicatorProps } from "../DragIndicator";

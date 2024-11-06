@@ -1,5 +1,5 @@
 import { InteractiveLevel } from "../InteractiveLevel";
-import { OpenTargetConnector, PinkHole } from "../TutorialSetup";
+import { PinkHole } from "../TutorialSetup";
 import { DEFAULT_SETTINGS } from "../InteractiveLevel";
 
 export const pink_tutorial03: InteractiveLevel = {
