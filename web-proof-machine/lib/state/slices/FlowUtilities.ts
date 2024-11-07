@@ -6,14 +6,14 @@ import { NodeSlice, nodeSlice, NodeState, NodeStateInitializedFromData } from '.
 import { GameEvent } from './History';
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
-import { Axiom, GadgetId } from 'lib/game/Primitives';
+import { GadgetId } from 'lib/game/Primitives';
 import { unificationSlice, UnificationSlice, UnificationState, UnificationStateInitializedFromData } from './Unification';
 import { ConnectorStatus } from 'components/game/gadget/Connector';
 import { calculateProximityConnection, ConnectionWithHandles, getPositionOfHandle, HandlesWithPositions } from 'lib/util/calculateProximityConnection';
 import { aritiesMatch, labelsMatch } from 'lib/game/Term';
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
-import { parseAxiom } from 'lib/parsing/Semantics';
 import { isAboveGadgetShelf } from 'lib/util/XYPosition';
+import { saveLevelCompletedAsCookie } from 'lib/study/CompletedProblems';
 
 export type FlowUtilitiesStateInitializedFromData = UnificationStateInitializedFromData & NodeStateInitializedFromData & EdgeStateInitializedFromData & {
     rf: ReactFlowInstance
@@ -31,6 +31,7 @@ export interface FlowUtilitiesActions {
     removeGadgetNodes: (nodes: GadgetNode[]) => GameEvent[];
     handleGadgetDraggedAboveShelf: (node: GadgetNode) => void;
     handleGadgetDragStopAwayFromShelf: (node: GadgetNode) => void;
+    handleCompletedLevel: () => void;
     updateLogicalState: (events: GameEvent[]) => void;
     isHandleWithBrokenConnection: (handle: string) => boolean;
     updateHandleStatus: (openHandles: string[]) => void;
@@ -128,15 +129,21 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             }
         },
 
+        handleCompletedLevel() {
+            set({ levelIsCompleted: true })
+            get().logEvents([{ GameCompleted: null }])
+            get().uploadFinalHistory()
+            const problemId = get().setup.problemId
+            saveLevelCompletedAsCookie(problemId)
+        },
+
         updateLogicalState(events: GameEvent[]) {
             get().logEvents(events)
             get().runUnification()
             const { isCompleted, openHandles } = get().calculateCompletionStatusAndOpenHandles()
             get().updateHandleStatus(openHandles)
             if (isCompleted) {
-                set({ levelIsCompleted: true })
-                get().logEvents([{ GameCompleted: null }])
-                get().uploadFinalHistory()
+                get().handleCompletedLevel()
             }
             get().advanceTutorialWithEvents(events)
             if (!isCompleted) {

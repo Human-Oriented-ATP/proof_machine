@@ -12,10 +12,9 @@ export function getCompletedProblems(): string[] {
     }
 }
 
-export function saveLevelCompletedAsCookie(problemId: string) {
-    if (getCompletedProblems().includes(problemId)) {
-        return
-    }
+export function saveLevelCompletedAsCookie(problemId: string | undefined) {
+    if (!problemId) return
+    if (getCompletedProblems().includes(problemId)) return
     const currentlyCompleted = clientSideCookies.get("completed")
     const newValue = currentlyCompleted === null ? problemId : `${currentlyCompleted},${problemId}`
     clientSideCookies.set("completed", newValue, 365)

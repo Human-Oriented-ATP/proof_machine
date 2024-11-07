@@ -2,7 +2,9 @@
 
 import { GameLevelButton } from "components/primitive/buttons/GameLevel";
 import { categoryIsUnlocked, getCompletedProblems, problemIsUnlocked } from "lib/study/CompletedProblems";
+import { findFirstUncompletedProblem, getNextProblem } from "lib/study/LevelConfiguration";
 import { ProblemCategory, StudyConfiguration } from "lib/study/Types";
+import next from "next";
 import { twJoin } from "tailwind-merge";
 
 interface ProblemCategoryProps {
@@ -25,6 +27,8 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
 
     const isUnlocked = categoryIsUnlocked(props.category, props.config, completedProblems)
 
+    const nextProblem = findFirstUncompletedProblem(props.config)
+
     return <div className="max-w-3xl">
         <div>
             {props.category.name}
@@ -36,6 +40,7 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
                         <GameLevelButton
                             label={getButtonLabel(index, problem)}
                             href={`${props.config.name}/game/${problem}`}
+                            isSelected={problem === nextProblem}
                             isSolved={completedProblems.includes(problem)}
                             isUnlocked={isUnlocked && problemIsUnlocked(problem, props.category, completedProblems)}
                             isSquare={props.config.displayNamesAs === "number"} />

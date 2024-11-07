@@ -1,3 +1,4 @@
+import { getCompletedProblems } from "./CompletedProblems";
 import { StudyConfiguration } from "./Types";
 
 export function getProblemList(config: StudyConfiguration): string[] {
@@ -15,5 +16,11 @@ export function getNextProblem(config: StudyConfiguration, currentProblem: strin
         const nextProblem = problemList[currentIndex + 1]
         return nextProblem
     }
+}
+export function findFirstUncompletedProblem(config: StudyConfiguration): string | undefined {
+    const problems = getProblemList(config!);
+    const completedProblems = getCompletedProblems();
+    const firstUncompletedProblem = problems.find(problem => !completedProblems.includes(problem));
+    return firstUncompletedProblem;
 }
 
