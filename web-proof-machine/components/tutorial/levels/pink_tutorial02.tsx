@@ -6,7 +6,7 @@ export const pink_tutorial02: InteractiveLevel = {
     settings: DEFAULT_SETTINGS,
     steps: [{
         content: {
-            jsx: <>If the rest of the numbers in a cell are the same, <PinkHole /> becomes the same number. </>
+            jsx: <>If the rest of the numbers in a cell are the same, <PinkHole /> becomes the same letter. </>
         },
         trigger: {
             GameCompleted: null

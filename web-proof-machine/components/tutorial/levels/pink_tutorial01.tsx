@@ -6,7 +6,7 @@ export const pink_tutorial01: InteractiveLevel = {
     settings: DEFAULT_SETTINGS,
     steps: [{
         content: {
-            jsx: <>These <PinkHole /> circles can be tricky, they create a fresh number upon connection.<br></br> Give it a try! </>
+            jsx: <>These mystery gadgets with <PinkHole /> circles can be tricky, they create new letters.<br></br> Give it a try! </>
         },
         trigger: {
             GameCompleted: null
