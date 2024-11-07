@@ -24,8 +24,7 @@ const selector = (state: GameSlice) => ({
     onConnectStart: state.onConnectStart,
     onConnectEnd: state.onConnectEnd,
     isValidConnection: state.isValidConnection,
-    onNodesDelete: state.onNodesDelete,
-    onEdgesDelete: state.onEdgesDelete,
+    onBeforeDelete: state.onBeforeDelete,
     onNodeDrag: state.onNodeDrag,
     onNodeDragStop: state.onNodeDragStop,
     hideAnimatedTutorialContent: state.hideAnimatedTutorialContent,
@@ -35,7 +34,7 @@ const selector = (state: GameSlice) => ({
 
 export function Flow() {
     const { nodes, edges, onInit, onNodesChange, onEdgesChange, onConnect, onConnectStart, onConnectEnd,
-        isValidConnection, onNodesDelete, onEdgesDelete, onNodeDrag, onNodeDragStop,
+        isValidConnection, onBeforeDelete, onNodeDrag, onNodeDragStop,
         hideAnimatedTutorialContent, showAnimatedTutorialContent, settings } = useGameStateContext(useShallow(selector));
 
     const zoomProps = settings.zoomEnabled ? { minZoom: 0.1 } : { minZoom: 1, maxZoom: 1 }
@@ -48,8 +47,7 @@ export function Flow() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            onEdgesDelete={onEdgesDelete}
-            onNodesDelete={onNodesDelete}
+            onBeforeDelete={onBeforeDelete}
             edgeTypes={edgeTypes}
             nodeTypes={nodeTypes}
             onInit={onInit}

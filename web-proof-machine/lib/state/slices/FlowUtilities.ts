@@ -27,7 +27,8 @@ export interface FlowUtilitiesActions {
     nodeIsAboveShelf(node: GadgetNode): boolean;
     makeGadgetNode: (axiom: string, axiomPosition: XYPosition) => GadgetNode;
     addGadgetNode: (axiom: string, axiomPosition: XYPosition) => void;
-    removeGadgetNode: (node: GadgetNode) => void;
+    removeGadgetNode: (node: GadgetNode) => GameEvent[];
+    removeGadgetNodes: (nodes: GadgetNode[]) => GameEvent[];
     handleGadgetDraggedAboveShelf: (node: GadgetNode) => void;
     handleGadgetDragStopAwayFromShelf: (node: GadgetNode) => void;
     updateLogicalState: (events: GameEvent[]) => void;
@@ -83,14 +84,26 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             if (node.deletable) {
                 const connectionDeletionEvents = get().removeEdgesConnectedToNode(node.id);
                 set({ nodes: get().nodes.filter((n) => n.id !== node.id), });
-                get().updateLogicalState([...connectionDeletionEvents, { GadgetRemoved: { gadgetId: node.id } }])
+                return [...connectionDeletionEvents, { GadgetRemoved: { gadgetId: node.id } }]
+            } else {
+                return []
             }
+        },
+
+        removeGadgetNodes(nodes: GadgetNode[]) {
+            let events = new Array()
+            for (const node of nodes) {
+                const edgeDeletionEvents = get().removeGadgetNode(node)
+                events = [...events, ...edgeDeletionEvents]
+            }
+            return events
         },
 
         handleGadgetDraggedAboveShelf(node: GadgetNode) {
             const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
             if (gadgetBeingDraggedFromShelf === undefined) {
-                get().removeGadgetNode(node)
+                const event = get().removeGadgetNode(node)
+                get().updateLogicalState(event)
             } else {
                 if (node.id !== gadgetBeingDraggedFromShelf.id)
                     throw Error("Impossible value for gadgetBeingDraggedFromShelf")

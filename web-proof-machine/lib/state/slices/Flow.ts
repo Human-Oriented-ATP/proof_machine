@@ -1,5 +1,5 @@
 import { CreateStateWithInitialValue } from '../Types';
-import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnConnectStartParams, OnEdgesChange, OnNodeDrag, ReactFlowInstance, XYPosition } from '@xyflow/react';
+import { addEdge, applyEdgeChanges, applyNodeChanges, Connection, Edge, EdgeChange, OnBeforeDelete, OnConnect, OnConnectStartParams, OnEdgesChange, OnNodeDrag, OnNodesChange, ReactFlowInstance, XYPosition } from '@xyflow/react';
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { toGadgetConnection, isValidConnection } from './Edges';
 import { initViewport } from 'lib/game/ViewportInitialisation';
@@ -13,8 +13,7 @@ export type FlowState = FlowUtilitiesState
 export interface FlowActions {
     onInit: () => void;
     onEdgesChange: OnEdgesChange;
-    onNodesDelete: (nodes: GadgetNode[]) => void;
-    onEdgesDelete: (edges: Edge[]) => void;
+    onBeforeDelete: OnBeforeDelete<GadgetNode, Edge>;
     onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => void;
     onConnectEnd: () => void;
     onConnect: OnConnect;
@@ -39,13 +38,10 @@ export const flowSlice: CreateStateWithInitialValue<FlowStateInitializedFromData
             set({ edges: applyEdgeChanges(changes, get().edges), });
         },
 
-        onNodesDelete: (nodes: GadgetNode[]) => {
-            nodes.forEach((node) => get().removeGadgetNode(node))
-        },
-
-        onEdgesDelete: (edges: Edge[]) => {
-            const events = edges.map(edge => ({ ConnectionRemoved: toGadgetConnection(edge as Connection) }))
+        onBeforeDelete: (payload) => {
+            const events = get().removeGadgetNodes(payload.nodes)
             get().updateLogicalState(events)
+            return Promise.resolve(false) // prevents reactflow from trying to delete the nodes again 
         },
 
         onConnectStart: (event: MouseEvent | TouchEvent, params: OnConnectStartParams) => {
