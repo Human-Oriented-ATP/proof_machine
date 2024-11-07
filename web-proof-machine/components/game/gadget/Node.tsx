@@ -25,7 +25,7 @@ export function Cell(props: CellProps) {
     } else {
         const backgroundClassName = getCellClassNameFromLabel(props.term.label)
         return <div className="flex items-center">
-            <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", backgroundClassName, props.isGoalNode && "outline outline-offset-2 outline-2")}>
+            <div className={twMerge("m-1 border-black border-2 rounded-lg p-0.5", backgroundClassName, props.isGoalNode && "outline outline-offset-2 outline-2 outline-black")}>
                 {props.term.args.map((arg, idx) => <Hole key={idx} term={arg}></Hole>)}
             </div>
             <CustomHandle type={handleType} handleId={handleId}></CustomHandle>

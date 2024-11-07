@@ -20,7 +20,7 @@ export function TargetConnectorPolygon() {
 export function Connector({ type, status = "DEFAULT", isConnecting = false, isInline = false }: ConnectorProps) {
     const className = twMerge("stroke-[1.5px] stroke-black pointer-events-none fill-white",
         status === "BROKEN" && isConnecting === false && "animate-svg-stroke-glow-red",
-        status === "CONNECTED" && isConnecting === false && "fill-black",
+        status === "CONNECTED" && isConnecting === false && "fill-dark-gray",
         isConnecting && "fill-green",
         isInline && "inline align-text-bottom")
 
