@@ -14,7 +14,7 @@ export const gadgetIdGeneratorSlice: CreateState<GadgetIdGeneratorSlice> = (set,
     return {
         nextGadgetId: 0,
         generateNewGadgetId: () => {
-            const id = `gadget_${get().nextGadgetId}`;
+            const id = `g_${get().nextGadgetId}`;
             set({ nextGadgetId: get().nextGadgetId + 1 });
             return id;
         }
