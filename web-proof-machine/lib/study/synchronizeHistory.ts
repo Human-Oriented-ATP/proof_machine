@@ -27,21 +27,19 @@ export async function getPlayerId(): Promise<string> {
 
 function passesSanityCheck(history: GameHistory): boolean {
     const logIsNotEmpty = history.log.length !== 0
-    const problemIdIsDefined = history.problemId !== undefined
-    const configIsDefined = history.config !== undefined
-    return logIsNotEmpty && problemIdIsDefined && configIsDefined
+    return logIsNotEmpty
 }
 
 export async function synchronizeHistory(historyString: string) {
     "use server"
     try {
         const playerId = await getPlayerId()
-        const history = JSON.parse(historyString)
+        const history: GameHistory = JSON.parse(historyString)
         if (passesSanityCheck(history)) {
             const log: string = JSON.stringify(history.log);
             const lastSynchronized = new Date().toISOString();
             await sql`INSERT INTO study_data (player_id, problem_id, config, start, latest, history, completed) VALUES 
-                (${playerId}, ${history.problemId}, ${history.config}, ${history.startTime}, ${lastSynchronized}, ${log}, ${history.completed})
+                (${playerId}, ${history.problemId}, ${history.configId}, ${history.startTime.toISOString()}, ${lastSynchronized}, ${log}, ${history.completed})
                 ON CONFLICT (player_id, problem_id, start) DO UPDATE
                 SET latest=${lastSynchronized}, 
                     history=${log},

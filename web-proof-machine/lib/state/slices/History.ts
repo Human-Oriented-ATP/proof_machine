@@ -7,6 +7,10 @@ import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
 import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
+import { synchronizeHistory } from "lib/study/synchronizeHistory";
+import { GameHistory } from "lib/study/GameHistory";
+
+const HISTORY_UPLOAD_DELAY = 3 * 1000
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
 
@@ -25,11 +29,17 @@ export type GameEvent = { GameCompleted: null }
 export type HistoryStateInitializedFromData = SetupReadonlyState
 
 export type HistoryState = GadgetDndFromShelfState & {
-    log: GameEvent[]
+    log: [GameEvent, Date][]
+    timeoutId: NodeJS.Timeout | undefined
+    startTime: Date
 }
 
 export type HistoryActions = {
     logEvents: (events: GameEvent[]) => void;
+    getEvents: () => GameEvent[];
+    getHistory: () => GameHistory | undefined;
+    uploadEvents: () => void;
+    uploadEventsAsynchronously: () => void;
     getAddedGadgets: () => GadgetId[]
     getRemovedGadgets: () => GadgetId[]
     getCurrentGadgets: () => GadgetId[]
@@ -54,18 +64,63 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
         ...setupSlice(initialState),
         ...gadgetDndFromShelfSlice(set, get),
         log: [],
+        timeoutId: undefined,
+        startTime: new Date(),
+
         logEvents: (events: GameEvent[]) => {
-            const { log } = get()
-            const newLog = [...log, ...events]
+            const time = new Date()
+            const eventsWithTime: [GameEvent, Date][] = events.map((event) => [event, time])
+            const newLog = [...get().log, ...eventsWithTime]
             set({ log: newLog })
+            if (events.some((event) => "GameCompleted" in event)) {
+                get().uploadEvents()
+            } else {
+                get().uploadEventsAsynchronously()
+            }
         },
+
+        getHistory: () => {
+            const { problemId, configurationIdentifier } = get().setup
+            if (problemId === undefined || configurationIdentifier === undefined) return undefined
+            const history: GameHistory | undefined = {
+                problemId: problemId,
+                configId: configurationIdentifier,
+                startTime: get().startTime,
+                completed: get().log.some(([event]) => "GameCompleted" in event),
+                log: get().log
+            }
+            return history
+        },
+
+        uploadEvents: async () => {
+            const history = get().getHistory()
+            if (history !== undefined) {
+                synchronizeHistory(JSON.stringify(history))
+            }
+        },
+
+        uploadEventsAsynchronously: async () => {
+            if (get().timeoutId !== undefined) {
+                const timeoutId = setTimeout(() => {
+                    get().uploadEvents()
+                    set({ timeoutId: undefined })
+                }, HISTORY_UPLOAD_DELAY)
+                set({ timeoutId })
+            }
+        },
+
+        getEvents: () => {
+            const log = get().log
+            return log.map(([event, date]) => event)
+        },
+
         getAddedGadgets: () => {
-            return get().log
+            return get().getEvents()
                 .filter((event): event is { GadgetAdded: { gadgetId: GadgetId, axiom: string } } => "GadgetAdded" in event)
                 .map((event) => event.GadgetAdded.gadgetId)
         },
         getRemovedGadgets: () => {
-            return get().log
+            return get().getEvents()
                 .filter((event): event is { GadgetRemoved: { gadgetId: GadgetId } } => "GadgetRemoved" in event)
                 .map((event) => event.GadgetRemoved.gadgetId)
         },
@@ -76,7 +131,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             return [...initialGadgets, ...addedGadgets].filter((gadgetId) => !removedGadgets.includes(gadgetId))
         },
         getConnectionEvents: () => {
-            return get().log.filter((event): event is { ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection } =>
+            return get().getEvents().filter((event): event is { ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection } =>
                 "ConnectionAdded" in event || "ConnectionRemoved" in event)
         },
         getCurrentConnections: () => {
@@ -110,7 +165,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             }
         },
         getAxiomOfAddedGadget: (gadgetId: GadgetId) => {
-            const event = get().log.find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
+            const event = get().getEvents().find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
             if (event === undefined) throw Error(`Gadget with id ${gadgetId} not found`)
             if (!("GadgetAdded"! in event)) throw Error(`Something very weird happened`)
             return event.GadgetAdded.axiom
@@ -162,6 +217,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             const connectionsWithEquations: Array<[GadgetConnection, Equation]> = connections.map((connection) =>
                 [connection, get().getEquationOfConnection(connection)])
             return new ValueMap(connectionsWithEquations)
-        }
+        },
+
     }
 }
