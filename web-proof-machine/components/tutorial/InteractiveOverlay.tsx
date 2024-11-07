@@ -30,12 +30,11 @@ function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<Ga
     const getSomeGadgetWithAxiom = useGameStateContext(state => state.getSomeGadgetWithAxiom)
 
     const props: DragIndicatorProps<ElementPosition> = {
+        ...dragIndicator,
         origin: toElementPosition(dragIndicator.origin, getSomeGadgetWithAxiom),
         destination: "absolutePosition" in dragIndicator.destination ?
             { absolutePosition: toElementPosition(dragIndicator.destination.absolutePosition, getSomeGadgetWithAxiom) }
             : dragIndicator.destination,
-        drawLine: dragIndicator.drawLine,
-        endWithClick: dragIndicator.endWithClick
     }
 
     return <DelayedDragIndicator {...props} />

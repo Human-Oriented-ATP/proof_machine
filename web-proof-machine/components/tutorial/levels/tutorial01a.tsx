@@ -5,13 +5,13 @@ import { RESTRICTIVE_SETTINGS } from "../InteractiveLevel";
 const redGadgetDragIndicator: DragIndicatorProps<GadgetPosition> = {
     origin: { elementId: "axiom_0", anchorPoint: "BOTTOM_RIGHT", offset: { x: -20, y: -20 } },
     destination: { relativePosition: { x: 200, y: 200 } },
-    drawLine: false
+    drawPlacementCircle: true
 }
 
 const colorConverterDragIndicator: DragIndicatorProps<GadgetPosition> = {
     origin: { elementId: "axiom_1", anchorPoint: "BOTTOM_RIGHT", offset: { x: -20, y: -20 } },
     destination: { relativePosition: { x: 400, y: 200 } },
-    drawLine: false
+    drawPlacementCircle: true
 }
 
 const connectionDragIndicator: DragIndicatorProps<GadgetPosition> = {

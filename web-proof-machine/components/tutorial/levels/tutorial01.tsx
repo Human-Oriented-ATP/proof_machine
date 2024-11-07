@@ -12,8 +12,8 @@ const firstAxiomDragPoint: GadgetPosition = {
 
 const dragFirstAxiomOut: DragIndicatorProps<GadgetPosition> = {
     origin: firstAxiomDragPoint,
-    destination: { relativePosition: { x: 200, y: 200 } },
-    drawLine: false
+    destination: { relativePosition: { x: 280, y: 240 } },
+    drawPlacementCircle: true
 };
 
 const connectGadgets: DragIndicatorProps<GadgetPosition> = {

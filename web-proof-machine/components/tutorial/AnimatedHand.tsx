@@ -1,3 +1,4 @@
+import { useGameStateContext } from 'lib/state/StateContextProvider'
 import Image from 'next/image'
 import { useEffect, useState } from "react"
 
@@ -5,6 +6,7 @@ interface AnimatedHandProps {
     toX: number
     toY: number
     drawLine: boolean
+    drawPlacementCircle: boolean
     endWithClick: boolean
 }
 
@@ -14,6 +16,7 @@ const WAIT_BEFORE_ANIMATION = 500
 const WAIT_AFTER_ANIMATION = 500
 
 const IMAGE_SIZE = 70
+const CIRCLE_SIZE = 80
 const MARGIN = 70 // Ensures that the dotte line & hand are not cut off
 const OFFSET_ALIGNING_HAND_AND_LINE_X = -31
 const OFFSET_ALIGNING_HAND_AND_LINE_Y = -20
@@ -26,7 +29,7 @@ function getMillisecondsUntilNextFrame(animationProgress: number, endWithClick: 
     if (animationProgress === 0) {
         if (!endWithClick)
             return WAIT_BEFORE_ANIMATION
-        else 
+        else
             return MILLISECONDS_BETWEEN_FRAMES
     } else if (animationProgress >= 1) {
         return WAIT_AFTER_ANIMATION
@@ -36,6 +39,8 @@ function getMillisecondsUntilNextFrame(animationProgress: number, endWithClick: 
 }
 
 export function AnimatedHand(props: AnimatedHandProps) {
+    const displayAnimatedTutorialContent = useGameStateContext(state => state.displayAnimatedTutorialContent)
+
     const [animationProgress, setAnimationProgress] = useState(0)
 
     useEffect(() => {
@@ -60,13 +65,19 @@ export function AnimatedHand(props: AnimatedHandProps) {
     const imageSource = props.endWithClick && animationProgress >= 0.999 ? "/clicking-hand.svg" : "/pointing-hand.svg"
 
     return <div className="translate-x-1/2" style={{ "width": `${width * 2}px`, "height": `${height * 2}px`, 'transform': 'translate(-50%,-50%)' }}>
-        {props.drawLine ?
-            <svg className="absolute w-full h-full">
-                <line x1={width} y1={height} x2={width + x} y2={height + y} stroke="black" strokeWidth="2" strokeDasharray="5 5" strokeDashoffset={0} />
-            </svg>
-            : <></>}
-        <div className="absolute" style={style}>
-            <Image src={imageSource} width={IMAGE_SIZE} height={IMAGE_SIZE} alt="" className="stroke-black fill-green" />
-        </div>
-    </div>
+        {props.drawPlacementCircle &&
+            <div style={{ left: width + props.toX - CIRCLE_SIZE, top: height + props.toY - CIRCLE_SIZE, height: CIRCLE_SIZE * 2, width: CIRCLE_SIZE * 2 }}
+                className={`absolute rounded-full border-4 border-dashed border-black`}></div>
+        }
+        {displayAnimatedTutorialContent && <>
+            {props.drawLine ?
+                <svg className="absolute w-full h-full">
+                    <line x1={width} y1={height} x2={width + x} y2={height + y} stroke="black" strokeWidth="2" strokeDasharray="5 5" strokeDashoffset={0} />
+                </svg>
+                : <></>}
+            <div className="absolute" style={style}>
+                <Image src={imageSource} width={IMAGE_SIZE} height={IMAGE_SIZE} alt="" className="stroke-black fill-green" />
+            </div>
+        </>}
+    </div >
 }

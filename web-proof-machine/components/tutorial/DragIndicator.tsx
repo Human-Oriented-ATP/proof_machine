@@ -18,8 +18,9 @@ export interface ElementPosition extends AdjustablePosition {
 export interface DragIndicatorProps<Position> {
     origin: Position
     destination: { absolutePosition: Position } | { relativePosition: XYPosition }
-    drawLine: boolean
+    drawLine?: boolean
     endWithClick?: boolean
+    drawPlacementCircle?: boolean
 }
 
 function getXYPosition(rect: DOMRect, position: AnchorPoint): XYPosition {
@@ -48,7 +49,6 @@ function calculateExtent(destination: { absolutePosition: ElementPosition } | { 
 }
 
 function DragIndicator(props: DragIndicatorProps<ElementPosition>) {
-    const displayAnimatedTutorialContent = useGameStateContext(state => state.displayAnimatedTutorialContent)
     try {
         const originRect = document.getElementById(props.origin.elementId)!.getBoundingClientRect()
         const originPosition = getXYPosition(originRect, props.origin.anchorPoint)
@@ -58,8 +58,10 @@ function DragIndicator(props: DragIndicatorProps<ElementPosition>) {
         const style = { left: originPosition.x + props.origin.offset.x, top: originPosition.y + props.origin.offset.y }
 
         return <div style={style} className="absolute">
-            {displayAnimatedTutorialContent &&
-                <AnimatedHand toX={extent.x} toY={extent.y} drawLine={props.drawLine} endWithClick={props.endWithClick ?? false} />}
+            <AnimatedHand toX={extent.x} toY={extent.y}
+                drawLine={props.drawLine ?? false}
+                drawPlacementCircle={props.drawPlacementCircle ?? false}
+                endWithClick={props.endWithClick ?? false} />
         </div>
     } catch (error) {
         console.error(error)
