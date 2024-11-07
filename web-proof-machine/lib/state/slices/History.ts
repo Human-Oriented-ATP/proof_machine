@@ -32,14 +32,15 @@ export type HistoryState = GadgetDndFromShelfState & {
     log: [GameEvent, Date][]
     timeoutId: NodeJS.Timeout | undefined
     startTime: Date
+    finalHistoryUploaded: boolean
 }
 
 export type HistoryActions = {
     logEvents: (events: GameEvent[]) => void;
     getEvents: () => GameEvent[];
-    getHistory: () => GameHistory | undefined;
-    uploadEvents: () => void;
-    uploadEventsAsynchronously: () => void;
+    makeHistoryObject: () => GameHistory | undefined;
+    uploadFinalHistory: () => void;
+    uploadHistoryAsynchronously: () => void;
     getAddedGadgets: () => GadgetId[]
     getRemovedGadgets: () => GadgetId[]
     getCurrentGadgets: () => GadgetId[]
@@ -66,20 +67,16 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
         log: [],
         timeoutId: undefined,
         startTime: new Date(),
+        finalHistoryUploaded: false,
 
         logEvents: (events: GameEvent[]) => {
             const time = new Date()
             const eventsWithTime: [GameEvent, Date][] = events.map((event) => [event, time])
             const newLog = [...get().log, ...eventsWithTime]
             set({ log: newLog })
-            if (events.some((event) => "GameCompleted" in event)) {
-                get().uploadEvents()
-            } else {
-                get().uploadEventsAsynchronously()
-            }
         },
 
-        getHistory: () => {
+        makeHistoryObject: () => {
             const { problemId, configurationIdentifier } = get().setup
             if (problemId === undefined || configurationIdentifier === undefined) return undefined
             const history: GameHistory | undefined = {
@@ -92,18 +89,21 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             return history
         },
 
-        uploadEvents: async () => {
-            const history = get().getHistory()
-            if (history !== undefined) {
-                synchronizeHistory(JSON.stringify(history))
+        uploadFinalHistory: async () => {
+            if (!get().finalHistoryUploaded) {
+                const history = get().makeHistoryObject()
+                if (history !== undefined) {
+                    synchronizeHistory(JSON.stringify(history))
+                    set({ timeoutId: undefined })
+                }
+                set({ finalHistoryUploaded: true })
             }
         },
 
-        uploadEventsAsynchronously: async () => {
-            if (get().timeoutId !== undefined) {
+        uploadHistoryAsynchronously: async () => {
+            if (get().timeoutId === undefined) {
                 const timeoutId = setTimeout(() => {
-                    get().uploadEvents()
-                    set({ timeoutId: undefined })
+                    get().uploadFinalHistory()
                 }, HISTORY_UPLOAD_DELAY)
                 set({ timeoutId })
             }

@@ -135,9 +135,13 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             get().updateHandleStatus(openHandles)
             if (isCompleted) {
                 set({ levelIsCompleted: true })
+                get().logEvents([{ GameCompleted: null }])
+                get().uploadFinalHistory()
             }
             get().advanceTutorialWithEvents(events)
-            // synchronize history
+            if (!isCompleted) {
+                get().uploadHistoryAsynchronously()
+            }
         },
 
         isHandleWithBrokenConnection(handle: string) {

@@ -33,13 +33,15 @@ function passesSanityCheck(history: GameHistory): boolean {
 export async function synchronizeHistory(historyString: string) {
     "use server"
     try {
+        console.log("Synchronizing history.")
         const playerId = await getPlayerId()
         const history: GameHistory = JSON.parse(historyString)
         if (passesSanityCheck(history)) {
             const log: string = JSON.stringify(history.log);
             const lastSynchronized = new Date().toISOString();
+            const startTime = history.startTime.toString();
             await sql`INSERT INTO study_data (player_id, problem_id, config, start, latest, history, completed) VALUES 
-                (${playerId}, ${history.problemId}, ${history.configId}, ${history.startTime.toISOString()}, ${lastSynchronized}, ${log}, ${history.completed})
+                (${playerId}, ${history.problemId}, ${history.configId}, ${startTime}, ${lastSynchronized}, ${log}, ${history.completed})
                 ON CONFLICT (player_id, problem_id, start) DO UPDATE
                 SET latest=${lastSynchronized}, 
                     history=${log},
