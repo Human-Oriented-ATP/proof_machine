@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatedHand } from "./AnimatedHand";
 import { XYPosition } from "@xyflow/react";
-import { useGameStateContext } from "lib/state/StateContextProvider";
-import { stat } from "fs";
 
 export type AnchorPoint = "BOTTOM_RIGHT" | "CENTER_RIGHT" | "CENTER_LEFT" | "CENTER_MIDDLE"
 
