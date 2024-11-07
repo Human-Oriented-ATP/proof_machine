@@ -41,6 +41,8 @@ export type HistoryActions = {
     getStatementOfGadget: (gadgetId: GadgetId) => string
     getSomeGadgetWithAxiom: (axiom: string) => GadgetId
     getTermsOfGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
+    getCurrentCellTerms: () => Term[]
+    getCurrentHoleTerms: () => Term[]
     getEquationOfConnection: (connection: GadgetConnection) => Equation
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
 }
@@ -131,6 +133,22 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             const statement = get().getStatementOfGadget(gadgetId)
             const terms = getGadgetTerms(statement, gadgetId)
             return terms
+        },
+        getCurrentCellTerms: () => {
+            const gadgets = get().getCurrentGadgets()
+            const terms = gadgets.flatMap(gadgetId => Array.from(get().getTermsOfGadget(gadgetId).values()))
+            return terms
+        },
+        getCurrentHoleTerms: () => {
+            const terms = get().getCurrentCellTerms()
+            const holeTerms = terms.flatMap((term => {
+                if ("variable" in term) {
+                    throw Error(`Invalid term! A cell cannot have a single variable as a term: ${term}`)
+                } else {
+                    return term.args
+                }
+            }))
+            return holeTerms
         },
         getEquationOfConnection: (connection: GadgetConnection): Equation => {
             const lhs = get().getTermsOfGadget(connection.from).get(OUTPUT_POSITION)

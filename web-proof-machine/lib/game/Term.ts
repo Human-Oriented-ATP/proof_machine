@@ -8,6 +8,10 @@ export type Term =
     | { variable: VariableName }
     | { label: FunctionName, args: Term[] }
 
+export function isFunctionTerm(t: Term): t is { label: string; args: Term[]; } {
+    return "label" in t && t.args.length > 0;
+}
+
 export function occursInNaive(v: VariableName, term: Term): boolean {
     if ("variable" in term) {
         return v === term.variable
@@ -17,7 +21,7 @@ export function occursInNaive(v: VariableName, term: Term): boolean {
     }
 }
 
-function replaceWithRepresentatives(t: Term, assignment: Assignment): Term {
+export function replaceWithRepresentatives(t: Term, assignment: Assignment): Term {
     if ("variable" in t) {
         return { variable: assignment.findRepresentative(t.variable) }
     } else {
@@ -69,7 +73,7 @@ export function assignTermDeeply(t: Term, assignment: Assignment): Term {
                 return assignTermDeeply(assignedValue, assignment);
             }
         } else {
-            return t;
+            return t
         }
     } else {
         const argsAssigned: Term[] = t.args.map(arg => assignTermDeeply(arg, assignment));
@@ -105,3 +109,14 @@ export function aritiesMatch(term1: Term, term2: Term): boolean {
     return false;
 }
 
+export function isNumericalConstant(t: Term): number | undefined {
+    if ("variable" in t) {
+        return undefined;
+    } else {
+        if (isNaN(Number(t.label)) || t.args.length > 0) {
+            return undefined;
+        } else {
+            return Number(t.label);
+        }
+    }
+}

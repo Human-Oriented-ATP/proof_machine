@@ -27,7 +27,6 @@ const selector = (state: GameSlice) => ({
 
 export default function MenuBar() {
     const { levelIsCompleted, equationIsSatisfied, showBrokenConnectionStatusBarMessage } = useGameStateContext(selector)
-    console.log("rendering menu bar")
     const existsBrokenConnection = Array.from(equationIsSatisfied.values()).some(satisfied => !satisfied)
     const displayBrokenConnectionMessage = existsBrokenConnection && showBrokenConnectionStatusBarMessage
 

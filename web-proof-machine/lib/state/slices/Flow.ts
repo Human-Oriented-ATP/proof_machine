@@ -3,7 +3,6 @@ import { addEdge, applyEdgeChanges, Connection, Edge, EdgeChange, OnConnect, OnC
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { toGadgetConnection, isValidConnection } from './Edges';
 import { initViewport } from 'lib/game/ViewportInitialisation';
-import { isAboveGadgetShelf } from 'lib/util/XYPosition';
 import { flowUtilitiesSlice, FlowUtilitiesSlice, FlowUtilitiesState, FlowUtilitiesStateInitializedFromData } from './FlowUtilities';
 import { HoleFocusSlice, holeFocusSlice } from './HoleFocus';
 
@@ -20,7 +19,7 @@ export interface FlowActions {
     onConnectEnd: () => void;
     onConnect: OnConnect;
     onNodeDrag: OnNodeDrag<GadgetNode>
-    onNodeDragStop: (event: React.MouseEvent, node: GadgetNode) => void;
+    onNodeDragStop: (event: React.MouseEvent, node: GadgetNode, nodes: GadgetNode[]) => void;
 };
 
 export type FlowSlice = FlowUtilitiesSlice & FlowActions & HoleFocusSlice

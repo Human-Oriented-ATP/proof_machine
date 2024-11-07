@@ -1,18 +1,20 @@
 import { GadgetConnection } from "./History";
 import { CreateStateWithInitialValue } from "../Types";
-import { Equation, unifyEquations } from "lib/game/Unification";
-import { Term } from "lib/game/Term";
+import { unifyEquations } from "lib/game/Unification";
+import { Assignment, Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
-import { toHoleValue } from "lib/game/TermEnumeration";
+import { TermEnumeration, updateEnumeration } from "lib/game/TermEnumeration";
 import { Connection, Edge } from "@xyflow/react";
 import { toGadgetConnection } from "./Edges";
 import { TutorialSlice, tutorialSlice, TutorialStateInitializedFromData } from "./Tutorial";
+import { DisjointSetWithAssignment } from "lib/util/DisjointSetWithAssignment";
 
 export type UnificationStateInitializedFromData = TutorialStateInitializedFromData
 
 export type UnificationState = {
-    termEnumeration: ValueMap<Term, string>
+    termEnumeration: TermEnumeration
     equationIsSatisfied: ValueMap<GadgetConnection, boolean>
+    assignment: Assignment
 }
 
 export type UnificationActions = {
@@ -25,25 +27,15 @@ export type UnificationSlice = TutorialSlice & UnificationState & UnificationAct
 export const unificationSlice: CreateStateWithInitialValue<UnificationStateInitializedFromData, UnificationSlice> = (initialState, set, get): UnificationSlice => {
     return {
         ...tutorialSlice(initialState, set, get),
-        termEnumeration: new ValueMap<Term, string>(),
+        termEnumeration: new ValueMap<Term, number>(),
         equationIsSatisfied: new ValueMap<GadgetConnection, boolean>(),
+        assignment: new DisjointSetWithAssignment(),
 
         runUnification: () => {
             const equations = get().getCurrentEquations()
             const { assignment, equationIsSatisfied } = unifyEquations<GadgetConnection>(equations)
-            const terms: Term[] = equations.values().flatMap((eq: Equation) => [eq[0], eq[1]])
-            const holeTerms = terms.flatMap((term => {
-                if ("variable" in term) {
-                    return []
-                } else {
-                    return term.args
-                }
-            }))
-            const newTermEnumeration = new ValueMap<Term, string>()
-            for (const term of holeTerms) {
-                newTermEnumeration.set(term, toHoleValue(term, assignment))
-            }
-            set({ equationIsSatisfied: equationIsSatisfied, termEnumeration: newTermEnumeration })
+            const newTermEnumeration = updateEnumeration(get().termEnumeration, get().getCurrentHoleTerms(), assignment)
+            set({ equationIsSatisfied: equationIsSatisfied, assignment, termEnumeration: newTermEnumeration })
         },
 
         edgeIsSatisfied: (edge: Edge) => {

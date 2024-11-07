@@ -18,15 +18,16 @@ interface HoleProps {
 
 const selector = (state: GameSlice) => ({
     termEnumeration: state.termEnumeration,
+    assignment: state.assignment,
     focussedHole: state.focussedHole,
     focus: state.focus,
     removeFocus: state.removeFocus
 })
 
 export function Hole(props: HoleProps) {
-    const { termEnumeration, focussedHole, focus, removeFocus } = useGameStateContext(selector)
+    const { termEnumeration, assignment, focussedHole, focus, removeFocus } = useGameStateContext(selector)
 
-    const value = getAssignedValue(props.term, termEnumeration)
+    const value = getAssignedValue(props.term, assignment, termEnumeration)
 
     const makeFocusProps = (term: Term) => {
         if ("variable" in term) {
