@@ -39,7 +39,7 @@ export const tutorial01a: InteractiveLevel = {
             jsx: <>Draw connections between the connectors to complete the gadget machine.</>,
             dragIndicator: connectionDragIndicator
         },
-        trigger: { ConnectionAdded: { from: { gadgetId: "gadget_1" } } }
+        trigger: { ConnectionAdded: { from: { axiom: "r(1)" } } }
     }, {
         content: {
             jsx: <>Now draw the final connection.</>

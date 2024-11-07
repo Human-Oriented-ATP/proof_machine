@@ -1,7 +1,7 @@
 import { Gadget } from "components/game/gadget/Gadget";
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { InitialDiagram } from "lib/game/Initialization";
-import { parseTerm, parseAxiom } from "lib/parsing/Semantics";
+import { parseTerm } from "lib/parsing/Semantics";
 import { DragIndicatorProps } from "../DragIndicator";
 import { GadgetPosition, InteractiveLevel } from "../InteractiveLevel";
 import { BrokenTargetConnector } from "../TutorialSetup";
@@ -45,7 +45,7 @@ export const tutorial02: InteractiveLevel = {
             jsx: <>The dotted line means that the connection is broken. Remove it by clicking on <BrokenTargetConnector />.</>,
             dragIndicator: tutorial02DragIndicatorDeleteConnection
         },
-        trigger: { ConnectionRemoved: {} }
+        trigger: { ConnectionRemoved: { to: [{ gadgetId: GOAL_GADGET_ID }, 0] } }
     }, {
         content: {
             jsx: <>Now add the swapper gadget<ConverterGadget />to the work bench</>,
