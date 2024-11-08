@@ -33,7 +33,6 @@ function passesSanityCheck(history: GameHistory): boolean {
 export async function synchronizeHistory(historyString: string) {
     "use server"
     try {
-        console.log("Synchronizing history.")
         const playerId = await getPlayerId()
         const history: GameHistory = JSON.parse(historyString)
         if (passesSanityCheck(history)) {
@@ -47,6 +46,7 @@ export async function synchronizeHistory(historyString: string) {
                     history=${log},
                     completed=${history.completed}
                 WHERE study_data.completed=false;`
+            console.log(`Synchronized history. Player ID: ${playerId}, Problem ID: ${history.problemId}, Config ID: ${history.configId}, Completed: ${history.completed}`)
         }
     } catch (error) {
         console.error("Error synchronizing history.")

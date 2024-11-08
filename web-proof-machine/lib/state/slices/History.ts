@@ -9,6 +9,7 @@ import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { GameHistory } from "lib/study/GameHistory";
+import { clear } from "console";
 
 const HISTORY_UPLOAD_DELAY = 3 * 1000
 
@@ -39,6 +40,7 @@ export type HistoryActions = {
     logEvents: (events: GameEvent[]) => void;
     getEvents: () => GameEvent[];
     makeHistoryObject: () => GameHistory | undefined;
+    uploadHistory: () => void;
     uploadFinalHistory: () => void;
     uploadHistoryAsynchronously: () => void;
     getAddedGadgets: () => GadgetId[]
@@ -89,21 +91,25 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             return history
         },
 
-        uploadFinalHistory: async () => {
-            if (!get().finalHistoryUploaded) {
-                const history = get().makeHistoryObject()
-                if (history !== undefined) {
-                    synchronizeHistory(JSON.stringify(history))
-                    set({ timeoutId: undefined })
-                }
-                set({ finalHistoryUploaded: true })
+        uploadHistory: async () => {
+            const history = get().makeHistoryObject()
+            if (history !== undefined && history.log.length !== 0 && !get().finalHistoryUploaded) {
+                console.log("uploading")
+                synchronizeHistory(JSON.stringify(history))
             }
+        },
+
+        uploadFinalHistory: async () => {
+            clearTimeout(get().timeoutId)
+            get().uploadHistory()
+            set({ finalHistoryUploaded: true })
         },
 
         uploadHistoryAsynchronously: async () => {
             if (get().timeoutId === undefined) {
                 const timeoutId = setTimeout(() => {
-                    get().uploadFinalHistory()
+                    get().uploadHistory()
+                    set({ timeoutId: undefined })
                 }, HISTORY_UPLOAD_DELAY)
                 set({ timeoutId })
             }
