@@ -3,6 +3,7 @@ import { DelayedDragIndicator, DragIndicatorProps, ElementPosition } from "./Dra
 import { GadgetPosition } from "./InteractiveLevel";
 import { GameSlice } from "lib/state/Store";
 import { GadgetId } from "lib/game/Primitives";
+import { useShallow } from "zustand/react/shallow";
 
 const selector = (state: GameSlice) => {
     return {
@@ -27,7 +28,7 @@ function toElementPosition(position: GadgetPosition, getSomeGadgetWithAxiom: (ga
 }
 
 function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<GadgetPosition> }) {
-    const getSomeGadgetWithAxiom = useGameStateContext(state => state.getSomeGadgetWithAxiom)
+    const getSomeGadgetWithAxiom = useGameStateContext(useShallow(state => state.getSomeGadgetWithAxiom))
 
     const props: DragIndicatorProps<ElementPosition> = {
         ...dragIndicator,
@@ -41,7 +42,7 @@ function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<Ga
 }
 
 export function InteractiveContent() {
-    const { tutorialStep, tutorialSteps } = useGameStateContext(selector)
+    const { tutorialStep, tutorialSteps } = useGameStateContext(useShallow(selector))
 
     const currentContent = tutorialSteps[tutorialStep]?.content
 

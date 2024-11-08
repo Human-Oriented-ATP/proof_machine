@@ -3,6 +3,7 @@ import { GadgetProps } from "../gadget/Gadget";
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { InsertGadgetButton } from './InsertGadgetButton';
 import { getGadgetTerms } from 'lib/game/GameLogic';
+import { useShallow } from 'zustand/react/shallow';
 
 function makeShelfGadgetProps(axiom: string, id: number): GadgetProps {
     const axiomId = `axiom_${id}`
@@ -11,7 +12,7 @@ function makeShelfGadgetProps(axiom: string, id: number): GadgetProps {
 }
 
 export function GadgetShelf(): JSX.Element {
-    const axioms = useGameStateContext((state) => state.setup.axioms)
+    const axioms = useGameStateContext(useShallow((state) => state.setup.axioms))
 
     return <>
         {axioms.length !== 0 &&

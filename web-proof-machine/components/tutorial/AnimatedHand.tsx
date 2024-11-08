@@ -1,6 +1,7 @@
 import { useGameStateContext } from 'lib/state/StateContextProvider'
 import Image from 'next/image'
 import { useEffect, useState } from "react"
+import { useShallow } from 'zustand/react/shallow'
 
 interface AnimatedHandProps {
     toX: number
@@ -39,7 +40,7 @@ function getMillisecondsUntilNextFrame(animationProgress: number, endWithClick: 
 }
 
 export function AnimatedHand(props: AnimatedHandProps) {
-    const displayAnimatedTutorialContent = useGameStateContext(state => state.displayAnimatedTutorialContent)
+    const displayAnimatedTutorialContent = useGameStateContext(useShallow(state => state.displayAnimatedTutorialContent))
 
     const [animationProgress, setAnimationProgress] = useState(0)
 

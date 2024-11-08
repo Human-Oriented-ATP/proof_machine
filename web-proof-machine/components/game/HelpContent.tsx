@@ -6,6 +6,7 @@ import { Axiom } from "lib/game/Primitives"
 import { parseAxiom } from "lib/parsing/Semantics"
 import { getGadgetTerms } from "lib/game/GameLogic"
 import { Term } from "lib/game/Term"
+import { useShallow } from "zustand/react/shallow"
 
 function HelpSection(props: { title: string, children: React.ReactNode }) {
     return <li className="pt-3 first:pt-0">
@@ -85,7 +86,7 @@ function hasPinkCircleAxiom(axioms: string[]) {
 }
 
 export function HelpContent() {
-    const { settings: { gadgetDeletionEnabled, proximityConnectEnabled, panEnabled }, axioms } = useGameStateContext((state) => state.setup)
+    const { settings: { gadgetDeletionEnabled, proximityConnectEnabled, panEnabled }, axioms } = useGameStateContext(useShallow((state) => state.setup))
     const showMysteryGadgetExplanation = hasPinkCircleAxiom(axioms)
     return <>
         <h2 className="text-xl font-bold">Game Help</h2>

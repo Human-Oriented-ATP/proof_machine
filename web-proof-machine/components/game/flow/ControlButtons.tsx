@@ -2,6 +2,7 @@ import { ControlButton, Controls } from "@xyflow/react";
 import { Crosshair1Icon, MinusIcon, PlusIcon } from '@radix-ui/react-icons'
 import { useGameStateContext } from "lib/state/StateContextProvider";
 import { GameSlice } from "lib/state/Store";
+import { useShallow } from "zustand/react/shallow";
 
 const selector = (state: GameSlice) => ({
     zoomEnabled: state.setup.settings.zoomEnabled,
@@ -10,7 +11,7 @@ const selector = (state: GameSlice) => ({
 })
 
 export function ControlButtons(): JSX.Element {
-    const { rf, zoomEnabled, panEnabled } = useGameStateContext(selector)
+    const { rf, zoomEnabled, panEnabled } = useGameStateContext(useShallow(selector))
 
     function fitView() {
         rf.fitView({ padding: 0.5 })

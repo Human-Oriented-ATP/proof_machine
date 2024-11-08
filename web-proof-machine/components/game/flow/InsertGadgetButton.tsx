@@ -1,14 +1,15 @@
 import { Axiom } from "lib/game/Primitives";
 import { useGameStateContext } from "lib/state/StateContextProvider";
 import { useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 interface InsertGadgetButtonProps extends React.PropsWithChildren<{}> {
     axiom: string;
 }
 
 export function InsertGadgetButton({ axiom, children }: InsertGadgetButtonProps): JSX.Element {
-    const addGadgetNode = useGameStateContext((state) => state.addGadgetNode);
-    const abortAddingGadget = useGameStateContext((state) => state.abortAddingGadget);
+    const addGadgetNode = useGameStateContext(useShallow((state) => state.addGadgetNode));
+    const abortAddingGadget = useGameStateContext(useShallow((state) => state.abortAddingGadget));
 
     const ref = useRef<HTMLDivElement>(null);
 

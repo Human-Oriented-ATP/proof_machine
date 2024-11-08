@@ -3,10 +3,11 @@ import { HighlightedButton } from "../primitive/buttons/Highlighted";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
+import { useShallow } from 'zustand/react/shallow';
 
 export function MenuButtons() {
-    const levelCompleted = useGameStateContext((state) => state.levelIsCompleted)
-    const openHelpPopup = useGameStateContext((state) => state.openHelpPopup)
+    const levelCompleted = useGameStateContext(useShallow((state) => state.levelIsCompleted))
+    const openHelpPopup = useGameStateContext(useShallow((state) => state.openHelpPopup))
 
     const router = useRouter();
 
