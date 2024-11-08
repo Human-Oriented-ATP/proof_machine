@@ -18,5 +18,5 @@ export function OpenTargetConnector() {
 }
 
 export function PinkHole() {
-    return <div className="inline-block"><StaticHole value={"?"} isFunctionHole={true} /></div>;
+    return <div className="inline-block"><StaticHole value={""} isFunctionHole={true} /></div>;
 }
