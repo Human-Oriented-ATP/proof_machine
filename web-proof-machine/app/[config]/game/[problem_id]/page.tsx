@@ -23,6 +23,10 @@ function getTutorialProps(problemId: string) {
     }
 }
 
+function LoadingScreen() {
+    return <div className="absolute top-1/3 w-full text-center">...loading game...</div>
+}
+
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     const configuration = await loadStudyConfiguration(params.config)
 
@@ -35,7 +39,7 @@ export default async function Page({ params }: { params: { config: string, probl
     try {
         const problemFileData = parseProblemFile(problemData.trim())
         const { initialDiagram: initialDiagramFromProblemFile, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
-        return <Suspense fallback={"...loading game..."}>
+        return <Suspense fallback={<LoadingScreen />}>
             <Game
                 initialDiagram={initialDiagramFromTutorialSpecification ?? initialDiagramFromProblemFile}
                 axioms={axioms}

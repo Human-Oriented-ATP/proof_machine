@@ -7,7 +7,7 @@ import { HelpPopup } from "./HelpPopup";
 import { InteractiveOverlay } from "components/tutorial/InteractiveOverlay";
 
 export default function FlowWithMenuBar() {
-    return <div className='h-dvh flex flex-col'>
+    return <div className='h-dvh flex flex-col select-none'>
         <div className="w-full"><MenuBar /></div>
         <div className="relative flex flex-1">
             <Flow />
