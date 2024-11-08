@@ -1,6 +1,11 @@
 import { Crosshair1Icon } from "@radix-ui/react-icons"
 import { Connector } from "./gadget/Connector"
 import { useGameStateContext } from "lib/state/StateContextProvider"
+import { StaticHole } from "./gadget/StaticHole"
+import { Axiom } from "lib/game/Primitives"
+import { parseAxiom } from "lib/parsing/Semantics"
+import { getGadgetTerms } from "lib/game/GameLogic"
+import { Term } from "lib/game/Term"
 
 function HelpSection(props: { title: string, children: React.ReactNode }) {
     return <li className="pt-3 first:pt-0">
@@ -34,6 +39,13 @@ function OpenTargetConnector() {
     return <div className="inline-block scale-75"><Connector type="target" isInline={true} status={"OPEN"} /></div>
 }
 
+function PinkHole({ value = "" }: { value?: string }) {
+    return <>
+        <div className="inline-block scale-90 absolute translate-y-[-3px] translate-x-[-5px]"><StaticHole value={value} isFunctionHole={true} /></div>
+        <div className="w-[23px] inline-block"></div>
+    </>
+}
+
 function BrokenConnection() {
     const pathStyle = {
         strokeDasharray: '5',
@@ -55,9 +67,26 @@ function BrokenConnection() {
     </div>
 }
 
-export function HelpContent() {
-    const { gadgetDeletionEnabled, proximityConnectEnabled, panEnabled } = useGameStateContext((state) => state.setup.settings)
+function hasPinkCircleTerm(term: Term) {
+    if ("variable" in term) {
+        return false
+    } else {
+        return term.args.some(variableTerm => "args" in variableTerm && variableTerm.args.length !== 0)
+    }
+}
 
+function hasPinkCircle(axiom: Axiom) {
+    const terms = [...axiom.hypotheses, axiom.conclusion]
+    return terms.some(hasPinkCircleTerm)
+}
+
+function hasPinkCircleAxiom(axioms: string[]) {
+    return axioms.some(axiom => hasPinkCircle(parseAxiom(axiom)))
+}
+
+export function HelpContent() {
+    const { settings: { gadgetDeletionEnabled, proximityConnectEnabled, panEnabled }, axioms } = useGameStateContext((state) => state.setup)
+    const showMysteryGadgetExplanation = hasPinkCircleAxiom(axioms)
     return <>
         <h2 className="text-xl font-bold">Game Help</h2>
         <ul className="text-left leading-10 p-5">
@@ -85,6 +114,14 @@ export function HelpContent() {
                     <HelpItem>Move or resize the work bench as you would with a map app</HelpItem>
                     <HelpItem>Click on the crosshair <Crosshair1Icon className="inline w-[19px] h-[19px] align-text-bottom" /> to centre your gadget machine</HelpItem>
                     <HelpItem>Click on the canvas to deselect all gadgets</HelpItem>
+                </HelpSection>}
+
+            {showMysteryGadgetExplanation &&
+                <HelpSection title="Mystery Gadgets">
+                    <HelpItem>Pink Circles <PinkHole /> generate letters</HelpItem>
+                    <HelpItem>If all the numbers below <PinkHole /> are the same then the letter in <PinkHole /> will be the same</HelpItem>
+                    <HelpItem>If you delete all gadgets with <PinkHole value="A" /> then the letter A frees up. The letter <br />
+                        A is generated again once you add the next mystery gadget</HelpItem>
                 </HelpSection>}
         </ul>
     </>

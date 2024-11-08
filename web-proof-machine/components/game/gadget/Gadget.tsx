@@ -1,7 +1,7 @@
 "use client"
 
 import { useLayoutEffect, useState } from 'react'
-import { Cell } from './Node'
+import { Cell } from './Cell'
 import { CellPosition, isInputPosition, isOutputPosition, OUTPUT_POSITION } from '../../../lib/game/CellPosition'
 import { ConnectionSvg, ConnectionSvgProps, ConnectionDrawingData } from './ConnectionSvg'
 import { InternalConnection, makeConnections } from '../../../lib/game/GadgetInternalConnections'
