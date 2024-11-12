@@ -33,6 +33,9 @@ export const tutorialSlice: CreateStateWithInitialValue<TutorialStateInitialized
         displayAnimatedTutorialContent: false,
 
         triggers: (event: GameEvent, trigger: Trigger): boolean => {
+            if ("GameCompleted" in event && "GameCompleted" in trigger) {
+                return true
+            }
             if ("GadgetAdded" in event && "GadgetAdded" in trigger) {
                 return get().triggersGadgetAdded(event.GadgetAdded, trigger.GadgetAdded);
             }

@@ -144,10 +144,11 @@ export const flowUtilitiesSlice: CreateStateWithInitialValue<FlowUtilitiesStateI
             get().updateHandleStatus(openHandles)
             if (isCompleted) {
                 get().handleCompletedLevel()
+                get().advanceTutorialWithEvents([...events, { GameCompleted: null }])
             }
-            get().advanceTutorialWithEvents(events)
             if (!isCompleted) {
                 get().uploadHistoryAsynchronously()
+                get().advanceTutorialWithEvents(events)
             }
         },
 
