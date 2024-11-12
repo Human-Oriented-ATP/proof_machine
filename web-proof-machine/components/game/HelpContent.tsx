@@ -4,7 +4,6 @@ import { useGameStateContext } from "lib/state/StateContextProvider"
 import { StaticHole } from "./gadget/StaticHole"
 import { Axiom } from "lib/game/Primitives"
 import { parseAxiom } from "lib/parsing/Semantics"
-import { getGadgetTerms } from "lib/game/GameLogic"
 import { Term } from "lib/game/Term"
 import { useShallow } from "zustand/react/shallow"
 

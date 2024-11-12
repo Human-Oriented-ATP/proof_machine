@@ -23,7 +23,7 @@ export function getAssignedValue(term: Term, assignment: Assignment, termEnumera
             return ""
         } else {
             const value = termEnumeration.get(assignedTerm)
-            if (value === undefined) return enumeration(getLowestUnusedNumber(termEnumeration))
+            if (value === undefined) return "?"
             return enumeration(value)
         }
     }
