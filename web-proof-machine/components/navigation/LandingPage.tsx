@@ -1,49 +1,50 @@
+"use client"
+
 import { StartButton } from "components/primitive/buttons/StartFirstUnsolvedLevel"
 import Link from "next/link"
-import { twMerge } from "tailwind-merge"
+import { useState } from "react"
 
-function Heading(props) {
-    return <div className="text-xl pb-4">{props.children}</div>
-}
-
-function Section(props) {
-    return <div className={twMerge("max-w-screen-lg p-4", props.className)}>{props.children}</div>
+function CheckItem(props: { setIsChecked: (checked: boolean) => void, children: React.ReactNode }) {
+    return <div>
+        <label>
+            <input type="checkbox" className="mr-2" onChange={(event) => props.setIsChecked(event.target.checked)} />
+            {props.children}
+        </label>
+    </div>
 }
 
 export function LandingPage() {
+    const [check1, setCheck1] = useState(false)
+    const [check2, setCheck2] = useState(false)
+    const [check3, setCheck3] = useState(false)
+
     return (
         <div className="w-screen flex flex-col items-center text-center pt-10">
-            <Section>
-                <h1 className="text-2xl p-4">The Gadget Game Study</h1>
-                <p><i>This survey has been approved by the University of Cambridge Dept of Computer Science Ethics Committee</i></p>
-            </Section>
-            <Section className="bg-white">
-                <Heading>Welcome!</Heading>
+            <h1 className="text-2xl p-4">Welcome to our study!</h1>
+            <div className='text-justify max-w-screen-lg p-4'>
+                <p className="p-2">By completing this study, you are participating in a study being performed by researchers from the University of Cambridge. The purpose of this research is to study human reasoning about new problems, and the results will inform mathematics, cognitive science, and AI research.</p>
 
-                <p>In this study, you will be playing an online puzzle: the Gadget Game. The goal of this research is to understand better how humans perform at solving tricky puzzle problems.</p>
-            </Section>
-            <Section>
-                <Heading>Age restriction</Heading>
-                You must be 18 years old or above to participate in the study.
-            </Section>
-            <Section>
-                <Heading>Privacy and Data Usage</Heading>
-                <p className="p-2">We very much value your privacy! We  will not save any identifying information, beyond your self-reported level of education and mathematical expertise and how you play the game (to help us ground the evaluations).</p>
+                <p className="p-2">You must be at least 18 years old to participate. There are neither specific benefits nor anticipated risks associated with participation in this study. Your participation in this study is completely voluntary and you can withdraw at any time by simply exiting the study. You may decline to answer any or all of the following questions. Choosing not to participate or withdrawing will result in no penalty. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you, and any information you provide will not be shared in association with any personally identifying information. We may release anonymized gameplay on GitHub as part of open-source research; please do not participate unless you are okay with the gameplay traces being shared.</p>
 
-                <p className="p-2">Please note that your interactions with the game will be saved. Please do not participate if you are not comfortable with those data sharing procedures.</p>
+                <p className="p-2">If you have questions about this research, please contact the researchers by sending an email to kmc61@cam.ac.uk. These researchers will do their best to communicate with you in a timely, professional, and courteous manner. If you have questions regarding your rights as a participant, or if problems arise which you do not feel you can discuss with the researchers, please contact the University of Cambridge Dept of Engineering Ethics Offices.</p>
 
-                <p className="p-2">Your participation in this research is voluntary. You may discontinue participation at any time during the survey.</p>
+                <p className="p-2">Your participation in this research is voluntary. You may discontinue participation at any time during the research activity. You may print a copy of this consent form for your records.</p>
 
-                <p className="p-2">
-                    <b>Please only proceed to the study if you are comfortable with the above,<br /> and acknowledge that you wish to participate in this research.</b>
-                </p>
-            </Section>
-            <div className="p-4">
-                <Link href={`pilot3/game/tutorial01`}>
-                    <StartButton />
-                </Link>
+                <p className="p-2">To continue, check the checkboxes below and click "Start".</p>
             </div>
-            <div className="fixed bottom-0 right-0 p-2 text-sm">Contact: jcb234@cam.ac.uk </div>
+            <div className="text-left p-2">
+                <CheckItem setIsChecked={setCheck1}>I am age 18 or older.</CheckItem>
+                <CheckItem setIsChecked={setCheck2}>I have read and understand the information above.</CheckItem>
+                <CheckItem setIsChecked={setCheck3}>I want to participate in this research and continue with the experiment.</CheckItem>
+            </div>
+            <div className="p-6">
+                {check1 && check2 && check3 ?
+                    <Link href={`pilot3/game/tutorial01`}>
+                        <StartButton />
+                    </Link>
+                    : <StartButton className="border-2 border-black rounded-lg p-5 px-10 hover:bg-black hover:text-white text-2xl cursor-not-allowed bg-palette-gray opacity-40 cursor-not-allowed " />}
+            </div>
+            <div className="fixed bottom-0 right-0 p-2 text-sm">Contact: kmc61@cam.ac.uk </div>
         </div>
     )
 }
