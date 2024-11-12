@@ -51,7 +51,6 @@ function getInitialEdge(connection: GadgetConnection, label: string): Edge {
         target: connection.to[0],
         targetHandle: makeHandleId(connection.to[1], connection.to[0]),
         type: 'customEdge',
-        animated: true
     }
 }
 
