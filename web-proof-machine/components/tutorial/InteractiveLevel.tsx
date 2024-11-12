@@ -26,6 +26,7 @@ export type GadgetPosition =
     | { elementId: string } & AdjustablePosition
 
 export type JsxAndDragIndicator = {
+    popup?: JSX.Element
     jsx?: JSX.Element
     dragIndicator?: DragIndicatorProps<GadgetPosition>
 }

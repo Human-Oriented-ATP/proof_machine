@@ -59,8 +59,9 @@ export function InteractiveContent() {
     const [popupIsOpen, setPopupState] = useState(false)
 
     useEffect(() => {
-        if (currentContent.popup)
+        if (currentContent?.popup !== undefined) {
             setPopupState(true)
+        }
     }, [tutorialStep])
 
     if (popupIsOpen) {
