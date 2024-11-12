@@ -4,6 +4,8 @@ import { GadgetPosition } from "./InteractiveLevel";
 import { GameSlice } from "lib/state/Store";
 import { GadgetId } from "lib/game/Primitives";
 import { useShallow } from "zustand/react/shallow";
+import { useEffect, useState } from "react";
+import Button from "components/primitive/buttons/Default";
 
 const selector = (state: GameSlice) => {
     return {
@@ -41,19 +43,38 @@ function DragIndicator({ dragIndicator }: { dragIndicator: DragIndicatorProps<Ga
     return <DelayedDragIndicator {...props} />
 }
 
-export function InteractiveContent() {
-    const { tutorialStep, tutorialSteps } = useGameStateContext(useShallow(selector))
+export function PopupContent(props) {
+    return <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-white/30 pointer-events-auto">
+        <div className="bg-white p-6 rounded-lg shadow-lg text-center" onClick={e => e.stopPropagation()}>
+            <div>{props.children}</div>
+            <Button onClick={props.closePopup}>Understood!</Button>
+        </div>
+    </div>
+}
 
+export function InteractiveContent() {
+    const { tutorialStep, tutorialSteps } = useGameStateContext(selector)
     const currentContent = tutorialSteps[tutorialStep]?.content
 
-    return <div>
-        {currentContent?.jsx &&
-            <div className="absolute text-xl top-24 left-44 md:w-full md:text-center md:left-0 md:px-44">
-                <span className="backdrop-blur-sm">{currentContent.jsx}</span>
-            </div>
-        }
-        {currentContent?.dragIndicator && <DragIndicator dragIndicator={currentContent?.dragIndicator} />}
-    </div>
+    const [popupIsOpen, setPopupState] = useState(false)
+
+    useEffect(() => {
+        if (currentContent.popup)
+            setPopupState(true)
+    }, [tutorialStep])
+
+    if (popupIsOpen) {
+        return <PopupContent closePopup={() => setPopupState(false)}>{currentContent.popup}</PopupContent>
+    } else {
+        return <div className="">
+            {currentContent?.jsx &&
+                <div className="absolute text-xl top-24 left-44 md:w-full md:text-center md:left-0 md:px-44">
+                    <span className="backdrop-blur-sm">{currentContent.jsx}</span>
+                </div>
+            }
+            {currentContent?.dragIndicator && <DragIndicator dragIndicator={currentContent?.dragIndicator} />}
+        </div>
+    }
 }
 
 export function InteractiveOverlay() {
