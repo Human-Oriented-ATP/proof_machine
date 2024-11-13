@@ -1,59 +1,20 @@
-import { loadAllProblemsInDirectory, loadStudyConfiguration } from "lib/game/LoadProblems";
-import { promises as fs } from "fs"
-import { parseProblemFile } from "lib/parsing/Semantics";
-import { Suspense } from "react";
-import { makeInitializationDataFromProblemFileData } from "lib/game/Initialization";
-import { Game } from "components/game/Game";
-import { getNextProblem } from "lib/study/LevelConfiguration";
-import { interactiveTutorialLevels } from "components/tutorial/InteractiveTutorialLevels";
-import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
+import { loadAllProblemsInDirectory } from "lib/game/LoadProblems";
+import { Questionnaire2 } from "components/navigation/Questionnaire2";
+import { GameLoader } from "components/game/GameLoader";
+import { Questionnaire1 } from "components/navigation/Questionnaire1";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
     const problemIds = problems.map(problem => ({ problem_id: problem }))
-    return problemIds
-}
-
-function getTutorialProps(problemId: string) {
-    const interactiveLevel = interactiveTutorialLevels.get(problemId)
-    return {
-        initialDiagramFromTutorialSpecification: interactiveLevel?.initialDiagram,
-        settings: interactiveLevel?.settings,
-        tutorialSteps: interactiveLevel?.steps
-    }
-}
-
-function LoadingScreen() {
-    return <div className="absolute top-1/3 w-full text-center">...loading game...</div>
+    return [...problemIds, "questionnaire1", "questionnaire2"]
 }
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
-    const configuration = await loadStudyConfiguration(params.config)
-
-    const problemFile = params.problem_id + ".pl"
-    const problemData = await fs.readFile(process.cwd() + "/problems/" + problemFile, "utf-8")
-
-    const nextProblem = getNextProblem(configuration, params.problem_id)
-    const { initialDiagramFromTutorialSpecification, settings, tutorialSteps } = getTutorialProps(params.problem_id)
-
-    try {
-        const problemFileData = parseProblemFile(problemData.trim())
-        const { initialDiagram: initialDiagramFromProblemFile, axioms } = makeInitializationDataFromProblemFileData(problemFileData)
-        return <Suspense fallback={<LoadingScreen />}>
-            <Game
-                initialDiagram={initialDiagramFromTutorialSpecification ?? initialDiagramFromProblemFile}
-                axioms={axioms}
-                problemId={params.problem_id}
-                nextProblem={nextProblem}
-                configurationIdentifier={configuration.name}
-                settings={settings ?? DEFAULT_SETTINGS}
-                tutorialSteps={tutorialSteps}
-            />
-        </Suspense>
-    } catch (e) {
-        return <div>
-            <div>Problem file not found or unable to parse.</div>
-            <div>{e.message}</div>
-        </div>
+    if (params.problem_id === "questionnaire1") {
+        return <Questionnaire1 />
+    } else if (params.problem_id === "questionnaire2") {
+        return <Questionnaire2 />
+    } else {
+        return <GameLoader problemId={params.problem_id} configId={params.config} />
     }
 }
