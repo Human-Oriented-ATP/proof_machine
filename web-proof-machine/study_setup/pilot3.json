@@ -12,7 +12,8 @@
                 "tutorial03",
                 "tutorial04",
                 "tutorial05",
-                "tutorial06"
+                "tutorial06",
+                "questionnaire1"
             ],
             "numberOfUnlockedProblems": 1000
         },
@@ -47,7 +48,8 @@
                 "tim20",
                 "tim16",
                 "tim_easy09",
-                "tim29"
+                "tim29",
+                "questionnaire2"
             ],
             "categoryUnlockThreshold": 0,
             "numberOfUnlockedProblems": 1000

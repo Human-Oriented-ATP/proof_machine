@@ -3,6 +3,7 @@
 import { RadioButtons } from "components/primitive/form/RadioButtons";
 import { SubmitButton } from "components/primitive/form/SubmitButton";
 import { TextArea } from "components/primitive/form/TextArea";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 function isCompletedForm(formData) {
@@ -10,6 +11,7 @@ function isCompletedForm(formData) {
 }
 
 export function Questionnaire2() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         difficulty: undefined,
         enjoyableness: undefined,
@@ -28,6 +30,7 @@ export function Questionnaire2() {
         } else {
             // Send the form data to the server
             console.log(formData);
+            router.push('../')
         }
     };
 

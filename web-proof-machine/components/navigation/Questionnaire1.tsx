@@ -4,6 +4,7 @@ import { RadioButtons } from "components/primitive/form/RadioButtons";
 import { SubmitButton } from "components/primitive/form/SubmitButton";
 import { TextArea } from "components/primitive/form/TextArea";
 import { TextField } from "components/primitive/form/TextField";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 function isCompletedForm(formData) {
@@ -11,6 +12,7 @@ function isCompletedForm(formData) {
 }
 
 export function Questionnaire1() {
+    const router = useRouter()
     const [formData, setFormData] = useState({
         educationLevel: '',
         mathTraining: '',
@@ -29,6 +31,7 @@ export function Questionnaire1() {
         } else {
             // Send the form data to the server
             console.log(formData);
+            router.push('./tim_easy10');
         }
     };
 
@@ -54,7 +57,8 @@ export function Questionnaire1() {
 
     return <>
         <div className="w-screen flex flex-col items-center">
-            <h1 className="text-xl py-14">Please answer a few questions about yourself before continuing!</h1>
+            <h1 className="text-xl pt-14">You've completed the tutorial!</h1>
+            <div className="text-left p-4">Please answer a few questions about yourself before continuing.</div>
             <form onSubmit={handleSubmit}>
                 <RadioButtons name="educationLevel" {...educationOptions} onChange={handleChange} />
                 <RadioButtons name="mathTraining" {...mathematicalTrainingOptions} onChange={handleChange} />
