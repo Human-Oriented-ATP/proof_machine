@@ -51,8 +51,8 @@ export function Questionnaire2() {
             { value: '-2', label: 'Very enjoyable' },
             { value: '-1', label: 'Enjoyable' },
             { value: '0', label: 'Neutral' },
-            { value: '1', label: 'Not enjoyable' },
-            { value: '2', label: 'Very not enjoyable' },
+            { value: '1', label: 'Unenjoyable' },
+            { value: '2', label: 'Very unenjoyable' },
         ]
     }
 
