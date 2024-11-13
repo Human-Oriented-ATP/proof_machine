@@ -17,6 +17,7 @@ export function LandingPage() {
     const [check1, setCheck1] = useState(false)
     const [check2, setCheck2] = useState(false)
     const [check3, setCheck3] = useState(false)
+    const [check4, setCheck4] = useState(false)
 
     return (
         <div className="w-screen flex flex-col items-center text-center pt-10">
@@ -30,15 +31,18 @@ export function LandingPage() {
 
                 <p className="p-2">Your participation in this research is voluntary. You may discontinue participation at any time during the research activity. You may print a copy of this consent form for your records.</p>
 
+                <p className="p-2 font-bold">Note that this study has been optimised for laptops and desktop computers and that participation is not possible from touch devices like phones or tablets.</p>
+
                 <p className="p-2">To continue, check the checkboxes below and click "Start".</p>
             </div>
             <div className="text-left p-2">
                 <CheckItem setIsChecked={setCheck1}>I am age 18 or older.</CheckItem>
                 <CheckItem setIsChecked={setCheck2}>I have read and understand the information above.</CheckItem>
-                <CheckItem setIsChecked={setCheck3}>I want to participate in this research and continue with the experiment.</CheckItem>
+                <CheckItem setIsChecked={setCheck3}>I am not using a touch device.</CheckItem>
+                <CheckItem setIsChecked={setCheck4}>I want to participate in this research and continue with the experiment.</CheckItem>
             </div>
             <div className="p-6">
-                {check1 && check2 && check3 ?
+                {check1 && check2 && check3 && check4 ?
                     <Link href={`pilot3/game/tutorial01`}>
                         <StartButton />
                     </Link>
