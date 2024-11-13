@@ -54,7 +54,7 @@ export function Questionnaire2() {
     }
 
     return <>
-        <div className="max-w-screen-lg flex flex-col items-center">
+        <div className="w-screen flex flex-col items-center">
             <h1 className="text-xl py-12">Before you keep playing: Could you please answer the following questions?</h1>
             <form onSubmit={handleSubmit}>
                 <RadioButtons name="difficulty" {...difficultyOptions} onChange={handleChange} />
