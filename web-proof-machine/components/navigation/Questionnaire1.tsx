@@ -16,7 +16,9 @@ export function Questionnaire1() {
     const [formData, setFormData] = useState({
         educationLevel: '',
         mathTraining: '',
+        specialty: '',
         firstLanguage: '',
+        prolific: '',
         feedback: '',
     });
 
@@ -62,9 +64,11 @@ export function Questionnaire1() {
             <form onSubmit={handleSubmit}>
                 <RadioButtons name="educationLevel" {...educationOptions} onChange={handleChange} />
                 <RadioButtons name="mathTraining" {...mathematicalTrainingOptions} onChange={handleChange} />
+                <TextField label="If you have a specialty in mathematics, please specify:" name="specialty" onChange={handleChange} />
                 <TextField label="Please tell us your first language:" name="firstLanguage" onChange={handleChange} />
                 <TextArea label="Please provide any feedback you might have about the game and the clarity of instructions:"
                     name="feedback" onChange={handleChange} />
+                <TextField label="If you are a Prolific user, please enter your Prolific ID" name="prolific" onChange={handleChange} />
                 <SubmitButton onSubmit={handleSubmit} />
             </form>
         </div>
