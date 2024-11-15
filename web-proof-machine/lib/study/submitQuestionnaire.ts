@@ -48,6 +48,7 @@ export async function hasSubmittedQuestionnaire2() {
 }
 
 export async function hasCompleted80PercentOfProblems(config: StudyConfiguration) {
+    "use server"
     const problems = getProblemList(config);
     const completed = cookies().get("completed");
     if (completed === undefined) {
@@ -60,6 +61,7 @@ export async function hasCompleted80PercentOfProblems(config: StudyConfiguration
 }
 
 export async function timeIsOver() {
+    "use server"
     const startTime = cookies().get("start_time");
     if (!startTime) {
         return false
@@ -70,6 +72,7 @@ export async function timeIsOver() {
 }
 
 export async function progressSufficientForQuestionnaire2(config) {
+    "use server"
     const completed = await hasCompleted80PercentOfProblems(config)
     const timeOver = await timeIsOver();
     return completed || timeOver;
