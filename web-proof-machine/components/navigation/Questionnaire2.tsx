@@ -10,7 +10,7 @@ function isCompletedForm(formData) {
     return formData.difficulty && formData.enjoyableness && formData.strategies
 }
 
-export function Questionnaire2() {
+export function Questionnaire2({ nextHref = "../" }: { nextHref?: string }) {
     const router = useRouter();
     const [formData, setFormData] = useState({
         difficulty: undefined,
@@ -30,7 +30,7 @@ export function Questionnaire2() {
         } else {
             // Send the form data to the server
             console.log(formData);
-            router.push('../')
+            router.push(nextHref)
         }
     };
 
