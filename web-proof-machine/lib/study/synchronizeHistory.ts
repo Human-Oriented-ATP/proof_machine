@@ -12,6 +12,7 @@ function generateNewPlayerId(): string {
 async function setPlayerId(playerId: string) {
     const MILLISECONDS_IN_A_YEAR = 1000 * 60 * 60 * 24 * 365
     cookies().set('id', playerId, { expires: new Date(Date.now() + MILLISECONDS_IN_A_YEAR) })
+    cookies().set('start_time', new Date().toISOString(), { expires: new Date(Date.now() + MILLISECONDS_IN_A_YEAR) })
 }
 
 export async function getPlayerId(): Promise<string> {

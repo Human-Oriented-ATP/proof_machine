@@ -4,6 +4,7 @@ import { StudyConfiguration } from "./Types";
 export function getProblemList(config: StudyConfiguration): string[] {
     const categories = config.categories
     const problemList = categories.flatMap(category => category.problems)
+        .filter(problem => problem !== "questionnaire1" && problem !== "questionnaire2")
     return problemList
 }
 

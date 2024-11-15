@@ -2,6 +2,11 @@
 
 import { sql } from "@vercel/postgres";
 import { getPlayerId } from "./synchronizeHistory";
+import { StudyConfiguration } from "./Types";
+import { cookies } from "next/headers";
+import { getProblemList } from "./LevelConfiguration";
+
+const STUDY_DURATION = 45 * 60 * 1000;
 
 export async function submitQuestionnaire1(formData: string) {
     "use server"
@@ -40,4 +45,32 @@ export async function hasSubmittedQuestionnaire2() {
     const playerId = await getPlayerId();
     const result = await sql`SELECT * FROM questionnaire_responses WHERE respondent_id = ${playerId} AND difficulty IS NOT NULL`;
     return result.rows.length > 0;
+}
+
+export async function hasCompleted80PercentOfProblems(config: StudyConfiguration) {
+    const problems = getProblemList(config);
+    const completed = cookies().get("completed");
+    if (completed === undefined) {
+        return false
+    } else {
+        const completedProblems = completed.value.split(",");
+        const ratioSolved = completedProblems.length / problems.length;
+        return ratioSolved >= 0.8;
+    }
+}
+
+export async function timeIsOver() {
+    const startTime = cookies().get("start_time");
+    if (!startTime) {
+        return false
+    } else {
+        const startDate = new Date(startTime.value)
+        return startDate.valueOf() + STUDY_DURATION < Date.now().valueOf();
+    }
+}
+
+export async function progressSufficientForQuestionnaire2(config) {
+    const completed = await hasCompleted80PercentOfProblems(config)
+    const timeOver = await timeIsOver();
+    return completed || timeOver;
 }
