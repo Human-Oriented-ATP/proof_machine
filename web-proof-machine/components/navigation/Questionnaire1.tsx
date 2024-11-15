@@ -40,20 +40,32 @@ export function Questionnaire1() {
     const educationOptions = {
         legend: 'What is your highest level of education completed?',
         options: [
-            { value: 'highschool', label: 'High school diploma or equivalent' },
-            { value: 'college', label: 'Some College, no degree' },
-            { value: 'bachelors', label: "Bachelor's Degree" },
-            { value: 'masters', label: "Master's Degree" },
-            { value: 'doctor', label: "Doctoral Degree" },
+            { value: 0, label: 'High school diploma or equivalent' },
+            { value: 1, label: 'Some College, no degree' },
+            { value: 2, label: "Bachelor's Degree" },
+            { value: 3, label: "Master's Degree" },
+            { value: 4, label: "Doctoral Degree" },
         ],
     }
 
     const mathematicalTrainingOptions = {
         legend: 'What is your level of mathematical training?',
         options: [
-            { value: 'highschool', label: 'High school level' },
-            { value: 'undergraduate', label: 'Undergraduate level' },
-            { value: 'graduate', label: 'Graduate level or higher' },
+            { value: 0, label: 'High school level' },
+            { value: 1, label: 'Undergraduate level' },
+            { value: 2, label: 'Graduate level or higher' },
+        ],
+    }
+
+
+    const mathRegularityOptions = {
+        legend: 'Over the past two years, how regularly did you engage with mathematically-demanding problems?',
+        options: [
+            { value: 1, label: 'Every day' },
+            { value: 2, label: 'A couple of times per week' },
+            { value: 3, label: 'A couple of times per month' },
+            { value: 4, label: 'A couple of times per year' },
+            { value: 5, label: 'Never' },
         ],
     }
 
@@ -64,7 +76,8 @@ export function Questionnaire1() {
             <form onSubmit={handleSubmit}>
                 <RadioButtons name="educationLevel" {...educationOptions} onChange={handleChange} />
                 <RadioButtons name="mathTraining" {...mathematicalTrainingOptions} onChange={handleChange} />
-                <TextField label="If you have a specialty in mathematics, please specify:" name="specialty" onChange={handleChange} />
+                <RadioButtons name="mathRegularity" {...mathRegularityOptions} onChange={handleChange} />
+                <TextArea label="Please briefly describe what kinds of mathematics problems you work on (and why you work on them):" name="specialty" onChange={handleChange} />
                 <TextField label="Please tell us your first language:" name="firstLanguage" onChange={handleChange} />
                 <TextArea label="Please provide any feedback you might have about the game and the clarity of instructions:"
                     name="feedback" onChange={handleChange} />
