@@ -3,6 +3,7 @@
 import { RadioButtons } from "components/primitive/form/RadioButtons";
 import { SubmitButton } from "components/primitive/form/SubmitButton";
 import { TextArea } from "components/primitive/form/TextArea";
+import { submitQuestionnaire2 } from "lib/study/submitQuestionnaire";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -28,7 +29,7 @@ export function Questionnaire2({ nextHref = "../" }: { nextHref?: string }) {
         if (!isCompletedForm(formData)) {
             alert("Please fill out all fields before submitting!");
         } else {
-            // Send the form data to the server
+            submitQuestionnaire2(JSON.stringify(formData));
             console.log(formData);
             router.push(nextHref)
         }
@@ -37,22 +38,22 @@ export function Questionnaire2({ nextHref = "../" }: { nextHref?: string }) {
     const difficultyOptions = {
         legend: 'How difficult do you find the game?',
         options: [
-            { value: '-2', label: 'Very difficult' },
-            { value: '-1', label: 'Difficult' },
-            { value: '0', label: 'Neutral' },
-            { value: '1', label: 'Easy' },
-            { value: '2', label: 'Very easy' },
+            { value: -2, label: 'Very difficult' },
+            { value: -1, label: 'Difficult' },
+            { value: 0, label: 'Neutral' },
+            { value: 1, label: 'Easy' },
+            { value: 2, label: 'Very easy' },
         ],
     }
 
     const funOptions = {
         legend: 'How enjoyable do you find the game?',
         options: [
-            { value: '-2', label: 'Very enjoyable' },
-            { value: '-1', label: 'Enjoyable' },
-            { value: '0', label: 'Neutral' },
-            { value: '1', label: 'Unenjoyable' },
-            { value: '2', label: 'Very unenjoyable' },
+            { value: -2, label: 'Very enjoyable' },
+            { value: -1, label: 'Enjoyable' },
+            { value: 0, label: 'Neutral' },
+            { value: 1, label: 'Unenjoyable' },
+            { value: 2, label: 'Very unenjoyable' },
         ]
     }
 

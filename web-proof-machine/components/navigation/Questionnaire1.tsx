@@ -4,6 +4,7 @@ import { RadioButtons } from "components/primitive/form/RadioButtons";
 import { SubmitButton } from "components/primitive/form/SubmitButton";
 import { TextArea } from "components/primitive/form/TextArea";
 import { TextField } from "components/primitive/form/TextField";
+import { submitQuestionnaire1 } from "lib/study/submitQuestionnaire";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -31,7 +32,7 @@ export function Questionnaire1() {
         if (!isCompletedForm(formData)) {
             alert("Please fill out all fields before submitting!");
         } else {
-            // Send the form data to the server
+            submitQuestionnaire1(JSON.stringify(formData));
             console.log(formData);
             router.push('./tim_easy10');
         }

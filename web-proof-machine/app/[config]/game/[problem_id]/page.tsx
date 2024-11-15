@@ -2,7 +2,8 @@ import { loadAllProblemsInDirectory } from "lib/game/LoadProblems";
 import { Questionnaire2 } from "components/navigation/Questionnaire2";
 import { GameLoader } from "components/game/GameLoader";
 import { Questionnaire1 } from "components/navigation/Questionnaire1";
-import { Game } from "components/game/Game";
+import { hasSubmittedQuestionnaire1, hasSubmittedQuestionnaire2 } from "lib/study/submitQuestionnaire";
+import { redirect } from "next/navigation";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
@@ -12,9 +13,17 @@ export async function generateStaticParams() {
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     if (params.problem_id === "questionnaire1") {
-        return <Questionnaire1 />
+        if (await hasSubmittedQuestionnaire1()) {
+            redirect("./tim_easy10")
+        } else {
+            return <Questionnaire1 />
+        }
     } else if (params.problem_id === "questionnaire2") {
-        return <Questionnaire2 />
+        if (await hasSubmittedQuestionnaire2()) {
+            redirect("../")
+        } else {
+            return <Questionnaire2 />
+        }
     } else {
         const game = await GameLoader({ problemId: params.problem_id, configId: params.config })
         return game
