@@ -5,6 +5,7 @@ import { SubmitButton } from "components/primitive/form/SubmitButton";
 import { TextArea } from "components/primitive/form/TextArea";
 import { TextField } from "components/primitive/form/TextField";
 import { submitQuestionnaire1 } from "lib/study/submitQuestionnaire";
+import { clientSideCookies } from "lib/util/ClientSideCookies";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -33,6 +34,7 @@ export function Questionnaire1() {
             alert("Please fill out all fields before submitting!");
         } else {
             submitQuestionnaire1(JSON.stringify(formData));
+            clientSideCookies.set('questionnaire1Submitted', '1');
             console.log(formData);
             router.push('./tim_easy10');
         }

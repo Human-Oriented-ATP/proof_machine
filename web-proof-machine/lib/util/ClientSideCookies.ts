@@ -1,8 +1,8 @@
-"use client" 
+"use client"
 
 export const clientSideCookies = (() => {
 
-    function set(name: string, value: string, days: number) {
+    function set(name: string, value: string, days: number = 365) {
         let expires = "";
         if (days) {
             const date = new Date();

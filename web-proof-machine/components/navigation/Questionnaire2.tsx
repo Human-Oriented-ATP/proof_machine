@@ -4,6 +4,7 @@ import { RadioButtons } from "components/primitive/form/RadioButtons";
 import { SubmitButton } from "components/primitive/form/SubmitButton";
 import { TextArea } from "components/primitive/form/TextArea";
 import { submitQuestionnaire2 } from "lib/study/submitQuestionnaire";
+import { clientSideCookies } from "lib/util/ClientSideCookies";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -30,6 +31,7 @@ export function Questionnaire2({ nextHref = "../" }: { nextHref?: string }) {
             alert("Please fill out all fields before submitting!");
         } else {
             submitQuestionnaire2(JSON.stringify(formData));
+            clientSideCookies.set('questionnaire2Submitted', '1');
             console.log(formData);
             router.push(nextHref)
         }

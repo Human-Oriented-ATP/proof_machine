@@ -20,10 +20,8 @@ export async function submitQuestionnaire1(formData: string) {
 }
 
 export async function hasSubmittedQuestionnaire1() {
-    "use server"
-    const playerId = await getPlayerId();
-    const result = await sql`SELECT * FROM questionnaire_responses WHERE respondent_id = ${playerId}`;
-    return result.rows.length > 0;
+    const submitted = cookies().get("questionnaire1Submitted");
+    return submitted?.value === '1';
 }
 
 export async function submitQuestionnaire2(formData) {
@@ -41,10 +39,8 @@ export async function submitQuestionnaire2(formData) {
 }
 
 export async function hasSubmittedQuestionnaire2() {
-    "use server"
-    const playerId = await getPlayerId();
-    const result = await sql`SELECT * FROM questionnaire_responses WHERE respondent_id = ${playerId} AND difficulty IS NOT NULL`;
-    return result.rows.length > 0;
+    const submitted = cookies().get("questionnaire2Submitted");
+    return submitted?.value === '1';
 }
 
 export async function hasCompleted80PercentOfProblems(config: StudyConfiguration) {
