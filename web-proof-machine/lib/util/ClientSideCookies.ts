@@ -12,7 +12,7 @@ export const clientSideCookies = (() => {
         document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
-    function get(name: string): string | null {
+    function get(name: string): string | undefined {
         const nameEQ = name + "=";
         const ca = document.cookie.split(';');
         for (let i = 0; i < ca.length; i++) {
@@ -20,7 +20,7 @@ export const clientSideCookies = (() => {
             while (c.charAt(0) == ' ') c = c.substring(1, c.length);
             if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
         }
-        return null;
+        return undefined;
     }
 
     function deleteCookie(name: string) {
