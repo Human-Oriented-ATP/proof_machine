@@ -11,7 +11,7 @@ export async function generateStaticParams() {
 
 export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
     if (params.problem_id === "questionnaire1") {
-        return <Questionnaire1 />
+        return <Questionnaire1 redirectTo="./tim_easy10" />
     } else if (params.problem_id === "questionnaire2") {
         return <Questionnaire2 />
     } else {
