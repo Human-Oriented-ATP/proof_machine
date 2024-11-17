@@ -1,7 +1,5 @@
-import { loadAllProblemsInDirectory } from "lib/game/LoadProblems";
-import { Questionnaire2 } from "components/navigation/Questionnaire2";
-import { GameLoader } from "components/game/GameLoader";
-import Questionnaire1 from "components/navigation/Questionnaire1";
+import { loadAllProblemsInDirectory, loadStudyConfiguration } from "lib/game/LoadProblems";
+import GameOrQuestionnaireLoader from "components/navigation/GameOrQuestionnaireLoader";
 
 export async function generateStaticParams() {
     let problems = await loadAllProblemsInDirectory()
@@ -9,13 +7,14 @@ export async function generateStaticParams() {
     return [...problemIds, "questionnaire1", "questionnaire2"]
 }
 
-export default async function Page({ params }: { params: { config: string, problem_id: string } }) {
-    if (params.problem_id === "questionnaire1") {
-        return <Questionnaire1 redirectTo="./tim_easy10" />
-    } else if (params.problem_id === "questionnaire2") {
-        return <Questionnaire2 />
-    } else {
-        const game = await GameLoader({ problemId: params.problem_id, configId: params.config })
-        return game
-    }
+export const dynamic = 'force-dynamic'
+
+export default async function Page({ params, searchParams }: {
+    params: { config: string, problem_id: string },
+    searchParams: { [key: string]: string | string[] | undefined }
+}) {
+    const redirectTo = Array.isArray(searchParams.redirectTo) ? searchParams.redirectTo[0] : searchParams.redirectTo
+    const config = await loadStudyConfiguration(params.config)
+    const Loader = await GameOrQuestionnaireLoader({ problemId: params.problem_id, config, redirectTo })
+    return Loader
 }

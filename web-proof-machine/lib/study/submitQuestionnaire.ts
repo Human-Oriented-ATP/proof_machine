@@ -9,7 +9,6 @@ import { getProblemList } from "./LevelConfiguration";
 const STUDY_DURATION = 45 * 60 * 1000;
 
 export async function submitQuestionnaire1(formData: string) {
-    "use server"
     const playerId = await getPlayerId();
     const questionnaire = JSON.parse(formData);
     console.log(questionnaire);
@@ -19,13 +18,7 @@ export async function submitQuestionnaire1(formData: string) {
         ${questionnaire.specialty}, ${questionnaire.firstLanguage}, ${questionnaire.prolific}, ${questionnaire.feedback})`;
 }
 
-export async function hasSubmittedQuestionnaire1() {
-    const submitted = cookies().get("questionnaire1Submitted");
-    return submitted?.value === '1';
-}
-
 export async function submitQuestionnaire2(formData) {
-    "use server"
     const playerId = await getPlayerId();
     const questionnaire = JSON.parse(formData);
     await sql`UPDATE questionnaire_responses
@@ -40,11 +33,10 @@ export async function submitQuestionnaire2(formData) {
 
 export async function hasSubmittedQuestionnaire2() {
     const submitted = cookies().get("questionnaire2Submitted");
-    return submitted?.value === '1';
+    return submitted !== undefined;
 }
 
 export async function hasCompleted80PercentOfProblems(config: StudyConfiguration) {
-    "use server"
     const problems = getProblemList(config);
     const completed = cookies().get("completed");
     if (completed === undefined) {
@@ -57,7 +49,6 @@ export async function hasCompleted80PercentOfProblems(config: StudyConfiguration
 }
 
 export async function timeIsOver() {
-    "use server"
     const startTime = cookies().get("start_time");
     if (!startTime) {
         return false
@@ -68,8 +59,8 @@ export async function timeIsOver() {
 }
 
 export async function progressSufficientForQuestionnaire2(config) {
-    "use server"
     const completed = await hasCompleted80PercentOfProblems(config)
     const timeOver = await timeIsOver();
-    return completed || timeOver;
+    const hasAlreadySubmitted = await hasSubmittedQuestionnaire2();
+    return !hasAlreadySubmitted && (timeOver || completed);
 }
