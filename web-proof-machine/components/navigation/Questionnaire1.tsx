@@ -13,8 +13,8 @@ function isCompletedForm(formData) {
     return formData.educationLevel && formData.mathTraining && formData.firstLanguage;
 }
 
-export function Questionnaire1() {
-    const router = useRouter()
+export default function Questionnaire1() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         educationLevel: '',
         mathTraining: '',
