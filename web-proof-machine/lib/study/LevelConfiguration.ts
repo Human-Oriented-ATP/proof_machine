@@ -1,15 +1,20 @@
 import { getCompletedProblems } from "./CompletedProblems";
 import { StudyConfiguration } from "./Types";
 
-export function getProblemList(config: StudyConfiguration): string[] {
+function getProblemListWithQuestionnaires(config: StudyConfiguration): string[] {
     const categories = config.categories
     const problemList = categories.flatMap(category => category.problems)
-        .filter(problem => problem !== "questionnaire1" && problem !== "questionnaire2")
     return problemList
 }
 
+export function getProblemList(config: StudyConfiguration): string[] {
+    const problems = getProblemListWithQuestionnaires(config)
+        .filter(problem => problem !== "questionnaire1" && problem !== "questionnaire2")
+    return problems
+}
+
 export function getNextProblem(config: StudyConfiguration, currentProblem: string): string | undefined {
-    const problemList = getProblemList(config)
+    const problemList = getProblemListWithQuestionnaires(config)
     const currentIndex = problemList.indexOf(currentProblem)
     if (currentIndex === -1) {
         return undefined
@@ -18,6 +23,7 @@ export function getNextProblem(config: StudyConfiguration, currentProblem: strin
         return nextProblem
     }
 }
+
 export function findFirstUncompletedProblem(config: StudyConfiguration): string | undefined {
     const problems = getProblemList(config!);
     const completedProblems = getCompletedProblems();
