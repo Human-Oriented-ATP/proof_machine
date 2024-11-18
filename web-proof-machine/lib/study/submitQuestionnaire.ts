@@ -6,7 +6,8 @@ import { StudyConfiguration } from "./Types";
 import { cookies } from "next/headers";
 import { getProblemList } from "./LevelConfiguration";
 
-const STUDY_DURATION = 45 * 60 * 1000;
+const MAXIMUM_STUDY_DURATION = 45 * 60 * 1000;
+const COMPLETION_THRESHOLD = 0.9;
 
 export async function submitQuestionnaire1(formData: string) {
     const playerId = await getPlayerId();
@@ -36,7 +37,7 @@ export async function hasSubmittedQuestionnaire2() {
     return submitted !== undefined;
 }
 
-export async function hasCompleted80PercentOfProblems(config: StudyConfiguration) {
+export async function hasCompletedEnoughProblems(config: StudyConfiguration) {
     const problems = getProblemList(config);
     const completed = cookies().get("completed");
     if (completed === undefined) {
@@ -44,7 +45,7 @@ export async function hasCompleted80PercentOfProblems(config: StudyConfiguration
     } else {
         const completedProblems = completed.value.split(",");
         const ratioSolved = completedProblems.length / problems.length;
-        return ratioSolved >= 0.8;
+        return ratioSolved >= COMPLETION_THRESHOLD;
     }
 }
 
@@ -54,12 +55,12 @@ export async function timeIsOver() {
         return false
     } else {
         const startDate = new Date(startTime.value)
-        return startDate.valueOf() + STUDY_DURATION < Date.now().valueOf();
+        return startDate.valueOf() + MAXIMUM_STUDY_DURATION < Date.now().valueOf();
     }
 }
 
 export async function progressSufficientForQuestionnaire2(config) {
-    const completed = await hasCompleted80PercentOfProblems(config)
+    const completed = await hasCompletedEnoughProblems(config)
     const timeOver = await timeIsOver();
     const hasAlreadySubmitted = await hasSubmittedQuestionnaire2();
     return !hasAlreadySubmitted && (timeOver || completed);
