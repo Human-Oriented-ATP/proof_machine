@@ -5,16 +5,15 @@ import { progressSufficientForQuestionnaire2 } from "lib/study/submitQuestionnai
 import { StudyConfiguration } from "lib/study/Types";
 import { redirect } from "next/navigation";
 
-export default async function GameOrQuestionnaireLoader({ problemId, config, redirectTo }:
-    { problemId: string, config: StudyConfiguration, redirectTo: string | undefined }) {
+export default async function GameOrQuestionnaireLoader({ problemId, config }:
+    { problemId: string, config: StudyConfiguration }) {
     if (problemId === "questionnaire1") {
-        return <Questionnaire1 redirectTo="./tim_easy10" />
+        return <Questionnaire1 redirectTo="./tutorial01" />
     } else if (problemId === "questionnaire2") {
-        const redirectHref = redirectTo || "../"
-        return <Questionnaire2 redirectTo={redirectHref} />
+        return <Questionnaire2 redirectTo={"../"} />
     } else {
         if (await progressSufficientForQuestionnaire2(config)) {
-            redirect("./questionnaire2?redirectTo=" + problemId)
+            redirect("./questionnaire2")
         }
         const game = await GameLoader({ problemId, configId: config.name })
         return game

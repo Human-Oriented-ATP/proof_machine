@@ -65,15 +65,20 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
     }, [])
 
     return <div className="w-screen flex flex-col items-center">
-        <h1 className="text-xl py-12">Before you keep playing: Could you please answer the following questions?</h1>
-        <form onSubmit={handleSubmit}>
-            <RadioButtons name="difficulty" {...difficultyOptions} onChange={handleChange} />
-            <RadioButtons name="enjoyableness" {...funOptions} onChange={handleChange} />
-            <TextArea label="Can you describe strategies that are helpful to you in playing the game?"
-                name="strategies" onChange={handleChange} />
-            <TextArea label="Please provide any feedback you might have about the game/the study:"
-                name="feedback2" onChange={handleChange} />
-            <SubmitButton onSubmit={handleSubmit} />
-        </form>
+        <div className="max-w-screen-md">
+            <h1 className="text-xl pt-14">Thank you for playing this long! Could you please answer the following questions?</h1>
+            <div className="text-left p-4">This questionnaire marks the end of your participation in the study.<br />
+                Afterwards you will be redirected to the main page and can continue playing as you like.</div>
+            <form onSubmit={handleSubmit}>
+                <RadioButtons name="difficulty" {...difficultyOptions} onChange={handleChange} />
+                <RadioButtons name="enjoyableness" {...funOptions} onChange={handleChange} />
+                <TextArea label="Can you describe strategies that are helpful to you in playing the game?"
+                    name="strategies" onChange={handleChange} />
+                <TextArea label="Please provide any feedback you might have about the game/the study:"
+                    name="feedback2" onChange={handleChange} />
+                <SubmitButton onSubmit={handleSubmit} text="Submit" />
+            </form>
+            <div className="text-center text-sm pt-4 pb-20">After submitting you will be redirected to the main page and can continue playing as you like.</div>
+        </div>
     </div>
 }

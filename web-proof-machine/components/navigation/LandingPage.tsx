@@ -43,12 +43,12 @@ export function LandingPage() {
             </div>
             <div className="p-6">
                 {check1 && check2 && check3 && check4 ?
-                    <Link href={`pilot3/game/tutorial01`}>
+                    <Link href={`pilot3/game/questionnaire1`}>
                         <StartButton />
                     </Link>
                     : <StartButton className="border-2 border-black rounded-lg p-5 px-10 hover:bg-black hover:text-white text-2xl cursor-not-allowed bg-palette-gray opacity-40 cursor-not-allowed " />}
             </div>
-            <div className="fixed bottom-0 right-0 p-2 text-sm">Contact: kmc61@cam.ac.uk </div>
+            <div className="absolute top-0 right-0 p-2 text-sm">Contact: kmc61@cam.ac.uk </div>
         </div>
     )
 }

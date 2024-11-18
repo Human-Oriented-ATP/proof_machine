@@ -9,12 +9,10 @@ export async function generateStaticParams() {
 
 export const dynamic = 'force-dynamic'
 
-export default async function Page({ params, searchParams }: {
+export default async function Page({ params }: {
     params: { config: string, problem_id: string },
-    searchParams: { [key: string]: string | string[] | undefined }
 }) {
-    const redirectTo = Array.isArray(searchParams.redirectTo) ? searchParams.redirectTo[0] : searchParams.redirectTo
     const config = await loadStudyConfiguration(params.config)
-    const Loader = await GameOrQuestionnaireLoader({ problemId: params.problem_id, config, redirectTo })
+    const Loader = await GameOrQuestionnaireLoader({ problemId: params.problem_id, config })
     return Loader
 }
