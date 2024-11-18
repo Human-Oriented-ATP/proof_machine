@@ -29,26 +29,25 @@ export function ProblemCategoryDisplay(props: ProblemCategoryProps) {
 
     const nextProblem = findFirstUncompletedProblem(props.config)
 
+    const problems = props.category.problems.filter(problem => problem !== "questionnaire1" && problem !== "questionnaire2")
+
     return <div className="max-w-3xl">
         <div>
             {props.category.name}
         </div>
         <div className={twJoin("grid", useFlexibleNumberOfColumns && "grid-cols-3 md:grid-cols-5", !useFlexibleNumberOfColumns && "grid-cols-5")}>
-            {props.category.problems.map((problem, index) => {
-                if (problem === "questionnaire1" || problem === "questionnaire2")
-                    return <></>
-                else
-                    return <div className="p-2" key={problem}>
-                        <div className="relative">
-                            <GameLevelButton
-                                label={getButtonLabel(index, problem)}
-                                href={`${props.config.name}/game/${problem}`}
-                                isSelected={problem === nextProblem}
-                                isSolved={completedProblems.includes(problem)}
-                                isUnlocked={isUnlocked && problemIsUnlocked(problem, props.category, completedProblems)}
-                                isSquare={props.config.displayNamesAs === "number"} />
-                        </div>
+            {problems.map((problem, index) => {
+                return <div className="p-2" key={problem}>
+                    <div className="relative">
+                        <GameLevelButton
+                            label={getButtonLabel(index, problem)}
+                            href={`${props.config.name}/game/${problem}`}
+                            isSelected={problem === nextProblem}
+                            isSolved={completedProblems.includes(problem)}
+                            isUnlocked={isUnlocked && problemIsUnlocked(problem, props.category, completedProblems)}
+                            isSquare={props.config.displayNamesAs === "number"} />
                     </div>
+                </div>
             })}
         </div>
     </div>
