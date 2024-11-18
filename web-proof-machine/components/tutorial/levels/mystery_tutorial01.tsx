@@ -80,7 +80,7 @@ export const mystery_tutorial01: InteractiveLevel = {
         trigger: { ConnectionAdded: {} }
     }, {
         content: {
-            jsx: <>The B changes into an A if the circle below it becomes a 1.</>,
+            jsx: <>If the circle below <PinkHole /> is the same then the letter in <PinkHole /> becomes the same.</>,
             dragIndicator: connectGadgets2
         },
         trigger: { ConnectionAdded: {} }
