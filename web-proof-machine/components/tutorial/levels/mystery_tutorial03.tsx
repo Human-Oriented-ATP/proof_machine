@@ -1,8 +1,8 @@
-import { DEFAULT_SETTINGS, InteractiveLevel } from "../InteractiveLevel";
+import { InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
 import { PinkHole } from "../TutorialSetup";
 
 export const mystery_tutorial03: InteractiveLevel = {
-    settings: DEFAULT_SETTINGS,
+    settings: RESET_DISABLED,
     steps: [{
         content: {
             jsx: <>Try this one on your own! <br />

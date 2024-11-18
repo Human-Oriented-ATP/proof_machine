@@ -1,9 +1,8 @@
-import { InteractiveLevel } from "../InteractiveLevel";
+import { InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
 import { PinkHole } from "../TutorialSetup";
-import { DEFAULT_SETTINGS } from "../InteractiveLevel";
 
 export const pink_tutorial04: InteractiveLevel = {
-    settings: DEFAULT_SETTINGS,
+    settings: RESET_DISABLED,
     steps: [{
         content: {
             jsx: <>You sometimes need multiple copies of a gadget with a pink circle <PinkHole />.</>

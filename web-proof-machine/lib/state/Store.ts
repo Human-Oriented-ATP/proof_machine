@@ -4,7 +4,9 @@ import { HelpPopupSlice, helpPopupSlice } from './slices/HelpPopup'
 import { devtools } from 'zustand/middleware'
 
 export type GameStateInitializedFromData = FlowStateInitializedFromData
-export type GameSlice = FlowSlice & HelpPopupSlice
+export type GameSlice = FlowSlice & HelpPopupSlice & {
+    reset: () => void
+}
 
 export type GameStore = ReturnType<typeof createGameStore>
 
@@ -13,5 +15,6 @@ export const createGameStore = (initialState: GameStateInitializedFromData) => {
         ...initialState,
         ...flowSlice(initialState, set, get),
         ...helpPopupSlice(set),
+        reset: () => set(initialState)
     })))
 }
