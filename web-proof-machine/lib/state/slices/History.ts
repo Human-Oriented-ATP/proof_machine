@@ -9,9 +9,8 @@ import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { GameHistory } from "lib/study/GameHistory";
-import { clear } from "console";
 
-const HISTORY_UPLOAD_DELAY = 3 * 1000
+const HISTORY_UPLOAD_DELAY = 30 * 1000
 
 export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
 
@@ -92,6 +91,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
         },
 
         uploadHistory: async () => {
+            clearTimeout(get().timeoutId)
             const history = get().makeHistoryObject()
             if (history !== undefined && history.log.length !== 0 && !get().finalHistoryUploaded) {
                 console.log("uploading")
@@ -100,7 +100,6 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
         },
 
         uploadFinalHistory: async () => {
-            clearTimeout(get().timeoutId)
             get().uploadHistory()
             set({ finalHistoryUploaded: true })
         },

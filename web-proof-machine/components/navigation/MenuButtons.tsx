@@ -10,11 +10,12 @@ const selector = (state: GameSlice) => ({
     levelIsCompleted: state.levelIsCompleted,
     openHelpPopup: state.openHelpPopup,
     reset: state.reset,
+    uploadHistory: state.uploadHistory,
     isTutorialLevel: state.setup.settings.isTutorialLevel,
 })
 
 export function MenuButtons() {
-    const { levelIsCompleted, openHelpPopup, reset, isTutorialLevel } = useGameStateContext(useShallow(selector))
+    const { levelIsCompleted, openHelpPopup, reset, uploadHistory, isTutorialLevel } = useGameStateContext(useShallow(selector))
 
     const router = useRouter();
 
@@ -24,6 +25,7 @@ export function MenuButtons() {
     const restartLevel = () => {
         const confirmed = confirm("Are you sure that you want to restart the level? All progress will be lost.")
         if (confirmed) {
+            uploadHistory()
             reset()
         }
     }
