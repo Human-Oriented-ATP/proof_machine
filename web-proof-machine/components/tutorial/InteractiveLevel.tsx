@@ -11,7 +11,7 @@ export type LevelConfiguration = {
     panEnabled: boolean
     initialViewportSetting: InitialViewportSetting
     showBrokenConnectionStatusBarMessage: boolean
-    resetButtonEnabled: boolean
+    isTutorialLevel: boolean
 }
 
 export type GadgetSelector = { gadgetId: GadgetId } | { axiom: string } | "ANY_GADGET";
@@ -49,7 +49,7 @@ export const RESTRICTIVE_SETTINGS: LevelConfiguration = {
     gadgetDeletionEnabled: false,
     initialViewportSetting: "ORIGIN_AT_RIGHT",
     showBrokenConnectionStatusBarMessage: true,
-    resetButtonEnabled: false
+    isTutorialLevel: true
 };
 
 export const DELETE_ONLY_SETTINGS: LevelConfiguration = {
@@ -59,7 +59,7 @@ export const DELETE_ONLY_SETTINGS: LevelConfiguration = {
     gadgetDeletionEnabled: true,
     initialViewportSetting: "ORIGIN_AT_RIGHT",
     showBrokenConnectionStatusBarMessage: true,
-    resetButtonEnabled: false
+    isTutorialLevel: true
 };
 
 export const DEFAULT_SETTINGS: LevelConfiguration = {
@@ -69,10 +69,10 @@ export const DEFAULT_SETTINGS: LevelConfiguration = {
     gadgetDeletionEnabled: true,
     initialViewportSetting: "ORIGIN_AT_RIGHT",
     showBrokenConnectionStatusBarMessage: true,
-    resetButtonEnabled: true
+    isTutorialLevel: false
 };
 
-export const RESET_DISABLED: LevelConfiguration = {
+export const TUTORIAL_SETTINGS: LevelConfiguration = {
     ...DEFAULT_SETTINGS,
-    resetButtonEnabled: false
+    isTutorialLevel: true
 }

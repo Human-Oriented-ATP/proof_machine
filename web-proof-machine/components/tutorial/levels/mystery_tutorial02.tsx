@@ -1,5 +1,5 @@
 import { DragIndicatorProps } from "../DragIndicator";
-import { GadgetPosition, InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
+import { GadgetPosition, InteractiveLevel, TUTORIAL_SETTINGS } from "../InteractiveLevel";
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseTerm } from "lib/parsing/Semantics";
@@ -79,7 +79,7 @@ function TopOnlyGadget() {
 }
 
 export const mystery_tutorial02: InteractiveLevel = {
-    settings: { ...RESET_DISABLED, showBrokenConnectionStatusBarMessage: false },
+    settings: { ...TUTORIAL_SETTINGS, showBrokenConnectionStatusBarMessage: false },
     initialDiagram: initialDiagram,
     steps: [{
         content: {

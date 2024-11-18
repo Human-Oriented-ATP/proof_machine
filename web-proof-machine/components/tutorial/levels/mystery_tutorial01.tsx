@@ -1,5 +1,5 @@
 import { DragIndicatorProps } from "../DragIndicator";
-import { GadgetPosition, InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
+import { GadgetPosition, InteractiveLevel, TUTORIAL_SETTINGS } from "../InteractiveLevel";
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { InitialDiagram } from "lib/game/Initialization";
 import { PinkHole } from "../TutorialSetup";
@@ -59,7 +59,7 @@ const connectGadgets2: DragIndicatorProps<GadgetPosition> = {
 };
 
 export const mystery_tutorial01: InteractiveLevel = {
-    settings: RESET_DISABLED,
+    settings: TUTORIAL_SETTINGS,
     initialDiagram: initialDiagram,
     steps: [{
         content: {

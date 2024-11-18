@@ -1,7 +1,7 @@
-import { InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
+import { InteractiveLevel, TUTORIAL_SETTINGS } from "../InteractiveLevel";
 
 export const tutorial06: InteractiveLevel = {
-    settings: RESET_DISABLED,
+    settings: TUTORIAL_SETTINGS,
     steps: [{
         content: {
             jsx: <>If you move gadgets very close together they connect automatically.</>,

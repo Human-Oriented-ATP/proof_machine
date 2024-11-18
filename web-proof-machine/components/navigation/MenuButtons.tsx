@@ -10,11 +10,11 @@ const selector = (state: GameSlice) => ({
     levelIsCompleted: state.levelIsCompleted,
     openHelpPopup: state.openHelpPopup,
     reset: state.reset,
-    resetButtonEnabled: state.setup.settings.resetButtonEnabled,
+    isTutorialLevel: state.setup.settings.isTutorialLevel,
 })
 
 export function MenuButtons() {
-    const { levelIsCompleted, openHelpPopup, reset, resetButtonEnabled } = useGameStateContext(useShallow(selector))
+    const { levelIsCompleted, openHelpPopup, reset, isTutorialLevel } = useGameStateContext(useShallow(selector))
 
     const router = useRouter();
 
@@ -32,13 +32,14 @@ export function MenuButtons() {
         <div className='m-1'>
             <Button onClick={openHelpPopup}>Help</Button>
         </div>
-        <div className='m-1'>
-            <Button onClick={() => router.push('../')}>Main menu</Button>
-        </div>
-        {resetButtonEnabled &&
+        {!isTutorialLevel && <>
+            <div className='m-1'>
+                <Button onClick={() => router.push('../')}>Main menu</Button>
+            </div>
             <div className='m-1'>
                 <Button onClick={restartLevel}>Restart level</Button>
             </div>
+        </>
         }
         {nextLevelHref !== undefined && <div className='m-1'>
             <Link href={nextLevelHref}>

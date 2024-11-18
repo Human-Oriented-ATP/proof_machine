@@ -1,8 +1,8 @@
-import { InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
+import { InteractiveLevel, TUTORIAL_SETTINGS } from "../InteractiveLevel";
 import { PinkHole } from "../TutorialSetup";
 
 export const pink_tutorial01: InteractiveLevel = {
-    settings: RESET_DISABLED,
+    settings: TUTORIAL_SETTINGS,
     steps: [{
         content: {
             jsx: <>These mystery gadgets with pink circles <PinkHole /> can be tricky, they create letters.<br></br> Give it a try! </>
