@@ -2,6 +2,7 @@ import { DragIndicatorProps } from "../DragIndicator";
 import { GadgetPosition, InteractiveLevel, RESET_DISABLED } from "../InteractiveLevel";
 import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { InitialDiagram } from "lib/game/Initialization";
+import { PinkHole } from "../TutorialSetup";
 
 const firstAxiomDragPoint: GadgetPosition = {
     elementId: "axiom_0",
@@ -62,7 +63,7 @@ export const mystery_tutorial01: InteractiveLevel = {
     initialDiagram: initialDiagram,
     steps: [{
         content: {
-            jsx: <> Drag the mystery gadget from the shelf onto the work bench.</>,
+            jsx: <> Drag the gadget from the shelf onto the work bench.</>,
             dragIndicator: dragFirstAxiomOut
         },
         trigger: { GadgetAdded: { axiom: "r(f(X), X)" } }

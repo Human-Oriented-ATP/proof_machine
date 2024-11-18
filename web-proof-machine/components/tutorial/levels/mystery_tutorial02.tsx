@@ -4,7 +4,7 @@ import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { InitialDiagram } from "lib/game/Initialization";
 import { parseTerm } from "lib/parsing/Semantics";
 import { Gadget } from "components/game/gadget/Gadget";
-import { BrokenTargetConnector } from "../TutorialSetup";
+import { BrokenTargetConnector, PinkHole } from "../TutorialSetup";
 
 const firstAxiomDragPoint: GadgetPosition = {
     elementId: "axiom_0",
@@ -83,12 +83,12 @@ export const mystery_tutorial02: InteractiveLevel = {
     initialDiagram: initialDiagram,
     steps: [{
         content: {
-            jsx: <> Start by connecting a mystery gadget to <RedCell1 />.</>,
+            jsx: <> Start by connecting a gadget with <PinkHole value="?" /> to <RedCell1 />.</>,
         },
         trigger: { ConnectionAdded: { from: { axiom: "r(f(X), X)" }, to: [{ gadgetId: "initial_gadget_1" }, 0] } }
     }, {
         content: {
-            jsx: <>Now try connecting another mystery gadget to <RedCell2 /> .</>,
+            jsx: <>Now try connecting another copy to <RedCell2 /> .</>,
         },
         trigger: { ConnectionAdded: { from: { axiom: "r(f(X), X)" }, to: [{ gadgetId: "initial_gadget_1" }, 1] } }
     }, {

@@ -30,7 +30,7 @@
             "numberOfUnlockedProblems": 1000
         },
         {
-            "name": "Mystery Gadget Tutorial",
+            "name": "Tutorial II",
             "problems": [
                 "mystery_tutorial01",
                 "mystery_tutorial02",

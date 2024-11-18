@@ -17,6 +17,10 @@ export function OpenTargetConnector() {
     return <div className="inline-block translate-y-[-2px]"><Connector type={"target"} isInline={true} status={"OPEN"} /></div>;
 }
 
-export function PinkHole() {
-    return <div className="inline-block translate-y-[8px]"><StaticHole value={""} isFunctionHole={true} /></div>;
+export function PinkHole({ value = "" }: { value?: string }) {
+    return <>
+        <div className="inline-block scale-90 absolute translate-y-[-3px] translate-x-[-5px]"><StaticHole value={value} isFunctionHole={true} /></div>
+        <div className="w-[23px] inline-block"></div>
+    </>
 }
+
