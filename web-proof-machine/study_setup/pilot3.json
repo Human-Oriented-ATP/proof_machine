@@ -19,8 +19,8 @@
         {
             "name": "Set I",
             "problems": [
-                "tim_easy10",
-                "tim_easy13",
+                "tim_e10",
+                "tim_e13",
                 "tim17",
                 "tim19",
                 "tim18"
@@ -44,10 +44,10 @@
             "name": "Set II",
             "problems": [
                 "jonas_pink1",
-                "jacob_easy05",
+                "jacob_e05",
                 "tim20",
                 "tim16",
-                "tim_easy09",
+                "tim_e09",
                 "tim29",
                 "questionnaire2"
             ],

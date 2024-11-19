@@ -6,12 +6,12 @@
         {
             "name": "Tutorial",
             "problems": [
-                "jacob_easy01",
-                "jacob_easy02",
-                "jacob_easy03",
-                "jacob_easy04",
-                "tim_easy01",
-                "tim_easy07"
+                "jacob_e01",
+                "jacob_e02",
+                "jacob_e03",
+                "jacob_e04",
+                "tim_e01",
+                "tim_e07"
             ],
             "numberOfUnlockedProblems": 1000
         },
@@ -22,11 +22,11 @@
                 "tim17",
                 "tim18",
                 "tim19",
-                "tim_easy04",
-                "tim_easy10",
-                "tim_easy03",
+                "tim_e04",
+                "tim_e10",
+                "tim_e03",
                 "tim08",
-                "jacob_easy05",
+                "jacob_e05",
                 "tim23",
                 "tim24",
                 "tim33",
@@ -37,15 +37,15 @@
         {
             "name": "Intermediate",
             "problems": [
-                "tim_easy08",
+                "tim_e08",
                 "tim12",
-                "tim_easy02",
-                "tim_easy05",
+                "tim_e02",
+                "tim_e05",
                 "tim04",
                 "tim16",
                 "tim20",
                 "tim05",
-                "tim_easy09",
+                "tim_e09",
                 "tim10",
                 "jacob05",
                 "tim29",
@@ -62,7 +62,7 @@
             "problems": [
                 "tim02",
                 "tim14",
-                "tim_easy06",
+                "tim_e06",
                 "tim01",
                 "tim07",
                 "jacob02",

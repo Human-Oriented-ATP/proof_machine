@@ -41,5 +41,5 @@ export const interactiveTutorialLevels: Map<string, InteractiveLevel> = new Map(
     ["mystery_tutorial01", mystery_tutorial01],
     ["mystery_tutorial02", mystery_tutorial02],
     ["mystery_tutorial03", mystery_tutorial03],
-    ["tim_easy10", firstLevelAfterTutorial],
+    ["tim_e10", firstLevelAfterTutorial],
 ])
