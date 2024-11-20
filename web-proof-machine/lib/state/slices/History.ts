@@ -92,6 +92,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
 
         uploadHistory: async () => {
             clearTimeout(get().timeoutId)
+            set({ timeoutId: undefined })
             const history = get().makeHistoryObject()
             if (history !== undefined && history.log.length !== 0 && !get().finalHistoryUploaded) {
                 console.log("uploading")
@@ -108,7 +109,6 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             if (get().timeoutId === undefined) {
                 const timeoutId = setTimeout(() => {
                     get().uploadHistory()
-                    set({ timeoutId: undefined })
                 }, HISTORY_UPLOAD_DELAY)
                 set({ timeoutId })
             }
