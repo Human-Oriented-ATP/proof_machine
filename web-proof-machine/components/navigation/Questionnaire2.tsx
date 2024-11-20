@@ -13,17 +13,16 @@ function isCompletedForm(formData) {
 }
 
 const difficultyOptions = {
-    legend: 'How difficult do you find the game?',
+    legend: 'Think about the level of the game that you found the most difficult. Which of the following is the most accurate?',
     options: [
-        { value: -2, label: 'Very difficult' },
-        { value: -1, label: 'Difficult' },
-        { value: 0, label: 'Neutral' },
-        { value: 1, label: 'Easy' },
-        { value: 2, label: 'Very easy' },
+        { value: -2, label: "I didn't understand how the gadgets work and gave up." },
+        { value: -1, label: "It was clear what the gadgets do, but I couldn't connect them in the right way and gave up." },
+        { value: 0, label: "I played around with the gadgets for some while and eventually this led to a solution." },
+        { value: 1, label: "There was no very difficult problem. I managed to solve all problems straight-forwardly." },
     ],
 }
 
-const funOptions = {
+const enjoyablenessOptions = {
     legend: 'How enjoyable do you find the game?',
     options: [
         { value: -2, label: 'Very enjoyable' },
@@ -70,8 +69,8 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
             <div className="text-left p-4">This questionnaire marks the end of your participation in the study.<br />
                 After submission you will be provided with a code which you can enter on Prolific.</div>
             <form onSubmit={handleSubmit}>
+                <RadioButtons name="enjoyableness" {...enjoyablenessOptions} onChange={handleChange} />
                 <RadioButtons name="difficulty" {...difficultyOptions} onChange={handleChange} />
-                <RadioButtons name="enjoyableness" {...funOptions} onChange={handleChange} />
                 <TextArea label="Can you describe strategies that are helpful to you in playing the game?"
                     name="strategies" onChange={handleChange} />
                 <TextArea label="Please provide any feedback you might have about the game/the study:"
