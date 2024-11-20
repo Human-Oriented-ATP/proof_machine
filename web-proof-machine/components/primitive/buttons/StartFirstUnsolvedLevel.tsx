@@ -5,17 +5,15 @@ import { StudyConfiguration } from "lib/study/Types";
 import { findFirstUncompletedProblem } from "lib/study/LevelConfiguration";
 
 export function StartButton(props) {
-    return <button className="border-2 border-black bg-green rounded-lg p-5 px-10 hover:bg-black hover:text-white text-2xl"
+    return <button className="border-2 border-black bg-green rounded-lg p-3 px-10 hover:bg-black hover:text-white text-2xl"
         {...props}>
         Start
     </button>;
 }
 
 export default function StartFirstUnsolvedLevelButton({ config }: { config: StudyConfiguration }) {
-    return <div className="p-12">
-        <Link href={`${config.name}/game/${findFirstUncompletedProblem(config)}`}>
-            <StartButton />
-        </Link>
-    </div>;
+    return <Link href={`${config.name}/game/${findFirstUncompletedProblem(config)}`}>
+        <StartButton />
+    </Link>
 
 }
