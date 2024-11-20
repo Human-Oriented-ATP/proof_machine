@@ -1,13 +1,12 @@
 import { InteractiveLevel, TUTORIAL_SETTINGS } from "../InteractiveLevel";
+import { PinkHole } from "../TutorialSetup";
 
 export const pink_tutorial03: InteractiveLevel = {
     settings: TUTORIAL_SETTINGS,
     steps: [{
         content: {
-            jsx: <>The letters created by mystery gadgets travel through connections just like numbers do.</>
+            jsx: <>Try this one on your own! <br />
+                The ordering of the numbers below <PinkHole /> is important as well.</>,
         },
-        trigger: {
-            GameCompleted: null
-        }
     }]
 };

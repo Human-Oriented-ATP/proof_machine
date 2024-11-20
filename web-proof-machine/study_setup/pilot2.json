@@ -31,9 +31,9 @@
         {
             "name": "Tutorial II",
             "problems": [
-                "pink_tutorial01",
-                "pink_tutorial02",
-                "pink_tutorial03",
+                "pink_tutorial01_legacy",
+                "pink_tutorial02_legacy",
+                "pink_tutorial03_legacy",
                 "pink_tutorial04",
                 "pink_tutorial05"
             ],

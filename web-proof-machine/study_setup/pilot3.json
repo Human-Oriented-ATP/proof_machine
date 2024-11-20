@@ -31,9 +31,9 @@
         {
             "name": "Tutorial II",
             "problems": [
-                "mystery_tutorial01",
-                "mystery_tutorial02",
-                "mystery_tutorial03",
+                "pink_tutorial01",
+                "pink_tutorial02",
+                "pink_tutorial03",
                 "pink_tutorial04",
                 "pink_tutorial05"
             ],
@@ -43,9 +43,9 @@
         {
             "name": "Set II",
             "problems": [
-                "jo_pink1",
                 "ja_e05",
                 "t20",
+                "jo_pink1",
                 "t16",
                 "t_e09",
                 "t29",
