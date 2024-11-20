@@ -12,10 +12,11 @@ export function ProblemSelection(props: { config: StudyConfiguration, allProblem
             <DynamicProblemCategoryGrid {...props} />
         </div>
         <DynamicStartButton config={props.config} />
-        <div className="relative md:fixed bottom-0 left-0 p-2">
+        {props.config.displayEndParticipationButton && <div className="relative md:fixed bottom-0 left-0 p-2">
             <Link href={`${props.config.name}/game/questionnaire2`}>
                 <Button moreClassnames="text-sm">End participation in study</Button>
             </Link >
         </div>
+        }
     </>
 }

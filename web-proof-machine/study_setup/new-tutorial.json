@@ -2,6 +2,7 @@
     "name": "new-tutorial",
     "displayNamesAs": "number",
     "displayUnlistedProblems": false,
+    "displayEndParticipationButton": false,
     "categories": [
         {
             "name": "Tutorial",

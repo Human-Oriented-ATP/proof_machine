@@ -2,6 +2,7 @@
     "name": "internal",
     "displayNamesAs": "name",
     "displayUnlistedProblems": true,
+    "displayEndParticipationButton": false,
     "categories": [
         {
             "name": "Tutorial",

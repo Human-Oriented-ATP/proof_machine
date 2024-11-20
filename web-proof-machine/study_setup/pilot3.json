@@ -2,6 +2,7 @@
     "name": "pilot3",
     "displayNamesAs": "number",
     "displayUnlistedProblems": false,
+    "displayEndParticipationButton": false,
     "categories": [
         {
             "name": "Tutorial",
