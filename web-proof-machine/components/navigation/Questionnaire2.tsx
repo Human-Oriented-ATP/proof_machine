@@ -68,7 +68,7 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
         <div className="max-w-screen-md">
             <h1 className="text-xl pt-14">Thank you for playing this long! Could you please answer the following questions?</h1>
             <div className="text-left p-4">This questionnaire marks the end of your participation in the study.<br />
-                Afterwards you will be redirected to the main page and can continue playing as you like.</div>
+                After submission you will be provided with a code which you can enter on Prolific.</div>
             <form onSubmit={handleSubmit}>
                 <RadioButtons name="difficulty" {...difficultyOptions} onChange={handleChange} />
                 <RadioButtons name="enjoyableness" {...funOptions} onChange={handleChange} />
@@ -78,7 +78,7 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
                     name="feedback2" onChange={handleChange} />
                 <SubmitButton onSubmit={handleSubmit} text="Submit" />
             </form>
-            <div className="text-center text-sm pt-4 pb-20">After submitting you will be redirected to the main page and can continue playing as you like.</div>
+            {/* <div className="text-center text-sm pt-4 pb-20">After submitting you will be redirected to the main page and can continue playing as you like.</div> */}
         </div>
     </div>
 }
