@@ -19,11 +19,11 @@
         {
             "name": "Set I",
             "problems": [
-                "tim_e10",
-                "tim_e13",
-                "tim17",
-                "tim19",
-                "tim18"
+                "t_e10",
+                "t_e13",
+                "t17",
+                "t19",
+                "t18"
             ],
             "categoryUnlockThreshold": 7,
             "numberOfUnlockedProblems": 2
@@ -43,12 +43,12 @@
         {
             "name": "Set II",
             "problems": [
-                "jonas_pink1",
-                "jacob_e05",
-                "tim20",
-                "tim16",
-                "tim_e09",
-                "tim29",
+                "jo_pink1",
+                "ja_e05",
+                "t20",
+                "t16",
+                "t_e09",
+                "t29",
                 "questionnaire2"
             ],
             "categoryUnlockThreshold": 4,

@@ -13,26 +13,26 @@
                 "tutorial05",
                 "tutorial06",
                 "tutorial07",
-                "jacob_e03",
-                "tim_e11",
-                "tim_e13",
-                "tim_e12"
+                "ja_e03",
+                "t_e11",
+                "t_e13",
+                "t_e12"
             ],
             "numberOfUnlockedProblems": 1000
         },
         {
             "name": "Puzzles",
             "problems": [
-                "tim18",
-                "jacob_e05",
-                "tim16",
-                "tim20",
-                "tim_e09",
-                "tim29",
-                "tim02",
-                "tim_e06",
-                "jacob08",
-                "tim25"
+                "t18",
+                "ja_e05",
+                "t16",
+                "t20",
+                "t_e09",
+                "t29",
+                "t02",
+                "t_e06",
+                "ja08",
+                "t25"
             ],
             "numberOfUnlockedProblems": 1000
         }
