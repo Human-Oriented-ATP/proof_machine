@@ -7,23 +7,18 @@ import { ResetProgressButton } from "components/primitive/buttons/ResetProgress"
 
 export default function MainScreen({ allProblems }: { allProblems: string[] }) {
     return <div className="w-screen text-center pt-10">
-        <h1 className="text-2xl p-4">Welcome to the Gadgets Game!</h1>
+        <h1 className="text-2xl p-4">Welcome to the Gadget Game!</h1>
 
         <h2 className="text-xl p-4">You might find the following interesting:</h2>
         <div>
             <div className="m-1.5 inline-block">
                 <Link href="new-tutorial">
-                    <Button>Interactive Tutorial</Button>
+                    <Button>Current Tutorial</Button>
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
                 <Link href="pilot1">
-                    <Button>Pilot 1</Button>
-                </Link>
-            </div>
-            <div className="m-1.5 inline-block">
-                <Link href="pilot1">
-                    <Button>Pilot 2</Button>
+                    <Button>Pilot 3</Button>
                 </Link>
             </div>
             <div className="m-1.5 inline-block">
