@@ -124,7 +124,7 @@ export function getEquationOfConnection(connection: GadgetConnection, initialDia
     const lhs = lhsTerms.get(OUTPUT_POSITION)
     const rhs = rhsTerms.get(connection.to[1])
     if (lhs === undefined || rhs === undefined)
-        throw Error(`Connection has undefined terms: \n${JSON.stringify(connection)}\nlhs: ${lhsTerms}\nrhs: ${rhsTerms}`)
+        throw Error(`Connection has undefined terms: \n${JSON.stringify(connection)}\nlhs: ${JSON.stringify(lhsTerms)}\nrhs: ${JSON.stringify(rhsTerms)}`)
     return [lhs!, rhs!]
 }
 
