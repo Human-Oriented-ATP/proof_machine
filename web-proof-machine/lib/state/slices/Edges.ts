@@ -1,7 +1,8 @@
 import { CreateStateWithInitialValue } from '../Types';
 import { Connection, Edge } from '@xyflow/react';
 import { getNodePositionFromHandle } from 'lib/game/Handles';
-import { GadgetConnection, GameEvent } from './History';
+import { GadgetConnection } from "lib/game/History";
+import { GameEvent } from "lib/game/History";
 import { OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 export interface EdgeStateInitializedFromData {

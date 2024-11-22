@@ -3,7 +3,7 @@ import { addEdge, Connection, ReactFlowInstance, XYPosition } from '@xyflow/reac
 import { GadgetNode } from 'components/game/flow/GadgetFlowNode';
 import { EdgeSlice, edgeSlice, EdgeStateInitializedFromData, toGadgetConnection } from './Edges';
 import { NodeSlice, nodeSlice, NodeState, NodeStateInitializedFromData } from './Nodes';
-import { GameEvent } from './History';
+import { GameEvent } from "lib/game/History";
 import { GadgetIdGeneratorSlice, gadgetIdGeneratorSlice } from './GadgetIdGenerator';
 import { axiomToGadget } from 'lib/game/GameLogic';
 import { GadgetId } from 'lib/game/Primitives';

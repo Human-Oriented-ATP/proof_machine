@@ -1,6 +1,8 @@
 import { GadgetSelector, Trigger } from "components/tutorial/InteractiveLevel";
 import { CreateStateWithInitialValue } from "../Types"
-import { GadgetConnection, GameEvent, HistorySlice, historySlice, HistoryState, HistoryStateInitializedFromData } from "./History";
+import { HistorySlice, historySlice, HistoryState, HistoryStateInitializedFromData } from "./History";
+import { GadgetConnection } from "lib/game/History";
+import { GameEvent } from "lib/game/History";
 import { CellPosition } from "lib/game/CellPosition";
 
 export type TutorialStateInitializedFromData = HistoryStateInitializedFromData
