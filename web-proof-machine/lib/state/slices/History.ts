@@ -7,7 +7,7 @@ import { SetupReadonlyState, setupSlice } from "./Setup";
 import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { GameHistory } from "lib/study/GameHistory";
-import { GadgetConnection, GameEvent, getCurrentEquations, getCurrentHoleTerms, getEquationOfConnection, getEvents, getSomeGadgetWithAxiom, getStatementOfGadget } History from "lib/game/History";
+import { GadgetConnection, GameEvent, getCurrentEquations, getCurrentHoleTerms, getEquationOfConnection, getEvents, getSomeGadgetWithAxiom, getStatementOfGadget } from "lib/game/History";
 
 const HISTORY_UPLOAD_DELAY = 30 * 1000
 
