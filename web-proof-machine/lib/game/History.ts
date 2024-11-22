@@ -119,10 +119,12 @@ export function getCurrentHoleTerms(initialDiagram: InitialDiagram, events: Game
 }
 
 export function getEquationOfConnection(connection: GadgetConnection, initialDiagram: InitialDiagram, events: GameEvent[]): Equation {
-    const lhs = getTermsOfGadget(connection.from, initialDiagram, events).get(OUTPUT_POSITION)
-    const rhs = getTermsOfGadget(connection.to[0], initialDiagram, events).get(connection.to[1])
+    const lhsTerms = getTermsOfGadget(connection.from, initialDiagram, events)
+    const rhsTerms = getTermsOfGadget(connection.to[0], initialDiagram, events)
+    const lhs = lhsTerms.get(OUTPUT_POSITION)
+    const rhs = rhsTerms.get(connection.to[1])
     if (lhs === undefined || rhs === undefined)
-        throw Error(`Connection has undefined terms: \n${JSON.stringify(connection)}\nlhs: ${lhs}\nrhs: ${rhs}`)
+        throw Error(`Connection has undefined terms: \n${JSON.stringify(connection)}\nlhs: ${lhsTerms}\nrhs: ${rhsTerms}`)
     return [lhs!, rhs!]
 }
 
