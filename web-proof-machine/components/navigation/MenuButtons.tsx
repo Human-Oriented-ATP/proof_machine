@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { useShallow } from 'zustand/react/shallow';
 import { GameSlice } from 'lib/state/Store';
+import { useCallback } from 'react';
 
 const selector = (state: GameSlice) => ({
     levelIsCompleted: state.levelIsCompleted,
@@ -22,13 +23,18 @@ export function MenuButtons() {
     const { nextProblem } = useGameStateContext((state) => state.setup)
     const nextLevelHref = nextProblem ? `../game/${nextProblem}` : undefined
 
-    const restartLevel = () => {
+    const restartLevel = useCallback(() => {
         const confirmed = confirm("Are you sure that you want to restart the level? All progress will be lost.")
         if (confirmed) {
             uploadHistory()
             reset()
         }
-    }
+    }, [])
+
+    const mainButtonAction = useCallback(() => {
+        uploadHistory()
+        router.push('../')
+    }, [])
 
     return <>
         <div className='m-1'>
@@ -36,7 +42,7 @@ export function MenuButtons() {
         </div>
         {!isTutorialLevel && <>
             <div className='m-1'>
-                <Button onClick={() => router.push('../')}>Main menu</Button>
+                <Button onClick={mainButtonAction}>Main menu</Button>
             </div>
             <div className='m-1'>
                 <Button onClick={restartLevel}>Restart level</Button>

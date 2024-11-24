@@ -28,6 +28,10 @@ export class DisjointSetWithAssignment<T, S> {
         return this.parent.get(x)!;
     }
 
+    getAllValues(): T[] {
+        return Array.from(this.parent.keys())
+    }
+
     valueToBeAssigned(s1: S | undefined, s2: S | undefined) {
         if (s1 === undefined) {
             return s2
@@ -86,6 +90,10 @@ export class DisjointSetWithAssignment<T, S> {
 
     getAssignedValues(): S[] {
         return new Array(...this.assignments.values())
+    }
+
+    getAssignedKeys(): T[] {
+        return new Array(...this.assignments.keys())
     }
 
 }

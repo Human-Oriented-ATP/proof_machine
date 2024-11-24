@@ -19,11 +19,11 @@
         {
             "name": "Set I",
             "problems": [
-                "tim_e10",
-                "tim_e13",
-                "tim17",
-                "tim19",
-                "tim18"
+                "t_e10",
+                "t_e13",
+                "t17",
+                "t19",
+                "t18"
             ],
             "categoryUnlockThreshold": 0,
             "numberOfUnlockedProblems": 1000
@@ -31,9 +31,9 @@
         {
             "name": "Tutorial II",
             "problems": [
-                "pink_tutorial01",
-                "pink_tutorial02",
-                "pink_tutorial03",
+                "pink_tutorial01_legacy",
+                "pink_tutorial02_legacy",
+                "pink_tutorial03_legacy",
                 "pink_tutorial04",
                 "pink_tutorial05"
             ],
@@ -43,11 +43,11 @@
         {
             "name": "Set II",
             "problems": [
-                "jacob_e05",
-                "tim20",
-                "tim16",
-                "tim_e09",
-                "tim29"
+                "ja_e05",
+                "t20",
+                "t16",
+                "t_e09",
+                "t29"
             ],
             "categoryUnlockThreshold": 0,
             "numberOfUnlockedProblems": 1000

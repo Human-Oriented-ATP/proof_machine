@@ -5,12 +5,14 @@ test("Adding a new element", () => {
     const x = new DisjointSetWithAssignment<number, number>()
     const y = x.findRepresentative(3)
     expect(y).toBe(3);
+    expect(x.getAllValues()).toEqual([3]);
 })
 
 test("Union test", () => {
     const x = new DisjointSetWithAssignment<number, number>()
     x.unite(1, 2)
     expect(x.findRepresentative(1)).toBe(x.findRepresentative(2));
+    expect(x.getAllValues()).toEqual([1, 2]);
 })
 
 test("Union transitive test", () => {
@@ -18,6 +20,7 @@ test("Union transitive test", () => {
     x.unite(1, 2)
     x.unite(2, 3)
     expect(x.findRepresentative(1)).toBe(x.findRepresentative(3));
+    expect(x.getAllValues()).toEqual([1, 2, 3]);
 })
 
 test("Assigning an element", () => {
@@ -26,7 +29,7 @@ test("Assigning an element", () => {
     expect(set.getAssignedValue(3)).toBe("3");
 })
 
-test("Unassigning value gives undefined", () => {
+test("Unassigned value gives undefined", () => {
     const set = new DisjointSetWithAssignment<number, string>()
     expect(set.getAssignedValue(3)).toBe(undefined);
 })

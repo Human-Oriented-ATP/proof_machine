@@ -3,7 +3,7 @@ import { ConnectionDrawingData, ConnectionPath } from '../gadget/ConnectionSvg';
 import { toGadgetConnection } from 'lib/state/slices/Edges';
 import { useGameStateContext } from 'lib/state/StateContextProvider';
 import { twJoin } from 'tailwind-merge';
-import { GadgetConnection } from 'lib/state/slices/History';
+import { GadgetConnection } from "lib/game/History";
 
 function getGadgetConnection(props: EdgeProps): GadgetConnection {
     if (!props.sourceHandleId || !props.targetHandleId)

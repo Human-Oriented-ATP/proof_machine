@@ -1,4 +1,4 @@
-import { GadgetConnection } from "./History";
+import { GadgetConnection } from "lib/game/History";
 import { CreateStateWithInitialValue } from "../Types";
 import { unifyEquations } from "lib/game/Unification";
 import { Assignment, Term } from "lib/game/Term";

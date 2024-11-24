@@ -1,5 +1,5 @@
 r(xr(B, C),B,C).
-b(xb(B, C),B,C).
-b(A,B,C) :- b(B,A,C).
-g(A,B) :- r(C,A,B), b(C,D,B).
+r(A,B,C) :- r(A,C,B).
+g(A,B) :- r(C,A,B), r(C,B,A).
+
 :- g(1,2).

@@ -19,6 +19,7 @@ module.exports = {
       'pink': '#ffcccc',
       'yellow-highlight': "#fffa65",
       'light-gray': "#fefefe",
+      'middle-gray': '#eeeeee',
       'dark-gray': "#777777",
       'palette-gray': '#dddddd',
     },

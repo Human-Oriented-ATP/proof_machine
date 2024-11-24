@@ -3,7 +3,7 @@ import "../index.css"
 import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
-    title: 'Gadgets Game',
+    title: 'Gadget Game',
     description: '',
 }
 

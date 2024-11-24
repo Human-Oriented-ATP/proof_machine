@@ -10,7 +10,7 @@ export default async function GameOrQuestionnaireLoader({ problemId, config }:
     if (problemId === "questionnaire1") {
         return <Questionnaire1 redirectTo="./tutorial01" />
     } else if (problemId === "questionnaire2") {
-        return <Questionnaire2 redirectTo={"../"} />
+        return <Questionnaire2 redirectTo={"../thanks"} />
     } else {
         if (await progressSufficientForQuestionnaire2(config)) {
             redirect("./questionnaire2")

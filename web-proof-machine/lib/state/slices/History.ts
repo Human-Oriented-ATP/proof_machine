@@ -1,30 +1,15 @@
-import { getGadgetTerms } from "lib/game/GameLogic";
 import { CreateStateWithInitialValue } from "../Types"
 import { GadgetId } from "lib/game/Primitives"
 import { Equation } from "lib/game/Unification";
 import { Term } from "lib/game/Term";
 import { ValueMap } from "lib/util/ValueMap";
 import { SetupReadonlyState, setupSlice } from "./Setup";
-import { CellPosition, OUTPUT_POSITION } from 'lib/game/CellPosition';
 import { GadgetDndFromShelfSlice, gadgetDndFromShelfSlice, GadgetDndFromShelfState } from "./DragGadgetFromShelf";
 import { synchronizeHistory } from "lib/study/synchronizeHistory";
 import { GameHistory } from "lib/study/GameHistory";
+import { GadgetConnection, GameEvent, getCurrentEquations, getCurrentHoleTerms, getEquationOfConnection, getEvents, getSomeGadgetWithAxiom, getStatementOfGadget } from "lib/game/History";
 
 const HISTORY_UPLOAD_DELAY = 30 * 1000
-
-export type GadgetConnection = { from: GadgetId, to: [GadgetId, CellPosition] }
-
-function isEqualConnection(connection1: GadgetConnection, connection2: GadgetConnection) {
-    return connection1.from === connection2.from
-        && connection1.to[0] === connection2.to[0]
-        && connection1.to[1] === connection2.to[1]
-}
-
-export type GameEvent = { GameCompleted: null }
-    | { GadgetAdded: { gadgetId: GadgetId, axiom: string } }
-    | { ConnectionAdded: GadgetConnection }
-    | { GadgetRemoved: { gadgetId: GadgetId } }
-    | { ConnectionRemoved: GadgetConnection };
 
 export type HistoryStateInitializedFromData = SetupReadonlyState
 
@@ -37,23 +22,14 @@ export type HistoryState = GadgetDndFromShelfState & {
 
 export type HistoryActions = {
     logEvents: (events: GameEvent[]) => void;
-    getEvents: () => GameEvent[];
     makeHistoryObject: () => GameHistory | undefined;
     uploadHistory: () => void;
     uploadFinalHistory: () => void;
     uploadHistoryAsynchronously: () => void;
-    getAddedGadgets: () => GadgetId[]
-    getRemovedGadgets: () => GadgetId[]
-    getCurrentGadgets: () => GadgetId[]
-    getConnectionEvents: () => ({ ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection })[]
-    getCurrentConnections: () => GadgetConnection[]
-    getStatementOfInitialGadget: (gadgetId: GadgetId) => string | undefined
-    getAxiomOfAddedGadget: (gadgetId: GadgetId) => string
-    getAxiomOfGadgetBeingAdded: (gadgetId: GadgetId) => string | undefined
+    getGadgetBeingAddedEvent: () => GameEvent[]
+    getEvents(): GameEvent[]
     getStatementOfGadget: (gadgetId: GadgetId) => string
     getSomeGadgetWithAxiom: (axiom: string) => GadgetId
-    getTermsOfGadget: (gadgetId: GadgetId) => Map<CellPosition, Term>
-    getCurrentCellTerms: () => Term[]
     getCurrentHoleTerms: () => Term[]
     getEquationOfConnection: (connection: GadgetConnection) => Equation
     getCurrentEquations: () => ValueMap<GadgetConnection, Equation>
@@ -92,6 +68,7 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
 
         uploadHistory: async () => {
             clearTimeout(get().timeoutId)
+            set({ timeoutId: undefined })
             const history = get().makeHistoryObject()
             if (history !== undefined && history.log.length !== 0 && !get().finalHistoryUploaded) {
                 console.log("uploading")
@@ -108,120 +85,50 @@ export const historySlice: CreateStateWithInitialValue<HistoryStateInitializedFr
             if (get().timeoutId === undefined) {
                 const timeoutId = setTimeout(() => {
                     get().uploadHistory()
-                    set({ timeoutId: undefined })
                 }, HISTORY_UPLOAD_DELAY)
                 set({ timeoutId })
             }
         },
 
-        getEvents: () => {
-            const log = get().log
-            return log.map(([event, date]) => event)
+        getGadgetBeingAddedEvent() {
+            const gadgetBeingAdded = get().gadgetBeingDraggedFromShelf
+            if (gadgetBeingAdded === undefined) return []
+            else return [{ GadgetAdded: { gadgetId: gadgetBeingAdded.id, axiom: gadgetBeingAdded.axiom } }]
         },
 
-        getAddedGadgets: () => {
-            return get().getEvents()
-                .filter((event): event is { GadgetAdded: { gadgetId: GadgetId, axiom: string } } => "GadgetAdded" in event)
-                .map((event) => event.GadgetAdded.gadgetId)
+        getEvents: () => {
+            const gadgetBeingAddedEvent = get().getGadgetBeingAddedEvent()
+            return [...getEvents(get().log), ...gadgetBeingAddedEvent]
         },
-        getRemovedGadgets: () => {
-            return get().getEvents()
-                .filter((event): event is { GadgetRemoved: { gadgetId: GadgetId } } => "GadgetRemoved" in event)
-                .map((event) => event.GadgetRemoved.gadgetId)
-        },
-        getCurrentGadgets: () => {
-            const initialGadgets = get().setup.initialDiagram.gadgets.keys()
-            const addedGadgets = get().getAddedGadgets()
-            const removedGadgets = get().getRemovedGadgets()
-            return [...initialGadgets, ...addedGadgets].filter((gadgetId) => !removedGadgets.includes(gadgetId))
-        },
-        getConnectionEvents: () => {
-            return get().getEvents().filter((event): event is { ConnectionAdded: GadgetConnection } | { ConnectionRemoved: GadgetConnection } =>
-                "ConnectionAdded" in event || "ConnectionRemoved" in event)
-        },
-        getCurrentConnections: () => {
-            let connections: GadgetConnection[] = Array.from(get().setup.initialDiagram.connections)
-            const events = get().getConnectionEvents()
-            for (const event of events) {
-                if ("ConnectionAdded" in event) {
-                    connections.push(event.ConnectionAdded)
-                } else {
-                    const index = connections.findIndex((connection) => isEqualConnection(connection, event.ConnectionRemoved))
-                    if (index === -1) throw Error(`Invalid history log: Connection that is to be removed has not been added before 
-                        ${JSON.stringify(event.ConnectionRemoved)}`)
-                    connections.splice(index, 1)
-                }
-            }
-            return connections
-        },
-        getStatementOfInitialGadget(gadgetId: GadgetId) {
-            const initialGadgets = get().setup.initialDiagram.gadgets
-            const statement = initialGadgets.get(gadgetId)?.statement
-            if (statement === undefined)
-                return undefined
-            return statement
-        },
-        getAxiomOfGadgetBeingAdded: (gadgetId: GadgetId) => {
-            const gadgetBeingDraggedFromShelf = get().gadgetBeingDraggedFromShelf
-            if (gadgetBeingDraggedFromShelf === undefined) return undefined
-            else {
-                const { id, axiom } = gadgetBeingDraggedFromShelf
-                return id === gadgetId ? axiom : undefined
-            }
-        },
-        getAxiomOfAddedGadget: (gadgetId: GadgetId) => {
-            const event = get().getEvents().find((event) => "GadgetAdded" in event && event.GadgetAdded.gadgetId === gadgetId)
-            if (event === undefined) throw Error(`Gadget with id ${gadgetId} not found`)
-            if (!("GadgetAdded"! in event)) throw Error(`Something very weird happened`)
-            return event.GadgetAdded.axiom
-        },
+
         getStatementOfGadget: (gadgetId: GadgetId) => {
-            const { getStatementOfInitialGadget, getAxiomOfGadgetBeingAdded, getAxiomOfAddedGadget } = get();
-            const statement = getStatementOfInitialGadget(gadgetId) ?? getAxiomOfGadgetBeingAdded(gadgetId) ?? getAxiomOfAddedGadget(gadgetId);
-            return statement
+            const initialDiagram = get().setup.initialDiagram
+            const events = get().getEvents()
+            return getStatementOfGadget(gadgetId, initialDiagram, events)
         },
+
         getSomeGadgetWithAxiom: (axiom: string) => {
-            const currentGadgets = get().getCurrentGadgets()
-            for (const gadget of currentGadgets) {
-                const statement = get().getStatementOfGadget(gadget)
-                if (statement === axiom)
-                    return gadget
-            }
-            throw Error(`No gadget with axiom ${axiom} found`)
+            const initialDiagram = get().setup.initialDiagram
+            const events = get().getEvents()
+            return getSomeGadgetWithAxiom(axiom, initialDiagram, events)
         },
-        getTermsOfGadget: (gadgetId: GadgetId) => {
-            const statement = get().getStatementOfGadget(gadgetId)
-            const terms = getGadgetTerms(statement, gadgetId)
-            return terms
-        },
-        getCurrentCellTerms: () => {
-            const gadgets = get().getCurrentGadgets()
-            const terms = gadgets.flatMap(gadgetId => Array.from(get().getTermsOfGadget(gadgetId).values()))
-            return terms
-        },
-        getCurrentHoleTerms: () => {
-            const terms = get().getCurrentCellTerms()
-            const holeTerms = terms.flatMap((term => {
-                if ("variable" in term) {
-                    throw Error(`Invalid term! A cell cannot have a single variable as a term: ${term}`)
-                } else {
-                    return term.args
-                }
-            }))
-            return holeTerms
-        },
+
         getEquationOfConnection: (connection: GadgetConnection): Equation => {
-            const lhs = get().getTermsOfGadget(connection.from).get(OUTPUT_POSITION)
-            const rhs = get().getTermsOfGadget(connection.to[0]).get(connection.to[1])
-            if (lhs === undefined || rhs === undefined)
-                throw Error(`Connection has undefined terms: \n${JSON.stringify(connection)}\nlhs: ${lhs}\nrhs: ${rhs}`)
-            return [lhs!, rhs!]
+            const initialDiagram = get().setup.initialDiagram
+            const events = get().getEvents()
+            return getEquationOfConnection(connection, initialDiagram, events)
         },
+
+        getCurrentHoleTerms: () => {
+            const initialDiagram = get().setup.initialDiagram
+            const events = get().getEvents()
+            return getCurrentHoleTerms(initialDiagram, events)
+        },
+
         getCurrentEquations: () => {
-            const connections = get().getCurrentConnections()
-            const connectionsWithEquations: Array<[GadgetConnection, Equation]> = connections.map((connection) =>
-                [connection, get().getEquationOfConnection(connection)])
-            return new ValueMap(connectionsWithEquations)
+            const initialDiagram = get().setup.initialDiagram
+            const events = get().getEvents()
+            return getCurrentEquations(initialDiagram, events)
         },
 
     }

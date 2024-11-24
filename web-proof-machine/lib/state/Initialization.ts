@@ -10,7 +10,7 @@ import { GOAL_GADGET_ID } from 'lib/game/Primitives';
 import { getGadgetTerms } from "lib/game/GameLogic";
 import { Edge, ReactFlowInstance } from "@xyflow/react";
 import { DEFAULT_SETTINGS } from "components/tutorial/InteractiveLevel";
-import { GadgetConnection } from "./slices/History";
+import { GadgetConnection } from "lib/game/History";
 import { OUTPUT_POSITION } from 'lib/game/CellPosition';
 
 function getGadgetProps(id: GadgetId, gadget: InitialDiagramGadget): GadgetProps {

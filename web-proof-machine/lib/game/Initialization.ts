@@ -1,4 +1,4 @@
-import { GadgetConnection } from "lib/state/slices/History";
+import { GadgetConnection } from "./History";
 import { Axiom, GadgetId, GOAL_GADGET_ID } from "./Primitives";
 import { Term, makeTermWithFreshVariables } from "./Term";
 import { Equation } from "./Unification";
