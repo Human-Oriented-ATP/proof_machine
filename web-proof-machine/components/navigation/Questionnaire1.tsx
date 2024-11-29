@@ -88,8 +88,6 @@ export default function Questionnaire1({ redirectTo }: { redirectTo: string }) {
                 <TextArea label="Please briefly describe what kinds of mathematics problems you work on (and why you work on them):"
                     name="specialty" onChange={handleChange} />
                 <TextField label="Please tell us your first language:" name="firstLanguage" onChange={handleChange} />
-                <TextArea label="Please provide any feedback you might have about the game and the clarity of instructions:"
-                    name="feedback" onChange={handleChange} />
                 <TextField label="If you are a Prolific user, please enter your Prolific ID" name="prolific" onChange={handleChange} />
                 <SubmitButton onSubmit={handleSubmit} text={"Start the Game"} />
                 <div className="h-14"></div>

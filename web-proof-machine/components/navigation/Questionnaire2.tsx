@@ -71,9 +71,11 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
             <form onSubmit={handleSubmit}>
                 <RadioButtons name="enjoyableness" {...enjoyablenessOptions} onChange={handleChange} />
                 <RadioButtons name="difficulty" {...difficultyOptions} onChange={handleChange} />
+                <TextArea label="Please provide any feedback you might have about the clarity of instructions:"
+                    name="feedback" onChange={handleChange} />
                 <TextArea label="Can you describe strategies that are helpful to you in playing the game?"
                     name="strategies" onChange={handleChange} />
-                <TextArea label="Please provide any feedback you might have about the game/the study:"
+                <TextArea label="Please provide any feedback you might have about the game/the study in general:"
                     name="feedback2" onChange={handleChange} />
                 <SubmitButton onSubmit={handleSubmit} text="Submit" />
             </form>
