@@ -13,4 +13,4 @@ lean_lib «GadgetGameSolver» where
 lean_exe «gadgetgamesolver» where
   root := `Main
 
-require "leanprover-community" / "proofwidgets" @ git "v0.0.42"
+require "leanprover-community" / "proofwidgets" @ git "v0.0.44"
