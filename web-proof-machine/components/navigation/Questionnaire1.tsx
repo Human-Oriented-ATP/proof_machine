@@ -82,13 +82,13 @@ export default function Questionnaire1({ redirectTo }: { redirectTo: string }) {
             <h1 className="text-xl text-center pt-14">In this study you will play an online game!</h1>
             <div className="text-left text-center p-4">Please answer a few questions about yourself before continuing.</div>
             <form onSubmit={handleSubmit}>
+                <TextField label="If you are a Prolific user, please enter your Prolific ID" name="prolific" onChange={handleChange} />
                 <RadioButtons name="educationLevel" {...educationOptions} onChange={handleChange} />
                 <RadioButtons name="mathTraining" {...mathematicalTrainingOptions} onChange={handleChange} />
                 <RadioButtons name="mathRegularity" {...mathRegularityOptions} onChange={handleChange} />
                 <TextArea label="Please briefly describe what kinds of mathematics problems you work on (and why you work on them):"
                     name="specialty" onChange={handleChange} />
                 <TextField label="Please tell us your first language:" name="firstLanguage" onChange={handleChange} />
-                <TextField label="If you are a Prolific user, please enter your Prolific ID" name="prolific" onChange={handleChange} />
                 <SubmitButton onSubmit={handleSubmit} text={"Start the Game"} />
                 <div className="h-14"></div>
             </form>
