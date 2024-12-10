@@ -3,7 +3,7 @@
     "displayNamesAs": "number",
     "displayUnlistedProblems": false,
     "displayEndParticipationButton": false,
-    "skipTime": 720,
+    "skipTime": 420,
     "categories": [
         {
             "name": "Tutorial",
