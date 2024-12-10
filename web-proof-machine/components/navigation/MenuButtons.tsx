@@ -74,9 +74,9 @@ export function MenuButtons() {
             </div>
         }
         {showSkipButton && <div className='m-1'>
-            <Link href={nextLevelHref}>
+            <Link href={nextLevelHref} onClick={uploadHistory}>
                 <Button disabled={timeUntilSkip > 0}
-                    title={levelIsCompleted ? "" : `You can skip this level in ${formatTime(timeUntilSkip)}.`}>
+                    title={timeUntilSkip <= 0 ? "" : `You can skip this level in ${formatTime(timeUntilSkip)}.`}>
                     Skip level
                 </Button>
             </Link>
