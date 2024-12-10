@@ -12,6 +12,7 @@ export type LevelConfiguration = {
     initialViewportSetting: InitialViewportSetting
     showBrokenConnectionStatusBarMessage: boolean
     isTutorialLevel: boolean
+    skipTime?: number
 }
 
 export type GadgetSelector = { gadgetId: GadgetId } | { axiom: string } | "ANY_GADGET";
@@ -69,7 +70,8 @@ export const DEFAULT_SETTINGS: LevelConfiguration = {
     gadgetDeletionEnabled: true,
     initialViewportSetting: "ORIGIN_AT_RIGHT",
     showBrokenConnectionStatusBarMessage: true,
-    isTutorialLevel: false
+    isTutorialLevel: false,
+    skipTime: undefined,
 };
 
 export const TUTORIAL_SETTINGS: LevelConfiguration = {

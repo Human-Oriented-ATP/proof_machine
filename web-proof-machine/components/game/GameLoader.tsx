@@ -39,7 +39,7 @@ export async function GameLoader({ configId, problemId }: { configId: string, pr
                 axioms={axioms}
                 problemId={problemId}
                 nextProblem={nextProblem}
-                configurationIdentifier={configuration.name}
+                configuration={configuration}
                 settings={settings ?? DEFAULT_SETTINGS}
                 tutorialSteps={tutorialSteps}
             />

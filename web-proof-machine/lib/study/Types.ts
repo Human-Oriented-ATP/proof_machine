@@ -10,5 +10,6 @@ export interface StudyConfiguration {
     displayNamesAs: "name" | "number"
     displayUnlistedProblems: boolean
     displayEndParticipationButton: boolean
+    skipTime?: number
     categories: ProblemCategory[]
 }

@@ -2,7 +2,7 @@ import { GadgetNode } from "components/game/flow/GadgetFlowNode";
 import { GameProps } from "components/game/Game";
 import { GameStateInitializedFromData } from "./Store";
 import { ReadonlyGameSetup } from './slices/Setup';
-import { InitialDiagram, InitialDiagramGadget, isAxiom } from "lib/game/Initialization";
+import { InitialDiagram, InitialDiagramGadget } from "lib/game/Initialization";
 import { makeHandleId } from 'lib/game/Handles';
 import { GadgetId } from "lib/game/Primitives";
 import { GadgetProps } from "components/game/gadget/Gadget";
@@ -59,7 +59,8 @@ function getInitialEdges(initialDiagram: InitialDiagram): Edge[] {
 }
 
 export function getInitialState(props: GameProps, rf: ReactFlowInstance): GameStateInitializedFromData {
-    const propsWithDefaults = { ...props, settings: props.settings ?? DEFAULT_SETTINGS, tutorialSteps: props.tutorialSteps ?? [] }
+    const settings = { ...props.settings ?? DEFAULT_SETTINGS, skipTime: props.configuration?.skipTime }
+    const propsWithDefaults = { ...props, settings, tutorialSteps: props.tutorialSteps ?? [], configurationIdentifier: props.configuration?.name }
     const setup: ReadonlyGameSetup = { ...propsWithDefaults }
 
     return {
