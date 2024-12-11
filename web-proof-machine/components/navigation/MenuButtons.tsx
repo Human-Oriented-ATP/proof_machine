@@ -7,15 +7,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { GameSlice } from 'lib/state/Store';
 import { useCallback, useEffect, useState } from 'react';
 
-const selector = (state: GameSlice) => ({
-    levelIsCompleted: state.levelIsCompleted,
-    openHelpPopup: state.openHelpPopup,
-    reset: state.reset,
-    uploadHistory: state.uploadHistory,
-    isTutorialLevel: state.setup.settings.isTutorialLevel,
-    skipTime: state.setup.settings.skipTime,
-})
-
 function formatTime(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -23,17 +14,28 @@ function formatTime(seconds: number): string {
     return `${minutes}:${paddedSeconds}`;
 }
 
-export function MenuButtons() {
-    const { levelIsCompleted, openHelpPopup, reset, uploadHistory, isTutorialLevel, skipTime } = useGameStateContext(useShallow(selector))
+function HelpButton() {
+    const openHelpPopup = useGameStateContext(useShallow((state) => state.openHelpPopup))
+    return <div className='m-1'>
+        <Button onClick={openHelpPopup}>Help</Button>
+    </div>
+}
 
+function MainMenuButton() {
+    const uploadHistory = useGameStateContext(useShallow((state) => state.uploadHistory))
     const router = useRouter();
+    const mainButtonAction = useCallback(() => {
+        uploadHistory()
+        router.push('../')
+    }, [])
 
-    const { nextProblem } = useGameStateContext((state) => state.setup)
-    const nextLevelHref = nextProblem ? `../game/${nextProblem}` : undefined
+    return <div className='m-1'>
+        <Button onClick={mainButtonAction}>Main menu</Button>
+    </div>
+}
 
-    const showMenuButton = skipTime === null && !isTutorialLevel
-    const showSkipButton = skipTime !== null && nextLevelHref !== undefined
-
+function RestartLevelButton() {
+    const { reset, uploadHistory } = useGameStateContext((state) => state)
     const restartLevel = useCallback(() => {
         const confirmed = confirm("Are you sure that you want to restart the level? All progress will be lost.")
         if (confirmed) {
@@ -42,12 +44,14 @@ export function MenuButtons() {
         }
     }, [])
 
-    const mainButtonAction = useCallback(() => {
-        uploadHistory()
-        router.push('../')
-    }, [])
+    return <div className='m-1'>
+        <Button onClick={restartLevel}>Restart level</Button>
+    </div>
+}
 
+function SkipButton({ nextLevelHref, skipTime }: { nextLevelHref: string, skipTime: number | undefined }) {
     const [timeUntilSkip, setTimeUntilSkip] = useState(skipTime || 0)
+    const uploadHistory = useGameStateContext(useShallow((state) => state.uploadHistory))
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -59,37 +63,47 @@ export function MenuButtons() {
         }, 1000)
     }, [skipTime])
 
+    return <div className='m-1'>
+        <Link href={nextLevelHref} onClick={uploadHistory}>
+            <Button disabled={timeUntilSkip > 0}
+                title={timeUntilSkip <= 0 ? "" : `You can skip this level in ${formatTime(timeUntilSkip)}.`}>
+                Skip level
+            </Button>
+        </Link>
+    </div>
+}
+
+function NextLevelButton({ nextLevelHref }: { nextLevelHref: string }) {
+    const levelIsCompleted = useGameStateContext(useShallow((state) => state.levelIsCompleted))
+    return <div className='m-1'>
+        <Link href={nextLevelHref}>
+            <HighlightedButton disabled={!levelIsCompleted}
+                title={levelIsCompleted ? "" : "Connect all gadgets and remove broken connections to continue."}>
+                Next level
+            </HighlightedButton>
+        </Link>
+    </div>
+}
+
+const selector = (state: GameSlice) => ({
+    isTutorialLevel: state.setup.settings.isTutorialLevel,
+    skipTime: state.setup.settings.skipTime,
+})
+
+export function MenuButtons() {
+    const { isTutorialLevel, skipTime } = useGameStateContext(useShallow(selector))
+
+    const { nextProblem } = useGameStateContext((state) => state.setup)
+    const nextLevelHref = nextProblem ? `../game/${nextProblem}` : undefined
+
+    const showMainMenuButton = skipTime === undefined && !isTutorialLevel
+    const showSkipButton = skipTime !== undefined && nextLevelHref !== undefined
+
     return <>
-        <div className='m-1'>
-            <Button onClick={openHelpPopup}>Help</Button>
-        </div>
-        {showMenuButton &&
-            <div className='m-1'>
-                <Button onClick={mainButtonAction}>Main menu</Button>
-            </div>
-        }
-        {!isTutorialLevel &&
-            <div className='m-1'>
-                <Button onClick={restartLevel}>Restart level</Button>
-            </div>
-        }
-        {showSkipButton && <div className='m-1'>
-            <Link href={nextLevelHref} onClick={uploadHistory}>
-                <Button disabled={timeUntilSkip > 0}
-                    title={timeUntilSkip <= 0 ? "" : `You can skip this level in ${formatTime(timeUntilSkip)}.`}>
-                    Skip level
-                </Button>
-            </Link>
-        </div>
-        }
-        {nextLevelHref !== undefined && <div className='m-1'>
-            <Link href={nextLevelHref}>
-                <HighlightedButton disabled={!levelIsCompleted}
-                    title={levelIsCompleted ? "" : "Connect all gadgets and remove broken connections to continue."}>
-                    Next level
-                </HighlightedButton>
-            </Link>
-        </div>
-        }
+        <HelpButton />
+        {showMainMenuButton && <MainMenuButton />}
+        {!isTutorialLevel && <RestartLevelButton />}
+        {showSkipButton && <SkipButton nextLevelHref={nextLevelHref} skipTime={skipTime} />}
+        {nextLevelHref !== undefined && <NextLevelButton nextLevelHref={nextLevelHref} />}
     </>;
 }
