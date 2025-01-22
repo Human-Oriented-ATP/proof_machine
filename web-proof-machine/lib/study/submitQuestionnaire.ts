@@ -27,6 +27,7 @@ export async function submitQuestionnaire2(formData) {
         difficulty = ${questionnaire.difficulty}, 
         enjoyableness = ${questionnaire.enjoyableness}, 
         strategies = ${questionnaire.strategies}, 
+        skipped = ${questionnaire.skipped},
         feedback2 = ${questionnaire.feedback2}
     WHERE respondent_id = ${playerId};
 `;

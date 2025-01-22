@@ -39,6 +39,7 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
         difficulty: undefined,
         enjoyableness: undefined,
         strategies: '',
+        skipped: '',
         feedback2: '',
     });
 
@@ -75,6 +76,8 @@ export function Questionnaire2({ redirectTo = "../" }: { redirectTo?: string }) 
                     name="feedback" onChange={handleChange} />
                 <TextArea label="Can you describe strategies that are helpful to you in playing the game?"
                     name="strategies" onChange={handleChange} />
+                <TextArea label="Have you skipped a level? If yes, why?"
+                    name="skipped" onChange={handleChange} />
                 <TextArea label="Please provide any feedback you might have about the game/the study in general:"
                     name="feedback2" onChange={handleChange} />
                 <SubmitButton onSubmit={handleSubmit} text="Submit" />
