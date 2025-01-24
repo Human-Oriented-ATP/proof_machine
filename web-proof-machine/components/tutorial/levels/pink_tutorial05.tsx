@@ -4,7 +4,7 @@ export const pink_tutorial05: InteractiveLevel = {
     settings: TUTORIAL_SETTINGS,
     steps: [{
         content: {
-            jsx: <>If this one is too hard, you can go back to the main menu and try a different level.</>
+            jsx: <>If this one is too hard, you can use the skip button to continue with the next level.</>
         },
         trigger: {
             GameCompleted: null
