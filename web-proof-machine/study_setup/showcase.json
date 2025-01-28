@@ -1,0 +1,56 @@
+{
+    "name": "showcase",
+    "displayNamesAs": "number",
+    "displayUnlistedProblems": false,
+    "displayEndParticipationButton": false,
+    "categories": [
+        {
+            "name": "Tutorial",
+            "problems": [
+                "tutorial01",
+                "tutorial01a",
+                "tutorial02",
+                "tutorial03",
+                "tutorial04",
+                "tutorial05",
+                "tutorial06"
+            ],
+            "numberOfUnlockedProblems": 1000
+        },
+        {
+            "name": "Set I",
+            "problems": [
+                "t_e10",
+                "t_e13",
+                "t17",
+                "t19",
+                "t18"
+            ],
+            "numberOfUnlockedProblems": 1000
+        },
+        {
+            "name": "Tutorial II",
+            "problems": [
+                "pink_tutorial01",
+                "pink_tutorial02",
+                "pink_tutorial03",
+                "pink_tutorial04",
+                "pink_tutorial05"
+            ],
+            "numberOfUnlockedProblems": 1000
+        },
+        {
+            "name": "Set II",
+            "problems": [
+                "ja_e05",
+                "t20",
+                "jo_pink1",
+                "t16",
+                "t_e09",
+                "t29",
+                "questionnaire2"
+            ],
+            "numberOfUnlockedProblems": 1000
+        }
+    ]
+}
