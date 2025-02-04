@@ -1,46 +1,33 @@
-# Getting Started with Create React App
+# The Gadget Game
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Setup instructions
 
-## Available Scripts
+1. You need to have the package manager `npm` and `Node.js` installed.
+2. Open a console and navigate to this directory.
+3. Run `npm ci` which should install the required packages. 
+4. Run `npm run dev` to run the development version of the game. 
+5. Click the link (which is probably something like `http://localhost:3000`) to access the game in a web browser. 
 
-In the project directory, you can run:
+You can also run unit tests using `npm run test`.
 
-### `npm start`
+## Writing problem files
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+You can create your own problem files and put them in the folder `problems` to make them available to the game. They then automatically appear on the page `internal` under Unlisted Problems. The following colors are available: 
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+| Abbreviation | Color |
+| ------------ | ----- |
+| r | red |
+| y | yellow | 
+| g | green | 
+| b | blue |
+| w | white |
+| bl | black | 
+| o | orange | 
+| p | purple | 
+| c | cyan | 
 
-### `npm test`
+Appending `striped_` will give the cell black stripes and counts as different color. For example, a gadget could be given by `striped_r(A) :- b(A).` There are many examples of problem files in the `problems` folder, take some inspiration! 
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Configuring a study
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+The folder `study_setup` contains configuration files for setting up experiments on the Gadget Game. They can be used to specify which problems will be shown to the participants and in which order, how long they need to wait until they can skip a problem etc. It is possible to set up A/B tests by using two separate configuration files and making sure that group A receives the link pointing to the study with configuration A and vice-versa for group B.  
