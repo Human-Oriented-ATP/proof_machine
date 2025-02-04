@@ -96,4 +96,8 @@ export class DisjointSetWithAssignment<T, S> {
         return new Array(...this.assignments.keys())
     }
 
+    getAssignedEntries(): [T, S][] {
+        return new Array(...this.assignments.entries())
+    }
+
 }

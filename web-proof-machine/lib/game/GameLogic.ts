@@ -4,6 +4,7 @@ import { GadgetId } from "./Primitives";
 import { GadgetProps } from "components/game/gadget/Gadget";
 import { Term, makeAxiomWithFreshVariables } from "./Term";
 import { parseStatement } from 'lib/parsing/Semantics';
+import { Equation } from './Unification';
 
 export function getGadgetTerms(statement: string, id: GadgetId): Map<CellPosition, Term> {
     const parsed = parseStatement(statement)
@@ -26,7 +27,7 @@ export function axiomToGadget(axiom: string, id: GadgetId): GadgetProps {
     return { terms, id, isOnShelf: false }
 }
 
-function termToString(t: Term): string {
+export function termToString(t: Term): string {
     if ("variable" in t) {
         return t.variable
     } else {
@@ -36,6 +37,10 @@ function termToString(t: Term): string {
             return t.label + "(" + t.args.map(termToString).join(", ") + ")"
         }
     }
+}
+
+export function equationToString(equation: Equation) {
+    return termToString(equation[0]) + "=" + termToString(equation[1])
 }
 
 export function axiomToString(a: Axiom) {
