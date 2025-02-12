@@ -8,8 +8,8 @@ o(Y,xo(Y)) :- y(X,Y).
 c(A,C) :- p(A,B), p(B,C).
 p(A,C) :- g(A,B), b(B,C).
 p(A,C) :- r(A,B), p(B,C).
-p(A,C) :- w(A,B), y(B,C).
-p(A,C) :- p(A,B), o(B,C).
+striped_r(A,C) :- w(A,B), y(B,C).
+p(A,C) :- striped_r(A,B), o(B,C).
 
 bl(A) :- c(A,B).
 
