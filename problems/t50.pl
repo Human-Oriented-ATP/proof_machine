@@ -7,7 +7,7 @@ r(xr(A),A).
 b(xb(A,B),A,B).
 g(xg(A,B),A,B).
 y(A,B) :- b(A,X,Y), r(B,X).
-g(A,B,C) :- r(A,Z), r(B,Y), b(C,X,Y).
+g(A,B,C) :- w(Z,X,Y), r(A,Z), r(B,Y), b(C,X,Y).
 y(A,D) :- g(A,B,C), g(D,B,E), y(C,E).
 :- y(3,7).
 
