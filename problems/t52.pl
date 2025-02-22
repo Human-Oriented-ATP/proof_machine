@@ -9,4 +9,4 @@ g(B,X,C) :- g(A,X,Y), g(B,A,Z), g(C,Y,Z).
 g(B,A,Z) :- g(A,X,Y), g(B,X,C), g(C,Y,Z).
 g(X,A,W) :- g(A,X,Y), b(W,Y).
 b(A,B) :- b(B,A).
-:- g(3,1,2).
+:- g(6,4,5).
