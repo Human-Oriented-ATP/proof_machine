@@ -8,6 +8,6 @@ r(4,1).
 g(A,B,C,D) :- g(B,X,D,C), r(X,A).
 g(A,B,C,D) :- g(C,D,A,X), r(X,B).
 g(A,B,C,D) :- g(X,C,B,A), r(X,D).
-:- g(1,2,4,3).
+:- g(4,2,1,3).
 
 
